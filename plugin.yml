@@ -1,0 +1,45 @@
+name: Hawk
+main: me.islandscout.hawk.Hawk
+version: 1807
+author: Islandscout
+description: An anti-cheat system
+commands:
+    hawk:
+        description: Basic information about Hawk Anti-Cheat
+        usage: /<command>
+permissions:
+  hawk.admin.*:
+    description: Allows one to perform any Hawk administrative action
+    default: op
+    children:
+      hawk.admin: true
+      hawk.admin.all: true
+      hawk.admin.kick: true
+      hawk.admin.notify: true
+      hawk.admin.reload: true
+  hawk.admin:
+    description: Allows one to access help menu and GUI
+    default: op
+  hawk.admin.cps:
+    description: Allows one to check the CPS of another
+    default: op
+    children:
+      hawk.admin: true
+  hawk.admin.kick:
+    description: Allows one to kick a player
+    defualt: op
+    children:
+      hawk.admin: true
+  hawk.admin.notify:
+    description: Allows one to toggle Hawk notifications for themselves
+    default: op
+    children:
+      hawk.admin: true
+  hawk.admin.reload:
+    description: Allows one to reload the Hawk configuration
+    defualt: op
+    children:
+      hawk.admin: true
+  hawk.notify:
+    description: Allows one to recieve Hawk notifications
+    defualt: op
