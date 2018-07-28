@@ -51,7 +51,7 @@ public class BlockBreakHitbox extends AsyncBlockDigCheck {
             punishAndTryCancelAndBlockRespawn(p, e, placeholder);
         }
         else if(e.getDigAction() == DigAction.START) {
-            punishAndTryCancel(p, e, placeholder);
+            punish(p, true, e);
         }
     }
 }

@@ -23,7 +23,7 @@ public class FightCriticals extends AsyncEntityInteractionCheck {
             HawkPlayer att = hawk.getHawkPlayer(attacker);
             Location loc = att.getLocation().clone();
             if((attacker.getFallDistance() < 0.3 && attacker.getFallDistance() != 0 && loc.add(0, -0.3, 0).getBlock().getType().isSolid() && !loc.add(0, 2.3, 0).getBlock().getType().isSolid())) {
-                punishAndTryCancel(attacker, e);
+                punish(attacker, true, e);
                 return;
             }
             reward(attacker);

@@ -25,7 +25,7 @@ public class LagCompensator {
     public LagCompensator(Hawk hawk) {
         this.locationTimes = new HashMap<>();
         historySize = ConfigHelper.getOrSetDefault(20, hawk.getConfig(), "lagCompensation.historySize");
-        pingOffset = ConfigHelper.getOrSetDefault(150, hawk.getConfig(), "lagCompensation.pingOffset");
+        pingOffset = ConfigHelper.getOrSetDefault(200, hawk.getConfig(), "lagCompensation.pingOffset");
     }
 
     //uses linear interpolation to get the best location
@@ -72,7 +72,10 @@ public class LagCompensator {
     */
 
     public void processMove(PlayerMoveEvent e) {
-        if(e.getTo().distanceSquared(e.getFrom()) == 0) return;
+        if(e.isCancelled())
+            return;
+        if(e.getTo().distanceSquared(e.getFrom()) == 0)
+            return;
         Player p = e.getPlayer();
         List<LocationTime> times = locationTimes.getOrDefault(p.getUniqueId(), new ArrayList<>());
         long currTime = System.currentTimeMillis();

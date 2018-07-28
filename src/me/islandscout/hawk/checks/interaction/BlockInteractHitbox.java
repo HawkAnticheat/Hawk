@@ -33,10 +33,10 @@ public class BlockInteractHitbox extends AsyncBlockPlacementCheck {
         Vector intersection = aabb.intersectsRay(ray, 0, 6);
 
         if(intersection == null) {
-            punishAndTryCancel(p, e, new Placeholder("type", "Did not hit hitbox."));
+            punish(p, true, e, new Placeholder("type", "Did not hit hitbox."));
         }
         else if(new Vector(intersection.getX() - pLoc.getX(), intersection.getY() - pLoc.getY(), intersection.getZ() - pLoc.getZ()).lengthSquared() > 36) {
-            punishAndTryCancel(p, e, new Placeholder("type", "Reached too far."));
+            punish(p, true, e, new Placeholder("type", "Reached too far."));
         }
         else {
             reward(p);

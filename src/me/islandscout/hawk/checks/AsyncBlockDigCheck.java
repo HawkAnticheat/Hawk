@@ -20,7 +20,7 @@ public abstract class AsyncBlockDigCheck extends AsyncCheck<BlockDigEvent> {
     }
 
     protected void punishAndTryCancelAndBlockRespawn(Player offender, BlockDigEvent event, Placeholder... placeholders) {
-        punishAndTryCancel(offender, event, placeholders);
+        punish(offender, true, event, placeholders);
         if(Hawk.getServerVersion() == 7) {
             BlockNMS7.getBlockNMS(event.getBlock()).sendPacketToPlayer(offender);
         }

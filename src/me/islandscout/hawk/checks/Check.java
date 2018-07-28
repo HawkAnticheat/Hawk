@@ -110,7 +110,7 @@ public abstract class Check {
         //to be overridden by checks
     }
 
-    protected void punish(Player offender, Placeholder... placeholders) {
+    void punish(Player offender, Placeholder... placeholders) {
         HawkPlayer pp = hawk.getHawkPlayer(offender);
         pp.incrementVL(this);
 

@@ -22,7 +22,7 @@ public abstract class AsyncBlockPlacementCheck extends AsyncCheck<BlockPlaceEven
     }
 
     protected void punishAndTryCancelAndBlockDestroy(Player offender, BlockPlaceEvent event, Placeholder... placeholders) {
-        punishAndTryCancel(offender, event, placeholders);
+        punish(offender, true, event, placeholders);
         Block b = ServerUtils.getBlockAsync(event.getLocation());
         if(b == null)
             return;

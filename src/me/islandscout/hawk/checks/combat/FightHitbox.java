@@ -45,6 +45,7 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
 
     private final double MAX_REACH;
     private final int PING_LIMIT;
+    private final int CANCEL_ABOVE_VL;
     private final boolean CHECK_OTHER_ENTITIES;
     private final boolean LAG_COMPENSATION;
     private final boolean DEBUG_HITBOX;
@@ -52,7 +53,7 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
     private final boolean CHECK_OCCLUSION;
 
     public FightHitbox(Hawk hawk) {
-        super(hawk, "fighthitbox", true, true, false, 0.95, 5, 1000,"&7%player% failed combat hitbox. %type% VL: %vl%", null);
+        super(hawk, "fighthitbox", true, true, false, 0.95, 10000, 1000,"&7%player% failed combat hitbox. %type% VL: %vl%", null);
         MAX_REACH = ConfigHelper.getOrSetDefault(3.1, hawk.getConfig(), "checks.fighthitbox.maxReach");
         LAG_COMPENSATION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fighthitbox.lagCompensation");
         PING_LIMIT = ConfigHelper.getOrSetDefault(-1, hawk.getConfig(), "checks.fighthitbox.pingLimit");
@@ -60,6 +61,7 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
         DEBUG_RAY = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.debug.ray");
         CHECK_OCCLUSION = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.checkOccluding");
         CHECK_OTHER_ENTITIES = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.checkOtherEntities");
+        CANCEL_ABOVE_VL = ConfigHelper.getOrSetDefault(0, hawk.getConfig(), "checks.fighthitbox.cancelAboveVl");
     }
 
     protected void check(InteractEntityEvent e) {
@@ -68,10 +70,12 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
             return;
         Player attacker = e.getPlayer();
         int ping = ServerUtils.getPing(attacker);
-        if(ping > PING_LIMIT && PING_LIMIT != -1) return;
+        if(ping > PING_LIMIT && PING_LIMIT != -1)
+            return;
 
         HawkPlayer att = hawk.getHawkPlayer(attacker);
         Location attackerEyeLocation = att.getLocation().clone().add(0, 1.62, 0);
+        double currVL = att.getVL(this);
 
         //Extrapolate last position. (For 1.7 clients ONLY)
         //Unfortunately, there will be false positives from 1.7 users due to the nature of how the client interacts
@@ -136,18 +140,18 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
         }
 
         if(intersectVec3d == null) {
-            punishAndTryCancel(attacker, e, new Placeholder("type", "Did not hit hitbox."));
+            punish(attacker, currVL >= CANCEL_ABOVE_VL, e, new Placeholder("type", "Did not hit hitbox."));
             return;
         }
         else {
             Location intersect = new Location(attacker.getWorld(), intersectVec3d.getX(), intersectVec3d.getY(), intersectVec3d.getZ());
-            double distance = intersect.distance(attackerEyeLocation);
-            if(distance > maxReach) {
-                punishAndTryCancel(attacker, e, new Placeholder("type", "Reach: " + MathPlus.round(distance, 2) + "m"));
+            double interDistance = intersect.distance(attackerEyeLocation);
+            if(interDistance > maxReach) {
+                punish(attacker, currVL >= CANCEL_ABOVE_VL, e, new Placeholder("type", "Reach: " + MathPlus.round(interDistance, 2) + "m"));
                 return;
             }
-            if(CHECK_OCCLUSION && distance > 0.5) {
-                BlockIterator iter = new BlockIterator(attacker.getWorld(), eyePos, attackerDirection, 0, (int)distance + 1);
+            if(CHECK_OCCLUSION && interDistance > 1D) {
+                BlockIterator iter = new BlockIterator(attacker.getWorld(), eyePos, attackerDirection, 0, (int)interDistance + 1);
                 while (iter.hasNext()) {
                     Block bukkitBlock = iter.next();
 
@@ -156,15 +160,18 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
 
                     BlockNMS b = BlockNMS.getBlockNMS(bukkitBlock);
                     AABB checkIntersection = new AABB(b.getCollisionBox().getMin(), b.getCollisionBox().getMax());
-                    Vector intersection = checkIntersection.intersectsRay(new Ray(attackerEyeLocation.toVector(), attackerDirection), 0, (float)distance);
+                    Vector intersection = checkIntersection.intersectsRay(new Ray(attackerEyeLocation.toVector(), attackerDirection), 0, (float)interDistance);
                     if(intersection != null) {
-                        punishAndTryCancel(attacker, e, new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType()));
-                        return;
+                        if(intersection.distance(eyePos) < interDistance) {
+                            punish(attacker, currVL >= CANCEL_ABOVE_VL, e, new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType()));
+                            return;
+                        }
                     }
                 }
 
             }
         }
+        Debug.broadcastMessage("PASSED");
         reward(attacker); //reward player
     }
 }

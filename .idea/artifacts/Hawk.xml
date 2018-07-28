@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="Hawk">
+    <output-path>$PROJECT_DIR$/../../../mc server/plugins</output-path>
+    <root id="archive" name="Hawk.jar">
+      <element id="module-output" name="Hawk" />
+      <element id="file-copy" path="$PROJECT_DIR$/plugin.yml" />
+    </root>
+  </artifact>
+</component>
