@@ -171,7 +171,6 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
 
             }
         }
-        Debug.broadcastMessage("PASSED");
         reward(attacker); //reward player
     }
 }

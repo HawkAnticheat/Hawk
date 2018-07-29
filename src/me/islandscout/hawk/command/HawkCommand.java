@@ -27,8 +27,6 @@ public class HawkCommand implements CommandExecutor {
             hawk.getGuiManager().sendMenuWindow((Player) commandSender);
         }
 
-        System.gc();
-
         sendHeader(commandSender);
 
         commandSender.sendMessage(ChatColor.GOLD + "/hawk cps <player> <iterations>: " + ChatColor.GRAY + "analyze CPS.");
