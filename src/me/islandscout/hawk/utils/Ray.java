@@ -1,5 +1,7 @@
 package me.islandscout.hawk.utils;
 
+import me.islandscout.hawk.Hawk;
+import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
@@ -34,10 +36,16 @@ public class Ray implements Cloneable {
         return null;
     }
 
-    public void highlight(World world, double blocksAway, double accuracy){
-        for(double x = 0; x < blocksAway; x+=accuracy) {
-            world.playEffect(getPointAtDistance(x).toLocation(world), Effect.COLOURED_DUST,1);
-        }
+    public void highlight(Hawk hawk, World world, double blocksAway, double accuracy){
+        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, new Runnable() {
+            @Override
+            public void run() {
+                for(double x = 0; x < blocksAway; x+=accuracy) {
+                    world.playEffect(getPointAtDistance(x).toLocation(world), Effect.COLOURED_DUST,1);
+                }
+            }
+        }, 0L);
+
     }
 
     public String toString() {

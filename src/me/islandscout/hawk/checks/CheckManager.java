@@ -49,6 +49,7 @@ public class CheckManager {
         new Inertia(hawk);
         new BlockBreakHitbox(hawk);
         new WrongBlock(hawk);
+        new LiquidExit(hawk);
 
         for(Check check : checkList) {
             if(check instanceof Listener)

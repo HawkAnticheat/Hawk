@@ -132,11 +132,11 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
         Vector intersectVec3d = victimAABB.intersectsRay(attackerRay, 0, 10);
 
         if(DEBUG_HITBOX) {
-            victimAABB.highlight(attacker.getWorld(), 0.29);
+            victimAABB.highlight(hawk, attacker.getWorld(), 0.29);
         }
 
         if(DEBUG_RAY) {
-            attackerRay.highlight(attacker.getWorld(), maxReach, 0.1);
+            attackerRay.highlight(hawk, attacker.getWorld(), maxReach, 0.1);
         }
 
         if(intersectVec3d == null) {

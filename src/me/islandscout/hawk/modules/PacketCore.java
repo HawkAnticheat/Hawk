@@ -8,6 +8,7 @@ import me.islandscout.hawk.events.Event;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.listener.packets.PacketListener7;
 import me.islandscout.hawk.listener.packets.PacketListener8;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.PhantomBlock;
 import me.islandscout.hawk.utils.packets.PacketConverter7;
 import me.islandscout.hawk.utils.packets.PacketConverter8;
@@ -90,6 +91,7 @@ public class PacketCore {
                         ((PositionEvent) event).setTeleported(true);
                     }
                     else {
+                        //TODO: If a player doesn't accept a teleport, kick em.
                         return false;
                     }
                 }

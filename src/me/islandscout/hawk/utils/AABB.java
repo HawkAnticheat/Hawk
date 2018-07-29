@@ -1,5 +1,7 @@
 package me.islandscout.hawk.utils;
 
+import me.islandscout.hawk.Hawk;
+import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
@@ -77,16 +79,22 @@ public class AABB implements Cloneable {
         return null;
     }
 
-    public void highlight(World world, double accuracy){
-        for(double x = min.getX(); x < max.getX(); x+=accuracy){
-            for(double y = min.getY(); y < max.getY(); y+=accuracy) {
-                for (double z = min.getZ(); z < max.getZ(); z+=accuracy) {
-                    Vector position = new Vector(x, y, z);
-                    world.playEffect(position.toLocation(world), Effect.COLOURED_DUST,1);
-                    world.playEffect(position.toLocation(world), Effect.COLOURED_DUST,1);
+    public void highlight(Hawk hawk, World world, double accuracy){
+        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, new Runnable() {
+            @Override
+            public void run() {
+                for(double x = min.getX(); x < max.getX(); x+=accuracy){
+                    for(double y = min.getY(); y < max.getY(); y+=accuracy) {
+                        for (double z = min.getZ(); z < max.getZ(); z+=accuracy) {
+                            Vector position = new Vector(x, y, z);
+                            world.playEffect(position.toLocation(world), Effect.COLOURED_DUST,1);
+                            world.playEffect(position.toLocation(world), Effect.COLOURED_DUST,1);
+                        }
+                    }
                 }
             }
-        }
+        }, 0L);
+
     }
 
     public void translate(Vector vector) {

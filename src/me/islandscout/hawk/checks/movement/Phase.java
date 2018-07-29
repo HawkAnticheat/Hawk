@@ -118,7 +118,6 @@ public class Phase extends AsyncMovementCheck {
 
                     BlockNMS block = BlockNMS.getBlockNMS(bukkitBlock);
                     AABB test = block.getCollisionBox();
-                    test.highlight(bukkitBlock.getWorld(), 0.3);
 
                     //check if "test" box is even in "bigBox"
                     if (!test.isColliding(bigBox))
