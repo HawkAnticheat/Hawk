@@ -6,6 +6,7 @@
 
 .mtj.tmp/
 
+.idea/*
 .idea/
 
 *.jar
