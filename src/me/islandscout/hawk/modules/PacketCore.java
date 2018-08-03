@@ -15,6 +15,7 @@ import me.islandscout.hawk.utils.packets.PacketConverter8;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
 /**
@@ -84,14 +85,17 @@ public class PacketCore {
             pp.setLastMoveTime(System.currentTimeMillis());
             ((PositionEvent) event).setTeleported(false);
             if(pp.isTeleporting()) {
-                if(pp.getTeleportLoc().getWorld().equals(((PositionEvent) event).getFrom().getWorld())) {
-                    if(((PositionEvent) event).getTo().distanceSquared(pp.getTeleportLoc()) < 0.000001) {
+                Location tpLoc = pp.getTeleportLoc();
+                if(tpLoc.getWorld().equals(((PositionEvent) event).getFrom().getWorld())) {
+                    if(((PositionEvent) event).getTo().distanceSquared(tpLoc) < 0.001) {
                         ((PositionEvent) event).setFrom(((PositionEvent) event).getTo());
                         pp.setTeleporting(false);
                         ((PositionEvent) event).setTeleported(true);
                     }
                     else {
-                        //TODO: If a player doesn't accept a teleport, kick em.
+                        //Help guide the confused client back to the tp location
+                        if(System.currentTimeMillis() - pp.getLastTeleportTime() > 1000)
+                            pp.teleportPlayer(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
                         return false;
                     }
                 }

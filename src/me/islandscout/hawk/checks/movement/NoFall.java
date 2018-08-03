@@ -14,8 +14,8 @@ public class NoFall extends AsyncMovementCheck {
     private Set<UUID> failed;
     private static final double EPSILON = 0.3;
 
-    public NoFall(Hawk hawk) {
-        super(hawk, "nofall", true, true, true, 0.9, 2, 1000, "&7%player% failed nofall. VL: %vl%", null);
+    public NoFall() {
+        super("nofall", true, true, true, 0.9, 2, 1000, "&7%player% failed nofall. VL: %vl%", null);
         maxHeight = new HashMap<>();
         failed = new HashSet<>();
     }

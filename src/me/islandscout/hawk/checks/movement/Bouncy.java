@@ -9,8 +9,8 @@ public class Bouncy extends AsyncMovementCheck {
 
     //Debug class
 
-    public Bouncy(Hawk hawk) {
-        super(hawk, "bouncy", "foo");
+    public Bouncy() {
+        super("bouncy", "foo");
     }
 
     private double maxYPos;

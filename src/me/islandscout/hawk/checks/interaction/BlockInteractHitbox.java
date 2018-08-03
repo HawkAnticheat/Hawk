@@ -13,8 +13,8 @@ import org.bukkit.util.Vector;
 
 public class BlockInteractHitbox extends AsyncBlockPlacementCheck {
 
-    public BlockInteractHitbox(Hawk hawk) {
-        super(hawk, "blockinteracthitbox", "&7%player% failed block interact hitbox. %type% VL: %vl%");
+    public BlockInteractHitbox() {
+        super("blockinteracthitbox", "&7%player% failed block interact hitbox. %type% VL: %vl%");
     }
 
     @Override

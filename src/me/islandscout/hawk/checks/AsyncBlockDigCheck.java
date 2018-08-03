@@ -11,12 +11,12 @@ import java.util.List;
 
 public abstract class AsyncBlockDigCheck extends AsyncCheck<BlockDigEvent> {
 
-    public AsyncBlockDigCheck(Hawk hawk, String name, boolean enabled, boolean cancelByDefault, boolean flagByDefault, double vlPassMultiplier, int minVlFlag, long flagCooldown, String flag, List<String> punishCommands) {
-        super(hawk, name, enabled, cancelByDefault, flagByDefault, vlPassMultiplier, minVlFlag, flagCooldown, flag, punishCommands);
+    public AsyncBlockDigCheck(String name, boolean enabled, boolean cancelByDefault, boolean flagByDefault, double vlPassMultiplier, int minVlFlag, long flagCooldown, String flag, List<String> punishCommands) {
+        super(name, enabled, cancelByDefault, flagByDefault, vlPassMultiplier, minVlFlag, flagCooldown, flag, punishCommands);
     }
 
-    public AsyncBlockDigCheck(Hawk hawk, String name, String flag) {
-        super(hawk, name, true, true, true, 0.9, 5, 1000, flag, null);
+    public AsyncBlockDigCheck(String name, String flag) {
+        super(name, true, true, true, 0.9, 5, 1000, flag, null);
     }
 
     protected void punishAndTryCancelAndBlockRespawn(Player offender, BlockDigEvent event, Placeholder... placeholders) {

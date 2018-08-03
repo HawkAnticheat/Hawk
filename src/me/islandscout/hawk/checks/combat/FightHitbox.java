@@ -52,8 +52,8 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
     private final boolean DEBUG_RAY;
     private final boolean CHECK_OCCLUSION;
 
-    public FightHitbox(Hawk hawk) {
-        super(hawk, "fighthitbox", true, true, false, 0.95, 10000, 1000,"&7%player% failed combat hitbox. %type% VL: %vl%", null);
+    public FightHitbox() {
+        super("fighthitbox", true, true, false, 0.95, 10000, 1000,"&7%player% failed combat hitbox. %type% VL: %vl%", null);
         MAX_REACH = ConfigHelper.getOrSetDefault(3.1, hawk.getConfig(), "checks.fighthitbox.maxReach");
         LAG_COMPENSATION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fighthitbox.lagCompensation");
         PING_LIMIT = ConfigHelper.getOrSetDefault(-1, hawk.getConfig(), "checks.fighthitbox.pingLimit");

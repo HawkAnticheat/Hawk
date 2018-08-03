@@ -33,7 +33,7 @@ public abstract class Check {
     protected double vlPassMultiplier;
     protected int minVlFlag;
     protected long flagCooldown; //in milliseconds
-    protected final Hawk hawk;
+    public static Hawk hawk;
     protected final String permission;
     protected final String name;
     protected String flag;
@@ -42,7 +42,6 @@ public abstract class Check {
 
     /**
      * Default values set in these constructors. Configuration may override them.
-     * @param hawk JavaPlugin instance
      * @param name name of check
      * @param enabled enable check
      * @param cancelByDefault cancel by default
@@ -53,8 +52,7 @@ public abstract class Check {
      * @param flag flag message
      * @param punishCommands list of commands to run
      */
-    Check(Hawk hawk, String name, boolean enabled, boolean cancelByDefault, boolean flagByDefault, double vlPassMultiplier, int minVlFlag, long flagCooldown, String flag, List<String> punishCommands) {
-        this.hawk = hawk;
+    Check(String name, boolean enabled, boolean cancelByDefault, boolean flagByDefault, double vlPassMultiplier, int minVlFlag, long flagCooldown, String flag, List<String> punishCommands) {
         this.permission = Hawk.BASE_PERMISSION + ".bypassCheck." + name;
         this.name = name;
         FileConfiguration hawkConfig = hawk.getConfig();
@@ -75,8 +73,6 @@ public abstract class Check {
         this.lastFlagTimes = new HashMap<>();
         hawk.getCheckManager().getCheckList().add(this);
     }
-
-
 
     public void setEnabled(boolean status) {
         enabled = status;

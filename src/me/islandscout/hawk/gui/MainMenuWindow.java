@@ -2,6 +2,7 @@ package me.islandscout.hawk.gui;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -25,10 +26,7 @@ public class MainMenuWindow extends Window {
         elements.add(new Element(5, Material.PAPER, "Reload Configuration") {
             @Override
             protected void doAction(Player p, Hawk hawk) {
-                hawk.reloadConfig();
-                hawk.loadMessages();
-                hawk.getCheckManager().loadChecks();
-                p.sendMessage(ChatColor.DARK_AQUA + "Reloaded configuration files for Hawk.");
+                Bukkit.dispatchCommand(p, "hawk reload");
             }
         });
 

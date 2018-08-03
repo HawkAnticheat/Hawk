@@ -25,9 +25,10 @@ public class HawkPlayer {
     private boolean digging;
     private boolean receiveFlags;
     private boolean online;
-    private boolean teleportStatus;
     private Player p;
+    private boolean teleporting;
     private Location teleportLoc;
+    private long lastTeleportTime;
     private Hawk hawk;
     private Location location;
     private Vector velocity;
@@ -101,12 +102,12 @@ public class HawkPlayer {
     }
 
     public boolean isTeleporting() {
-        return teleportStatus;
+        return teleporting;
     }
 
     //this should really not be public
     public void setTeleporting(boolean status) {
-        teleportStatus = status;
+        teleporting = status;
     }
 
     public Location getTeleportLoc() {
@@ -115,6 +116,14 @@ public class HawkPlayer {
 
     public void setTeleportLoc(Location teleportLoc) {
         this.teleportLoc = teleportLoc;
+    }
+
+    public long getLastTeleportTime() {
+        return lastTeleportTime;
+    }
+
+    public void setLastTeleportTime(long lastTeleportTime) {
+        this.lastTeleportTime = lastTeleportTime;
     }
 
     public Location getLocation() {

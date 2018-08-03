@@ -29,6 +29,7 @@ public class CheckManager {
 
     public CheckManager(Hawk hawk) {
         this.hawk = hawk;
+        Check.hawk = hawk;
         exemptList = new ExemptList();
     }
 
@@ -37,19 +38,19 @@ public class CheckManager {
     public void loadChecks() {
         checkList.clear();
 
-        new FightHitbox(hawk);
-        new FightCriticals(hawk);
-        new Phase(hawk);
-        new Fly(hawk);
-        new BlockBreakSpeed(hawk);
-        new NoFall(hawk);
-        new MoreMoves(hawk);
-        new Speed(hawk);
-        new FightSynchronized(hawk);
-        new Inertia(hawk);
-        new BlockBreakHitbox(hawk);
-        new WrongBlock(hawk);
-        new LiquidExit(hawk);
+        new FightHitbox();
+        new FightCriticals();
+        new Phase();
+        new Fly();
+        new BlockBreakSpeed();
+        new NoFall();
+        new MoreMoves();
+        new Speed();
+        new FightSynchronized();
+        new Inertia();
+        new BlockBreakHitbox();
+        new WrongBlock();
+        new LiquidExit();
 
         for(Check check : checkList) {
             if(check instanceof Listener)

@@ -13,8 +13,8 @@ import org.bukkit.util.Vector;
 
 public class BlockBreakHitbox extends AsyncBlockDigCheck {
 
-    public BlockBreakHitbox(Hawk hawk) {
-        super(hawk, "blockbreakhitbox", "&7%player% failed block break hitbox. %type% VL: %vl%");
+    public BlockBreakHitbox() {
+        super("blockbreakhitbox", "&7%player% failed block break hitbox. %type% VL: %vl%");
     }
 
     @Override

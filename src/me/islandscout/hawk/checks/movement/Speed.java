@@ -46,8 +46,8 @@ public class Speed extends AsyncMovementCheck {
     private Map<UUID, Location> lastLegitLoc;
     private Map<UUID, Long> penalizeTimestamp;
 
-    public Speed(Hawk hawk) {
-        super(hawk, "speed", true, true, true, 0.995, 10, 2000,"&7%player% failed speed. VL: %vl%", null);
+    public Speed() {
+        super("speed", true, true, true, 0.995, 10, 2000,"&7%player% failed speed. VL: %vl%", null);
         sprintgracetimer = new HashMap<>();
         speedygrace = new HashMap<>();
         speedygracetimer = new HashMap<>();

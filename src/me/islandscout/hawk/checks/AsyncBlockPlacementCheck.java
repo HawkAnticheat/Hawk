@@ -13,12 +13,12 @@ import java.util.List;
 
 public abstract class AsyncBlockPlacementCheck extends AsyncCheck<BlockPlaceEvent> {
 
-    public AsyncBlockPlacementCheck(Hawk hawk, String name, boolean enabled, boolean cancelByDefault, boolean flagByDefault, double vlPassMultiplier, int minVlFlag, long flagCooldown, String flag, List<String> punishCommands) {
-        super(hawk, name, enabled, cancelByDefault, flagByDefault, vlPassMultiplier, minVlFlag, flagCooldown, flag, punishCommands);
+    public AsyncBlockPlacementCheck(String name, boolean enabled, boolean cancelByDefault, boolean flagByDefault, double vlPassMultiplier, int minVlFlag, long flagCooldown, String flag, List<String> punishCommands) {
+        super(name, enabled, cancelByDefault, flagByDefault, vlPassMultiplier, minVlFlag, flagCooldown, flag, punishCommands);
     }
 
-    public AsyncBlockPlacementCheck(Hawk hawk, String name, String flag) {
-        super(hawk, name, true, true, true, 0.9, 5, 1000, flag, null);
+    public AsyncBlockPlacementCheck(String name, String flag) {
+        super(name, true, true, true, 0.9, 5, 1000, flag, null);
     }
 
     protected void punishAndTryCancelAndBlockDestroy(Player offender, BlockPlaceEvent event, Placeholder... placeholders) {

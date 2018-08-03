@@ -46,6 +46,7 @@ public class BukkitListener implements Listener {
         }
         pp.setTeleporting(true);
         pp.setTeleportLoc(e.getTo());
+        pp.setLastTeleportTime(System.currentTimeMillis());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

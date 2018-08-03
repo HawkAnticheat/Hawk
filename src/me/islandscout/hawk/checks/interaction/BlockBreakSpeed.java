@@ -32,8 +32,8 @@ public class BlockBreakSpeed extends AsyncBlockDigCheck {
     private final int DURATION_OFFSET;
     private final double CREATIVE_RATE;
 
-    public BlockBreakSpeed(Hawk hawk) {
-        super(hawk, "blockbreakspeed", "&7%player% failed block break speed. Block: %block%, Time: %time%, VL: %vl%");
+    public BlockBreakSpeed() {
+        super("blockbreakspeed", "&7%player% failed block break speed. Block: %block%, Time: %time%, VL: %vl%");
         interactTime = new HashMap<>();
         DURATION_OFFSET = 55;
         CREATIVE_RATE = 1/15D;

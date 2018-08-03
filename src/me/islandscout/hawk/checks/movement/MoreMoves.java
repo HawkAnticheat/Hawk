@@ -24,8 +24,8 @@ public class MoreMoves extends AsyncMovementCheck implements Listener {
     private static final int CANCEL_BY_VL = 4;
     private final double THRESHOLD = 1.01;
 
-    public MoreMoves(Hawk hawk) {
-        super(hawk, "moremoves", true, true, true, 0.8, 3, 1000, "&7%player% is sending too many moves. VL: %vl%, ping: %ping%, TPS: %tps%", null);
+    public MoreMoves() {
+        super("moremoves", true, true, true, 0.8, 3, 1000, "&7%player% is sending too many moves. VL: %vl%, ping: %ping%, TPS: %tps%", null);
         prevNanoTime = new HashMap<>();
         deltaTimes = new HashMap<>();
         legitLoc = new HashMap<>();

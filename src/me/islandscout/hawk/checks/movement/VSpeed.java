@@ -11,8 +11,8 @@ public class VSpeed extends AsyncMovementCheck {
     private static final double MAX = 0.5625;
     private static final double MIN = -3.92;
 
-    public VSpeed(Hawk hawk) {
-        super(hawk, "vspeed", "&7%player% failed vertical speed.");
+    public VSpeed() {
+        super("vspeed", "&7%player% failed vertical speed.");
     }
 
     @Override

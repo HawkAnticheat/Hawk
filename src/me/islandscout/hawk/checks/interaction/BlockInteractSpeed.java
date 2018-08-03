@@ -17,8 +17,8 @@ public class BlockInteractSpeed extends AsyncBlockPlacementCheck {
     private final int SAMPLE_SIZE;
     private final double HARD_THRESHOLD;
 
-    public BlockInteractSpeed(Hawk hawk) {
-        super(hawk, "blockplacespeed", "&7%player% failed block place speed. VL: %vl%");
+    public BlockInteractSpeed() {
+        super("blockplacespeed", "&7%player% failed block place speed. VL: %vl%");
         prevTime = new HashMap<>();
         deltaTimes = new HashMap<>();
         hardFails = new HashMap<>();

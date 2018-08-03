@@ -48,8 +48,8 @@ public class Phase extends AsyncMovementCheck {
 
     private Map<UUID, Location> legitLoc;
 
-    public Phase(Hawk hawk) {
-        super(hawk, "phase", true, true, true, 0.995, 10, 2000, "&7%player% failed phase. Moved through %block%. VL: %vl%", null);
+    public Phase() {
+        super("phase", true, true, true, 0.995, 10, 2000, "&7%player% failed phase. Moved through %block%. VL: %vl%", null);
         whitelistNames = Arrays.asList("FENCE", "IRON_FENCE", "CAULDRON");
         whitelistSemiNames = Arrays.asList("STAIR", "STEP", "DOOR");
         legitLoc = new HashMap<>();

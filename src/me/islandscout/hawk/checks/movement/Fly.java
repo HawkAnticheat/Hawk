@@ -38,8 +38,8 @@ public class Fly extends AsyncMovementCheck {
     private Map<UUID, List<Location>> locsOnPBlocks;
     private static final int STUPID_MOVES = 1; //Apparently you can jump in midair right as you fall off the edge of a block. You need to time it right.
 
-    public Fly(Hawk hawk) {
-        super(hawk, "fly", true, true, true, 0.995, 10, 1000, "&7%player% failed fly. VL: %vl%", null);
+    public Fly() {
+        super("fly", true, true, true, 0.995, 10, 1000, "&7%player% failed fly. VL: %vl%", null);
         lastDeltaY = new HashMap<>();
         inAir = new HashSet<>();
         legitLoc = new HashMap<>();

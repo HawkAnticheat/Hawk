@@ -96,7 +96,7 @@ public class Hawk extends JavaPlugin {
         Map<String, Map<String, Object>> map = getDescription().getCommands();
         for (Map.Entry<String, Map<String, Object>> entry : map.entrySet()) {
             PluginCommand command = getCommand(entry.getKey());
-            command.setPermission("hawk.admin");
+            command.setPermission(Hawk.BASE_PERMISSION + ".cmd");
             if(messages.isSet("unknownCommandMsg"))
                 command.setPermissionMessage(ChatColor.translateAlternateColorCodes('&', messages.getString("unknownCommandMsg")));
             else {

@@ -1,6 +1,5 @@
 package me.islandscout.hawk.checks;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.utils.Placeholder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -12,12 +11,12 @@ import java.util.List;
 //Any check extending BukkitCheck will listen to events via the EventHandler.
 public abstract class BukkitCheck extends Check implements Listener {
 
-    public BukkitCheck(Hawk hawk, String name, boolean enabled, boolean cancelByDefault, boolean flagByDefault, double vlPassMultiplier, int minVlFlag, long flagCooldown, String flag, List<String> punishCommands) {
-        super(hawk, name, enabled, cancelByDefault, flagByDefault, vlPassMultiplier, minVlFlag, flagCooldown, flag, punishCommands);
+    public BukkitCheck(String name, boolean enabled, boolean cancelByDefault, boolean flagByDefault, double vlPassMultiplier, int minVlFlag, long flagCooldown, String flag, List<String> punishCommands) {
+        super(name, enabled, cancelByDefault, flagByDefault, vlPassMultiplier, minVlFlag, flagCooldown, flag, punishCommands);
     }
 
-    public BukkitCheck(Hawk hawk, String name, String flag) {
-        super(hawk, name, true, true, true, 0.9, 5, 1000, flag, null);
+    public BukkitCheck(String name, String flag) {
+        super(name, true, true, true, 0.9, 5, 1000, flag, null);
     }
 
     protected void punishAndTryCancel(Player offender, Event e, Placeholder... placeholders) {

@@ -15,8 +15,8 @@ public class WrongBlock extends AsyncBlockDigCheck {
 
     private Map<UUID, Block> blockinteracted;
 
-    public WrongBlock(Hawk hawk) {
-        super(hawk, "wrongblock", "&7%player% failed wrong block. VL: %vl%");
+    public WrongBlock() {
+        super("wrongblock", "&7%player% failed wrong block. VL: %vl%");
         blockinteracted = new HashMap<>();
     }
 

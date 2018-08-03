@@ -12,8 +12,8 @@ public class FightCriticals extends AsyncEntityInteractionCheck {
 
     //TODO: You'll want to make a custom getFallDistance() method in HawkPlayer.
 
-    public FightCriticals(Hawk hawk) {
-        super(hawk, "fightcriticals", "&7%player% failed fight critical. VL: %vl%");
+    public FightCriticals() {
+        super("fightcriticals", "&7%player% failed fight critical. VL: %vl%");
     }
 
     @Override
