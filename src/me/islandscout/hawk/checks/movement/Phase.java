@@ -1,6 +1,5 @@
 package me.islandscout.hawk.checks.movement;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.*;

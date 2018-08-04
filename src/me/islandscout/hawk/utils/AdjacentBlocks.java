@@ -37,6 +37,7 @@ public class AdjacentBlocks {
         return blocks;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean blockIsAdjacent(Location loc, Material material) {
         Location check = loc.clone();
         return ServerUtils.getBlockAsync(check.add(0, 0, 0.3)).getType() == material ||
@@ -105,6 +106,7 @@ public class AdjacentBlocks {
         return false;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean blockNearbyIsSolid(Location loc) {
         Location check = loc.clone();
         return ServerUtils.getBlockAsync(check.add(0, 0, 1)).getType().isSolid() ||

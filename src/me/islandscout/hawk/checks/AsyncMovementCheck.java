@@ -1,6 +1,5 @@
 package me.islandscout.hawk.checks;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.Placeholder;
 import org.bukkit.Location;

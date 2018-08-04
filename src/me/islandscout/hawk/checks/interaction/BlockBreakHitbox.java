@@ -1,6 +1,5 @@
 package me.islandscout.hawk.checks.interaction;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncBlockDigCheck;
 import me.islandscout.hawk.events.DigAction;

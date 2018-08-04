@@ -64,22 +64,19 @@ public class BukkitListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlace(BlockPlaceEvent e) {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
-        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, new Runnable() {
-            @Override
-            public void run() {
-                PhantomBlock pBlockDel = null;
-                for(PhantomBlock pBlock : pp.getPhantomBlocks()) {
-                    Location a = pBlock.getLocation();
-                    Location b = e.getBlockPlaced().getLocation();
-                    if((int)a.getX() == (int)b.getX() && (int)a.getY() == (int)b.getY() && (int)a.getZ() == (int)b.getZ()) {
-                        pBlockDel = pBlock;
-                        break;
-                    }
+        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> {
+            PhantomBlock pBlockDel = null;
+            for(PhantomBlock pBlock : pp.getPhantomBlocks()) {
+                Location a = pBlock.getLocation();
+                Location b = e.getBlockPlaced().getLocation();
+                if((int)a.getX() == (int)b.getX() && (int)a.getY() == (int)b.getY() && (int)a.getZ() == (int)b.getZ()) {
+                    pBlockDel = pBlock;
+                    break;
                 }
-                if(pBlockDel == null)
-                    return;
-                pp.getPhantomBlocks().remove(pBlockDel);
             }
+            if(pBlockDel == null)
+                return;
+            pp.getPhantomBlocks().remove(pBlockDel);
         }, 1 + pp.getPing());
     }
 }

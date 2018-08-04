@@ -1,9 +1,9 @@
 package me.islandscout.hawk.checks.movement;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
+import me.islandscout.hawk.utils.ConfigHelper;
 import me.islandscout.hawk.utils.MathPlus;
 import me.islandscout.hawk.utils.Placeholder;
 import org.bukkit.Location;
@@ -20,9 +20,9 @@ public class MoreMoves extends AsyncMovementCheck implements Listener {
     private Map<UUID, List<Long>> deltaTimes;
     private Map<UUID, Location> legitLoc;
     private Set<UUID> penalize;
-    private static final int SAMPLE_SIZE = 30;
+    private final int SAMPLE_SIZE;
     private static final int CANCEL_BY_VL = 4;
-    private final double THRESHOLD = 1.01;
+    private final double THRESHOLD;
 
     public MoreMoves() {
         super("moremoves", true, true, true, 0.8, 3, 1000, "&7%player% is sending too many moves. VL: %vl%, ping: %ping%, TPS: %tps%", null);
@@ -30,6 +30,8 @@ public class MoreMoves extends AsyncMovementCheck implements Listener {
         deltaTimes = new HashMap<>();
         legitLoc = new HashMap<>();
         penalize = new HashSet<>();
+        THRESHOLD = ConfigHelper.getOrSetDefault(1.01, hawk.getConfig(), "checks.moremoves.threshold");
+        SAMPLE_SIZE = ConfigHelper.getOrSetDefault(30, hawk.getConfig(), "checks.moremoves.sampleSize");
     }
 
     @Override

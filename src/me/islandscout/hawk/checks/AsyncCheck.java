@@ -1,8 +1,6 @@
 package me.islandscout.hawk.checks;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.events.Event;
-import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.Placeholder;
 import org.bukkit.entity.Player;
 

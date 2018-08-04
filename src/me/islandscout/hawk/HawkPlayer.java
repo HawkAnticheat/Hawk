@@ -222,21 +222,11 @@ public class HawkPlayer {
     //safely kill the connection
     public synchronized void kickPlayer(String reason) {
         online = false;
-        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, new Runnable() {
-            @Override
-            public void run() {
-                p.kickPlayer(reason);
-            }
-        }, 0L);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.kickPlayer(reason), 0L);
     }
 
     //safely teleport player
     public synchronized void teleportPlayer(Location location, PlayerTeleportEvent.TeleportCause teleportCause) {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, new Runnable() {
-            @Override
-            public void run() {
-                p.teleport(location, teleportCause);
-            }
-        }, 0L);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.teleport(location, teleportCause), 0L);
     }
 }

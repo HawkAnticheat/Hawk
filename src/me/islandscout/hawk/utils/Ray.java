@@ -37,12 +37,9 @@ public class Ray implements Cloneable {
     }
 
     public void highlight(Hawk hawk, World world, double blocksAway, double accuracy){
-        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, new Runnable() {
-            @Override
-            public void run() {
-                for(double x = 0; x < blocksAway; x+=accuracy) {
-                    world.playEffect(getPointAtDistance(x).toLocation(world), Effect.COLOURED_DUST,1);
-                }
+        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> {
+            for(double x = 0; x < blocksAway; x+=accuracy) {
+                world.playEffect(getPointAtDistance(x).toLocation(world), Effect.COLOURED_DUST,1);
             }
         }, 0L);
 

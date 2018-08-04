@@ -80,16 +80,13 @@ public class AABB implements Cloneable {
     }
 
     public void highlight(Hawk hawk, World world, double accuracy){
-        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, new Runnable() {
-            @Override
-            public void run() {
-                for(double x = min.getX(); x < max.getX(); x+=accuracy){
-                    for(double y = min.getY(); y < max.getY(); y+=accuracy) {
-                        for (double z = min.getZ(); z < max.getZ(); z+=accuracy) {
-                            Vector position = new Vector(x, y, z);
-                            world.playEffect(position.toLocation(world), Effect.COLOURED_DUST,1);
-                            world.playEffect(position.toLocation(world), Effect.COLOURED_DUST,1);
-                        }
+        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> {
+            for(double x = min.getX(); x < max.getX(); x+=accuracy){
+                for(double y = min.getY(); y < max.getY(); y+=accuracy) {
+                    for (double z = min.getZ(); z < max.getZ(); z+=accuracy) {
+                        Vector position = new Vector(x, y, z);
+                        world.playEffect(position.toLocation(world), Effect.COLOURED_DUST,1);
+                        world.playEffect(position.toLocation(world), Effect.COLOURED_DUST,1);
                     }
                 }
             }

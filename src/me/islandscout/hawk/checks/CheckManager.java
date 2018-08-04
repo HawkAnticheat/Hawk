@@ -62,6 +62,7 @@ public class CheckManager {
     }
 
     //iterate through all async checks.
+    @SuppressWarnings("unchecked")
     public void dispatchEvent(Event e) {
         for(Check check : checkList) {
             if(check instanceof AsyncCheck) {

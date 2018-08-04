@@ -1,6 +1,5 @@
 package me.islandscout.hawk.checks.interaction;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.checks.AsyncBlockPlacementCheck;
 import me.islandscout.hawk.events.BlockPlaceEvent;
 import me.islandscout.hawk.utils.Placeholder;

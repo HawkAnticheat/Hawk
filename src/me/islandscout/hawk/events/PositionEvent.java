@@ -5,7 +5,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.utils.AdjacentBlocks;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.*;
 

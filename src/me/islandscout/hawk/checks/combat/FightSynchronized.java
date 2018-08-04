@@ -1,6 +1,5 @@
 package me.islandscout.hawk.checks.combat;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncEntityInteractionCheck;
 import me.islandscout.hawk.checks.Cancelless;
@@ -59,7 +58,6 @@ public class FightSynchronized extends AsyncEntityInteractionCheck implements Ca
         } else {
             killauraBsample.put(attacker, killauraBsample.get(attacker) + 1);
         }
-        return;
     }
 
     public void removeData(Player p) {

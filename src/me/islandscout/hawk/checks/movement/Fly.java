@@ -4,7 +4,6 @@ import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AABB;
 import me.islandscout.hawk.utils.AdjacentBlocks;
-import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.entities.EntityNMS;
 import org.bukkit.Location;
 import org.bukkit.Material;

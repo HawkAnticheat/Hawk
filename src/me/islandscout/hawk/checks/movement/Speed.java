@@ -272,42 +272,36 @@ public class Speed extends AsyncMovementCheck {
     }
 
     private void startLoops() {
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, new Runnable() {
-            @Override
-            public void run() {
-                for(Player player : Bukkit.getOnlinePlayers()) {
-                    //TODO: uncomment this
-                    //if (hawk.getCheckManager().getLastLegitLocation().getPenalize().containsKey(player.getUniqueId()) && !hawk.getCheckManager().getLastLegitLocation().getPenalize().get(player.getUniqueId())) {
-                    //    speedbuffer.put(player, 0);
-                    //}
-                    speedbuffer.put(player.getUniqueId(), 0); //TODO: replace this with whatever's on top
-                }
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, () -> {
+            for(Player player : Bukkit.getOnlinePlayers()) {
+                //TODO: uncomment this
+                //if (hawk.getCheckManager().getLastLegitLocation().getPenalize().containsKey(player.getUniqueId()) && !hawk.getCheckManager().getLastLegitLocation().getPenalize().get(player.getUniqueId())) {
+                //    speedbuffer.put(player, 0);
+                //}
+                speedbuffer.put(player.getUniqueId(), 0); //TODO: replace this with whatever's on top
             }
         }, 0L, 20L);
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, new Runnable() {
-            @Override
-            public void run() {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (player.isSprinting()) {
-                        //sprintgrace.add(player.getUniqueId());
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (player.isSprinting()) {
+                    //sprintgrace.add(player.getUniqueId());
+                    sprintgracetimer.put(player.getUniqueId(), 0);
+                }
+                if (!player.isSprinting()) {
+                    if (!sprintgracetimer.containsKey(player.getUniqueId())) {
                         sprintgracetimer.put(player.getUniqueId(), 0);
                     }
-                    if (!player.isSprinting()) {
-                        if (!sprintgracetimer.containsKey(player.getUniqueId())) {
-                            sprintgracetimer.put(player.getUniqueId(), 0);
-                        }
-                        sprintgracetimer.put(player.getUniqueId(), sprintgracetimer.get(player.getUniqueId()) + 1);
-                        if (sprintgracetimer.get(player.getUniqueId()) > 2) {
-                            sprintgracetimer.put(player.getUniqueId(), 0);
-                            //sprintgrace.remove(player.getUniqueId());
-                        }
+                    sprintgracetimer.put(player.getUniqueId(), sprintgracetimer.get(player.getUniqueId()) + 1);
+                    if (sprintgracetimer.get(player.getUniqueId()) > 2) {
+                        sprintgracetimer.put(player.getUniqueId(), 0);
+                        //sprintgrace.remove(player.getUniqueId());
                     }
-                    speedygracetimer.put(player.getUniqueId(), speedygracetimer.getOrDefault(player.getUniqueId(), 0) + 1);
-                    if (speedygracetimer.get(player.getUniqueId()) > 2) {
-                        speedygrace.put(player.getUniqueId(), 0);
-                        speedygracetimer.put(player.getUniqueId(), 0);
-                    }
+                }
+                speedygracetimer.put(player.getUniqueId(), speedygracetimer.getOrDefault(player.getUniqueId(), 0) + 1);
+                if (speedygracetimer.get(player.getUniqueId()) > 2) {
+                    speedygrace.put(player.getUniqueId(), 0);
+                    speedygracetimer.put(player.getUniqueId(), 0);
                 }
             }
         }, 0L, 10L);

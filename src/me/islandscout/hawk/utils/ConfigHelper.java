@@ -12,7 +12,6 @@ public class ConfigHelper {
      * @param defaultValue default object
      * @param config FileConfiguration instance
      * @param path path to object
-     * @return
      */
     public static List<String> getOrSetDefault(List<String> defaultValue, FileConfiguration config, String path) {
         List<String> result;

@@ -1,6 +1,5 @@
 package me.islandscout.hawk.checks;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.events.InteractEntityEvent;
 
 import java.util.List;

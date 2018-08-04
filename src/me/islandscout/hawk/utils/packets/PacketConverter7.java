@@ -96,6 +96,7 @@ public class PacketConverter7 {
         Material mat;
         if(packet.getItemStack() != null && packet.getItemStack().getItem() != null) {
             Block block = Block.a(packet.getItemStack().getItem());
+            //noinspection deprecation
             mat = Material.getMaterial(Block.getId(block));
         }
         else {
