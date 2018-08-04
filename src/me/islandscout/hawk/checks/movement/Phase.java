@@ -26,12 +26,14 @@ public class Phase extends AsyncMovementCheck {
     //TODO: False positive due to block updating inside player bounding box or if someone teleports into a block. Probably can only fix TP issue.
     //TODO: False positive when stepping up half a block
     //TODO: Issues with 1.8
+    //TODO: false flag while stepping up slabs and stairs
     //TO DO: If a player sends a move with a large distance and passes through ANY solid block, flag it!
     //TO DO: Logging in while on ground may cause you to get stuck on ground. Make safe locations to fix this.
 
     //decrease bounding box size if there are false positives.
     //(these values shrink the bounding box)
-    private static final double Y_EPSILON = 0.2;
+    private static final double TOP_EPSILON = 0.1;
+    private static final double BOTTOM_EPSILON = 0.3;
     private static final double SIDE_EPSILON = 0.05;
 
     //The materials listed below have problematic bounding boxes; will be ignored.
@@ -73,7 +75,7 @@ public class Phase extends AsyncMovementCheck {
 
         Vector moveDirection = new Vector(locTo.getX() - locFrom.getX(), locTo.getY() - locFrom.getY(), locTo.getZ() - locFrom.getZ());
 
-        AABB playerFrom = new AABB(new Vector(locFrom.getX() - (0.3 - SIDE_EPSILON), locFrom.getY() + Y_EPSILON, locFrom.getZ() - (0.3 - SIDE_EPSILON)), new Vector(locFrom.getX() + (0.3 - SIDE_EPSILON), locFrom.getY() + 1.8 - Y_EPSILON, locFrom.getZ() + (0.3 - SIDE_EPSILON)));
+        AABB playerFrom = new AABB(new Vector(locFrom.getX() - (0.3 - SIDE_EPSILON), locFrom.getY() + BOTTOM_EPSILON, locFrom.getZ() - (0.3 - SIDE_EPSILON)), new Vector(locFrom.getX() + (0.3 - SIDE_EPSILON), locFrom.getY() + 1.8 - TOP_EPSILON, locFrom.getZ() + (0.3 - SIDE_EPSILON)));
         AABB playerTo = playerFrom.clone();
         playerTo.translate(moveDirection);
 

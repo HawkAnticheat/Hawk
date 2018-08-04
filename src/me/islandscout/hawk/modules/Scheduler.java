@@ -2,6 +2,7 @@ package me.islandscout.hawk.modules;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.ServerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

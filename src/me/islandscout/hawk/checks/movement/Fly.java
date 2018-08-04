@@ -1,12 +1,17 @@
 package me.islandscout.hawk.checks.movement;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
+import me.islandscout.hawk.utils.AABB;
 import me.islandscout.hawk.utils.AdjacentBlocks;
+import me.islandscout.hawk.utils.Debug;
+import me.islandscout.hawk.utils.entities.EntityNMS;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Boat;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -21,10 +26,8 @@ public class Fly extends AsyncMovementCheck {
     //TODO: False flag while jumping on ladders
     //TODO: false flag on slime blocks
     //TO DO: check the Y difference between the last time they were on ground and the current time they're on ground. //might have fixed by checking deltaY in groundcheck
-    //TODO: false flag while standing on boats
-    //TODO: false flag while stepping up slabs and stairs
 
-    //TODO: false flag when mining block under player or jumping on recently placed block
+    //TODO: false flag when jumping on recently placed block
     //To fix this... You'll need to work on PhantomBlocks/ClientBlocks (more in HawkPlayer)
     //Fly check will keep track of positions ON phantom blocks in a List. If a phantom block passes, the fly check
     //will remove it from the List. If a phantom block fails, the fly check will rubberband the player to the location
@@ -44,6 +47,7 @@ public class Fly extends AsyncMovementCheck {
         inAir = new HashSet<>();
         legitLoc = new HashMap<>();
         stupidMoves = new HashMap<>();
+        locsOnPBlocks = new HashMap<>();
     }
 
     @Override
@@ -52,7 +56,7 @@ public class Fly extends AsyncMovementCheck {
         double deltaY = event.getTo().getY() - event.getFrom().getY();
         if(!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() &&
                 !AdjacentBlocks.blockIsAdjacent(event.getTo(), Material.WATER) && !AdjacentBlocks.blockIsAdjacent(event.getTo(), Material.STATIONARY_WATER) &&
-                event.getTo().getBlock().getType() != Material.LADDER && event.getTo().getBlock().getType() != Material.VINE) {
+                event.getTo().getBlock().getType() != Material.LADDER && event.getTo().getBlock().getType() != Material.VINE && !isOnBoat(event.getTo())) {
 
             if(!inAir.contains(p.getUniqueId()) && deltaY > 0 && deltaY <= 0.42) { //player has jumped
                 deltaY = 0.42;
@@ -115,6 +119,23 @@ public class Fly extends AsyncMovementCheck {
         inAir.remove(p.getUniqueId());
         legitLoc.put(p.getUniqueId(), e.getFrom());
         stupidMoves.put(p.getUniqueId(), 0);
+    }
+
+    //TODO: Fix issues on edge of chunks
+    private boolean isOnBoat(Location loc) {
+        for(Entity entity : loc.getChunk().getEntities()) {
+            if(entity instanceof Boat) {
+                AABB boatBB = EntityNMS.getEntityNMS(entity).getCollisionBox();
+                boatBB.highlight(hawk, loc.getWorld(), 0.29);
+                AABB feet = new AABB(
+                        new Vector(-0.3, -0.4, -0.3).add(loc.toVector()),
+                        new Vector(0.3, 0, 0.3).add(loc.toVector()));
+                feet.highlight(hawk, loc.getWorld(), 0.29);
+                if(feet.isColliding(boatBB))
+                    return true;
+            }
+        }
+        return false;
     }
 
     @Override

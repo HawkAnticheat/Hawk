@@ -126,6 +126,7 @@ public class PacketCore {
                 //setTo(setback);
                 ((PositionEvent) event).setTo(((PositionEvent) event).getCancelLocation());
                 pp.setTeleporting(true);
+                pp.teleportPlayer(((PositionEvent) event).getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
             }
             else {
                 Location to = ((PositionEvent) event).getTo();

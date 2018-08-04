@@ -77,7 +77,6 @@ public class PositionEvent extends Event {
             HawkPlayer pp = hawk.getHawkPlayer(p);
             pp.setTeleporting(true);
             pp.setTeleportLoc(setback);
-            pp.teleportPlayer(setback, PlayerTeleportEvent.TeleportCause.PLUGIN);
         }
     }
 

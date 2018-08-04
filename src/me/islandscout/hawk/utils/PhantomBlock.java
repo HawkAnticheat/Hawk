@@ -1,7 +1,9 @@
 package me.islandscout.hawk.utils;
 
+import me.islandscout.hawk.HawkPlayer;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.util.Vector;
 
 public class PhantomBlock {
 
@@ -25,5 +27,18 @@ public class PhantomBlock {
 
     public long getInitTime() {
         return initTime;
+    }
+
+    public static PhantomBlock playerIsOnPhantomBlock(HawkPlayer pp, Location playerLoc) {
+        AABB feet = new AABB(
+                new Vector(-0.3, -0.01, -0.3).add(playerLoc.toVector()),
+                new Vector(0.3, 0, 0.3).add(playerLoc.toVector()));
+        for(PhantomBlock pBlock : pp.getPhantomBlocks()) {
+            AABB cube = new AABB(pBlock.getLocation().toVector(), pBlock.getLocation().toVector().add(new Vector(1, 1, 1)));
+            if(feet.isColliding(cube)) {
+                return pBlock;
+            }
+        }
+        return null;
     }
 }
