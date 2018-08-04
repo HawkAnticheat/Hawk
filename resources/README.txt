@@ -2,13 +2,13 @@ HAWK ANTI-CHEAT
 Thank you for using Hawk Anti-Cheat!
 
 COMMAND PERMISSIONS:
-hawk.admin - /hawk
-hawk.admin.cps - /hawk cps
-hawk.admin.kick - /hawk kick
-hawk.admin.notify - /hawk notify
-hawk.admin.reload - /hawk reload
-hawk.admin.unban - /hawk unban
-hawk.admin.unmute - /hawk unmute
+hawk.cmd - /hawk
+hawk.cmd.cps - /hawk cps
+hawk.cmd.kick - /hawk kick
+hawk.cmd.notify - /hawk notify
+hawk.cmd.reload - /hawk reload
+hawk.cmd.unban - /hawk unban
+hawk.cmd.unmute - /hawk unmute
 
 OTHER PERMISSIONS:
 hawk.notify - Notification messages
