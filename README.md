@@ -1,5 +1,5 @@
 # Hawk
-Hawk Anti-Cheat ver. 1807 PRE
+Hawk Anti-Cheat ver. 1808 PRE
 
 Outdated build: https://www.spigotmc.org/resources/hawk-anticheat-mc-1-7-10-1-8-x.40343/
 
