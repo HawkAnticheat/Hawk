@@ -53,7 +53,7 @@ public abstract class Check {
      * @param punishCommands list of commands to run
      */
     Check(String name, boolean enabled, boolean cancelByDefault, boolean flagByDefault, double vlPassMultiplier, int minVlFlag, long flagCooldown, String flag, List<String> punishCommands) {
-        this.permission = Hawk.BASE_PERMISSION + ".bypassCheck." + name;
+        this.permission = Hawk.BASE_PERMISSION + ".bypass." + name;
         this.name = name;
         FileConfiguration hawkConfig = hawk.getConfig();
         FileConfiguration msgs = hawk.getMessages();

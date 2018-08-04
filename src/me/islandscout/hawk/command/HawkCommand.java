@@ -17,6 +17,7 @@ public class HawkCommand implements CommandExecutor {
     private final Hawk hawk;
     private static final String NO_PERMISSION = ChatColor.RED + "You do not have permission to perform this action.";
     static final String PLAYER_ONLY = ChatColor.RED + "Only players can perform this action.";
+    private static final int ENTRIES_PER_PAGE = 5;
 
     public HawkCommand(Hawk hawk) {
         this.hawk = hawk;
@@ -78,7 +79,6 @@ public class HawkCommand implements CommandExecutor {
     }
 
     private void sendUsage(CommandSender sender, int pageNumber) {
-        int ENTRIES_PER_PAGE = 5;
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m-----------------&r &8&l[ &eHawk AntiCheat &8&l]&r &7&m-----------------"));
         int maxPage = (arguments.size() - 1) / ENTRIES_PER_PAGE;
         if(pageNumber > maxPage)

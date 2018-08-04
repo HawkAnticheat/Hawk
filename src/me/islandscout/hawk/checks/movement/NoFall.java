@@ -1,9 +1,10 @@
 package me.islandscout.hawk.checks.movement;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
+import me.islandscout.hawk.utils.AdjacentBlocks;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -30,9 +31,14 @@ public class NoFall extends AsyncMovementCheck {
             }
             if(event.isOnGround() && maxY - event.getTo().getY() > EPSILON) {
 
-                //TODO: false pos when landing on very edge of block and then immediately slipping. copy code from fly?
+                //wait one little second: minecraft is being a pain in the ass and it wants to play tricks when you parkour on the very edge of blocks
+                //we need to check this first...
+                Location checkLoc = event.getFrom().clone();
+                checkLoc.setY(event.getTo().getY());
+                if(!AdjacentBlocks.onGroundReally(checkLoc, -1)) {
+                    failed.add(p.getUniqueId());
+                }
 
-                failed.add(p.getUniqueId());
             }
         }
         else {
@@ -42,12 +48,7 @@ public class NoFall extends AsyncMovementCheck {
                 if(failed.contains(p.getUniqueId())) {
                     punish(p);
                     if(canCancel()) {
-                        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, new Runnable() {
-                            @Override
-                            public void run() {
-                                p.damage(fallDistance - 3);
-                            }
-                        }, 0L);
+                        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.damage(fallDistance - 3), 0L);
                     }
                     failed.remove(p.getUniqueId());
                 }

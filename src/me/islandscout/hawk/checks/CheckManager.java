@@ -51,6 +51,7 @@ public class CheckManager {
         new BlockBreakHitbox();
         new WrongBlock();
         new LiquidExit();
+        new GroundSpoof();
 
         for(Check check : checkList) {
             if(check instanceof Listener)
