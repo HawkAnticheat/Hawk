@@ -26,6 +26,12 @@ public class HawkCommand implements CommandExecutor {
         arguments.add(new KickArgument());
         arguments.add(new ReloadArgument());
         arguments.add(new NotifyArgument());
+        arguments.add(new ChecksArgument());
+        arguments.add(new ChkinfArgument());
+        arguments.add(new ViolationsArgument());
+        arguments.add(new ChktoggleArgument());
+        arguments.add(new MsgArgument());
+        arguments.add(new BroadcastArgument());
 
         Argument.setHawkReference(hawk);
     }
@@ -41,7 +47,9 @@ public class HawkCommand implements CommandExecutor {
                         return true;
                     }
                     else {
-                        arg.process(sender, cmd, label, args);
+                        if(!arg.process(sender, cmd, label, args)) {
+                            sender.sendMessage(ChatColor.RED + "Usage: /hawk " + arg.getUsage());
+                        }
                         return true;
                     }
                 }
@@ -90,5 +98,8 @@ public class HawkCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.GOLD + "/hawk " + argument.getUsage() + ": " + ChatColor.GRAY + argument.getDescription());
         }
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m----------------------&r &8[ &e" + pageNumber + ":" + maxPage + " &8] &7&m----------------------"));
+        sender.sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "WARNING: " + ChatColor.RESET + "" + ChatColor.RED + "You are currently running a DEVELOPMENT build; do NOT run this on a production server. Hawk is currently not stable and you WILL encounter issues.");
+        sender.sendMessage(ChatColor.RED + "If you encounter any issues not listed in the Discord announcements, please report it under \"bug-reporting\". Thank you for testing Hawk Anti-Cheat!");
+        sender.sendMessage("Build " + Hawk.BUILD_NAME);
     }
 }

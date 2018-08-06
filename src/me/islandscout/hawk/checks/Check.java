@@ -180,6 +180,10 @@ public abstract class Check {
         hawk.getTextLogger().logMessage(ChatColor.RESET + "" + message);
     }
 
+    public String getName() {
+        return name;
+    }
+
     @Override
     public String toString() {
         return name;

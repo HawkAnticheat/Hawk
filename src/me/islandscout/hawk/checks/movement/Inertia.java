@@ -30,13 +30,15 @@ public class Inertia extends AsyncMovementCheck {
         double horizSpeedSquared = Math.pow(e.getTo().getX() - e.getFrom().getX(), 2) + Math.pow(e.getTo().getZ() - e.getFrom().getZ(), 2);
         if(horizSpeedSquared > 0.05) {
             double deltaAngle = moveVector.angle(vec.getOrDefault(p.getUniqueId(), new Vector(0, 0, 0)));
-            if (vec.containsKey(p.getUniqueId()) && deltaAngle > 0.2 &&
-                    !AdjacentBlocks.blockNearbyIsSolid(e.getTo()) && !AdjacentBlocks.blockAdjacentIsSolid(e.getFrom().clone().add(0, -0.3, 0)) &&
+            if(!AdjacentBlocks.blockNearbyIsSolid(e.getTo()) && !AdjacentBlocks.blockAdjacentIsSolid(e.getFrom().clone().add(0, -0.3, 0)) &&
                     !AdjacentBlocks.blockNearbyIsSolid(e.getTo().clone().add(0, 1, 0)) && !p.isFlying() && !p.isInsideVehicle()) {
+                if (vec.containsKey(p.getUniqueId()) && deltaAngle > 0.2) {
 
-                punishAndTryRubberband(p, e, e.getFrom());
-            } else {
-                reward(p);
+                    punishAndTryRubberband(p, e, e.getFrom());
+                }
+                else {
+                    reward(p);
+                }
             }
         }
         vec.put(p.getUniqueId(), moveVector);

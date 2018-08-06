@@ -21,10 +21,7 @@ public class Fly extends AsyncMovementCheck {
     //TODO: Setup legit locations for appropriate setbacks
     //TODO: Damage, velocity, and potion effect handling
     //TODO: false flag with pistons
-    //TO DO: false flag in ladders/vines
-    //TODO: False flag while jumping on ladders
     //TODO: false flag on slime blocks
-    //TO DO: check the Y difference between the last time they were on ground and the current time they're on ground. //might have fixed by checking deltaY in groundcheck
 
     //TODO: false flag when jumping on recently placed block
     //To fix this... You'll need to work on PhantomBlocks/ClientBlocks (more in HawkPlayer)
@@ -32,6 +29,12 @@ public class Fly extends AsyncMovementCheck {
     //will remove it from the List. If a phantom block fails, the fly check will rubberband the player to the location
     //before touching the failed phantom block, then clear the List. Fly check will setCancelled(true) positions as long as the list
     //is not empty.
+
+    //Look, if you're going to rubberband to a location like that, you should make a priority system. For example, if
+    //you jump on a phantomblock that gets cancelled, and then X moves ahead if you get flagged for speed AND fly (for failing phantomblock)
+    //on the same move, and speed is before fly in the process list, you'll get rubberbanded to the speed legit location and not the fly legit
+    //location; a fly bypass. The priority system should give priority to older setback locations if a conflict like this
+    //should occur.
 
     private Map<UUID, Double> lastDeltaY;
     private Map<UUID, Location> legitLoc;
@@ -125,11 +128,9 @@ public class Fly extends AsyncMovementCheck {
         for(Entity entity : loc.getChunk().getEntities()) {
             if(entity instanceof Boat) {
                 AABB boatBB = EntityNMS.getEntityNMS(entity).getCollisionBox();
-                boatBB.highlight(hawk, loc.getWorld(), 0.29);
                 AABB feet = new AABB(
                         new Vector(-0.3, -0.4, -0.3).add(loc.toVector()),
                         new Vector(0.3, 0, 0.3).add(loc.toVector()));
-                feet.highlight(hawk, loc.getWorld(), 0.29);
                 if(feet.isColliding(boatBB))
                     return true;
             }

@@ -3,6 +3,7 @@ package me.islandscout.hawk.checks;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.checks.combat.FightCriticals;
 import me.islandscout.hawk.checks.combat.FightHitbox;
+import me.islandscout.hawk.checks.combat.FightSpeed;
 import me.islandscout.hawk.checks.combat.FightSynchronized;
 import me.islandscout.hawk.checks.interaction.BlockBreakHitbox;
 import me.islandscout.hawk.checks.interaction.BlockBreakSpeed;
@@ -52,6 +53,7 @@ public class CheckManager {
         new WrongBlock();
         new LiquidExit();
         new GroundSpoof();
+        new FightSpeed();
 
         for(Check check : checkList) {
             if(check instanceof Listener)

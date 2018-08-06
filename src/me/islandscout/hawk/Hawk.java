@@ -13,6 +13,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -45,39 +46,53 @@ public class Hawk extends JavaPlugin {
     public void onEnable(){
         plugin = this;
         BUILD_NAME = getDescription().getVersion();
-        profiles = new HashMap<>();
-        guiManager = new GUIManager(this);
-        lagCompensator = new LagCompensator(this);
-        getServer().getPluginManager().registerEvents(new BukkitListener(this), this);
         setServerVersion();
-        loadMessages();
-        configStuff();
-        registerCommand();
-        startLoggerFile();
-        scheduler = new Scheduler(this);
-        scheduler.startSchedulers();
-        initializeSQL();
-        checkManager = new CheckManager(plugin);
-        checkManager.loadChecks();
-        packetCore = new PacketCore(SERVER_VERSION, this);
+        loadModules();
         setupAPI();
-        packetCore.setupListenerOnlinePlayers();
         saveConfigs();
         getLogger().info("Hawk Anti-Cheat has been enabled. Copyright 2018 Islandscout. All rights reserved.");
     }
 
     @Override
     public void onDisable() {
-        closeSQL();
-        plugin.packetCore.killListener();
-        Bukkit.getScheduler().cancelTasks(this);
-        //HawkViolationEvent.getHandlerList().unregister(plugin);
+        unloadModules();
         plugin = null;
         this.getLogger().info("Hawk Anti-Cheat has been disabled.");
     }
 
-    public void loadMessages() {
+    public void loadModules() {
+        getServer().getPluginManager().registerEvents(new BukkitListener(this), this);
         messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
+        FLAG_PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cHAWK:", messages, "prefix"));
+        profiles = new HashMap<>();
+        guiManager = new GUIManager(this);
+        lagCompensator = new LagCompensator(this);
+        startLoggerFile();
+        checkManager = new CheckManager(plugin);
+        checkManager.loadChecks();
+        sql = new SQL(this);
+        sql.createTableIfNotExists();
+        scheduler = new Scheduler(this);
+        scheduler.startSchedulers();
+        packetCore = new PacketCore(SERVER_VERSION, this);
+        packetCore.setupListenerOnlinePlayers();
+        registerCommand();
+    }
+
+    public void unloadModules() {
+        plugin.getCommand("hawk").setExecutor(null);
+        HandlerList.unregisterAll(this);
+        //HawkViolationEvent.getHandlerList().unregister(plugin);
+        profiles = null;
+        guiManager = null;
+        lagCompensator = null;
+        checkManager = null;
+        plugin.packetCore.killListener();
+        sql.closeConnection();
+        sql = null;
+        Bukkit.getScheduler().cancelTasks(this);
+        scheduler = null;
+        textLogger = null;
     }
 
     public void saveConfigs() {
@@ -114,18 +129,6 @@ public class Hawk extends JavaPlugin {
         textLogger.prepare(storageFile);
     }
 
-    public void initializeSQL() {
-        plugin.sql = new SQL(this);
-        plugin.sql.createTableIfNotExists();
-    }
-
-    public void closeSQL() {
-        if(sql != null) {
-            //plugin.sql.closeConnection();
-            sql = null;
-        }
-    }
-
     private void setupAPI() {
         HawkAPI.plugin = this;
     }
@@ -135,10 +138,6 @@ public class Hawk extends JavaPlugin {
         else if(Bukkit.getBukkitVersion().substring(0, 4).equals("1.8.")) SERVER_VERSION = 8;
         else SERVER_VERSION = 0;
 
-    }
-
-    private void configStuff() {
-        FLAG_PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cHAWK:", messages, "prefix"));
     }
 
     public FileConfiguration getMessages() {

@@ -1,6 +1,6 @@
 name: Hawk
 main: me.islandscout.hawk.Hawk
-version: 1808
+version: 1808DEV
 author: Islandscout
 description: An anti-cheat system
 commands:

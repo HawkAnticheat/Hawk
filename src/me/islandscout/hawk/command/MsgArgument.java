@@ -1,5 +1,6 @@
 package me.islandscout.hawk.command;
 
+import me.islandscout.hawk.Hawk;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -10,10 +11,10 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class KickArgument extends Argument {
+public class MsgArgument extends Argument {
 
-    public KickArgument() {
-        super("kick", "<player> <reason>", "Kick a player.");
+    public MsgArgument() {
+        super("msg", "<player> <message>", "Send a player a message.");
     }
 
     @Override
@@ -28,9 +29,9 @@ public class KickArgument extends Argument {
         List<String> list = new LinkedList<>(Arrays.asList(args));
         list.remove(0);
         list.remove(0);
-        String reason = ChatColor.translateAlternateColorCodes('&', String.join(" ", list));
-        target.kickPlayer(reason);
-        sender.sendMessage(ChatColor.GOLD + target.getName() + " has been kicked.");
+        String msg = Hawk.FLAG_PREFIX + ChatColor.RESET + " " + ChatColor.translateAlternateColorCodes('&', String.join(" ", list));
+        target.sendMessage(msg);
+        sender.sendMessage(ChatColor.GOLD + "Sent message to " + target.getName() + ".");
         return true;
     }
 }

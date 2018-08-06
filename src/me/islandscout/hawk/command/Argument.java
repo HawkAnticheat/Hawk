@@ -32,5 +32,5 @@ public abstract class Argument {
         hawk = plugin;
     }
 
-    public abstract void process(CommandSender sender, Command cmd, String label, String[] args);
+    public abstract boolean process(CommandSender sender, Command cmd, String label, String[] args);
 }

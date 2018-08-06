@@ -11,10 +11,11 @@ public class ReloadArgument extends Argument {
     }
 
     @Override
-    public void process(CommandSender sender, Command cmd, String label, String[] args) {
+    public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
         hawk.reloadConfig();
-        hawk.loadMessages();
-        hawk.getCheckManager().loadChecks();
-        sender.sendMessage(ChatColor.GOLD + "Reloaded configuration files for Hawk.");
+        hawk.unloadModules();
+        hawk.loadModules();
+        sender.sendMessage(ChatColor.GOLD + "Reloaded configuration files and modules for Hawk.");
+        return true;
     }
 }

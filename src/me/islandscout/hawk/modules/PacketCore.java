@@ -40,11 +40,11 @@ public class PacketCore {
         try {
             if(serverVersion == 7) {
                 packetListener7 = new PacketListener7(this);
-                hawk.getLogger().info("Using MC 1.7_R4 Netty libraries for packet interception.");
+                hawk.getLogger().info("Using MC 1.7_R4 Netty API for packet interception.");
             }
             else if(serverVersion == 8) {
                 packetListener8 = new PacketListener8(this);
-                hawk.getLogger().info("Using MC 1.8_R3 Netty libraries for packet interception.");
+                hawk.getLogger().info("Using MC 1.8_R3 Netty API for packet interception.");
             }
             else warnConsole(hawk);
         }
