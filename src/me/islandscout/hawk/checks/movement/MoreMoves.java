@@ -25,7 +25,7 @@ public class MoreMoves extends AsyncMovementCheck implements Listener {
     private final double THRESHOLD;
 
     public MoreMoves() {
-        super("moremoves", true, true, true, 0.8, 3, 1000, "&7%player% is sending too many moves. VL: %vl%, ping: %ping%, TPS: %tps%", null);
+        super("moremoves", true, true, true, 0.8, 3, 1000, "&7%player% is sending too many moves. Factor: %factor%x, VL: %vl%, ping: %ping%, TPS: %tps%", null);
         prevNanoTime = new HashMap<>();
         deltaTimes = new HashMap<>();
         legitLoc = new HashMap<>();

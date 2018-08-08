@@ -22,7 +22,13 @@ public class PacketListener8 {
             @Override
             public void channelRead(ChannelHandlerContext context, Object packet) throws Exception {
 
-                if(!packetCore.process(packet, p)) return; //prevent packet from getting processed by Bukkit if a check fails
+                //TODO: Get rid of this try/catch when you're done debugging
+                try {
+                    if(!packetCore.process(packet, p)) return; //prevent packet from getting processed by Bukkit if a check fails
+                }
+                catch(Exception e) {
+                    e.printStackTrace();
+                }
 
                 super.channelRead(context, packet);
             }

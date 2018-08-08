@@ -9,7 +9,8 @@ public abstract class BlockNMS {
 
     float strength;
     private Block block;
-    AABB aabb;
+    protected AABB aabb;
+    protected boolean solid;
 
     BlockNMS(Block block) {
         this.block = block;
@@ -36,5 +37,10 @@ public abstract class BlockNMS {
             return new BlockNMS8(b);
         else
             return new BlockNMS7(b);
+    }
+
+    //Man, I hate having to do this. I don't know why Bukkit is confused over the definition of SOLID.
+    public boolean isSolid() {
+        return solid;
     }
 }

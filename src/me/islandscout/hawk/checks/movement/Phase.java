@@ -5,6 +5,7 @@ import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.*;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.material.Gate;
@@ -91,7 +92,7 @@ public class Phase extends AsyncMovementCheck {
                     if(bukkitBlock == null)
                         continue;
 
-                    if (!bukkitBlock.getType().isSolid())
+                    if(!bukkitBlock.getType().isSolid() && bukkitBlock.getType() != Material.CARPET)
                         continue;
 
                     if (bukkitBlock.getState().getData() instanceof Openable && ((Openable) bukkitBlock.getState().getData()).isOpen()) {

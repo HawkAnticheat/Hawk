@@ -51,7 +51,7 @@ public class BlockInteractSpeed extends AsyncBlockPlacementCheck {
             }
             avg /= SAMPLE_SIZE;
             deltaTimes.remove(p.getUniqueId());
-            double bps = avg == 0 ? Double.POSITIVE_INFINITY : 1 / (avg / 1000D);
+            double bps = avg == 0 ? Double.NaN : 1 / (avg / 1000D);
             if(bps > AVG_THRESHOLD) {
                 punish(p, new Placeholder("rate", bps + "bps"));
                 passed = false;

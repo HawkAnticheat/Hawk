@@ -98,9 +98,10 @@ public class AdjacentBlocks {
 
         AABB feet = new AABB(check.add(-0.3, 0, -0.3).toVector(), check.add(0.6, depth, 0.6).toVector());
         for(Block block : blocks) {
-            if(block.isLiquid() || (!block.getType().isSolid() && Hawk.getServerVersion() == 8)) //TODO: handle small blocks in 1.8!
+            BlockNMS bNMS = BlockNMS.getBlockNMS(block);
+            if(block.isLiquid() || (!bNMS.isSolid() && Hawk.getServerVersion() == 8))
                 continue;
-            if(BlockNMS.getBlockNMS(block).getCollisionBox().isColliding(feet))
+            if(bNMS.getCollisionBox().isColliding(feet))
                 return true;
         }
         return false;
