@@ -57,7 +57,7 @@ public class Fly extends AsyncMovementCheck {
         Player p = event.getPlayer();
         double deltaY = event.getTo().getY() - event.getFrom().getY();
         if(!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() &&
-                !AdjacentBlocks.blockIsAdjacent(event.getTo(), Material.WATER) && !AdjacentBlocks.blockIsAdjacent(event.getTo(), Material.STATIONARY_WATER) &&
+                !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WATER) && !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.STATIONARY_WATER) &&
                 event.getTo().getBlock().getType() != Material.LADDER && event.getTo().getBlock().getType() != Material.VINE && !isOnBoat(event.getTo())) {
 
             if(!inAir.contains(p.getUniqueId()) && deltaY > 0 && deltaY <= 0.42) { //player has jumped

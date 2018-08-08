@@ -92,7 +92,7 @@ public class Phase extends AsyncMovementCheck {
                     if(bukkitBlock == null)
                         continue;
 
-                    if(!bukkitBlock.getType().isSolid() && bukkitBlock.getType() != Material.CARPET)
+                    if(!bukkitBlock.getType().isSolid())
                         continue;
 
                     if (bukkitBlock.getState().getData() instanceof Openable && ((Openable) bukkitBlock.getState().getData()).isOpen()) {

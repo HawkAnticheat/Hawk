@@ -7,7 +7,9 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AdjacentBlocks {
 
@@ -37,8 +39,24 @@ public class AdjacentBlocks {
         return blocks;
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public static boolean blockIsAdjacent(Location loc, Material material) {
+    public static boolean matIsAdjacent(Location loc, Material material) {
+        Location check = loc.clone();
+        Set<Block> sample = new HashSet<>();
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0.3, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, -0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, -0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
+        for(Block b : sample) {
+            if(b != null && b.getType() == material)
+                return true;
+        }
+        return false;
+    }
+    /*public static boolean matIsAdjacent(Location loc, Material material) {
         Location check = loc.clone();
         return ServerUtils.getBlockAsync(check.add(0, 0, 0.3)).getType() == material ||
                 ServerUtils.getBlockAsync(check.add(0.3, 0, 0)).getType() == material ||
@@ -48,7 +66,7 @@ public class AdjacentBlocks {
                 ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)).getType() == material ||
                 ServerUtils.getBlockAsync(check.add(0, 0, 0.3)).getType() == material ||
                 ServerUtils.getBlockAsync(check.add(0, 0, 0.3)).getType() == material;
-    }
+    }*/
 
     public static boolean matContainsStringIsAdjacent(Location loc, String name) {
         Location check = loc.clone();
@@ -74,7 +92,6 @@ public class AdjacentBlocks {
                 ServerUtils.getBlockAsync(check.add(0, 0, 0.3)).getType().isSolid();
     }
 
-    //TODO: does not recognize standing on fences (1.7-1.8) and (other small blocks in 1.8)
     //TODO: this still needs to get optimized. Replace List with Set
     //if not sure what your velocity is, just put -1 for velocity
     //if you just want to check for location, just put -1 for velocity
@@ -83,6 +100,7 @@ public class AdjacentBlocks {
             return false;
         double depth = 0.02; //Don't set this too low. The client doesn't like to send moves unless they are significant enough.
         //If too low, this might set off fly false flags when jumping on edge of blocks.
+        //TODO: Perhaps replace "depth" with "groundPrecision" and "feetDepth". feetDepth should not be less than 0.02. groundPrecision should be very very close to 0.
         Location check = loc.clone();
         List<Block> blocks = new ArrayList<>();
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, -1, 0)));
