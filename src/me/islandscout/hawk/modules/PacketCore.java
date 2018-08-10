@@ -8,6 +8,7 @@ import me.islandscout.hawk.events.Event;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.listener.packets.PacketListener7;
 import me.islandscout.hawk.listener.packets.PacketListener8;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.PhantomBlock;
 import me.islandscout.hawk.utils.packets.PacketConverter7;
 import me.islandscout.hawk.utils.packets.PacketConverter8;
@@ -81,28 +82,27 @@ public class PacketCore {
 
         //handle teleports
         if(event instanceof PositionEvent) {
+            PositionEvent posEvent = (PositionEvent)event;
             pp.setLastMoveTime(System.currentTimeMillis());
-            ((PositionEvent) event).setTeleported(false);
+            posEvent.setTeleported(false);
             if(pp.isTeleporting()) {
                 Location tpLoc = pp.getTeleportLoc();
-                if(tpLoc.getWorld().equals(((PositionEvent) event).getFrom().getWorld())) {
-                    if(((PositionEvent) event).getTo().distanceSquared(tpLoc) < 0.001) {
-                        ((PositionEvent) event).setFrom(((PositionEvent) event).getTo());
-                        pp.setTeleporting(false);
-                        ((PositionEvent) event).setTeleported(true);
-                    }
-                    else {
-                        //Help guide the confused client back to the tp location
-                        if(System.currentTimeMillis() - pp.getLastTeleportTime() > 1000)
-                            pp.teleportPlayer(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
-                        return false;
-                    }
+                if(tpLoc.getWorld().equals(posEvent.getTo().getWorld()) && posEvent.getTo().distanceSquared(tpLoc) < 0.001) {
+                    posEvent.setFrom(tpLoc);
+                    pp.setTeleporting(false);
+                    posEvent.setTeleported(true);
+                }
+                else {
+                    //Help guide the confused client back to the tp location
+                    if (System.currentTimeMillis() - pp.getLastTeleportTime() > 1000)
+                        pp.teleportPlayer(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                    return false;
                 }
             }
             //handle illegal move
-            if(((PositionEvent) event).getTo().distanceSquared(((PositionEvent) event).getFrom()) > 64) {
-                hawk.getLogger().warning(p.getName() + " may have tried to crash the server by moving too far! Distance: " + (((PositionEvent) event).getTo().distance(((PositionEvent) event).getFrom())));
-                ((PositionEvent) event).cancelAndSetBack(p.getLocation(), hawk);
+            else if(posEvent.getFrom().getWorld().equals(posEvent.getTo().getWorld()) && posEvent.getTo().distanceSquared(posEvent.getFrom()) > 64) {
+                hawk.getLogger().warning(p.getName() + " may have tried to crash the server by moving too far! Distance: " + (posEvent.getTo().distance(posEvent.getFrom())));
+                posEvent.cancelAndSetBack(p.getLocation(), hawk);
                 pp.kickPlayer("Illegal move");
                 return false;
             }

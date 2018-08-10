@@ -2,6 +2,7 @@ package me.islandscout.hawk.listener;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.PhantomBlock;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -46,6 +47,20 @@ public class BukkitListener implements Listener {
         }
         pp.setTeleporting(true);
         pp.setTeleportLoc(e.getTo());
+        pp.setLocation(e.getTo());
+        pp.setLastTeleportTime(System.currentTimeMillis());
+    }
+
+    //LOL! I HATE YOU SO MUCH, BUKKIT! GIVE ME THE CORRECT GETTO LOCATION!
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void portalEvent(PlayerPortalEvent e) {
+        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
+        if(e.isCancelled()) {
+            return;
+        }
+        pp.setTeleporting(true);
+        pp.setTeleportLoc(e.getTo());
+        pp.setLocation(e.getTo());
         pp.setLastTeleportTime(System.currentTimeMillis());
     }
 
