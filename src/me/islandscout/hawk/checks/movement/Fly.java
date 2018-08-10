@@ -4,9 +4,12 @@ import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AABB;
 import me.islandscout.hawk.utils.AdjacentBlocks;
+import me.islandscout.hawk.utils.ServerUtils;
 import me.islandscout.hawk.utils.entities.EntityNMS;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -58,7 +61,7 @@ public class Fly extends AsyncMovementCheck {
         double deltaY = event.getTo().getY() - event.getFrom().getY();
         if(!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() &&
                 !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WATER) && !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.STATIONARY_WATER) &&
-                event.getTo().getBlock().getType() != Material.LADDER && event.getTo().getBlock().getType() != Material.VINE && !isOnBoat(event.getTo())) {
+                !isInClimbable(event.getTo()) && !isOnBoat(event.getTo())) {
 
             if(!inAir.contains(p.getUniqueId()) && deltaY > 0 && deltaY <= 0.42) { //player has jumped
                 deltaY = 0.42;
@@ -125,7 +128,10 @@ public class Fly extends AsyncMovementCheck {
 
     //TODO: Fix issues on edge of chunks
     private boolean isOnBoat(Location loc) {
-        for(Entity entity : loc.getChunk().getEntities()) {
+        Chunk chunk = ServerUtils.getChunkAsync(loc);
+        if(chunk == null)
+            return false;
+        for(Entity entity : chunk.getEntities()) {
             if(entity instanceof Boat) {
                 AABB boatBB = EntityNMS.getEntityNMS(entity).getCollisionBox();
                 AABB feet = new AABB(
@@ -136,6 +142,11 @@ public class Fly extends AsyncMovementCheck {
             }
         }
         return false;
+    }
+
+    private boolean isInClimbable(Location loc) {
+        Block b = ServerUtils.getBlockAsync(loc);
+        return b != null && (b.getType() == Material.VINE || b.getType() == Material.LADDER);
     }
 
     @Override

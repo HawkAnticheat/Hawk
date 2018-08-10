@@ -13,10 +13,8 @@ import java.util.Set;
 
 public class AdjacentBlocks {
 
-    //TODO: Yes, I know there's a bunch of NPE issues that need fixing here. I'll do it later.
-
     //loop horizontally around nearby blocks about the size of a player's collision box
-    //TODO: optimize this? Replace this Sist with a Set.
+    //TODO: optimize this? Replace this List with a Set.
     public static List<Block> getBlocksInLocation(Location loc) {
         Location check = loc.clone();
         List<Block> blocks = new ArrayList<>();
@@ -70,26 +68,38 @@ public class AdjacentBlocks {
 
     public static boolean matContainsStringIsAdjacent(Location loc, String name) {
         Location check = loc.clone();
-        return ServerUtils.getBlockAsync(check.add(0, 0, 0.3)).getType().name().contains(name) ||
-                ServerUtils.getBlockAsync(check.add(0.3, 0, 0)).getType().name().contains(name) ||
-                ServerUtils.getBlockAsync(check.add(0, 0, -0.3)).getType().name().contains(name) ||
-                ServerUtils.getBlockAsync(check.add(0, 0, -0.3)).getType().name().contains(name) ||
-                ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)).getType().name().contains(name) ||
-                ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)).getType().name().contains(name) ||
-                ServerUtils.getBlockAsync(check.add(0, 0, 0.3)).getType().name().contains(name) ||
-                ServerUtils.getBlockAsync(check.add(0, 0, 0.3)).getType().name().contains(name);
+        Set<Block> sample = new HashSet<>();
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0.3, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, -0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, -0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
+        for(Block b : sample) {
+            if(b != null && b.getType().name().contains(name))
+                return true;
+        }
+        return false;
     }
 
     public static boolean blockAdjacentIsSolid(Location loc) {
         Location check = loc.clone();
-        return ServerUtils.getBlockAsync(check.add(0, 0, 0.3)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(0.3, 0, 0)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(0, 0, -0.3)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(0, 0, -0.3)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(0, 0, 0.3)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(0, 0, 0.3)).getType().isSolid();
+        Set<Block> sample = new HashSet<>();
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0.3, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, -0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, -0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
+        for(Block b : sample) {
+            if(b != null && b.getType().isSolid())
+                return true;
+        }
+        return false;
     }
 
     //TODO: this still needs to get optimized. Replace List with Set
@@ -125,16 +135,21 @@ public class AdjacentBlocks {
         return false;
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean blockNearbyIsSolid(Location loc) {
         Location check = loc.clone();
-        return ServerUtils.getBlockAsync(check.add(0, 0, 1)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(1, 0, 0)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(0, 0, -1)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(0, 0, -1)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(-1, 0, 0)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(-1, 0, 0)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(0, 0, 1)).getType().isSolid() ||
-                ServerUtils.getBlockAsync(check.add(0, 0, 1)).getType().isSolid();
+        Set<Block> sample = new HashSet<>();
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 1)));
+        sample.add(ServerUtils.getBlockAsync(check.add(1, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, -1)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, -1)));
+        sample.add(ServerUtils.getBlockAsync(check.add(-1, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(-1, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 1)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 1)));
+        for(Block b : sample) {
+            if(b != null && b.getType().isSolid())
+                return true;
+        }
+        return false;
     }
 }

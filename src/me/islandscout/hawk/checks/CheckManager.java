@@ -45,7 +45,7 @@ public class CheckManager {
         new Fly();
         new BlockBreakSpeed();
         new NoFall();
-        new MoreMoves();
+        new ClockSpeed();
         new Speed();
         new FightSynchronized();
         new Inertia();

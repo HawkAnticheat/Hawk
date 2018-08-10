@@ -4,8 +4,10 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.ConfigHelper;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.MathPlus;
 import me.islandscout.hawk.utils.Placeholder;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -39,9 +41,11 @@ public class MoreMoves extends AsyncMovementCheck implements Listener {
         Player p = event.getPlayer();
         if(event.hasTeleported())
             return;
-        if(!prevNanoTime.containsKey(p.getUniqueId()))
-            prevNanoTime.put(p.getUniqueId(), 50000000L);
         long time = System.nanoTime();
+        if(!prevNanoTime.containsKey(p.getUniqueId())) {
+            prevNanoTime.put(p.getUniqueId(), time);
+            return;
+        }
         time -= prevNanoTime.get(p.getUniqueId());
         prevNanoTime.put(p.getUniqueId(), System.nanoTime());
         List<Long> times = deltaTimes.getOrDefault(p.getUniqueId(), new ArrayList<>());
