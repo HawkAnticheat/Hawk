@@ -5,11 +5,14 @@ import me.islandscout.hawk.utils.AABB;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
+import java.util.List;
+
 public abstract class BlockNMS {
 
     float strength;
     private Block block;
-    protected AABB aabb;
+    protected AABB hitbox;
+    protected AABB[] collisionBoxes;
     protected boolean solid;
 
     BlockNMS(Block block) {
@@ -28,8 +31,20 @@ public abstract class BlockNMS {
         return block;
     }
 
-    public AABB getCollisionBox() {
-        return aabb;
+    public AABB getHitBox() {
+        return hitbox;
+    }
+
+    public AABB[] getCollisionBoxes() {
+        return collisionBoxes;
+    }
+
+    public boolean isColliding(AABB other) {
+        for(AABB cBox : collisionBoxes) {
+            if(cBox.isColliding(other))
+                return true;
+        }
+        return false;
     }
 
     public static BlockNMS getBlockNMS(Block b) {

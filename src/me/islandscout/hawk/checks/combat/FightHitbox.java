@@ -158,7 +158,7 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
                         continue;
 
                     BlockNMS b = BlockNMS.getBlockNMS(bukkitBlock);
-                    AABB checkIntersection = new AABB(b.getCollisionBox().getMin(), b.getCollisionBox().getMax());
+                    AABB checkIntersection = new AABB(b.getHitBox().getMin(), b.getHitBox().getMax());
                     Vector intersection = checkIntersection.intersectsRay(new Ray(attackerEyeLocation.toVector(), attackerDirection), 0, (float)interDistance);
                     if(intersection != null) {
                         if(intersection.distance(eyePos) < interDistance) {

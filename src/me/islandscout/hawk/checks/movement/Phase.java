@@ -4,8 +4,9 @@ import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.*;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
+import net.minecraft.server.v1_7_R4.AxisAlignedBB;
+import net.minecraft.server.v1_7_R4.WorldServer;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.material.Gate;
@@ -119,20 +120,19 @@ public class Phase extends AsyncMovementCheck {
                     }
 
                     BlockNMS block = BlockNMS.getBlockNMS(bukkitBlock);
-                    AABB test = block.getCollisionBox();
+                    for(AABB test : block.getCollisionBoxes()) {
+                        //check if "test" box is even in "bigBox"
+                        if (!test.isColliding(bigBox))
+                            continue;
 
-                    //check if "test" box is even in "bigBox"
-                    if (!test.isColliding(bigBox))
-                        continue;
-
-                    //TODO: It might actually only be necessary to check two axis. Think about this, geometrically.
-                    boolean xCollide = collides2d(test.getMin().getZ(), test.getMax().getZ(), test.getMin().getY(), test.getMax().getY(), playerFrom.getMin().getZ(), playerFrom.getMax().getZ(), playerFrom.getMin().getY(), playerFrom.getMax().getY(), moveDirection.getZ(), moveDirection.getY());
-                    boolean yCollide = collides2d(test.getMin().getX(), test.getMax().getX(), test.getMin().getZ(), test.getMax().getZ(), playerFrom.getMin().getX(), playerFrom.getMax().getX(), playerFrom.getMin().getZ(), playerFrom.getMax().getZ(), moveDirection.getX(), moveDirection.getZ());
-                    boolean zCollide = collides2d(test.getMin().getX(), test.getMax().getX(), test.getMin().getY(), test.getMax().getY(), playerFrom.getMin().getX(), playerFrom.getMax().getX(), playerFrom.getMin().getY(), playerFrom.getMax().getY(), moveDirection.getX(), moveDirection.getY());
-                    if (xCollide && yCollide && zCollide) {
-                        punish(p, new Placeholder("block", bukkitBlock.getType()));
-                        tryRubberband(event, setback);
-                        return;
+                        boolean xCollide = collides2d(test.getMin().getZ(), test.getMax().getZ(), test.getMin().getY(), test.getMax().getY(), playerFrom.getMin().getZ(), playerFrom.getMax().getZ(), playerFrom.getMin().getY(), playerFrom.getMax().getY(), moveDirection.getZ(), moveDirection.getY());
+                        boolean yCollide = collides2d(test.getMin().getX(), test.getMax().getX(), test.getMin().getZ(), test.getMax().getZ(), playerFrom.getMin().getX(), playerFrom.getMax().getX(), playerFrom.getMin().getZ(), playerFrom.getMax().getZ(), moveDirection.getX(), moveDirection.getZ());
+                        boolean zCollide = collides2d(test.getMin().getX(), test.getMax().getX(), test.getMin().getY(), test.getMax().getY(), playerFrom.getMin().getX(), playerFrom.getMax().getX(), playerFrom.getMin().getY(), playerFrom.getMax().getY(), moveDirection.getX(), moveDirection.getY());
+                        if (xCollide && yCollide && zCollide) {
+                            punish(p, new Placeholder("block", bukkitBlock.getType()));
+                            tryRubberband(event, setback);
+                            return;
+                        }
                     }
                 }
             }

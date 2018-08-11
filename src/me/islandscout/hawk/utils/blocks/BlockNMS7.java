@@ -7,8 +7,10 @@ import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
 import org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.material.Gate;
 import org.bukkit.util.Vector;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BlockNMS7 extends BlockNMS {
 
@@ -19,9 +21,9 @@ public class BlockNMS7 extends BlockNMS {
         net.minecraft.server.v1_7_R4.Block b = MinecraftServer.getServer().getWorld().getType(block.getLocation().getBlockX(), block.getLocation().getBlockY(), block.getLocation().getBlockZ());
 
         strength = b.f(null, 0, 0, 0);
-
-        aabb = getAABB(b, block.getLocation());
+        hitbox = getHitBox(b, block.getLocation());
         solid = block.getType().isSolid();
+        collisionBoxes = getCollisionBoxes(b, block.getLocation());
 
         this.block = b;
     }
@@ -36,30 +38,36 @@ public class BlockNMS7 extends BlockNMS {
         ((CraftPlayer) p).getHandle().playerConnection.sendPacket(pac);
     }
 
-    private AABB getAABB(net.minecraft.server.v1_7_R4.Block b, Location loc) {
+    private AABB getHitBox(net.minecraft.server.v1_7_R4.Block b, Location loc) {
         AxisAlignedBB nmsAABB = b.a(((CraftWorld) loc.getWorld()).getHandle(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
         Vector min;
         Vector max;
         if(nmsAABB == null) {
-            Vector notExist = new Vector(0, 0, 0);
-            min = notExist;
-            max = notExist;
+            min = new Vector(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+            max = new Vector(loc.getBlockX() + 1, loc.getBlockY() + 1, loc.getBlockZ() + 1);
         }
         else {
             min = new Vector(nmsAABB.a, nmsAABB.b, nmsAABB.c);
             max = new Vector(nmsAABB.d, nmsAABB.e, nmsAABB.f);
         }
 
-        //fix broken blocks
-        if(b instanceof BlockFence) {
-            max.add(new Vector(0, 0.5, 0));
-        }
-        else if(b instanceof BlockCarpet) {
-            min = loc.toVector();
-            max = loc.toVector().add(new Vector(1, 0, 1));
+        return new AABB(min, max);
+    }
+
+    private AABB[] getCollisionBoxes(net.minecraft.server.v1_7_R4.Block b, Location loc) {
+        //This is the thing you want to call. Just pass in a List "L" and it will collect all AABBs of that block that collide with the AABB you give it.
+        List<AxisAlignedBB> bbs = new ArrayList<>();
+        AxisAlignedBB cube = AxisAlignedBB.a(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), loc.getBlockX() + 1, loc.getBlockY() + 1, loc.getBlockZ() + 1);
+        b.a(((CraftWorld) loc.getWorld()).getHandle(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), cube, bbs, null);
+
+        AABB[] collisionBoxes = new AABB[bbs.size()];
+        for(int i = 0; i < bbs.size(); i++) {
+            AxisAlignedBB bb = bbs.get(i);
+            AABB collisionBox = new AABB(new Vector(bb.a, bb.b, bb.c), new Vector(bb.d, bb.e, bb.f));
+            collisionBoxes[i] = collisionBox;
         }
 
-        return new AABB(min, max);
+        return collisionBoxes;
     }
 
 }

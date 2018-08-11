@@ -19,7 +19,6 @@ import java.util.*;
 
 public class Fly extends AsyncMovementCheck {
 
-    //TODO: Do check if player is glitching in the side of a block and there is air below them. (a variant of wall-climbing cheats)
     //TODO: false flag on double-jump to toggle legit fly
     //TODO: Setup legit locations for appropriate setbacks
     //TODO: Damage, velocity, and potion effect handling

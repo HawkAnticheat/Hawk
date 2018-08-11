@@ -141,16 +141,17 @@ public class AdjacentBlocks {
             BlockNMS bNMS = BlockNMS.getBlockNMS(block);
             if(block.isLiquid() || (!bNMS.isSolid() && Hawk.getServerVersion() == 8))
                 continue;
-            if(bNMS.getCollisionBox().isColliding(underFeet)) {
+            if(bNMS.isColliding(underFeet)) {
 
                 //almost done. gotta do one more check... Check if their foot ain't in a block. (stops checkerclimb)
+                //TODO: ignore updatable blocks (DOOR, TRAPDOOR, FENCEGATE)
                 AABB topFeet = underFeet.clone();
                 topFeet.translate(new Vector(0, feetDepth, 0));
                 for(Block block1 : AdjacentBlocks.getBlocksInLocation(loc)) {
                     BlockNMS bNMS1 = BlockNMS.getBlockNMS(block1);
                     if(block.isLiquid() || (!bNMS.isSolid() && Hawk.getServerVersion() == 8))
                         continue;
-                    if(bNMS1.getCollisionBox().isColliding(topFeet))
+                    if(bNMS1.isColliding(topFeet))
                         return false;
                 }
 
