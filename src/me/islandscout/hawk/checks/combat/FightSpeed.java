@@ -1,6 +1,7 @@
 package me.islandscout.hawk.checks.combat;
 
 import me.islandscout.hawk.checks.AsyncEntityInteractionCheck;
+import me.islandscout.hawk.events.InteractAction;
 import me.islandscout.hawk.events.InteractEntityEvent;
 import me.islandscout.hawk.utils.MathPlus;
 import me.islandscout.hawk.utils.Placeholder;
@@ -24,6 +25,8 @@ public class FightSpeed extends AsyncEntityInteractionCheck {
 
     @Override
     protected void check(InteractEntityEvent e) {
+        if(e.getInteractAction() == InteractAction.INTERACT)
+            return;
         Player p = e.getPlayer();
         UUID uuid = p.getUniqueId();
         if(lastClickTime.containsKey(uuid)) {

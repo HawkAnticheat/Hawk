@@ -5,6 +5,7 @@ import me.islandscout.hawk.utils.blocks.BlockNMS;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -103,18 +104,29 @@ public class AdjacentBlocks {
     }
 
     //TODO: this still needs to get optimized. Replace List with Set
+    /**
+     * Checks if the location is on ground. Good replacement for Entity#isOnGround()
+     * since that flag can be spoofed by the client. Hawk's definition of being on
+     * ground: yVelocity must not exceed 0.5625, player's feet must not be inside
+     * a solid block's AABB, and there must be at least 1 solid block AABB collision
+     * with the AABB defining the thin area below the location (represents below the
+     * player's feet).
+     * @param loc Test location
+     * @param yVelocity Y-velocity
+     * @return boolean
+     */
     //if not sure what your velocity is, just put -1 for velocity
     //if you just want to check for location, just put -1 for velocity
     public static boolean onGroundReally(Location loc, double yVelocity) {
         if(yVelocity > 0.5625) //allows stepping up short blocks, but not full blocks
             return false;
-        double depth = 0.02; //Don't set this too low. The client doesn't like to send moves unless they are significant enough.
+        double feetDepth = 0.02; //Don't set this too low. The client doesn't like to send moves unless they are significant enough.
         //If too low, this might set off fly false flags when jumping on edge of blocks.
-        //TODO: Perhaps replace "depth" with "groundPrecision" and "feetDepth". feetDepth should not be less than 0.02. groundPrecision should be very very close to 0.
+        //TO DO: Perhaps replace "depth" with "groundPrecision" and "feetDepth". feetDepth should not be less than 0.02. groundPrecision should be very very close to 0.
         Location check = loc.clone();
         List<Block> blocks = new ArrayList<>();
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, -1, 0)));
-        blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, 1 - depth, 0)));
+        blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, 0.999, 0)));
         Block prevBlock = null;
         for(int i = blocks.size() - 1; i >= 0; i--) {
             Block currBlock = blocks.get(i);
@@ -124,13 +136,26 @@ public class AdjacentBlocks {
             prevBlock = currBlock;
         }
 
-        AABB feet = new AABB(check.add(-0.3, 0, -0.3).toVector(), check.add(0.6, depth, 0.6).toVector());
+        AABB underFeet = new AABB(check.add(-0.3, 0, -0.3).toVector(), check.add(0.6, feetDepth, 0.6).toVector());
         for(Block block : blocks) {
             BlockNMS bNMS = BlockNMS.getBlockNMS(block);
             if(block.isLiquid() || (!bNMS.isSolid() && Hawk.getServerVersion() == 8))
                 continue;
-            if(bNMS.getCollisionBox().isColliding(feet))
+            if(bNMS.getCollisionBox().isColliding(underFeet)) {
+
+                //almost done. gotta do one more check... Check if their foot ain't in a block. (stops checkerclimb)
+                AABB topFeet = underFeet.clone();
+                topFeet.translate(new Vector(0, feetDepth, 0));
+                for(Block block1 : AdjacentBlocks.getBlocksInLocation(loc)) {
+                    BlockNMS bNMS1 = BlockNMS.getBlockNMS(block1);
+                    if(block.isLiquid() || (!bNMS.isSolid() && Hawk.getServerVersion() == 8))
+                        continue;
+                    if(bNMS1.getCollisionBox().isColliding(topFeet))
+                        return false;
+                }
+
                 return true;
+            }
         }
         return false;
     }

@@ -31,6 +31,7 @@ public class NoFall extends AsyncMovementCheck {
             }
             if(event.isOnGround() && maxY - event.getTo().getY() > EPSILON) {
 
+                //TODO: Still false flagging...
                 //wait one little second: minecraft is being a pain in the ass and it wants to play tricks when you parkour on the very edge of blocks
                 //we need to check this first...
                 Location checkLoc = event.getFrom().clone();
