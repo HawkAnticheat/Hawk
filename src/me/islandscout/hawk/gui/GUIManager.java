@@ -45,16 +45,16 @@ public class GUIManager implements Listener {
         if(!(e.getWhoClicked() instanceof Player))
             return;
         Player p = (Player)e.getWhoClicked();
-        if(!p.hasPermission(Hawk.BASE_PERMISSION + ".admin")) {
-            p.sendMessage(ChatColor.RED + "You do not have permission to perform this action.");
-            p.closeInventory();
-            return;
-        }
         if(!activeWindows.containsKey(p.getUniqueId()) || activeWindows.get(p.getUniqueId()) == null)
             return;
         if(!activeWindows.get(p.getUniqueId()).getInventory().equals(e.getClickedInventory()))
             return;
         e.setCancelled(true);
+        if(!p.hasPermission(Hawk.BASE_PERMISSION + ".gui")) {
+            p.sendMessage(ChatColor.RED + "You do not have permission to perform this action.");
+            p.closeInventory();
+            return;
+        }
         Window window = activeWindows.get(p.getUniqueId());
         int clickedLoc = e.getRawSlot();
         for(Element element : window.getElements()) {
