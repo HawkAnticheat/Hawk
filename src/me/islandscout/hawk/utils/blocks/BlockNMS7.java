@@ -4,6 +4,7 @@ import me.islandscout.hawk.utils.AABB;
 import net.minecraft.server.v1_7_R4.*;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_7_R4.CraftChunk;
 import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
 import org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -18,7 +19,7 @@ public class BlockNMS7 extends BlockNMS {
 
     public BlockNMS7(Block block) {
         super(block);
-        net.minecraft.server.v1_7_R4.Block b = MinecraftServer.getServer().getWorld().getType(block.getLocation().getBlockX(), block.getLocation().getBlockY(), block.getLocation().getBlockZ());
+        net.minecraft.server.v1_7_R4.Block b = ((CraftWorld)block.getWorld()).getHandle().getType(block.getLocation().getBlockX(), block.getLocation().getBlockY(), block.getLocation().getBlockZ());
 
         strength = b.f(null, 0, 0, 0);
         hitbox = getHitBox(b, block.getLocation());

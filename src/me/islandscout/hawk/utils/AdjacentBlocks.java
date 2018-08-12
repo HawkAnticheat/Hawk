@@ -2,6 +2,7 @@ package me.islandscout.hawk.utils;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
+import net.minecraft.server.v1_8_R3.PlayerConnection;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -126,7 +127,7 @@ public class AdjacentBlocks {
         Location check = loc.clone();
         List<Block> blocks = new ArrayList<>();
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, -1, 0)));
-        blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, 0.999, 0)));
+        blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, 0.999, 0))); //TODO: YAY! FLY-CLIP ISSUE IS BACK! Better figure out what's going on with this line. 0.999?
         Block prevBlock = null;
         for(int i = blocks.size() - 1; i >= 0; i--) {
             Block currBlock = blocks.get(i);

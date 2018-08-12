@@ -1,10 +1,13 @@
 package me.islandscout.hawk.utils.blocks;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.utils.AABB;
 import net.minecraft.server.v1_8_R3.*;
+import net.minecraft.server.v1_8_R3.Chunk;
 import org.bukkit.*;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -20,14 +23,17 @@ public class BlockNMS8 extends BlockNMS {
 
     public BlockNMS8(Block block) {
         super(block);
-        BlockPosition bPos = new BlockPosition(block.getX(), block.getY(), block.getZ());
-        net.minecraft.server.v1_8_R3.Block b = MinecraftServer.getServer().getWorld().getType(bPos).getBlock();
+        BlockPosition.MutableBlockPosition bPos = new BlockPosition.MutableBlockPosition();
+        bPos.c(block.getX(), block.getY(), block.getZ());
+        IBlockData data = ((CraftWorld) block.getWorld()).getHandle().getType(bPos);
+        net.minecraft.server.v1_8_R3.Block b = data.getBlock();
         b.updateShape(((CraftWorld) block.getWorld()).getHandle(), bPos);
 
         strength = b.g(null, null);
         solid = isReallySolid(block);
         hitbox = getHitBox(b, block.getLocation());
-        collisionBoxes = getCollisionBoxes(b, block.getLocation(), bPos);
+        collisionBoxes = getCollisionBoxes(b, block.getLocation(), bPos, data);
+
         this.block = b;
     }
 
@@ -66,11 +72,11 @@ public class BlockNMS8 extends BlockNMS {
     }
 
     //TODO: Fence gates are broken. Please fix.
-    private AABB[] getCollisionBoxes(net.minecraft.server.v1_8_R3.Block b, Location loc, BlockPosition bPos) {
+    private AABB[] getCollisionBoxes(net.minecraft.server.v1_8_R3.Block b, Location loc, BlockPosition bPos, IBlockData data) {
 
         List<AxisAlignedBB> bbs = new ArrayList<>();
         AxisAlignedBB cube = AxisAlignedBB.a(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), loc.getBlockX() + 1, loc.getBlockY() + 1, loc.getBlockZ() + 1);
-        b.a(((CraftWorld) loc.getWorld()).getHandle(), bPos, b.getBlockData(), cube, bbs, null);
+        b.a(((CraftWorld) loc.getWorld()).getHandle(), bPos, data, cube, bbs, null);
 
         AABB[] collisionBoxes = new AABB[bbs.size()];
         for(int i = 0; i < bbs.size(); i++) {

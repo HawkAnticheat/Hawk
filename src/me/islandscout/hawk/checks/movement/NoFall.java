@@ -11,6 +11,8 @@ import java.util.*;
 
 public class NoFall extends AsyncMovementCheck {
 
+    //TODO: Do NOT damage the player. Just change the onGround flag to false. And actually, I'd remove this check and let GroundSpoof do that.
+
     private Map<UUID, Double> maxHeight;
     private Set<UUID> failed;
     private static final double EPSILON = 0.3;
