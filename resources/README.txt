@@ -13,6 +13,7 @@ hawk.cmd.unmute - /hawk unmute
 OTHER PERMISSIONS:
 hawk.notify - Notification messages
 hawk.bypass.<check> - Bypass specific checks
+hawk.gui - Access to GUI
 
 AUTOMATED COMMAND EXECUTION
 All checks have the ability to execute server commands under certain conditions.
