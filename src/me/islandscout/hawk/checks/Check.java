@@ -67,7 +67,7 @@ public abstract class Check {
         this.flagCooldown = ConfigHelper.getOrSetDefault(flagCooldown, hawkConfig, path + "flagCooldown");
         if(punishCommands == null)
             punishCommands = Collections.emptyList();
-        this.punishCommands = ConfigHelper.getOrSetDefault(punishCommands, hawkConfig, path + "punishCommands");
+        this.punishCommands = ConfigHelper.getOrSetDefault(new ArrayList<>(punishCommands), hawkConfig, path + "punishCommands");
         path = "flags." + this.name;
         this.flag = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault(flag, msgs, path));
         this.lastFlagTimes = new HashMap<>();

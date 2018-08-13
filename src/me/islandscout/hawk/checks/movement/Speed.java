@@ -21,8 +21,7 @@ public class Speed extends AsyncMovementCheck {
     //I'm gonna bet that a bypass will pop up. In that case, I'll have to redo this entire thing.
 
     //TODO: CLEAN THIS HELL HOLE UP
-    //TODO: False positive & possible bypass when sneaking. False positive while sneaking in small circles.
-    //TODO: BYPASS! There's either a problem with the setback system or the speed check. (Noticeable in phase check)
+    //TODO: YOU MUST GET BLOCKS USING SERVERUTILS!!!
 
     private static final int WATER_TREAD_GRACE = 12;
     private static final int WATER_UNDER_GRACE = 16;

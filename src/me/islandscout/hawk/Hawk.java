@@ -65,13 +65,13 @@ public class Hawk extends JavaPlugin {
         messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
         FLAG_PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cHAWK:", messages, "prefix"));
         profiles = new HashMap<>();
+        sql = new SQL(this);
+        sql.createTableIfNotExists();
         guiManager = new GUIManager(this);
         lagCompensator = new LagCompensator(this);
         startLoggerFile();
         checkManager = new CheckManager(plugin);
         checkManager.loadChecks();
-        sql = new SQL(this);
-        sql.createTableIfNotExists();
         scheduler = new Scheduler(this);
         scheduler.startSchedulers();
         packetCore = new PacketCore(SERVER_VERSION, this);

@@ -4,7 +4,6 @@ import me.islandscout.hawk.utils.AABB;
 import net.minecraft.server.v1_7_R4.*;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_7_R4.CraftChunk;
 import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
 import org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -56,7 +55,7 @@ public class BlockNMS7 extends BlockNMS {
     }
 
     private AABB[] getCollisionBoxes(net.minecraft.server.v1_7_R4.Block b, Location loc) {
-        //This is the thing you want to call. Just pass in a List "L" and it will collect all AABBs of that block that collide with the AABB you give it.
+
         List<AxisAlignedBB> bbs = new ArrayList<>();
         AxisAlignedBB cube = AxisAlignedBB.a(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), loc.getBlockX() + 1, loc.getBlockY() + 1, loc.getBlockZ() + 1);
         b.a(((CraftWorld) loc.getWorld()).getHandle(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), cube, bbs, null);

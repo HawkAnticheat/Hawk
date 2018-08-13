@@ -2,6 +2,7 @@ package me.islandscout.hawk.utils.packets;
 
 import me.islandscout.hawk.events.*;
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.utils.ServerUtils;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
 import me.islandscout.hawk.utils.blocks.BlockNMS8;
 import net.minecraft.server.v1_8_R3.*;
@@ -57,18 +58,10 @@ public class PacketConverter8 {
     private static BlockDigEvent packetToDigEvent(PacketPlayInBlockDig packet, Player p, HawkPlayer pp) {
         BlockPosition pos = packet.a();
         Location loc = new Location(p.getWorld(), pos.getX(), pos.getY(), pos.getZ());
-        BlockNMS block;
-
-        //This is stupid
-        //TODO: perhaps replace this with the shiny async block getting utility in ServerUtils
-        if(loc.distanceSquared(p.getLocation()) > 64) return null;
-        try {
-            org.bukkit.block.Block b = loc.getBlock();
-            block = new BlockNMS8(b);
-        }
-        catch (IllegalStateException e) {
+        if(loc.distanceSquared(p.getLocation()) > 64)
             return null;
-        }
+
+        BlockNMS block = new BlockNMS8(ServerUtils.getBlockAsync(loc));
 
         PacketPlayInBlockDig.EnumPlayerDigType digType = packet.c();
         DigAction action;

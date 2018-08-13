@@ -3,7 +3,9 @@ package me.islandscout.hawk.checks.movement;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
+import me.islandscout.hawk.utils.ServerUtils;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 /**
@@ -26,8 +28,13 @@ public class LiquidExit extends AsyncMovementCheck {
         Location from = e.getFrom();
         double deltaY = e.getTo().getY() - from.getY();
 
+        Block atFrom = ServerUtils.getBlockAsync(from);
+        Block belowFrom = ServerUtils.getBlockAsync(from.clone().add(0, deltaY, 0));
+        if(atFrom == null || belowFrom == null)
+            return;
+
         //emerged upwards from liquid
-        if(deltaY > 0 && from.getBlock().isLiquid() && !from.clone().add(0, deltaY, 0).getBlock().isLiquid()) {
+        if(deltaY > 0 && atFrom.isLiquid() && !belowFrom.isLiquid()) {
             if(!AdjacentBlocks.blockNearbyIsSolid(from)) {
                 punishAndTryRubberband(p, e, p.getLocation());
             }

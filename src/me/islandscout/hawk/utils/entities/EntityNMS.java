@@ -6,8 +6,8 @@ import org.bukkit.entity.Entity;
 
 public abstract class EntityNMS {
 
-    Entity entity;
-    AABB aabb;
+    protected Entity entity;
+    protected AABB aabb;
 
     EntityNMS(Entity entity) {
         this.entity = entity;

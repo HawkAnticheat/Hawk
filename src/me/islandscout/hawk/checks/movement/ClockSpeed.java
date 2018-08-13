@@ -3,7 +3,7 @@ package me.islandscout.hawk.checks.movement;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.ConfigHelper;
-import me.islandscout.hawk.utils.Debug;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -18,15 +18,19 @@ public class ClockSpeed extends AsyncMovementCheck {
     private boolean DEBUG;
     private double THRESHOLD;
     private long MAX_CATCHUP_TIME;
+    private double CALIBRATE_SLOWER;
+    private double CALIBRATE_FASTER;
 
     public ClockSpeed() {
         super("clockspeed", true, true, true, 0.995, 3, 2000, "&7%player% failed clockspeed. VL: %vl%, ping: %ping%, TPS: %tps%", null);
         prevNanoTime = new HashMap<>();
         penalize = new HashSet<>();
         clockDrift = new HashMap<>();
-        THRESHOLD = ConfigHelper.getOrSetDefault(10, hawk.getConfig(), "checks.clockspeed.threshold");
+        THRESHOLD = -ConfigHelper.getOrSetDefault(10, hawk.getConfig(), "checks.clockspeed.threshold");
         MAX_CATCHUP_TIME = 1000000 * ConfigHelper.getOrSetDefault(500, hawk.getConfig(), "checks.clockspeed.maxCatchupTime");
         DEBUG = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.clockspeed.debug");
+        CALIBRATE_SLOWER = 1 - ConfigHelper.getOrSetDefault(0.003, hawk.getConfig(), "checks.clockspeed.calibrateSlower");
+        CALIBRATE_FASTER = 1 - ConfigHelper.getOrSetDefault(0.03, hawk.getConfig(), "checks.clockspeed.calibrateFaster");
     }
 
     @Override
@@ -46,17 +50,19 @@ public class ClockSpeed extends AsyncMovementCheck {
         drift += time - 50000000L;
         if(drift > MAX_CATCHUP_TIME)
             drift = MAX_CATCHUP_TIME;
-        if(DEBUG)
-            Debug.sendToPlayer(p, "CLOCK DRIFT: " + drift * 1E-6 + "ms");
-        if(drift * 1E-6 < -THRESHOLD) {
+        if(DEBUG) {
+            double msOffset = drift * 1E-6;
+            p.sendMessage((msOffset < 0 ? (msOffset < THRESHOLD ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.BLUE) + "CLOCK DRIFT: " + msOffset + "ms");
+        }
+        if(drift * 1E-6 < THRESHOLD) {
             punishAndTryRubberband(p, event, p.getLocation());
         }
         else
             reward(p);
         if(drift < 0)
-            drift *= 0.97;
+            drift *= CALIBRATE_FASTER;
         else
-            drift *= 0.997;
+            drift *= CALIBRATE_SLOWER;
         clockDrift.put(p.getUniqueId(), drift);
     }
 

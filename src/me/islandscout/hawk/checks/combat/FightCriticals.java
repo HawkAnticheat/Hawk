@@ -21,6 +21,8 @@ public class FightCriticals extends AsyncEntityInteractionCheck {
             Player attacker = e.getPlayer();
             HawkPlayer att = hawk.getHawkPlayer(attacker);
             Location loc = att.getLocation().clone();
+
+            //TODO: YOU MUST GET BLOCKS USING SERVERUTILS!!!
             if((attacker.getFallDistance() < 0.3 && attacker.getFallDistance() != 0 && loc.add(0, -0.3, 0).getBlock().getType().isSolid() && !loc.add(0, 2.3, 0).getBlock().getType().isSolid())) {
                 punish(attacker, true, e);
                 return;

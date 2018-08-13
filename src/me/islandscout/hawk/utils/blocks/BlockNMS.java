@@ -5,8 +5,6 @@ import me.islandscout.hawk.utils.AABB;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-import java.util.List;
-
 public abstract class BlockNMS {
 
     float strength;

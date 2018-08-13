@@ -4,12 +4,9 @@ import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.*;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
-import net.minecraft.server.v1_7_R4.AxisAlignedBB;
-import net.minecraft.server.v1_7_R4.WorldServer;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.material.Gate;
 import org.bukkit.material.Openable;
 import org.bukkit.util.Vector;
 
@@ -22,12 +19,9 @@ import java.util.*;
  * player is shrunk to reduce false positives, of course.
  */
 public class Phase extends AsyncMovementCheck {
-
-    //TODO: Add config option to whitelist certain blocks
+    
     //TODO: False positive due to block updating inside player bounding box or if someone teleports into a block. Probably can only fix TP issue.
     //TODO: False positive when stepping up half a block
-    //TODO: Issues with 1.8
-    //TODO: false flag while stepping up slabs and stairs
     //TO DO: If a player sends a move with a large distance and passes through ANY solid block, flag it!
     //TO DO: Logging in while on ground may cause you to get stuck on ground. Make safe locations to fix this.
 
@@ -37,24 +31,17 @@ public class Phase extends AsyncMovementCheck {
     private static final double BOTTOM_EPSILON = 0.3;
     private static final double SIDE_EPSILON = 0.05;
 
-    //The materials listed below have problematic bounding boxes; will be ignored.
-    //TODO: Change these into Sets
-    private List<String> whitelistNames;
-    private List<String> whitelistSemiNames;
-
     //Maximum distance per move for ignoring whitelisted blocks
     //too big, and you may have a gap for bypasses
     //too small, and you may have false positives
     //optimal threshold < (block depth + 0.6) - (2 * SIDE_EPSILON)
     private static final double HORIZONTAL_DISTANCE_THRESHOLD = Math.pow(0.6, 2);
-    private static final double VERTICAL_DISTANCE_THRESHOLD = 1;
+    private static final double VERTICAL_DISTANCE_THRESHOLD = Math.pow(1, 2);
 
     private Map<UUID, Location> legitLoc;
 
     public Phase() {
         super("phase", true, true, true, 0.995, 10, 2000, "&7%player% failed phase. Moved through %block%. VL: %vl%", null);
-        whitelistNames = Arrays.asList("FENCE", "IRON_FENCE", "CAULDRON");
-        whitelistSemiNames = Arrays.asList("STAIR", "STEP", "DOOR");
         legitLoc = new HashMap<>();
     }
 
@@ -64,7 +51,7 @@ public class Phase extends AsyncMovementCheck {
         Location locFrom = event.getFrom();
         Player p = event.getPlayer();
         if(!legitLoc.containsKey(p.getUniqueId()))
-            legitLoc.put(p.getUniqueId(), event.getFrom().clone());
+            legitLoc.put(p.getUniqueId(), p.getLocation().clone());
         Location setback = legitLoc.get(p.getUniqueId());
         double distanceSquared = locFrom.distanceSquared(locTo);
 
@@ -96,26 +83,7 @@ public class Phase extends AsyncMovementCheck {
                     if(!bukkitBlock.getType().isSolid())
                         continue;
 
-                    if (bukkitBlock.getState().getData() instanceof Openable && ((Openable) bukkitBlock.getState().getData()).isOpen()) {
-                        if (bukkitBlock.getState().getData() instanceof Gate) {
-                            continue;
-                        }
-                    }
-
-                    if (whitelistNames.contains(bukkitBlock.getType().name()) && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD) {
-                        continue;
-                    }
-
-                    boolean containsSemiName = false;
-                    for (String check : whitelistSemiNames) {
-                        if(horizDistanceSquared > HORIZONTAL_DISTANCE_THRESHOLD)
-                            break;
-                        if (bukkitBlock.getType().name().contains(check)) {
-                            containsSemiName = true;
-                            break;
-                        }
-                    }
-                    if (containsSemiName) {
+                    if(bukkitBlock.getState().getData() instanceof Openable && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD && distanceSquared <= VERTICAL_DISTANCE_THRESHOLD) {
                         continue;
                     }
 
@@ -138,8 +106,8 @@ public class Phase extends AsyncMovementCheck {
             }
         }
 
-        if (!AdjacentBlocks.blockAdjacentIsSolid(event.getFrom()) && !AdjacentBlocks.blockAdjacentIsSolid(event.getFrom().clone().add(0, 1, 0))) {
-            legitLoc.put(p.getUniqueId(), event.getFrom().clone());
+        if (!AdjacentBlocks.blockAdjacentIsSolid(p.getLocation()) && !AdjacentBlocks.blockAdjacentIsSolid(p.getLocation().clone().add(0, 1, 0))) {
+            legitLoc.put(p.getUniqueId(), p.getLocation().clone());
         }
         reward(p);
     }

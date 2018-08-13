@@ -2,10 +2,9 @@ package me.islandscout.hawk.checks.movement;
 
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
-import me.islandscout.hawk.utils.AABB;
-import me.islandscout.hawk.utils.AdjacentBlocks;
-import me.islandscout.hawk.utils.ServerUtils;
+import me.islandscout.hawk.utils.*;
 import me.islandscout.hawk.utils.entities.EntityNMS;
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -13,6 +12,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -62,8 +63,8 @@ public class Fly extends AsyncMovementCheck {
                 !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WATER) && !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.STATIONARY_WATER) &&
                 !isInClimbable(event.getTo()) && !isOnBoat(event.getTo())) {
 
-            if(!inAir.contains(p.getUniqueId()) && deltaY > 0 && deltaY <= 0.42) { //player has jumped
-                deltaY = 0.42;
+            if(!inAir.contains(p.getUniqueId()) && deltaY > 0) {
+                deltaY = 0.42 + getJumpBoostLvl(p) * 0.1;
                 lastDeltaY.put(p.getUniqueId(), deltaY);
             }
 
@@ -79,7 +80,8 @@ public class Fly extends AsyncMovementCheck {
                 legitLoc.put(p.getUniqueId(), event.getTo());
             }
 
-            if(deltaY - expectedDeltaY > 0.01) { //oopsie daisy. client made a goof up
+            //epsilon is 0.1, because the client doesn't like updating its position if it thinks it isn't significant enough
+            if(deltaY - expectedDeltaY > 0.1) { //oopsie daisy. client made a goof up
 
                 //wait one little second: minecraft is being a pain in the ass and it wants to play tricks when you parkour on the very edge of blocks
                 //we need to check this first...
@@ -146,6 +148,15 @@ public class Fly extends AsyncMovementCheck {
     private boolean isInClimbable(Location loc) {
         Block b = ServerUtils.getBlockAsync(loc);
         return b != null && (b.getType() == Material.VINE || b.getType() == Material.LADDER);
+    }
+
+    private int getJumpBoostLvl(Player p) {
+        for(PotionEffect pEffect : p.getActivePotionEffects()) {
+            if(pEffect.getType().equals(PotionEffectType.JUMP)) {
+                return pEffect.getAmplifier() + 1;
+            }
+        }
+        return 0;
     }
 
     @Override

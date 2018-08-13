@@ -2,10 +2,10 @@ package me.islandscout.hawk.utils;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
-import net.minecraft.server.v1_8_R3.PlayerConnection;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.material.Openable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -145,12 +145,11 @@ public class AdjacentBlocks {
             if(bNMS.isColliding(underFeet)) {
 
                 //almost done. gotta do one more check... Check if their foot ain't in a block. (stops checkerclimb)
-                //TODO: ignore updatable blocks (DOOR, TRAPDOOR, FENCEGATE)
                 AABB topFeet = underFeet.clone();
                 topFeet.translate(new Vector(0, feetDepth, 0));
                 for(Block block1 : AdjacentBlocks.getBlocksInLocation(loc)) {
                     BlockNMS bNMS1 = BlockNMS.getBlockNMS(block1);
-                    if(block.isLiquid() || (!bNMS.isSolid() && Hawk.getServerVersion() == 8))
+                    if(block1.isLiquid() || (!bNMS1.isSolid() && Hawk.getServerVersion() == 8) || block1.getState().getData() instanceof Openable)
                         continue;
                     if(bNMS1.isColliding(topFeet))
                         return false;

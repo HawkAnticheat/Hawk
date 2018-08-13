@@ -80,7 +80,7 @@ public class PacketConverter7 {
                 action = DigAction.COMPLETE;
         }
         pp.setDigging(action == DigAction.START && block.getStrength() != 0);
-        return new BlockDigEvent(p, action, loc.getBlock());
+        return new BlockDigEvent(p, action, b);
     }
 
     private static CustomPayLoadEvent packetToPayloadEvent(PacketPlayInCustomPayload packet, Player p) {

@@ -12,6 +12,8 @@ import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.PhantomBlock;
 import me.islandscout.hawk.utils.packets.PacketConverter7;
 import me.islandscout.hawk.utils.packets.PacketConverter8;
+import net.minecraft.util.io.netty.buffer.ByteBuf;
+import net.minecraft.util.io.netty.buffer.Unpooled;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -68,6 +70,12 @@ public class PacketCore {
         //ignore packets while player is no longer registered in Hawk
         if(!pp.isOnline())
             return false;
+
+        ByteBuf test = Unpooled.buffer(256);
+        test.setByte(0, (byte)0);
+        test.writerIndex(1);
+        //TODO: Figure out how to use ByteBuf
+
 
         Event event;
         if(serverVersion == 8)

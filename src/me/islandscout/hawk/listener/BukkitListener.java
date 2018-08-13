@@ -12,6 +12,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.util.Vector;
 
 public class BukkitListener implements Listener {
 
@@ -93,5 +94,10 @@ public class BukkitListener implements Listener {
                 return;
             pp.getPhantomBlocks().remove(pBlockDel);
         }, 1 + pp.getPing());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onVelocity(PlayerVelocityEvent e) {
+        //TODO: Yes!!!!! it works!!!
     }
 }

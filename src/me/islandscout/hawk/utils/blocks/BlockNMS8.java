@@ -1,13 +1,10 @@
 package me.islandscout.hawk.utils.blocks;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.utils.AABB;
 import net.minecraft.server.v1_8_R3.*;
-import net.minecraft.server.v1_8_R3.Chunk;
 import org.bukkit.*;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -71,7 +68,6 @@ public class BlockNMS8 extends BlockNMS {
         return reallySolid;
     }
 
-    //TODO: Fence gates are broken. Please fix.
     private AABB[] getCollisionBoxes(net.minecraft.server.v1_8_R3.Block b, Location loc, BlockPosition bPos, IBlockData data) {
 
         List<AxisAlignedBB> bbs = new ArrayList<>();
