@@ -108,11 +108,6 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
             victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, (Player)e.getEntity());
         else
             victimLocation = e.getEntity().getLocation();
-        //couldn't find a position to check against. High latency?
-        if(victimLocation == null) {
-            e.setCancelled(true);
-            return;
-        }
 
         Vector eyePos = new Vector(attackerEyeLocation.getX(), attackerEyeLocation.getY(), attackerEyeLocation.getZ());
         Vector direction = new Vector(attackerDirection.getX(), attackerDirection.getY(), attackerDirection.getZ());
@@ -128,7 +123,7 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
             victimAABB = EntityNMS.getEntityNMS(entity).getCollisionBox();
         }
 
-        Vector intersectVec3d = victimAABB.intersectsRay(attackerRay, 0, 10);
+        Vector intersectVec3d = victimAABB.intersectsRay(attackerRay, 0, Float.MAX_VALUE);
 
         if(DEBUG_HITBOX) {
             victimAABB.highlight(hawk, attacker.getWorld(), 0.29);
@@ -159,7 +154,7 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
 
                     BlockNMS b = BlockNMS.getBlockNMS(bukkitBlock);
                     AABB checkIntersection = new AABB(b.getHitBox().getMin(), b.getHitBox().getMax());
-                    Vector intersection = checkIntersection.intersectsRay(new Ray(attackerEyeLocation.toVector(), attackerDirection), 0, (float)interDistance);
+                    Vector intersection = checkIntersection.intersectsRay(new Ray(attackerEyeLocation.toVector(), attackerDirection), 0, Float.MAX_VALUE);
                     if(intersection != null) {
                         if(intersection.distance(eyePos) < interDistance) {
                             punish(attacker, currVL >= CANCEL_ABOVE_VL, e, new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType()));

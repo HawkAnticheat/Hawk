@@ -2,6 +2,7 @@ package me.islandscout.hawk.utils.packets;
 
 import me.islandscout.hawk.events.*;
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.ServerUtils;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
 import me.islandscout.hawk.utils.blocks.BlockNMS7;
@@ -20,7 +21,8 @@ public class PacketConverter7 {
         if(packet instanceof PacketPlayInCustomPayload) return packetToPayloadEvent((PacketPlayInCustomPayload) packet, p);
         if(packet instanceof PacketPlayInAbilities) return packetToAbilitiesEvent((PacketPlayInAbilities) packet, p);
         if(packet instanceof PacketPlayInBlockPlace) return packetToBlockPlaceEvent((PacketPlayInBlockPlace) packet, p);
-        else return null;
+        if(packet instanceof PacketPlayInArmAnimation) return packetToArmSwingEvent((PacketPlayInArmAnimation) packet, p);
+        return null;
     }
 
     private static PositionEvent packetToPosEvent(PacketPlayInFlying packet, Player p, HawkPlayer pp) {
@@ -141,5 +143,9 @@ public class PacketConverter7 {
         if(y < 0)
             return null;
         return new BlockPlaceEvent(p, new Location(p.getWorld(), x, y, z), mat, face);
+    }
+
+    private static ArmSwingEvent packetToArmSwingEvent(PacketPlayInArmAnimation packet, Player p ) {
+        return new ArmSwingEvent(p, packet.d());
     }
 }

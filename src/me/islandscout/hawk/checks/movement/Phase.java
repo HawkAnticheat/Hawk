@@ -38,7 +38,7 @@ public class Phase extends AsyncMovementCheck {
     private static final double HORIZONTAL_DISTANCE_THRESHOLD = Math.pow(0.6, 2);
     private static final double VERTICAL_DISTANCE_THRESHOLD = Math.pow(1, 2);
 
-    private Map<UUID, Location> legitLoc;
+    private final Map<UUID, Location> legitLoc;
 
     public Phase() {
         super("phase", true, true, true, 0.995, 10, 2000, "&7%player% failed phase. Moved through %block%. VL: %vl%", null);

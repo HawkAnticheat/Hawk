@@ -3,6 +3,7 @@ package me.islandscout.hawk;
 import me.islandscout.hawk.api.HawkAPI;
 import me.islandscout.hawk.checks.CheckManager;
 import me.islandscout.hawk.command.HawkCommand;
+import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.gui.GUIManager;
 import me.islandscout.hawk.listener.BukkitListener;
 import me.islandscout.hawk.utils.ConfigHelper;
@@ -16,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -87,6 +89,7 @@ public class Hawk extends JavaPlugin {
         guiManager = null;
         lagCompensator = null;
         checkManager = null;
+        PositionEvent.discardData();
         plugin.packetCore.killListener();
         sql.closeConnection();
         sql = null;

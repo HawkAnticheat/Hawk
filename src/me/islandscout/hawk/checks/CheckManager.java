@@ -1,10 +1,7 @@
 package me.islandscout.hawk.checks;
 
 import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.checks.combat.FightCriticals;
-import me.islandscout.hawk.checks.combat.FightHitbox;
-import me.islandscout.hawk.checks.combat.FightSpeed;
-import me.islandscout.hawk.checks.combat.FightSynchronized;
+import me.islandscout.hawk.checks.combat.*;
 import me.islandscout.hawk.checks.interaction.BlockBreakHitbox;
 import me.islandscout.hawk.checks.interaction.BlockBreakSpeed;
 import me.islandscout.hawk.checks.interaction.WrongBlock;
@@ -13,6 +10,7 @@ import me.islandscout.hawk.events.BlockDigEvent;
 import me.islandscout.hawk.events.Event;
 import me.islandscout.hawk.events.InteractEntityEvent;
 import me.islandscout.hawk.events.PositionEvent;
+import me.islandscout.hawk.utils.Debug;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -54,6 +52,7 @@ public class CheckManager {
         new LiquidExit();
         new GroundSpoof();
         new FightSpeed();
+        new FightAccuracy();
 
         for(Check check : checkList) {
             if(check instanceof Listener)
@@ -69,7 +68,10 @@ public class CheckManager {
         for(Check check : checkList) {
             if(check instanceof AsyncCheck) {
                 AsyncCheck asyncCheck = (AsyncCheck)check;
-                if(check instanceof AsyncMovementCheck && e instanceof PositionEvent) {
+                if(check instanceof AsyncCustomCheck) {
+                    asyncCheck.checkEvent(e);
+                }
+                else if(check instanceof AsyncMovementCheck && e instanceof PositionEvent) {
                     asyncCheck.checkEvent(e);
                 }
                 else if(check instanceof AsyncEntityInteractionCheck && e instanceof InteractEntityEvent) {

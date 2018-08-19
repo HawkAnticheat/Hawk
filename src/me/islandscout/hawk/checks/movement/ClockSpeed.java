@@ -12,14 +12,14 @@ public class ClockSpeed extends AsyncMovementCheck {
 
     //TODO: Cancel eating/shooting/regen if this fails
 
-    private Map<UUID, Long> prevNanoTime;
-    private Map<UUID, Long> clockDrift;
-    private Set<UUID> penalize;
-    private boolean DEBUG;
-    private double THRESHOLD;
-    private long MAX_CATCHUP_TIME;
-    private double CALIBRATE_SLOWER;
-    private double CALIBRATE_FASTER;
+    private final Map<UUID, Long> prevNanoTime;
+    private final Map<UUID, Long> clockDrift;
+    private final Set<UUID> penalize;
+    private final boolean DEBUG;
+    private final double THRESHOLD;
+    private final long MAX_CATCHUP_TIME;
+    private final double CALIBRATE_SLOWER;
+    private final double CALIBRATE_FASTER;
 
     public ClockSpeed() {
         super("clockspeed", true, true, true, 0.995, 3, 2000, "&7%player% failed clockspeed. VL: %vl%, ping: %ping%, TPS: %tps%", null);

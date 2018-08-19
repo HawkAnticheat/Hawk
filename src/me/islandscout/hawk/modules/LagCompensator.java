@@ -6,6 +6,7 @@ import me.islandscout.hawk.utils.LocationTime;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -25,7 +26,7 @@ public class LagCompensator {
     public LagCompensator(Hawk hawk) {
         this.locationTimes = new HashMap<>();
         historySize = ConfigHelper.getOrSetDefault(20, hawk.getConfig(), "lagCompensation.historySize");
-        pingOffset = ConfigHelper.getOrSetDefault(200, hawk.getConfig(), "lagCompensation.pingOffset");
+        pingOffset = ConfigHelper.getOrSetDefault(175, hawk.getConfig(), "lagCompensation.pingOffset");
     }
 
     //uses linear interpolation to get the best location
@@ -51,7 +52,7 @@ public class LagCompensator {
                 return before;
             }
         }
-        return null; //can't find a suitable position
+        return player.getLocation(); //can't find a suitable position
     }
 
     /*
@@ -71,17 +72,12 @@ public class LagCompensator {
     }
     */
 
-    public void processMove(PlayerMoveEvent e) {
-        if(e.isCancelled())
-            return;
-        if(e.getTo().distanceSquared(e.getFrom()) == 0)
-            return;
-        Player p = e.getPlayer();
+    public void processPosition(Location loc, Player p) {
         List<LocationTime> times = locationTimes.getOrDefault(p.getUniqueId(), new ArrayList<>());
         long currTime = System.currentTimeMillis();
         if(times.size() > 0 && currTime - times.get(times.size() - 1).getTime() < RESOLUTION)
             return;
-        times.add(new LocationTime(currTime, e.getTo()));
+        times.add(new LocationTime(currTime, loc));
         if(times.size() > historySize) times.remove(0);
         locationTimes.put(p.getUniqueId(), times);
     }

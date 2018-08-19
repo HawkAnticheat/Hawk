@@ -15,7 +15,7 @@ public class PositionEvent extends Event {
     private boolean teleported;
     private Location cancelLocation;
     private HawkPlayer pp;
-    //these maps will not clear on reload
+
     private static Map<UUID, Location> last = new HashMap<>();
     private static Map<UUID, Location> current = new HashMap<>();
 
@@ -78,6 +78,11 @@ public class PositionEvent extends Event {
             pp.setTeleporting(true);
             pp.setTeleportLoc(setback);
         }
+    }
+
+    public static void discardData() {
+        last.clear();
+        current.clear();
     }
 
 }

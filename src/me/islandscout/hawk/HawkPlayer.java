@@ -229,4 +229,25 @@ public class HawkPlayer {
     public synchronized void teleportPlayer(Location location, PlayerTeleportEvent.TeleportCause teleportCause) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.teleport(location, teleportCause), 0L);
     }
+
+    //Returns predicted server location of player at the current millisecond
+    public Location getExtrapolatedLocation() {
+        Vector eVelocity = velocity.clone();
+        Vector eDeltaRotation = new Vector(deltaYaw, deltaPitch, 0);
+        double moveDelay = System.currentTimeMillis() - lastMoveTime;
+        if (moveDelay >= 100) {
+            moveDelay = 0D;
+        } else {
+            moveDelay = moveDelay / 50;
+        }
+        eVelocity.multiply(moveDelay);
+        eDeltaRotation.multiply(moveDelay);
+
+        Location loc = location.clone();
+        loc.add(eVelocity);
+        loc.setYaw(loc.getYaw() + (float)eDeltaRotation.getX());
+        loc.setPitch(loc.getPitch() + (float)eDeltaRotation.getY());
+
+        return loc;
+    }
 }

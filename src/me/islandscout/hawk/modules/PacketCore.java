@@ -2,16 +2,15 @@ package me.islandscout.hawk.modules;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.events.AbilitiesEvent;
-import me.islandscout.hawk.events.BlockPlaceEvent;
-import me.islandscout.hawk.events.Event;
-import me.islandscout.hawk.events.PositionEvent;
+import me.islandscout.hawk.events.*;
 import me.islandscout.hawk.listener.packets.PacketListener7;
 import me.islandscout.hawk.listener.packets.PacketListener8;
 import me.islandscout.hawk.utils.Debug;
+import me.islandscout.hawk.utils.MathPlus;
 import me.islandscout.hawk.utils.PhantomBlock;
 import me.islandscout.hawk.utils.packets.PacketConverter7;
 import me.islandscout.hawk.utils.packets.PacketConverter8;
+import net.minecraft.server.v1_7_R4.*;
 import net.minecraft.util.io.netty.buffer.ByteBuf;
 import net.minecraft.util.io.netty.buffer.Unpooled;
 import org.bukkit.Bukkit;
@@ -19,6 +18,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
+
+import java.io.OutputStream;
 
 /**
  * This class is mainly used to process packets that are intercepted from the Netty channels.
@@ -71,11 +72,18 @@ public class PacketCore {
         if(!pp.isOnline())
             return false;
 
-        ByteBuf test = Unpooled.buffer(256);
-        test.setByte(0, (byte)0);
-        test.writerIndex(1);
         //TODO: Figure out how to use ByteBuf
-
+        /*if(packet instanceof PacketPlayInPositionLook) {
+            PacketDataSerializer ugh = new PacketDataSerializer(Unpooled.buffer(50));
+            ((PacketPlayInFlying) packet).b(ugh);
+            StringBuilder sb = new StringBuilder();
+            for(byte skid : ugh.array()) {
+                sb.append(skid).append(" ");
+            }
+            Debug.broadcastMessage(sb.toString());
+            //Debug.broadcastMessage(ugh.readBytes(3) + "");
+            ((PacketPlayInFlying) packet).a(ugh);
+        }*/
 
         Event event;
         if(serverVersion == 8)

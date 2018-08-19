@@ -50,6 +50,7 @@ public class BukkitListener implements Listener {
         pp.setTeleportLoc(e.getTo());
         pp.setLocation(e.getTo());
         pp.setLastTeleportTime(System.currentTimeMillis());
+        hawk.getLagCompensator().processPosition(e.getTo(), e.getPlayer());
     }
 
     //LOL! I HATE YOU SO MUCH, BUKKIT! GIVE ME THE CORRECT GETTO LOCATION!
@@ -63,6 +64,7 @@ public class BukkitListener implements Listener {
         pp.setTeleportLoc(e.getTo());
         pp.setLocation(e.getTo());
         pp.setLastTeleportTime(System.currentTimeMillis());
+        hawk.getLagCompensator().processPosition(e.getTo(), e.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -70,11 +72,13 @@ public class BukkitListener implements Listener {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         pp.setTeleporting(true);
         pp.setTeleportLoc(e.getRespawnLocation());
+        hawk.getLagCompensator().processPosition(e.getRespawnLocation(), e.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onMove(PlayerMoveEvent e) {
-        hawk.getLagCompensator().processMove(e);
+        if(!e.isCancelled())
+            hawk.getLagCompensator().processPosition(e.getTo(), e.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -98,6 +102,7 @@ public class BukkitListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onVelocity(PlayerVelocityEvent e) {
+        //Debug.broadcastMessage(e.getVelocity().toString());
         //TODO: Yes!!!!! it works!!!
     }
 }
