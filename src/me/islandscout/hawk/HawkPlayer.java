@@ -230,7 +230,7 @@ public class HawkPlayer {
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.teleport(location, teleportCause), 0L);
     }
 
-    //Returns predicted server location of player at the current millisecond
+    //Returns predicted server location of player at current millisecond
     public Location getExtrapolatedLocation() {
         Vector eVelocity = velocity.clone();
         Vector eDeltaRotation = new Vector(deltaYaw, deltaPitch, 0);

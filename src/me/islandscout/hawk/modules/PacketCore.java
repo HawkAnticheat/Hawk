@@ -98,7 +98,6 @@ public class PacketCore {
         //handle teleports
         if(event instanceof PositionEvent) {
             PositionEvent posEvent = (PositionEvent)event;
-            pp.setLastMoveTime(System.currentTimeMillis());
             posEvent.setTeleported(false);
             if(pp.isTeleporting()) {
                 Location tpLoc = pp.getTeleportLoc();
@@ -136,6 +135,7 @@ public class PacketCore {
 
         //update HawkPlayer
         if(event instanceof PositionEvent) {
+            pp.setLastMoveTime(System.currentTimeMillis());
             if(event.isCancelled() && ((PositionEvent) event).getCancelLocation() != null) {
                 //setTo(setback);
                 ((PositionEvent) event).setTo(((PositionEvent) event).getCancelLocation());

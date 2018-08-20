@@ -10,7 +10,6 @@ import me.islandscout.hawk.events.BlockDigEvent;
 import me.islandscout.hawk.events.Event;
 import me.islandscout.hawk.events.InteractEntityEvent;
 import me.islandscout.hawk.events.PositionEvent;
-import me.islandscout.hawk.utils.Debug;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -53,6 +52,7 @@ public class CheckManager {
         new GroundSpoof();
         new FightSpeed();
         new FightAccuracy();
+        new MouseMovement();
 
         for(Check check : checkList) {
             if(check instanceof Listener)

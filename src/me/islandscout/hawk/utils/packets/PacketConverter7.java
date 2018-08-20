@@ -62,7 +62,7 @@ public class PacketConverter7 {
         Location loc = new Location(p.getWorld(), packet.c(), packet.d(), packet.e());
 
         org.bukkit.block.Block b = ServerUtils.getBlockAsync(loc);
-        if(b == null)
+        if(b == null || packet.f() == 255 || (packet.f() == 0 && loc.getBlockY() == 0))
             return null;
         BlockNMS block = new BlockNMS7(b);
 

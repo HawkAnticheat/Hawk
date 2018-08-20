@@ -14,11 +14,13 @@ public class BlockBreakHitbox extends AsyncBlockDigCheck {
 
     private final boolean DEBUG_HITBOX;
     private final boolean DEBUG_RAY;
+    private final boolean CHECK_DIG_START;
 
     public BlockBreakHitbox() {
         super("blockbreakhitbox", "&7%player% failed block break hitbox. %type% VL: %vl%");
         DEBUG_HITBOX = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.debug.hitbox");
         DEBUG_RAY = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.debug.ray");
+        CHECK_DIG_START = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.checkDigStart");
     }
 
     @Override
@@ -82,7 +84,7 @@ public class BlockBreakHitbox extends AsyncBlockDigCheck {
         else if(e.getDigAction() == DigAction.COMPLETE) {
             punishAndTryCancelAndBlockRespawn(p, e, placeholder);
         }
-        else if(e.getDigAction() == DigAction.START) {
+        else if(CHECK_DIG_START && e.getDigAction() == DigAction.START) {
             punish(p, true, e, placeholder);
         }
     }

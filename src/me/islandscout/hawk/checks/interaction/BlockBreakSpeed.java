@@ -3,12 +3,15 @@ package me.islandscout.hawk.checks.interaction;
 import me.islandscout.hawk.checks.AsyncBlockDigCheck;
 import me.islandscout.hawk.events.DigAction;
 import me.islandscout.hawk.events.BlockDigEvent;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.Placeholder;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.material.Leaves;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -27,13 +30,17 @@ public class BlockBreakSpeed extends AsyncBlockDigCheck {
       A player using a diamond shovel to mine stone is able to break 1.4x faster using cheats. Might need to improve this.
     */
 
+    //TODO: Shears and wool
+
     private Map<UUID, Long> interactTime;
+    private Map<Material, Integer> materialTime;
     private final int DURATION_OFFSET;
     private final double CREATIVE_RATE;
 
     public BlockBreakSpeed() {
         super("blockbreakspeed", "&7%player% failed block break speed. Block: %block%, Time: %time%, VL: %vl%");
         interactTime = new HashMap<>();
+        materialTime = new HashMap<>();
         DURATION_OFFSET = 55;
         CREATIVE_RATE = 1/15D;
     }
@@ -48,7 +55,7 @@ public class BlockBreakSpeed extends AsyncBlockDigCheck {
             Block b = e.getBlock();
             float hardness = BlockNMS.getBlockNMS(b).getStrength();
 
-            boolean harvestable = e.getBlock().getDrops(e.getPlayer().getItemInHand()).size() > 0;
+            boolean harvestable = e.getBlock().getDrops(e.getPlayer().getItemInHand()).size() > 0 || e.getBlock().getDrops().size() == 0 || e.getBlock().getState().getData() instanceof Leaves;
             double expectedTime = harvestable ? hardness * 1.5 : hardness * 5;
 
             int enchant = p.getItemInHand().getEnchantmentLevel(Enchantment.DIG_SPEED);
