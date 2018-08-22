@@ -16,4 +16,4 @@ permissions:
     default: op
   hawk.notify:
     description: Allows one to recieve Hawk notifications
-    defualt: op
+    default: op
