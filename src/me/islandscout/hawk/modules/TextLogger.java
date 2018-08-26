@@ -35,7 +35,7 @@ public class TextLogger {
         }
     }
 
-    public synchronized void logMessage(String message) {
+    public void logMessage(String message) {
         if(!enabled) return;
         message = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('§', message));
         Calendar date = Calendar.getInstance();
@@ -45,7 +45,7 @@ public class TextLogger {
         buffer.add("[" + (date.get(Calendar.MONTH) + 1) + "/" + date.get(Calendar.DAY_OF_MONTH) + "/" + date.get(Calendar.YEAR) + "] [" + hour + ":" + minute + ":" + second + "] " + message);
     }
 
-    public void updateFile() {
+    void updateFile() {
         if(!enabled) return;
         if(buffer.size() == 0) return;
         List<String> asyncList = new ArrayList<>();

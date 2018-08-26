@@ -2,7 +2,6 @@ package me.islandscout.hawk.utils.packets;
 
 import me.islandscout.hawk.events.*;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.ServerUtils;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
 import me.islandscout.hawk.utils.blocks.BlockNMS7;

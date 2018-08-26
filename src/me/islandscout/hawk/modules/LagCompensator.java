@@ -5,8 +5,6 @@ import me.islandscout.hawk.utils.ConfigHelper;
 import me.islandscout.hawk.utils.LocationTime;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -54,23 +52,6 @@ public class LagCompensator {
         }
         return player.getLocation(); //can't find a suitable position
     }
-
-    /*
-    public Location getHistoryLocation(int rewindMillisecs, Player player) {
-        List<LocationTime> times = locationTimes.get(player.getUniqueId());
-        long currentTime = System.currentTimeMillis();
-        if(times == null) {
-            return player.getLocation();
-        }
-        for(int i = times.size() - 1; i >= 0; i--) { //loop backwards
-            if(currentTime - times.get(i).getTime() >= rewindMillisecs + pingOffset) { //player a + avg processing time.
-                Debug.broadcastMessage(currentTime - times.get(i).getTime() + "ms");
-                return times.get(i).getLocation();
-            }
-        }
-        return null; //can't find a suitable position
-    }
-    */
 
     public void processPosition(Location loc, Player p) {
         List<LocationTime> times = locationTimes.getOrDefault(p.getUniqueId(), new ArrayList<>());

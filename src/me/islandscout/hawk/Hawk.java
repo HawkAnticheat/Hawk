@@ -10,7 +10,6 @@ import me.islandscout.hawk.utils.ConfigHelper;
 import me.islandscout.hawk.modules.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -18,7 +17,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -27,8 +25,6 @@ public class Hawk extends JavaPlugin {
 
     //TO DO: There seems to be a bug in which if you tp, your last location (via Bukkit) won't update until you move. This is a problem for combat checks.
     //This might be fixed. Check to make sure.
-
-    //TODO: You should make a reporting system that will multiply VLs based on the amount of reports received.
 
     private CheckManager checkManager;
     private Scheduler scheduler;
@@ -39,7 +35,7 @@ public class Hawk extends JavaPlugin {
     private FileConfiguration messages;
     private GUIManager guiManager;
     private LagCompensator lagCompensator;
-    private Map<UUID, HawkPlayer> profiles; //TODO: make this expire
+    private Map<UUID, HawkPlayer> profiles;
     private static int SERVER_VERSION;
     public static String FLAG_PREFIX;
     public static String BASE_PERMISSION = "hawk";
@@ -86,12 +82,12 @@ public class Hawk extends JavaPlugin {
         plugin.getCommand("hawk").setExecutor(null);
         HandlerList.unregisterAll(this);
         //HawkViolationEvent.getHandlerList().unregister(plugin);
-        profiles = null;
         guiManager = null;
         lagCompensator = null;
         checkManager = null;
         PositionEvent.discardData();
         plugin.packetCore.killListener();
+        profiles = null;
         sql.closeConnection();
         sql = null;
         Bukkit.getScheduler().cancelTasks(this);
@@ -149,8 +145,6 @@ public class Hawk extends JavaPlugin {
     }
 
     public CheckManager getCheckManager() { return checkManager; }
-
-    public Scheduler getScheduler() { return scheduler; }
 
     public SQL getSql() {
         return plugin.sql;

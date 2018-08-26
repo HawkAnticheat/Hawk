@@ -3,7 +3,6 @@ package me.islandscout.hawk.checks.interaction;
 import me.islandscout.hawk.checks.AsyncBlockDigCheck;
 import me.islandscout.hawk.events.DigAction;
 import me.islandscout.hawk.events.BlockDigEvent;
-import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.Placeholder;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
 import org.bukkit.GameMode;

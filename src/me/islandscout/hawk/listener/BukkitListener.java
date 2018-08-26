@@ -2,7 +2,6 @@ package me.islandscout.hawk.listener;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.PhantomBlock;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -12,7 +11,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.util.Vector;
 
 public class BukkitListener implements Listener {
 
@@ -98,11 +96,5 @@ public class BukkitListener implements Listener {
                 return;
             pp.getPhantomBlocks().remove(pBlockDel);
         }, 1 + pp.getPing());
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onVelocity(PlayerVelocityEvent e) {
-        //Debug.broadcastMessage(e.getVelocity().toString());
-        //TODO: Yes!!!!! it works!!!
     }
 }

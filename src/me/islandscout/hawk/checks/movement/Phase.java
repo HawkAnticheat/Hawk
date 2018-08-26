@@ -1,6 +1,5 @@
 package me.islandscout.hawk.checks.movement;
 
-import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.*;
@@ -22,7 +21,6 @@ import java.util.*;
 public class Phase extends AsyncMovementCheck {
     
     //TODO: False positive due to block updating inside player bounding box or if someone teleports into a block. Probably can only fix TP issue.
-    //TODO: False positive when stepping up half a block
     //TO DO: If a player sends a move with a large distance and passes through ANY solid block, flag it!
     //TO DO: Logging in while on ground may cause you to get stuck on ground. Make safe locations to fix this.
 

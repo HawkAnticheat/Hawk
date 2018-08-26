@@ -6,7 +6,6 @@ import me.islandscout.hawk.events.ArmSwingEvent;
 import me.islandscout.hawk.events.Event;
 import me.islandscout.hawk.events.InteractAction;
 import me.islandscout.hawk.events.InteractEntityEvent;
-import me.islandscout.hawk.utils.Debug;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;

@@ -4,7 +4,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncEntityInteractionCheck;
 import me.islandscout.hawk.events.InteractAction;
 import me.islandscout.hawk.events.InteractEntityEvent;
-import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.ServerUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;

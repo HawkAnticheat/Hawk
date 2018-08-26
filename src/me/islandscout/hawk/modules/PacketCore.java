@@ -20,9 +20,6 @@ import org.bukkit.util.Vector;
  */
 public class PacketCore {
 
-    //TODO: Process incoming packets as well as outgoing packets (example: player abilities. This is to know async if a player is flying)
-    //TODO: Process valid events (after they've been processed by hawk) and make an event system
-
     //Welcome to TCP damnation.
 
     private int serverVersion;
