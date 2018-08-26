@@ -1,11 +1,12 @@
 name: Hawk
 main: me.islandscout.hawk.Hawk
-version: DEV_13.8.2018
+version: DEV_26.8.2018
 author: Islandscout
-description: An anti-cheat system
+description: An anticheat system
+website: https://github.com/Islandscout/Hawk
 commands:
     hawk:
-        description: Basic information about Hawk Anti-Cheat
+        description: Basic information about Hawk Anticheat
         usage: /<command>
 permissions:
   hawk.cmd.*:
@@ -16,4 +17,4 @@ permissions:
     default: op
   hawk.notify:
     description: Allows one to recieve Hawk notifications
-    defualt: op
+    default: op
