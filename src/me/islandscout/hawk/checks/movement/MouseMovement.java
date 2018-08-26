@@ -4,8 +4,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.checks.Cancelless;
 import me.islandscout.hawk.events.PositionEvent;
-import me.islandscout.hawk.utils.Debug;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -22,7 +20,7 @@ public class MouseMovement extends AsyncMovementCheck implements Cancelless {
     private Map<UUID, Double> lastLookDistanceSquared;
 
     public MouseMovement() {
-        super("mousemovement", true, false, true, 0.95, 5, 2000, "&7%player% may be using aimbot. VL %vl%", null);
+        super("mousemovement", true, false, true, 0.97, 5, 2000, "&7%player% may be using aimbot. VL %vl%", null);
         lastLookDistanceSquared = new HashMap<>();
     }
 

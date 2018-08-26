@@ -41,7 +41,6 @@ public class CheckManager {
         new Phase();
         new Fly();
         new BlockBreakSpeed();
-        new NoFall();
         new ClockSpeed();
         new Speed();
         new FightSynchronized();
@@ -53,6 +52,7 @@ public class CheckManager {
         new FightSpeed();
         new FightAccuracy();
         new MouseMovement();
+        new FightNoSwing();
 
         for(Check check : checkList) {
             if(check instanceof Listener)

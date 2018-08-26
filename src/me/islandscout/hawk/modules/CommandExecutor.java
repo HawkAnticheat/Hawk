@@ -13,9 +13,8 @@ import java.util.List;
 
 public class CommandExecutor {
 
-    public static void runACommand(List<String> command, Check check, HawkPlayer pp, Hawk hawk, Placeholder... placeholders) {
+    public static void runACommand(List<String> command, Check check, Player p, HawkPlayer pp, Hawk hawk, Placeholder... placeholders) {
         if(command.size() == 0 || command.get(0).length() == 0) return;
-        Player p = Bukkit.getPlayer(pp.getUuid());
         for (String aCommand : command) {
             if(aCommand.length() == 0) return;
             String[] parts = aCommand.split(":");

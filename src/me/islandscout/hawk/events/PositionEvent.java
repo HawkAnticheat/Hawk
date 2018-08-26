@@ -25,7 +25,7 @@ public class PositionEvent extends Event {
         current.put(p.getUniqueId(), update);
         this.onGround = onGround;
         this.pp = pp;
-        onGroundReally = AdjacentBlocks.onGroundReally(update, update.getY() - last.get(p.getUniqueId()).getY());
+        onGroundReally = AdjacentBlocks.onGroundReally(update, update.getY() - last.get(p.getUniqueId()).getY(), true);
     }
 
     public Player getPlayer() {
@@ -66,6 +66,14 @@ public class PositionEvent extends Event {
 
     public Location getCancelLocation() {
         return cancelLocation;
+    }
+
+    public boolean hasDeltaPos() {
+        return true;
+    }
+
+    public boolean hasDeltaRot() {
+        return true;
     }
 
     //If there are issues with setbacks, then this is probably it. 6/26/18

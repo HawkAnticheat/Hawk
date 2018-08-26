@@ -8,6 +8,8 @@ import org.bukkit.Location;
 
 public class GroundSpoof extends AsyncMovementCheck implements Cancelless {
 
+    //TODO: flip the onGround flag to false if this check fails. This will stop NoFall effectively.
+
     public GroundSpoof() {
         super("groundspoof", true, false, true, 0.995, 3, 2000, "&7%player% failed ground spoof. VL: %vl%", null);
     }
@@ -20,7 +22,7 @@ public class GroundSpoof extends AsyncMovementCheck implements Cancelless {
                 //minecraft is really getting on my nerves.
                 Location checkLoc = event.getFrom().clone();
                 checkLoc.setY(event.getTo().getY());
-                if(!AdjacentBlocks.onGroundReally(checkLoc, -1)) {
+                if(!AdjacentBlocks.onGroundReally(checkLoc, -1, false)) {
                     punish(event.getPlayer());
                 }
 

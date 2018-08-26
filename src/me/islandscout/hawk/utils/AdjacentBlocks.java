@@ -114,20 +114,20 @@ public class AdjacentBlocks {
      * player's feet).
      * @param loc Test location
      * @param yVelocity Y-velocity
+     * @param ignoreInGround return false if location is inside something
      * @return boolean
      */
     //if not sure what your velocity is, just put -1 for velocity
     //if you just want to check for location, just put -1 for velocity
-    public static boolean onGroundReally(Location loc, double yVelocity) {
+    public static boolean onGroundReally(Location loc, double yVelocity, boolean ignoreInGround) {
         if(yVelocity > 0.5625) //allows stepping up short blocks, but not full blocks
             return false;
         double feetDepth = 0.02; //Don't set this too low. The client doesn't like to send moves unless they are significant enough.
         //If too low, this might set off fly false flags when jumping on edge of blocks.
-        //TO DO: Perhaps replace "depth" with "groundPrecision" and "feetDepth". feetDepth should not be less than 0.02. groundPrecision should be very very close to 0.
         Location check = loc.clone();
         List<Block> blocks = new ArrayList<>();
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, -1, 0)));
-        blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, 0.999, 0))); //TODO: YAY! FLY-CLIP ISSUE IS BACK! Better figure out what's going on with this line. 0.999?
+        blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, 0.999, 0)));
         Block prevBlock = null;
         for(int i = blocks.size() - 1; i >= 0; i--) {
             Block currBlock = blocks.get(i);
@@ -145,14 +145,16 @@ public class AdjacentBlocks {
             if(bNMS.isColliding(underFeet)) {
 
                 //almost done. gotta do one more check... Check if their foot ain't in a block. (stops checkerclimb)
-                AABB topFeet = underFeet.clone();
-                topFeet.translate(new Vector(0, feetDepth, 0));
-                for(Block block1 : AdjacentBlocks.getBlocksInLocation(loc)) {
-                    BlockNMS bNMS1 = BlockNMS.getBlockNMS(block1);
-                    if(block1.isLiquid() || (!bNMS1.isSolid() && Hawk.getServerVersion() == 8) || block1.getState().getData() instanceof Openable)
-                        continue;
-                    if(bNMS1.isColliding(topFeet))
-                        return false;
+                if(ignoreInGround) {
+                    AABB topFeet = underFeet.clone();
+                    topFeet.translate(new Vector(0, feetDepth, 0));
+                    for(Block block1 : AdjacentBlocks.getBlocksInLocation(loc)) {
+                        BlockNMS bNMS1 = BlockNMS.getBlockNMS(block1);
+                        if(block1.isLiquid() || (!bNMS1.isSolid() && Hawk.getServerVersion() == 8) || block1.getState().getData() instanceof Openable)
+                            continue;
+                        if(bNMS1.isColliding(topFeet))
+                            return false;
+                    }
                 }
 
                 return true;

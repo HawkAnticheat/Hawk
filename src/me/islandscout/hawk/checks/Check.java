@@ -110,9 +110,9 @@ public abstract class Check {
         HawkPlayer pp = hawk.getHawkPlayer(offender);
         pp.incrementVL(this);
 
-        flag(offender, placeholders);
+        flag(offender, pp, placeholders);
 
-        CommandExecutor.runACommand(punishCommands, this, pp, hawk, placeholders);
+        CommandExecutor.runACommand(punishCommands, this, offender, pp, hawk, placeholders);
     }
 
     protected void reward(Player player) {
@@ -120,12 +120,11 @@ public abstract class Check {
         pp.multiplyVL(this, vlPassMultiplier);
     }
 
-    private void flag(Player offender, Placeholder... placeholders) {
+    private void flag(Player offender, HawkPlayer pp, Placeholder... placeholders) {
         if(!flaggable)
             return;
         if(System.currentTimeMillis() - lastFlagTimes.getOrDefault(offender.getUniqueId(), 0L) < flagCooldown)
             return;
-        HawkPlayer pp = hawk.getHawkPlayer(offender);
         if(pp.getVL(this) < minVlFlag)
             return;
         lastFlagTimes.put(offender.getUniqueId(), System.currentTimeMillis());

@@ -4,7 +4,6 @@ import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.*;
 import me.islandscout.hawk.utils.entities.EntityNMS;
-import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -25,6 +24,8 @@ public class Fly extends AsyncMovementCheck {
     //TODO: Damage, velocity, and potion effect handling
     //TODO: false flag with pistons
     //TODO: false flag on slime blocks
+    //TODO: false flag while jumping down stairs
+    //TODO: I'd hate to do this... but should we ignore identical moves?
 
     //TODO: false flag when jumping on recently placed block
     //To fix this... You'll need to work on PhantomBlocks/ClientBlocks (more in HawkPlayer)
@@ -63,10 +64,8 @@ public class Fly extends AsyncMovementCheck {
                 !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WATER) && !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.STATIONARY_WATER) &&
                 !isInClimbable(event.getTo()) && !isOnBoat(event.getTo())) {
 
-            if(!inAir.contains(p.getUniqueId()) && deltaY > 0) {
-                deltaY = 0.42 + getJumpBoostLvl(p) * 0.1;
-                lastDeltaY.put(p.getUniqueId(), deltaY);
-            }
+            if(!inAir.contains(p.getUniqueId()) && deltaY > 0)
+                lastDeltaY.put(p.getUniqueId(), 0.42 + getJumpBoostLvl(p) * 0.1);
 
             double expectedDeltaY = lastDeltaY.getOrDefault(p.getUniqueId(), 0D);
 
@@ -80,15 +79,24 @@ public class Fly extends AsyncMovementCheck {
                 legitLoc.put(p.getUniqueId(), event.getTo());
             }
 
-            //epsilon is 0.1, because the client doesn't like updating its position if it thinks it isn't significant enough
-            if(deltaY - expectedDeltaY > 0.1) { //oopsie daisy. client made a goof up
+            //epsilon should be at least 0.06 when using jump boost, because the client doesn't like updating its position if it thinks it isn't significant enough
+            //if too large, then you can jump over things you normally can't
+            if(deltaY - expectedDeltaY > 0.03) { //oopsie daisy. client made a goof up
 
                 //wait one little second: minecraft is being a pain in the ass and it wants to play tricks when you parkour on the very edge of blocks
                 //we need to check this first...
                 if(deltaY < 0) {
                     Location checkLoc = event.getFrom().clone();
                     checkLoc.setY(event.getTo().getY());
-                    if(AdjacentBlocks.onGroundReally(checkLoc, deltaY)) {
+                    if(AdjacentBlocks.onGroundReally(checkLoc, deltaY, false)) {
+                        onGroundStuff(p, event);
+                        return;
+                    }
+                    //extrapolate move BEFORE getFrom, then check
+                    checkLoc.setY(event.getFrom().getY());
+                    checkLoc.setX(checkLoc.getX() - (event.getTo().getX() - event.getFrom().getX()));
+                    checkLoc.setZ(checkLoc.getZ() - (event.getTo().getZ() - event.getFrom().getZ()));
+                    if(AdjacentBlocks.onGroundReally(checkLoc, deltaY, false)) {
                         onGroundStuff(p, event);
                         return;
                     }
@@ -108,7 +116,7 @@ public class Fly extends AsyncMovementCheck {
                 stupidMoves.put(p.getUniqueId(), 0);
 
             //handle stupid moves, because the client tends to want to jump a little late if you jump off the edge of a block
-            if(stupidMoves.getOrDefault(p.getUniqueId(), 0) >= STUPID_MOVES || (deltaY > 0 && AdjacentBlocks.onGroundReally(event.getFrom(), -1)))
+            if(stupidMoves.getOrDefault(p.getUniqueId(), 0) >= STUPID_MOVES || (deltaY > 0 && AdjacentBlocks.onGroundReally(event.getFrom(), -1, true)))
                 inAir.add(p.getUniqueId());
             stupidMoves.put(p.getUniqueId(), stupidMoves.getOrDefault(p.getUniqueId(), 0) + 1);
         }
@@ -132,7 +140,8 @@ public class Fly extends AsyncMovementCheck {
         Chunk chunk = ServerUtils.getChunkAsync(loc);
         if(chunk == null)
             return false;
-        for(Entity entity : chunk.getEntities()) {
+        Entity[] entities = chunk.getEntities().clone(); //Thread safety (IOOB exception), so clone?
+        for(Entity entity : entities) {
             if(entity instanceof Boat) {
                 AABB boatBB = EntityNMS.getEntityNMS(entity).getCollisionBox();
                 AABB feet = new AABB(

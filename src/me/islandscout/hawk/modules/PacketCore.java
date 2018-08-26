@@ -5,21 +5,14 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.events.*;
 import me.islandscout.hawk.listener.packets.PacketListener7;
 import me.islandscout.hawk.listener.packets.PacketListener8;
-import me.islandscout.hawk.utils.Debug;
-import me.islandscout.hawk.utils.MathPlus;
 import me.islandscout.hawk.utils.PhantomBlock;
 import me.islandscout.hawk.utils.packets.PacketConverter7;
 import me.islandscout.hawk.utils.packets.PacketConverter8;
-import net.minecraft.server.v1_7_R4.*;
-import net.minecraft.util.io.netty.buffer.ByteBuf;
-import net.minecraft.util.io.netty.buffer.Unpooled;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
-
-import java.io.OutputStream;
 
 /**
  * This class is mainly used to process packets that are intercepted from the Netty channels.
@@ -95,10 +88,12 @@ public class PacketCore {
         if(event == null)
             return true;
 
-        //handle teleports
+
         if(event instanceof PositionEvent) {
             PositionEvent posEvent = (PositionEvent)event;
             posEvent.setTeleported(false);
+            pp.incrementCurrentTick();
+            //handle teleports
             if(pp.isTeleporting()) {
                 Location tpLoc = pp.getTeleportLoc();
                 if(tpLoc.getWorld().equals(posEvent.getTo().getWorld()) && posEvent.getTo().distanceSquared(tpLoc) < 0.001) {
@@ -149,6 +144,7 @@ public class PacketCore {
                 pp.setDeltaYaw(to.getYaw() - from.getYaw());
                 pp.setDeltaPitch(to.getPitch() - from.getPitch());
                 pp.setLocation(to);
+                pp.updateFallDistance(to);
                 pp.setOnGround(((PositionEvent) event).isOnGround());
             }
 

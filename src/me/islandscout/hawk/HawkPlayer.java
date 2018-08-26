@@ -39,6 +39,8 @@ public class HawkPlayer {
     private int ping;
     private short pingJitter;
     private long lastMoveTime;
+    private long currentTick;
+    private double maxY;
     private Set<PhantomBlock> phantomBlocks; //TODO: You'll need to monitor this frequently because I'm sure there will a memory leak here.
                                              //Perhaps have a limit to the amount of PhantomBlocks (16), then clear out old PhantomBlocks.
 
@@ -198,6 +200,27 @@ public class HawkPlayer {
 
     public void setDeltaPitch(float deltaPitch) {
         this.deltaPitch = deltaPitch;
+    }
+
+    public long getCurrentTick() {
+        return currentTick;
+    }
+
+    public void incrementCurrentTick() {
+        this.currentTick++;
+    }
+
+    public double getFallDistance() {
+        return maxY - location.getY();
+    }
+
+    //call this before updating whether on ground or not
+    public void updateFallDistance(Location loc) {
+        if(onGround)
+            maxY = loc.getY();
+        else
+            maxY = Math.max(loc.getY(), maxY);
+
     }
 
     public Set<PhantomBlock> getPhantomBlocks() {

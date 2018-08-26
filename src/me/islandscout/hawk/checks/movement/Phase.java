@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks.movement;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.*;
@@ -28,8 +29,8 @@ public class Phase extends AsyncMovementCheck {
     //decrease bounding box size if there are false positives.
     //(these values shrink the bounding box)
     private static final double TOP_EPSILON = 0.1;
-    private static final double BOTTOM_EPSILON = 0.3;
-    private static final double SIDE_EPSILON = 0.05;
+    private static final double BOTTOM_EPSILON = 0.4;
+    private static final double SIDE_EPSILON = 0.1;
 
     //Maximum distance per move for ignoring whitelisted blocks
     //too big, and you may have a gap for bypasses
