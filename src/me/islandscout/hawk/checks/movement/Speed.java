@@ -4,17 +4,26 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
+import me.islandscout.hawk.utils.Debug;
+import me.islandscout.hawk.utils.MathPlus;
+import me.islandscout.hawk.utils.ServerUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class Speed extends AsyncMovementCheck {
+
+public class Speed extends AsyncMovementCheck implements Listener {
 
     //This was moved from the old Hawk codebase.
     //I hate having to dig around this horror. But, hey, if this works, I'm leaving this alone.
@@ -25,25 +34,30 @@ public class Speed extends AsyncMovementCheck {
 
     private static final int WATER_TREAD_GRACE = 12;
     private static final int WATER_UNDER_GRACE = 16;
-    private static final double SPEED_THRES_SOFT = 0.36055513; //you must square this value to use it
-    private static final double SPEED_THRES_HARD = 0.632455532; //you must square this value to use it
+    private static final double SPEED_THRES_SOFT = Math.pow(0.36055513, 2);
+    private static final double SPEED_THRES_HARD = Math.pow(0.632455532, 2);
     private static final double DAMAGE_SPEED = 1.0; //you must square this value to use it
     private static final int FAIL_BUFFER_1 = 4;
     private static final int FAIL_BUFFER_2 = 9;
     private static final boolean FAIL_BUFFER_RESET = true;
+
+    //launch velocity handling settings
+    private static double FRICTION_AIR = 0.09;
+    private static double FRICTION_WATER = 0.2;
+    private static double FRICTION_GROUND = 0.46;
+    private static final double EPSILON = 0.035;
 
     private Map<UUID, Integer> sprintgracetimer;
     private Map<UUID, Integer> speedygrace;
     private Map<UUID, Integer> speedygracetimer;
     private Map<UUID, Integer> speedbuffer;
     private Map<UUID, Integer> speed1;
-    private Set<UUID> moddedVelocity;
-    private Map<UUID, Double> moddedVelocitySpeed;
-    private Set<UUID> calculating;
     private Map<UUID, Integer> sneakgrace;
     private Map<UUID, Integer> watergrace;
     private Map<UUID, Location> lastLegitLoc;
     private Map<UUID, Long> penalizeTimestamp;
+    private Map<UUID, DoubleTime> velocities; //launch velocities
+    private Map<UUID, Double> launchVelocity;
 
     public Speed() {
         super("speed", true, true, true, 0.995, 10, 2000,"&7%player% failed speed. VL: %vl%", null);
@@ -52,13 +66,15 @@ public class Speed extends AsyncMovementCheck {
         speedygracetimer = new HashMap<>();
         speedbuffer = new HashMap<>();
         speed1 = new HashMap<>();
-        moddedVelocity = new HashSet<>();
-        moddedVelocitySpeed = new HashMap<>();
-        calculating = new HashSet<>();
         sneakgrace = new HashMap<>();
         watergrace = new HashMap<>();
         lastLegitLoc = new HashMap<>();
         penalizeTimestamp = new HashMap<>();
+        velocities = new HashMap<>();
+        launchVelocity = new HashMap<>();
+        FRICTION_AIR = 1 - FRICTION_AIR * (1 - EPSILON);
+        FRICTION_WATER = 1 - FRICTION_WATER * (1 - EPSILON);
+        FRICTION_GROUND = 1 - FRICTION_GROUND * (1 - EPSILON);
         startLoops();
     }
 
@@ -73,8 +89,8 @@ public class Speed extends AsyncMovementCheck {
             if(finalspeed < 0.0001)
                 return;
 
-            double speedThresSoft = SPEED_THRES_SOFT*SPEED_THRES_SOFT;
-            double speedThresHard = SPEED_THRES_HARD*SPEED_THRES_HARD;
+            double speedThresSoft = SPEED_THRES_SOFT;
+            double speedThresHard = SPEED_THRES_HARD;
             int failBufferSize = FAIL_BUFFER_1;
 
             if (!speedygrace.containsKey(player.getUniqueId()))
@@ -212,40 +228,32 @@ public class Speed extends AsyncMovementCheck {
                 speedThresHard *= player.getWalkSpeed() * 15;
             }
 
-            //TODO: What are we going to do about damage?
-            /*if (!hawk.getHandlers().getDamageHandler().getFlightdamage1().containsKey(player)) {
-                hawk.getHandlers().getDamageHandler().getFlightdamage1().put(player, -1D);
-            }*/
-
-            if (moddedVelocity.contains(player.getUniqueId())) {
-                if (!calculating.contains(player.getUniqueId())) {
-                    moddedVelocitySpeed.put(player.getUniqueId(), moddedVelocitySpeed.getOrDefault(player.getUniqueId(), 0D));
-                    speedThresSoft = moddedVelocitySpeed.get(player.getUniqueId());
-                    calculating.add(player.getUniqueId());
-                }
-                moddedVelocitySpeed.put(player.getUniqueId(), moddedVelocitySpeed.getOrDefault(player.getUniqueId(), 0D) * 0.9);
-                speedThresSoft = moddedVelocitySpeed.get(player.getUniqueId());
-                speedThresHard = moddedVelocitySpeed.get(player.getUniqueId()) * 2;
-                if (speedThresSoft <= 0.13) {
-                    moddedVelocity.remove(player.getUniqueId());
-                }
+            //handle any pending launch events
+            if(velocities.containsKey(player.getUniqueId()) && System.currentTimeMillis() - velocities.get(player.getUniqueId()).time <= ServerUtils.getPing(player) + 200 &&
+                    Math.abs(velocities.get(player.getUniqueId()).value - finalspeed) < 0.03) {
+                launchVelocity.put(player.getUniqueId(), velocities.get(player.getUniqueId()).value);
+                velocities.remove(player.getUniqueId());
             }
-
-            //TODO: Handle damage knockback? Eventually?
-            /*if (hawk.getHandlers().getDamageHandler().getFlightdamage1().get(player) != -1) {
-                speedthresSoft.put(player, 1D + hawk.getHandlers().getDamageHandler().getFlightdamage1().get(player));
-                speedthresHard.put(player, 1.8D + hawk.getHandlers().getDamageHandler().getFlightdamage1().get(player));
-            }*/
+            if(launchVelocity.getOrDefault(player.getUniqueId(), 0D) > 0) {
+                speedThresSoft = Math.max(speedThresSoft, launchVelocity.getOrDefault(player.getUniqueId(), 0D));
+                speedThresHard = Math.max(speedThresSoft, speedThresHard);
+                //applying horizontal friction
+                //on ground
+                if(AdjacentBlocks.onGroundReally(event.getFrom(), -1, false)) {
+                    launchVelocity.put(player.getUniqueId(), launchVelocity.get(player.getUniqueId()) * FRICTION_GROUND);
+                }
+                //in air
+                else {
+                    launchVelocity.put(player.getUniqueId(), launchVelocity.get(player.getUniqueId()) * FRICTION_AIR);
+                }
+                if(launchVelocity.get(player.getUniqueId()) <= 0.05)
+                    launchVelocity.remove(player.getUniqueId());
+            }
 
             //if finalspeed is greater than speedthresSoft * wspeedmultiplier!!!!! remember the wspeedmultiplier
             if (finalspeed > speedThresSoft && event.getTo().getBlock().getType() != Material.PISTON_MOVING_PIECE && !player.isInsideVehicle()) {
                 if (finalspeed > speedThresHard) {
                     speedbuffer.put(player.getUniqueId(), failBufferSize + 1);
-                } else {
-                    //TODO: uncomment this, eventually
-                    //if (!hawk.getCheckManager().getLastLegitLocation().getPenalize().containsKey(player.getUniqueId())) {
-                    //    hawk.getCheckManager().getLastLegitLocation().getPenalize().put(player.getUniqueId(), false);
-                    //}
                 }
                 speedbuffer.put(player.getUniqueId(), speedbuffer.getOrDefault(player.getUniqueId(), 0) + 1);
                 if (speedbuffer.get(player.getUniqueId()) > failBufferSize) {
@@ -273,11 +281,7 @@ public class Speed extends AsyncMovementCheck {
     private void startLoops() {
         Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, () -> {
             for(Player player : Bukkit.getOnlinePlayers()) {
-                //TODO: uncomment this
-                //if (hawk.getCheckManager().getLastLegitLocation().getPenalize().containsKey(player.getUniqueId()) && !hawk.getCheckManager().getLastLegitLocation().getPenalize().get(player.getUniqueId())) {
-                //    speedbuffer.put(player, 0);
-                //}
-                speedbuffer.put(player.getUniqueId(), 0); //TODO: replace this with whatever's on top
+                speedbuffer.put(player.getUniqueId(), 0);
             }
         }, 0L, 20L);
 
@@ -317,20 +321,36 @@ public class Speed extends AsyncMovementCheck {
         return 0;
     }
 
+    @EventHandler
+    public void onVelocity(PlayerVelocityEvent e) {
+        UUID uuid = e.getPlayer().getUniqueId();
+        Vector horizVelocity = new Vector(e.getVelocity().getX(), 0, e.getVelocity().getZ());
+        velocities.put(uuid, new DoubleTime(horizVelocity.lengthSquared(), System.currentTimeMillis()));
+    }
+
+    private class DoubleTime {
+
+        private double value;
+        private long time;
+
+        private DoubleTime(double value, long time) {
+            this.value = value;
+            this.time = time;
+        }
+    }
+
     public void removeData(Player player) {
-        //sprintgrace.remove(player.getUniqueId());
-        sprintgracetimer.remove(player.getUniqueId());
-        speedygrace.remove(player.getUniqueId());
-        speedygracetimer.remove(player.getUniqueId());
-        speedbuffer.remove(player.getUniqueId());
-        speed1.remove(player.getUniqueId());
-        moddedVelocity.remove(player.getUniqueId());
-        moddedVelocitySpeed.remove(player.getUniqueId());
-        calculating.remove(player.getUniqueId());
-        sneakgrace.remove(player.getUniqueId());
-        watergrace.remove(player.getUniqueId());
-        lastLegitLoc.remove(player.getUniqueId());
-        penalizeTimestamp.remove(player.getUniqueId());
+        UUID uuid = player.getUniqueId();
+        //sprintgrace.remove(uuid);
+        sprintgracetimer.remove(uuid);
+        speedygrace.remove(uuid);
+        speedygracetimer.remove(uuid);
+        speedbuffer.remove(uuid);
+        speed1.remove(uuid);
+        sneakgrace.remove(uuid);
+        watergrace.remove(uuid);
+        lastLegitLoc.remove(uuid);
+        penalizeTimestamp.remove(uuid);
     }
 
 }

@@ -11,13 +11,16 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class Fly extends AsyncMovementCheck {
+public class Fly extends AsyncMovementCheck implements Listener {
 
     //TODO: false flag on double-jump to toggle legit fly
     //TODO: Setup legit locations for appropriate setbacks
@@ -45,6 +48,7 @@ public class Fly extends AsyncMovementCheck {
     private Set<UUID> inAir;
     private Map<UUID, Integer> stupidMoves;
     private Map<UUID, List<Location>> locsOnPBlocks;
+    private Map<UUID, DoubleTime> velocities; //launch velocities
     private static final int STUPID_MOVES = 1; //Apparently you can jump in midair right as you fall off the edge of a block. You need to time it right.
 
     public Fly() {
@@ -54,6 +58,7 @@ public class Fly extends AsyncMovementCheck {
         legitLoc = new HashMap<>();
         stupidMoves = new HashMap<>();
         locsOnPBlocks = new HashMap<>();
+        velocities = new HashMap<>();
     }
 
     @Override
@@ -66,6 +71,13 @@ public class Fly extends AsyncMovementCheck {
 
             if(!inAir.contains(p.getUniqueId()) && deltaY > 0)
                 lastDeltaY.put(p.getUniqueId(), 0.42 + getJumpBoostLvl(p) * 0.1);
+
+            //handle any pending launch events
+            if(velocities.containsKey(p.getUniqueId()) && System.currentTimeMillis() - velocities.get(p.getUniqueId()).time <= ServerUtils.getPing(p) + 200 &&
+                    Math.abs(velocities.get(p.getUniqueId()).value - deltaY) < 0.01) {
+                lastDeltaY.put(p.getUniqueId(), velocities.get(p.getUniqueId()).value);
+                velocities.remove(p.getUniqueId());
+            }
 
             double expectedDeltaY = lastDeltaY.getOrDefault(p.getUniqueId(), 0D);
 
@@ -168,11 +180,30 @@ public class Fly extends AsyncMovementCheck {
         return 0;
     }
 
+    @EventHandler
+    public void onVelocity(PlayerVelocityEvent e) {
+        UUID uuid = e.getPlayer().getUniqueId();
+        velocities.put(uuid, new DoubleTime(e.getVelocity().getY(), System.currentTimeMillis()));
+    }
+
+    private class DoubleTime {
+
+        private double value;
+        private long time;
+
+        private DoubleTime(double value, long time) {
+            this.value = value;
+            this.time = time;
+        }
+    }
+
     @Override
     public void removeData(Player p) {
-        lastDeltaY.remove(p.getUniqueId());
-        inAir.remove(p.getUniqueId());
-        legitLoc.remove(p.getUniqueId());
-        stupidMoves.remove(p.getUniqueId());
+        UUID uuid = p.getUniqueId();
+        lastDeltaY.remove(uuid);
+        inAir.remove(uuid);
+        legitLoc.remove(uuid);
+        stupidMoves.remove(uuid);
+        velocities.remove(uuid);
     }
 }

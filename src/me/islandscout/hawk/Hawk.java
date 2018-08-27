@@ -23,8 +23,7 @@ import java.util.*;
 
 public class Hawk extends JavaPlugin {
 
-    //TO DO: There seems to be a bug in which if you tp, your last location (via Bukkit) won't update until you move. This is a problem for combat checks.
-    //This might be fixed. Check to make sure.
+    //Words cannot describe how awful I think this game is.
 
     private CheckManager checkManager;
     private Scheduler scheduler;
