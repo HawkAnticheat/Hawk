@@ -23,9 +23,7 @@ import java.util.*;
 
 public class Fly extends AsyncMovementCheck implements Listener {
 
-    //TODO: false flag on double-jump to toggle legit fly
     //TODO: Setup legit locations for appropriate setbacks
-    //TODO: Damage, velocity, and potion effect handling
     //TODO: false flag with pistons
     //TODO: false flag on slime blocks
     //TODO: false flag while jumping down stairs
@@ -67,7 +65,9 @@ public class Fly extends AsyncMovementCheck implements Listener {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
         double deltaY = event.getTo().getY() - event.getFrom().getY();
-        if(!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() && !pp.hasFlyPending() &&
+        if(pp.hasFlyPending())
+            return;
+        if(!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() &&
                 !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WATER) && !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.STATIONARY_WATER) &&
                 !isInClimbable(event.getTo()) && !isOnBoat(event.getTo())) {
 
@@ -117,13 +117,13 @@ public class Fly extends AsyncMovementCheck implements Listener {
                 }
 
                 //scold the child
-                punish(p);
+                punish(pp);
                 tryRubberband(event, legitLoc.getOrDefault(p.getUniqueId(), event.getFrom()));
                 lastDeltaY.put(p.getUniqueId(), canCancel()? 0:deltaY);
                 return;
             }
 
-            reward(p);
+            reward(pp);
 
             //the player is in air now, since they have a positive Y velocity and they're not on the ground
             if(inAir.contains(p.getUniqueId()))
@@ -145,7 +145,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
     private void onGroundStuff(Player p, PositionEvent e) {
         lastDeltaY.put(p.getUniqueId(), 0D);
         inAir.remove(p.getUniqueId());
-        legitLoc.put(p.getUniqueId(), e.getFrom()); //if you're going to mod the behavior of this, make sure to NOT set it if HawkPlayer#hasFlyPending() is true
+        legitLoc.put(p.getUniqueId(), e.getFrom());
         stupidMoves.put(p.getUniqueId(), 0);
     }
 

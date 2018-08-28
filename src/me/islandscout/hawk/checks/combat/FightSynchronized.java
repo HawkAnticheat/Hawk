@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * FightSynchronized exploits a flaw in aim-bot/aim-assist cheats
@@ -21,8 +22,8 @@ public class FightSynchronized extends AsyncEntityInteractionCheck implements Ca
 
     //TODO: False positives after HUGE lag spikes. This can falsely ban players. Have a VL cooldown for lag catchup?
 
-    private Map<Player, Long> attackTimes;
-    private Map<Player, Integer> samples;
+    private Map<UUID, Long> attackTimes;
+    private Map<UUID, Integer> samples;
     private final int SAMPLE_SIZE;
     private final int THRESHOLD;
 
@@ -39,28 +40,28 @@ public class FightSynchronized extends AsyncEntityInteractionCheck implements Ca
         if(event.getInteractAction() != InteractAction.ATTACK)
             return;
         Player attacker = event.getPlayer();
-        HawkPlayer pp = hawk.getHawkPlayer(attacker);
-        samples.put(attacker, samples.getOrDefault(attacker, 0) + 1);
+        HawkPlayer pp = event.getHawkPlayer();
+        samples.put(attacker.getUniqueId(), samples.getOrDefault(attacker, 0) + 1);
         long diff = System.currentTimeMillis() - pp.getLastMoveTime();
         if (diff > 100) {
             diff = 100L;
         }
-        attackTimes.put(attacker, attackTimes.getOrDefault(attacker, 0L) + diff);
-        if (samples.get(attacker) >= SAMPLE_SIZE) {
-            samples.put(attacker, 0);
-            attackTimes.put(attacker, attackTimes.get(attacker) / SAMPLE_SIZE);
-            if (attackTimes.get(attacker) < THRESHOLD) {
-                punish(attacker);
+        attackTimes.put(attacker.getUniqueId(), attackTimes.getOrDefault(attacker, 0L) + diff);
+        if (samples.get(attacker.getUniqueId()) >= SAMPLE_SIZE) {
+            samples.put(attacker.getUniqueId(), 0);
+            attackTimes.put(attacker.getUniqueId(), attackTimes.get(attacker.getUniqueId()) / SAMPLE_SIZE);
+            if (attackTimes.get(attacker.getUniqueId()) < THRESHOLD) {
+                punish(pp);
             }
             else
-                reward(attacker);
+                reward(pp);
         } else {
-            samples.put(attacker, samples.get(attacker) + 1);
+            samples.put(attacker.getUniqueId(), samples.get(attacker.getUniqueId()) + 1);
         }
     }
 
     public void removeData(Player p) {
-        samples.remove(p);
-        attackTimes.remove(p);
+        samples.remove(p.getUniqueId());
+        attackTimes.remove(p.getUniqueId());
     }
 }

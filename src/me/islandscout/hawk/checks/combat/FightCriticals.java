@@ -20,19 +20,18 @@ public class FightCriticals extends AsyncEntityInteractionCheck {
     @Override
     protected void check(InteractEntityEvent e) {
         if(e.getInteractAction() == InteractAction.ATTACK) {
-            Player attacker = e.getPlayer();
-            HawkPlayer att = hawk.getHawkPlayer(attacker);
+            HawkPlayer att = e.getHawkPlayer();
             Location loc = att.getLocation().clone();
 
             Block below = ServerUtils.getBlockAsync(loc.add(0, -0.3, 0));
             Block above = ServerUtils.getBlockAsync(loc.add(0, 2.3, 0));
             if(below == null || above == null)
                 return;
-            if((att.getFallDistance() < 0.3 && attacker.getFallDistance() != 0 && below.getType().isSolid() && !above.getType().isSolid())) {
-                punish(attacker, true, e);
+            if((att.getFallDistance() < 0.3 && att.getFallDistance() != 0 && below.getType().isSolid() && !above.getType().isSolid())) {
+                punish(att, true, e);
                 return;
             }
-            reward(attacker);
+            reward(att);
         }
     }
 }

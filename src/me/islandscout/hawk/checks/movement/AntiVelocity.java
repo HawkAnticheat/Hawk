@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks.movement;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.checks.Cancelless;
 import me.islandscout.hawk.events.PositionEvent;
@@ -35,6 +36,7 @@ public class AntiVelocity extends AsyncMovementCheck implements Listener, Cancel
     @Override
     protected void check(PositionEvent event) {
         Player p = event.getPlayer();
+        HawkPlayer pp = event.getHawkPlayer();
         Vector currVelocity = new Vector(event.getTo().getX() - event.getFrom().getX(), event.getTo().getY() - event.getFrom().getY(), event.getTo().getZ() - event.getFrom().getZ());
         long currTime = System.currentTimeMillis();
         int ping = ServerUtils.getPing(p);
@@ -50,10 +52,10 @@ public class AntiVelocity extends AsyncMovementCheck implements Listener, Cancel
                 Vector diff = currVelocity.clone().subtract(expectedVelocity);
                 double dot = diff.dot(expectedVelocity);
                 if(dot < -0.07) {
-                    punish(p);
+                    punish(pp);
                 }
                 else {
-                    reward(p);
+                    reward(pp);
                 }
             }
 

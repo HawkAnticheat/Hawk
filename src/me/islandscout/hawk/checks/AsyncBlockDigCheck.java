@@ -1,6 +1,7 @@
 package me.islandscout.hawk.checks;
 
 import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.events.BlockDigEvent;
 import me.islandscout.hawk.utils.Placeholder;
 import me.islandscout.hawk.utils.blocks.BlockNMS7;
@@ -19,13 +20,13 @@ public abstract class AsyncBlockDigCheck extends AsyncCheck<BlockDigEvent> {
         super(name, true, true, true, 0.9, 5, 1000, flag, null);
     }
 
-    protected void punishAndTryCancelAndBlockRespawn(Player offender, BlockDigEvent event, Placeholder... placeholders) {
+    protected void punishAndTryCancelAndBlockRespawn(HawkPlayer offender, BlockDigEvent event, Placeholder... placeholders) {
         punish(offender, true, event, placeholders);
         if(Hawk.getServerVersion() == 7) {
-            BlockNMS7.getBlockNMS(event.getBlock()).sendPacketToPlayer(offender);
+            BlockNMS7.getBlockNMS(event.getBlock()).sendPacketToPlayer(offender.getPlayer());
         }
         else if(Hawk.getServerVersion() == 8) {
-            BlockNMS8.getBlockNMS(event.getBlock()).sendPacketToPlayer(offender);
+            BlockNMS8.getBlockNMS(event.getBlock()).sendPacketToPlayer(offender.getPlayer());
         }
     }
 }

@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks.movement;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
@@ -37,7 +38,7 @@ public class LiquidExit extends AsyncMovementCheck {
         //emerged upwards from liquid
         if(deltaY > 0 && atFrom.isLiquid() && !belowFrom.isLiquid()) {
             if(!AdjacentBlocks.blockNearbyIsSolid(from)) {
-                punishAndTryRubberband(p, e, p.getLocation());
+                punishAndTryRubberband(e.getHawkPlayer(), e, p.getLocation());
             }
         }
     }

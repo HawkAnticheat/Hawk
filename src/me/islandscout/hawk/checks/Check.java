@@ -106,8 +106,8 @@ public abstract class Check {
         //to be overridden by checks
     }
 
-    void punish(Player offender, Placeholder... placeholders) {
-        HawkPlayer pp = hawk.getHawkPlayer(offender);
+    void punish(HawkPlayer pp, Placeholder... placeholders) {
+        Player offender = pp.getPlayer();
         pp.incrementVL(this);
 
         flag(offender, pp, placeholders);
@@ -115,8 +115,7 @@ public abstract class Check {
         CommandExecutor.runACommand(punishCommands, this, offender, pp, hawk, placeholders);
     }
 
-    protected void reward(Player player) {
-        HawkPlayer pp = hawk.getHawkPlayer(player);
+    protected void reward(HawkPlayer pp) {
         pp.multiplyVL(this, vlPassMultiplier);
     }
 
@@ -147,7 +146,7 @@ public abstract class Check {
     private void broadcastMessage(String message) {
         for(Player p : Bukkit.getOnlinePlayers()){
             if(p.hasPermission("hawk.notify")) {
-                HawkPlayer admin = hawk.getHawkPlayer(p);
+                HawkPlayer admin = hawk.getHawkPlayer(p); //TODO: Optimize this by not calling getHawkPlayer for every Player. Caution: ConcurrentModException!!!!
                 if(admin.canReceiveFlags())
                     p.sendMessage(Hawk.FLAG_PREFIX + " " + ChatColor.RESET + message);
             }

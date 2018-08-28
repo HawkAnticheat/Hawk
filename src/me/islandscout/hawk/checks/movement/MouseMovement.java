@@ -26,16 +26,16 @@ public class MouseMovement extends AsyncMovementCheck implements Cancelless {
 
     public void check(PositionEvent e) {
         Player p = e.getPlayer();
-        HawkPlayer pp = hawk.getHawkPlayer(p);
+        HawkPlayer pp = e.getHawkPlayer();
         UUID uuid = p.getUniqueId();
         double lookDistanceSquared = pp.getDeltaYaw() * pp.getDeltaYaw() + pp.getDeltaPitch() * pp.getDeltaPitch();
 
         if(lastLookDistanceSquared.containsKey(uuid)) {
             if(lastLookDistanceSquared.get(uuid) > 8 && lookDistanceSquared < 0.001 && System.currentTimeMillis() - pp.getLastMoveTime() < 60) {
-                punish(p);
+                punish(pp);
             }
             else {
-                reward(p);
+                reward(pp);
             }
         }
 

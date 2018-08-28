@@ -1,5 +1,7 @@
 package me.islandscout.hawk.checks;
 
+import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.utils.Placeholder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -19,7 +21,7 @@ public abstract class BukkitCheck extends Check implements Listener {
         super(name, true, true, true, 0.9, 5, 1000, flag, null);
     }
 
-    protected void punishAndTryCancel(Player offender, Event e, Placeholder... placeholders) {
+    protected void punishAndTryCancel(HawkPlayer offender, Event e, Placeholder... placeholders) {
         if(cancel && (e instanceof Cancellable)) ((Cancellable)e).setCancelled(true);
         super.punish(offender, placeholders);
     }

@@ -75,12 +75,11 @@ public class PositionEvent extends Event {
     }
 
     //If there are issues with setbacks, then this is probably it. 6/26/18
-    public void cancelAndSetBack(Location setback, Hawk hawk) {
+    public void cancelAndSetBack(Location setback) {
         if(!isCancelled()) { //added this recently to work around the comment below this line. This should somewhat fix movement checks interfering with each other.
             //setTo(setback); //This is causing problems with setbacks and false pos and "Illegal move". Moved to PacketCore 6/27/18
             cancelLocation = setback; //added 6/27/18
             setCancelled(true);
-            HawkPlayer pp = hawk.getHawkPlayer(p);
             pp.setTeleporting(true);
             pp.setTeleportLoc(setback);
         }

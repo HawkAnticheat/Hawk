@@ -1,6 +1,7 @@
 package me.islandscout.hawk.checks;
 
 import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.events.BlockPlaceEvent;
 import me.islandscout.hawk.utils.Placeholder;
 import me.islandscout.hawk.utils.ServerUtils;
@@ -21,16 +22,16 @@ public abstract class AsyncBlockPlacementCheck extends AsyncCheck<BlockPlaceEven
         super(name, true, true, true, 0.9, 5, 1000, flag, null);
     }
 
-    protected void punishAndTryCancelAndBlockDestroy(Player offender, BlockPlaceEvent event, Placeholder... placeholders) {
+    protected void punishAndTryCancelAndBlockDestroy(HawkPlayer offender, BlockPlaceEvent event, Placeholder... placeholders) {
         punish(offender, true, event, placeholders);
         Block b = ServerUtils.getBlockAsync(event.getLocation());
         if(b == null)
             return;
         if(Hawk.getServerVersion() == 7) {
-            BlockNMS7.getBlockNMS(b).sendPacketToPlayer(offender);
+            BlockNMS7.getBlockNMS(b).sendPacketToPlayer(offender.getPlayer());
         }
         else if(Hawk.getServerVersion() == 8) {
-            BlockNMS8.getBlockNMS(b).sendPacketToPlayer(offender);
+            BlockNMS8.getBlockNMS(b).sendPacketToPlayer(offender.getPlayer());
         }
     }
 }

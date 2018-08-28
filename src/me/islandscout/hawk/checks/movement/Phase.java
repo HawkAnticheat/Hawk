@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks.movement;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.*;
@@ -49,6 +50,7 @@ public class Phase extends AsyncMovementCheck {
         Location locTo = event.getTo();
         Location locFrom = event.getFrom();
         Player p = event.getPlayer();
+        HawkPlayer pp = event.getHawkPlayer();
         if(!legitLoc.containsKey(p.getUniqueId()))
             legitLoc.put(p.getUniqueId(), p.getLocation().clone());
         Location setback = legitLoc.get(p.getUniqueId());
@@ -96,7 +98,7 @@ public class Phase extends AsyncMovementCheck {
                         boolean yCollide = collides2d(test.getMin().getX(), test.getMax().getX(), test.getMin().getZ(), test.getMax().getZ(), playerFrom.getMin().getX(), playerFrom.getMax().getX(), playerFrom.getMin().getZ(), playerFrom.getMax().getZ(), moveDirection.getX(), moveDirection.getZ());
                         boolean zCollide = collides2d(test.getMin().getX(), test.getMax().getX(), test.getMin().getY(), test.getMax().getY(), playerFrom.getMin().getX(), playerFrom.getMax().getX(), playerFrom.getMin().getY(), playerFrom.getMax().getY(), moveDirection.getX(), moveDirection.getY());
                         if (xCollide && yCollide && zCollide) {
-                            punish(p, new Placeholder("block", bukkitBlock.getType()));
+                            punish(pp, new Placeholder("block", bukkitBlock.getType()));
                             tryRubberband(event, setback);
                             return;
                         }
@@ -108,7 +110,7 @@ public class Phase extends AsyncMovementCheck {
         if (!AdjacentBlocks.blockAdjacentIsSolid(p.getLocation()) && !AdjacentBlocks.blockAdjacentIsSolid(p.getLocation().clone().add(0, 1, 0))) {
             legitLoc.put(p.getUniqueId(), p.getLocation().clone());
         }
-        reward(p);
+        reward(pp);
     }
 
     //2d collision test. check if hexagon collides with rectangle

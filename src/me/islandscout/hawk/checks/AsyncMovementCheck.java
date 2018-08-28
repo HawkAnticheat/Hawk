@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.Placeholder;
 import org.bukkit.Location;
@@ -25,7 +26,7 @@ public abstract class AsyncMovementCheck extends AsyncCheck<PositionEvent> {
     }
 
     protected void rubberband(PositionEvent event, Location setback) {
-        event.cancelAndSetBack(setback, hawk);
+        event.cancelAndSetBack(setback);
     }
 
     protected void tryRubberband(PositionEvent event, Location setback) {
@@ -33,7 +34,7 @@ public abstract class AsyncMovementCheck extends AsyncCheck<PositionEvent> {
             rubberband(event, setback);
     }
 
-    protected void punishAndTryRubberband(Player offender, PositionEvent event, Location setback, Placeholder... placeholders) {
+    protected void punishAndTryRubberband(HawkPlayer offender, PositionEvent event, Location setback, Placeholder... placeholders) {
         super.punish(offender, placeholders);
         tryRubberband(event, setback);
     }

@@ -72,7 +72,7 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
         if(ping > PING_LIMIT && PING_LIMIT != -1)
             return;
 
-        HawkPlayer att = hawk.getHawkPlayer(attacker);
+        HawkPlayer att = e.getHawkPlayer();
         Location attackerEyeLocation = att.getLocation().clone().add(0, 1.62, 0);
         double currVL = att.getVL(this);
 
@@ -134,14 +134,14 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
         }
 
         if(intersectVec3d == null) {
-            punish(attacker, currVL >= CANCEL_ABOVE_VL, e, new Placeholder("type", "Did not hit hitbox."));
+            punish(att, currVL >= CANCEL_ABOVE_VL, e, new Placeholder("type", "Did not hit hitbox."));
             return;
         }
         else {
             Location intersect = new Location(attacker.getWorld(), intersectVec3d.getX(), intersectVec3d.getY(), intersectVec3d.getZ());
             double interDistance = intersect.distance(attackerEyeLocation);
             if(interDistance > maxReach) {
-                punish(attacker, currVL >= CANCEL_ABOVE_VL, e, new Placeholder("type", "Reach: " + MathPlus.round(interDistance, 2) + "m"));
+                punish(att, currVL >= CANCEL_ABOVE_VL, e, new Placeholder("type", "Reach: " + MathPlus.round(interDistance, 2) + "m"));
                 return;
             }
             if(CHECK_OCCLUSION && interDistance > 1D) {
@@ -157,7 +157,7 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
                     Vector intersection = checkIntersection.intersectsRay(new Ray(attackerEyeLocation.toVector(), attackerDirection), 0, Float.MAX_VALUE);
                     if(intersection != null) {
                         if(intersection.distance(eyePos) < interDistance) {
-                            punish(attacker, currVL >= CANCEL_ABOVE_VL, e, new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType()));
+                            punish(att, currVL >= CANCEL_ABOVE_VL, e, new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType()));
                             return;
                         }
                     }
@@ -165,6 +165,6 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
 
             }
         }
-        reward(attacker); //reward player
+        reward(att); //reward player
     }
 }

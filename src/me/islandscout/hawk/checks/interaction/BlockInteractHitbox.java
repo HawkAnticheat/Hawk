@@ -19,7 +19,7 @@ public class BlockInteractHitbox extends AsyncBlockPlacementCheck {
     @Override
     protected void check(BlockPlaceEvent e) {
         Player p = e.getPlayer();
-        HawkPlayer pp = hawk.getHawkPlayer(p);
+        HawkPlayer pp = e.getHawkPlayer();
         Location pLoc = pp.getLocation();
         Location targetLocation = e.getTargetBlockLocation();
 
@@ -32,13 +32,13 @@ public class BlockInteractHitbox extends AsyncBlockPlacementCheck {
         Vector intersection = aabb.intersectsRay(ray, 0, 6);
 
         if(intersection == null) {
-            punish(p, true, e, new Placeholder("type", "Did not hit hitbox."));
+            punish(pp, true, e, new Placeholder("type", "Did not hit hitbox."));
         }
         else if(new Vector(intersection.getX() - pLoc.getX(), intersection.getY() - pLoc.getY(), intersection.getZ() - pLoc.getZ()).lengthSquared() > 36) {
-            punish(p, true, e, new Placeholder("type", "Reached too far."));
+            punish(pp, true, e, new Placeholder("type", "Reached too far."));
         }
         else {
-            reward(p);
+            reward(pp);
         }
     }
 }

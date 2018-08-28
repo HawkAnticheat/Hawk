@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks.interaction;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncBlockPlacementCheck;
 import me.islandscout.hawk.events.BlockPlaceEvent;
 import me.islandscout.hawk.utils.Placeholder;
@@ -30,13 +31,14 @@ public class BlockInteractSpeed extends AsyncBlockPlacementCheck {
     protected void check(BlockPlaceEvent e) {
         boolean passed = true;
         Player p = e.getPlayer();
+        HawkPlayer pp = e.getHawkPlayer();
         long deltaTime = System.currentTimeMillis() - prevTime.getOrDefault(p.getUniqueId(), 0L);
 
         if(deltaTime < HARD_THRESHOLD) {
             double bps = 1/deltaTime*1000;
             hardFails.put(p.getUniqueId(), hardFails.getOrDefault(p.getUniqueId(), 0F) + 1);
             if(hardFails.get(p.getUniqueId()) > 5) {
-                punishAndTryCancelAndBlockDestroy(p, e, new Placeholder("rate", bps + "bps"));
+                punishAndTryCancelAndBlockDestroy(pp, e, new Placeholder("rate", bps + "bps"));
                 passed = false;
             }
         }
@@ -53,7 +55,7 @@ public class BlockInteractSpeed extends AsyncBlockPlacementCheck {
             deltaTimes.remove(p.getUniqueId());
             double bps = avg == 0 ? Double.NaN : 1 / (avg / 1000D);
             if(bps > AVG_THRESHOLD) {
-                punish(p, new Placeholder("rate", bps + "bps"));
+                punish(pp, new Placeholder("rate", bps + "bps"));
                 passed = false;
             }
         }
@@ -62,7 +64,7 @@ public class BlockInteractSpeed extends AsyncBlockPlacementCheck {
         }
 
         if(passed) {
-            reward(p);
+            reward(pp);
             hardFails.put(p.getUniqueId(), hardFails.getOrDefault(p.getUniqueId(), 0F) * 0.95F);
         }
 

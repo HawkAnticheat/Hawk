@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks.combat;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncEntityInteractionCheck;
 import me.islandscout.hawk.events.InteractAction;
 import me.islandscout.hawk.events.InteractEntityEvent;
@@ -27,8 +28,8 @@ public class FightSpeed extends AsyncEntityInteractionCheck {
     protected void check(InteractEntityEvent e) {
         if(e.getInteractAction() == InteractAction.INTERACT)
             return;
-        Player p = e.getPlayer();
-        UUID uuid = p.getUniqueId();
+        UUID uuid = e.getPlayer().getUniqueId();
+        HawkPlayer pp = e.getHawkPlayer();
         if(lastClickTime.containsKey(uuid)) {
             List<Double> deltaTs = deltaTimes.getOrDefault(uuid, new ArrayList<>());
             double deltaT = (System.nanoTime() - lastClickTime.get(uuid)) / 1E+9D;
@@ -42,10 +43,10 @@ public class FightSpeed extends AsyncEntityInteractionCheck {
                     avgCps /= SAMPLES;
                     avgCps = 1D/avgCps;
                     if(avgCps > 15) {
-                        punish(p, true, e, new Placeholder("cps", MathPlus.round(avgCps, 2) + ""));
+                        punish(pp, true, e, new Placeholder("cps", MathPlus.round(avgCps, 2) + ""));
                     }
                     else {
-                        reward(p);
+                        reward(pp);
                     }
                     deltaTs.remove(0);
                 }

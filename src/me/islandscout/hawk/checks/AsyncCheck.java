@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.events.Event;
 import me.islandscout.hawk.utils.Placeholder;
 import org.bukkit.entity.Player;
@@ -22,14 +23,14 @@ abstract class AsyncCheck<E extends Event> extends Check {
     //assume player does not have permission to bypass and this check is enabled.
     protected abstract void check(E e);
 
-    protected void punish(Player offender, boolean tryCancel, E e, Placeholder... placeholders) {
+    protected void punish(HawkPlayer offender, boolean tryCancel, E e, Placeholder... placeholders) {
         if(cancel && tryCancel)
             e.setCancelled(true);
         super.punish(offender, placeholders);
     }
 
     @Override
-    protected void punish(Player offender, Placeholder... placeholders) {
+    protected void punish(HawkPlayer offender, Placeholder... placeholders) {
         super.punish(offender, placeholders);
     }
 }

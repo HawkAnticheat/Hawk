@@ -55,7 +55,7 @@ public class FightAccuracy extends AsyncCustomCheck implements Listener, Cancell
         UUID victim = e.getEntity().getUniqueId();
         UUID uuid = e.getPlayer().getUniqueId();
 
-        HawkPlayer att = hawk.getHawkPlayer(e.getPlayer());
+        HawkPlayer att = e.getHawkPlayer();
         Player pVictim = Bukkit.getPlayer(victim);
         if(pVictim == null || att.getLocation().distanceSquared(pVictim.getLocation()) > 9)
             return;
@@ -77,7 +77,7 @@ public class FightAccuracy extends AsyncCustomCheck implements Listener, Cancell
 
         UUID victim = lastAttacked.get(uuid);
 
-        HawkPlayer att = hawk.getHawkPlayer(e.getPlayer());
+        HawkPlayer att = e.getHawkPlayer();
         Player pVictim = Bukkit.getPlayer(victim);
         if(pVictim == null || att.getLocation().distanceSquared(pVictim.getLocation()) > 9)
             return;

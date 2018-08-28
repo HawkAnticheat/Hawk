@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks.interaction;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncBlockDigCheck;
 import me.islandscout.hawk.events.DigAction;
 import me.islandscout.hawk.events.BlockDigEvent;
@@ -46,6 +47,7 @@ public class BlockBreakSpeed extends AsyncBlockDigCheck {
 
     public void check(BlockDigEvent e) {
         Player p = e.getPlayer();
+        HawkPlayer pp = e.getHawkPlayer();
         if(e.getDigAction() == DigAction.START && p.getGameMode() != GameMode.CREATIVE) {
             interactTime.put(p.getUniqueId(), System.currentTimeMillis());
             return;
@@ -80,10 +82,10 @@ public class BlockBreakSpeed extends AsyncBlockDigCheck {
 
             //Debug.broadcastMessage("ACTUAL: " + actualTime + ", EXPECTED: " + expectedTime);
             if(actualTime < expectedTime) {
-                punishAndTryCancelAndBlockRespawn(p, e, new Placeholder("block", b.getType()), new Placeholder("time", actualTime + "s"));
+                punishAndTryCancelAndBlockRespawn(pp, e, new Placeholder("block", b.getType()), new Placeholder("time", actualTime + "s"));
             }
             else {
-                reward(p);
+                reward(pp);
             }
 
             if(p.getGameMode() == GameMode.CREATIVE)

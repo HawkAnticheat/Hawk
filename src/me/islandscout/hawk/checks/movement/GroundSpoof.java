@@ -23,11 +23,11 @@ public class GroundSpoof extends AsyncMovementCheck implements Cancelless {
                 Location checkLoc = event.getFrom().clone();
                 checkLoc.setY(event.getTo().getY());
                 if(!AdjacentBlocks.onGroundReally(checkLoc, -1, false)) {
-                    punish(event.getPlayer());
+                    punish(event.getHawkPlayer());
                 }
 
             } else {
-                reward(event.getPlayer());
+                reward(event.getHawkPlayer());
             }
         }
     }

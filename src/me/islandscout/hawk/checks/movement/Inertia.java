@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks.movement;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
@@ -26,6 +27,7 @@ public class Inertia extends AsyncMovementCheck {
     @Override
     public void check(PositionEvent e) {
         Player p = e.getPlayer();
+        HawkPlayer pp = e.getHawkPlayer();
         Vector moveVector = new Vector(e.getTo().getX() - e.getFrom().getX(), 0 , e.getTo().getZ() - e.getFrom().getZ());
         double horizSpeedSquared = Math.pow(e.getTo().getX() - e.getFrom().getX(), 2) + Math.pow(e.getTo().getZ() - e.getFrom().getZ(), 2);
         if(horizSpeedSquared > 0.05) {
@@ -34,10 +36,10 @@ public class Inertia extends AsyncMovementCheck {
                     !AdjacentBlocks.blockNearbyIsSolid(e.getTo().clone().add(0, 1, 0)) && !p.isFlying() && !p.isInsideVehicle()) {
                 if (vec.containsKey(p.getUniqueId()) && deltaAngle > 0.2) {
 
-                    punishAndTryRubberband(p, e, e.getFrom());
+                    punishAndTryRubberband(pp, e, e.getFrom());
                 }
                 else {
-                    reward(p);
+                    reward(pp);
                 }
             }
         }

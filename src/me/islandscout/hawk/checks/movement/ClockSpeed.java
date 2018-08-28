@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks.movement;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.ConfigHelper;
@@ -36,6 +37,7 @@ public class ClockSpeed extends AsyncMovementCheck {
     @Override
     protected void check(PositionEvent event) {
         Player p = event.getPlayer();
+        HawkPlayer pp = event.getHawkPlayer();
         if(event.hasTeleported())
             return;
         long time = System.nanoTime();
@@ -55,10 +57,10 @@ public class ClockSpeed extends AsyncMovementCheck {
             p.sendMessage((msOffset < 0 ? (msOffset < THRESHOLD ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.BLUE) + "CLOCK DRIFT: " + msOffset + "ms");
         }
         if(drift * 1E-6 < THRESHOLD) {
-            punishAndTryRubberband(p, event, p.getLocation());
+            punishAndTryRubberband(pp, event, p.getLocation());
         }
         else
-            reward(p);
+            reward(pp);
         if(drift < 0)
             drift *= CALIBRATE_FASTER;
         else

@@ -108,7 +108,7 @@ public class PacketCore {
             //handle illegal move
             else if(posEvent.getFrom().getWorld().equals(posEvent.getTo().getWorld()) && posEvent.getTo().distanceSquared(posEvent.getFrom()) > 64) {
                 hawk.getLogger().warning(p.getName() + " may have tried to crash the server by moving too far! Distance: " + (posEvent.getTo().distance(posEvent.getFrom())));
-                posEvent.cancelAndSetBack(p.getLocation(), hawk);
+                posEvent.cancelAndSetBack(p.getLocation());
                 pp.kickPlayer("Illegal move");
                 return false;
             }

@@ -32,19 +32,19 @@ public class FightNoSwing extends AsyncCustomCheck {
     }
 
     private void processSwing(ArmSwingEvent e) {
-        lastClientTickSwung.put(e.getPlayer().getUniqueId(), hawk.getHawkPlayer(e.getPlayer()).getCurrentTick());
+        lastClientTickSwung.put(e.getPlayer().getUniqueId(), e.getHawkPlayer().getCurrentTick());
     }
 
     private void processHit(InteractEntityEvent e) {
         if(e.getInteractAction() != InteractAction.ATTACK)
             return;
         Player p = e.getPlayer();
-        HawkPlayer pp = hawk.getHawkPlayer(p);
+        HawkPlayer pp = e.getHawkPlayer();
         if(!lastClientTickSwung.containsKey(p.getUniqueId()) || pp.getCurrentTick() - lastClientTickSwung.get(p.getUniqueId()) > THRESHOLD) {
-            punish(p, true, e);
+            punish(pp, true, e);
         }
         else {
-            reward(p);
+            reward(pp);
         }
     }
 }

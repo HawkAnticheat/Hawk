@@ -1,6 +1,7 @@
 package me.islandscout.hawk.checks.movement;
 
 import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
@@ -81,6 +82,7 @@ public class Speed extends AsyncMovementCheck implements Listener {
     @Override
     public void check(PositionEvent event) {
         final Player player = event.getPlayer();
+        HawkPlayer pp = event.getHawkPlayer();
         if(event.hasTeleported())
             lastLegitLoc.put(player.getUniqueId(), event.getTo());
         if (!player.isFlying()) { //TODO: give a bit of grace time after one toggles fly off
@@ -257,7 +259,7 @@ public class Speed extends AsyncMovementCheck implements Listener {
                 }
                 speedbuffer.put(player.getUniqueId(), speedbuffer.getOrDefault(player.getUniqueId(), 0) + 1);
                 if (speedbuffer.get(player.getUniqueId()) > failBufferSize) {
-                    punishAndTryRubberband(player, event, lastLegitLoc.getOrDefault(player.getUniqueId(), player.getLocation()));
+                    punishAndTryRubberband(pp, event, lastLegitLoc.getOrDefault(player.getUniqueId(), player.getLocation()));
                     penalizeTimestamp.put(player.getUniqueId(), System.currentTimeMillis());
                     if (FAIL_BUFFER_RESET) {
                         speedbuffer.put(player.getUniqueId(), 0);
@@ -273,7 +275,7 @@ public class Speed extends AsyncMovementCheck implements Listener {
             sneakgrace.put(player.getUniqueId(), 6);
         }
 
-        reward(player);
+        reward(pp);
         if(System.currentTimeMillis() - penalizeTimestamp.getOrDefault(player.getUniqueId(), 0L) >= 500)
             lastLegitLoc.put(player.getUniqueId(), player.getLocation());
     }

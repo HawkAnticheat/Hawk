@@ -26,7 +26,7 @@ public class BlockBreakHitbox extends AsyncBlockDigCheck {
     @Override
     protected void check(BlockDigEvent e) {
         Player p = e.getPlayer();
-        HawkPlayer pp = hawk.getHawkPlayer(p);
+        HawkPlayer pp = e.getHawkPlayer();
         Location eyeLoc = pp.getLocation().clone().add(0, 1.62, 0);
         Location bLoc = e.getBlock().getLocation();
         if(p.isSneaking())
@@ -67,25 +67,25 @@ public class BlockBreakHitbox extends AsyncBlockDigCheck {
         Vector intersection = aabb.intersectsRay(ray, 0, 6);
 
         if(intersection == null) {
-            cancelDig(p, e, new Placeholder("type", "Did not hit hitbox."));
+            cancelDig(pp, e, new Placeholder("type", "Did not hit hitbox."));
         }
         else if(new Vector(intersection.getX() - eyeLoc.getX(), intersection.getY() - eyeLoc.getY(), intersection.getZ() - eyeLoc.getZ()).lengthSquared() > 36) {
-            cancelDig(p, e, new Placeholder("type", "Reached too far."));
+            cancelDig(pp, e, new Placeholder("type", "Reached too far."));
         }
         else {
-            reward(p);
+            reward(pp);
         }
     }
 
-    private void cancelDig(Player p, BlockDigEvent e, Placeholder... placeholder) {
-        if(p.getGameMode() == GameMode.CREATIVE) {
-            punishAndTryCancelAndBlockRespawn(p, e, placeholder);
+    private void cancelDig(HawkPlayer pp, BlockDigEvent e, Placeholder... placeholder) {
+        if(pp.getPlayer().getGameMode() == GameMode.CREATIVE) {
+            punishAndTryCancelAndBlockRespawn(pp, e, placeholder);
         }
         else if(e.getDigAction() == DigAction.COMPLETE) {
-            punishAndTryCancelAndBlockRespawn(p, e, placeholder);
+            punishAndTryCancelAndBlockRespawn(pp, e, placeholder);
         }
         else if(CHECK_DIG_START && e.getDigAction() == DigAction.START) {
-            punish(p, true, e, placeholder);
+            punish(pp, true, e, placeholder);
         }
     }
 }

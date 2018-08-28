@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks.interaction;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncBlockDigCheck;
 import me.islandscout.hawk.events.DigAction;
 import me.islandscout.hawk.events.BlockDigEvent;
@@ -21,16 +22,17 @@ public class WrongBlock extends AsyncBlockDigCheck {
 
     public void check(BlockDigEvent e) {
         Player p = e.getPlayer();
+        HawkPlayer pp = e.getHawkPlayer();
         Block b = e.getBlock();
         if(e.getDigAction() == DigAction.START) {
             blockinteracted.put(p.getUniqueId(), e.getBlock());
         }
         else if(e.getDigAction() == DigAction.COMPLETE) {
             if((!blockinteracted.containsKey(p.getUniqueId()) || !b.equals(blockinteracted.get(p.getUniqueId())))) {
-                punishAndTryCancelAndBlockRespawn(p, e);
+                punishAndTryCancelAndBlockRespawn(pp, e);
             }
             else
-                reward(p);
+                reward(pp);
         }
 
     }
