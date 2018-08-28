@@ -17,10 +17,10 @@ public class PacketConverter7 {
         if(packet instanceof PacketPlayInFlying)  return packetToPosEvent((PacketPlayInFlying)packet, p, pp);
         if(packet instanceof PacketPlayInUseEntity) return packetToInterEvent((PacketPlayInUseEntity) packet, p, pp);
         if(packet instanceof PacketPlayInBlockDig) return packetToDigEvent((PacketPlayInBlockDig) packet, p, pp);
-        if(packet instanceof PacketPlayInCustomPayload) return packetToPayloadEvent((PacketPlayInCustomPayload) packet, p);
-        if(packet instanceof PacketPlayInAbilities) return packetToAbilitiesEvent((PacketPlayInAbilities) packet, p);
-        if(packet instanceof PacketPlayInBlockPlace) return packetToBlockPlaceEvent((PacketPlayInBlockPlace) packet, p);
-        if(packet instanceof PacketPlayInArmAnimation) return packetToArmSwingEvent((PacketPlayInArmAnimation) packet, p);
+        if(packet instanceof PacketPlayInCustomPayload) return packetToPayloadEvent((PacketPlayInCustomPayload) packet, p, pp);
+        if(packet instanceof PacketPlayInAbilities) return packetToAbilitiesEvent((PacketPlayInAbilities) packet, p, pp);
+        if(packet instanceof PacketPlayInBlockPlace) return packetToBlockPlaceEvent((PacketPlayInBlockPlace) packet, p, pp);
+        if(packet instanceof PacketPlayInArmAnimation) return packetToArmSwingEvent((PacketPlayInArmAnimation) packet, p, pp);
         return null;
     }
 
@@ -54,7 +54,7 @@ public class PacketConverter7 {
         else action = InteractAction.INTERACT;
         //get interacted entity. phew.
         org.bukkit.entity.Entity entity = packet.a(((CraftWorld) pp.getLocation().getWorld()).getHandle()).getBukkitEntity();
-        return new InteractEntityEvent(p, action, entity);
+        return new InteractEntityEvent(p, pp, action, entity);
     }
 
     private static BlockDigEvent packetToDigEvent(PacketPlayInBlockDig packet, Player p, HawkPlayer pp) {
@@ -81,19 +81,19 @@ public class PacketConverter7 {
                 action = DigAction.COMPLETE;
         }
         pp.setDigging(action == DigAction.START && block.getStrength() != 0);
-        return new BlockDigEvent(p, action, b);
+        return new BlockDigEvent(p, pp, action, b);
     }
 
-    private static CustomPayLoadEvent packetToPayloadEvent(PacketPlayInCustomPayload packet, Player p) {
-        return new CustomPayLoadEvent(packet.c(), packet.length, packet.e(), p);
+    private static CustomPayLoadEvent packetToPayloadEvent(PacketPlayInCustomPayload packet, Player p, HawkPlayer pp) {
+        return new CustomPayLoadEvent(packet.c(), packet.length, packet.e(), p, pp);
     }
 
-    private static AbilitiesEvent packetToAbilitiesEvent(PacketPlayInAbilities packet, Player p) {
-        return new AbilitiesEvent(p, packet.isFlying() && p.getAllowFlight());
+    private static AbilitiesEvent packetToAbilitiesEvent(PacketPlayInAbilities packet, Player p, HawkPlayer pp) {
+        return new AbilitiesEvent(p, pp, packet.isFlying() && p.getAllowFlight());
     }
 
     //it appears that this gets called when interacting with blocks too
-    private static BlockPlaceEvent packetToBlockPlaceEvent(PacketPlayInBlockPlace packet, Player p) {
+    private static BlockPlaceEvent packetToBlockPlaceEvent(PacketPlayInBlockPlace packet, Player p, HawkPlayer pp) {
         Material mat;
         if(packet.getItemStack() != null && packet.getItemStack().getItem() != null) {
             Block block = Block.a(packet.getItemStack().getItem());
@@ -141,10 +141,10 @@ public class PacketConverter7 {
         }
         if(y < 0)
             return null;
-        return new BlockPlaceEvent(p, new Location(p.getWorld(), x, y, z), mat, face);
+        return new BlockPlaceEvent(p, pp, new Location(p.getWorld(), x, y, z), mat, face);
     }
 
-    private static ArmSwingEvent packetToArmSwingEvent(PacketPlayInArmAnimation packet, Player p ) {
-        return new ArmSwingEvent(p, packet.d());
+    private static ArmSwingEvent packetToArmSwingEvent(PacketPlayInArmAnimation packet, Player p, HawkPlayer pp) {
+        return new ArmSwingEvent(p, pp, packet.d());
     }
 }

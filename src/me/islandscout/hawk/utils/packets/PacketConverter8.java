@@ -16,8 +16,8 @@ public class PacketConverter8 {
         if(packet instanceof PacketPlayInFlying)  return packetToPosEvent((PacketPlayInFlying)packet, p, pp);
         if(packet instanceof PacketPlayInUseEntity) return packetToInterEvent((PacketPlayInUseEntity)packet, p, pp);
         if(packet instanceof PacketPlayInBlockDig) return packetToDigEvent((PacketPlayInBlockDig) packet, p, pp);
-        if(packet instanceof PacketPlayInCustomPayload) return packetToPayloadEvent((PacketPlayInCustomPayload) packet, p);
-        if(packet instanceof PacketPlayInAbilities) return packetToAbilitiesEvent((PacketPlayInAbilities) packet, p);
+        if(packet instanceof PacketPlayInCustomPayload) return packetToPayloadEvent((PacketPlayInCustomPayload) packet, p, pp);
+        if(packet instanceof PacketPlayInAbilities) return packetToAbilitiesEvent((PacketPlayInAbilities) packet, p, pp);
 
         else return null;
     }
@@ -52,7 +52,7 @@ public class PacketConverter8 {
         else action = InteractAction.INTERACT;
         //get interacted entity. phew.
         org.bukkit.entity.Entity entity = packet.a(((CraftWorld) pp.getLocation().getWorld()).getHandle()).getBukkitEntity();
-        return new InteractEntityEvent(p, action, entity);
+        return new InteractEntityEvent(p, pp, action, entity);
     }
 
     private static BlockDigEvent packetToDigEvent(PacketPlayInBlockDig packet, Player p, HawkPlayer pp) {
@@ -80,15 +80,15 @@ public class PacketConverter8 {
         }
 
         pp.setDigging(action == DigAction.START && block.getStrength() != 0);
-        return new BlockDigEvent(p, action, loc.getBlock());
+        return new BlockDigEvent(p, pp, action, loc.getBlock());
     }
 
     //TODO: work on this
-    private static CustomPayLoadEvent packetToPayloadEvent(PacketPlayInCustomPayload packet, Player p) {
+    private static CustomPayLoadEvent packetToPayloadEvent(PacketPlayInCustomPayload packet, Player p, HawkPlayer pp) {
         return null;
     }
 
-    private static AbilitiesEvent packetToAbilitiesEvent(PacketPlayInAbilities packet, Player p) {
-        return new AbilitiesEvent(p, packet.isFlying() && p.getAllowFlight());
+    private static AbilitiesEvent packetToAbilitiesEvent(PacketPlayInAbilities packet, Player p, HawkPlayer pp) {
+        return new AbilitiesEvent(p, pp, packet.isFlying() && p.getAllowFlight());
     }
 }

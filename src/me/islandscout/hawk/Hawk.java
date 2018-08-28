@@ -78,6 +78,7 @@ public class Hawk extends JavaPlugin {
     }
 
     public void unloadModules() {
+        plugin.packetCore.killListener();
         plugin.getCommand("hawk").setExecutor(null);
         HandlerList.unregisterAll(this);
         //HawkViolationEvent.getHandlerList().unregister(plugin);
@@ -85,7 +86,6 @@ public class Hawk extends JavaPlugin {
         lagCompensator = null;
         checkManager = null;
         PositionEvent.discardData();
-        plugin.packetCore.killListener();
         profiles = null;
         sql.closeConnection();
         sql = null;

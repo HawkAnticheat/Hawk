@@ -35,12 +35,12 @@ public class HawkPlayer {
     private float deltaYaw;
     private float deltaPitch;
     private boolean onGround;
-    private boolean flying;
     private int ping;
     private short pingJitter;
     private long lastMoveTime;
     private long currentTick;
     private double maxY;
+    private long flyPendingTime;
     private Set<PhantomBlock> phantomBlocks; //TODO: You'll need to monitor this frequently because I'm sure there will a memory leak here.
                                              //Perhaps have a limit to the amount of PhantomBlocks (16), then clear out old PhantomBlocks.
 
@@ -51,7 +51,6 @@ public class HawkPlayer {
         this.p = p;
         this.location = p.getLocation();
         this.onGround = ((Entity)p).isOnGround();
-        this.flying = p.isFlying();
         this.hawk = hawk;
         this.ping = ServerUtils.getPing(p);
         this.pingJitter = 0;
@@ -145,15 +144,6 @@ public class HawkPlayer {
         this.onGround = onGround;
     }
 
-    public boolean isFlying() {
-        return flying;
-    }
-
-    //TODO: Make this really do something in the Bukkit realm.
-    public void setFlying(boolean flying) {
-        this.flying = flying;
-    }
-
     public int getPing() {
         return ping;
     }
@@ -221,6 +211,18 @@ public class HawkPlayer {
         else
             maxY = Math.max(loc.getY(), maxY);
 
+    }
+
+    public boolean hasFlyPending() {
+        return System.currentTimeMillis() - flyPendingTime <= 100;
+    }
+
+    public void setFlyPendingTime(long time) {
+        flyPendingTime = time;
+    }
+
+    public Player getPlayer() {
+        return p;
     }
 
     public Set<PhantomBlock> getPhantomBlocks() {

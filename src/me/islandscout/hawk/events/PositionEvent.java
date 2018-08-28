@@ -14,17 +14,15 @@ public class PositionEvent extends Event {
     private boolean onGroundReally;
     private boolean teleported;
     private Location cancelLocation;
-    private HawkPlayer pp;
 
     private static Map<UUID, Location> last = new HashMap<>();
     private static Map<UUID, Location> current = new HashMap<>();
 
     public PositionEvent(Player p, Location update, boolean onGround, HawkPlayer pp) {
-        super(p);
+        super(p, pp);
         last.put(p.getUniqueId(), current.getOrDefault(p.getUniqueId(), pp.getLocation()));
         current.put(p.getUniqueId(), update);
         this.onGround = onGround;
-        this.pp = pp;
         onGroundReally = AdjacentBlocks.onGroundReally(update, update.getY() - last.get(p.getUniqueId()).getY(), true);
     }
 

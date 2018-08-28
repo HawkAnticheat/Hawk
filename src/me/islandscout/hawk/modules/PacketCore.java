@@ -146,8 +146,8 @@ public class PacketCore {
             }
 
         }
-        if(event instanceof AbilitiesEvent && !event.isCancelled()) {
-            pp.setFlying(((AbilitiesEvent) event).isFlying());
+        if(event instanceof AbilitiesEvent && !event.isCancelled() && ((AbilitiesEvent) event).isFlying()) {
+            pp.setFlyPendingTime(System.currentTimeMillis());
         }
 
         return !event.isCancelled();

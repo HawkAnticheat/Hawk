@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks.movement;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.*;
@@ -64,8 +65,9 @@ public class Fly extends AsyncMovementCheck implements Listener {
     @Override
     protected void check(PositionEvent event) {
         Player p = event.getPlayer();
+        HawkPlayer pp = event.getHawkPlayer();
         double deltaY = event.getTo().getY() - event.getFrom().getY();
-        if(!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() &&
+        if(!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() && !pp.hasFlyPending() &&
                 !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WATER) && !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.STATIONARY_WATER) &&
                 !isInClimbable(event.getTo()) && !isOnBoat(event.getTo())) {
 
@@ -143,7 +145,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
     private void onGroundStuff(Player p, PositionEvent e) {
         lastDeltaY.put(p.getUniqueId(), 0D);
         inAir.remove(p.getUniqueId());
-        legitLoc.put(p.getUniqueId(), e.getFrom());
+        legitLoc.put(p.getUniqueId(), e.getFrom()); //if you're going to mod the behavior of this, make sure to NOT set it if HawkPlayer#hasFlyPending() is true
         stupidMoves.put(p.getUniqueId(), 0);
     }
 
