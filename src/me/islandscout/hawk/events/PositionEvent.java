@@ -1,6 +1,5 @@
 package me.islandscout.hawk.events;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.utils.AdjacentBlocks;
 import org.bukkit.Location;
@@ -9,6 +8,9 @@ import org.bukkit.entity.Player;
 import java.util.*;
 
 public class PositionEvent extends Event {
+
+    //Remember that the client only updated position/rotation information if
+    //it is significant enough. Use hasDeltaPos() hasDeltaRot() when necessary.
 
     private boolean onGround;
     private boolean onGroundReally;
@@ -67,11 +69,11 @@ public class PositionEvent extends Event {
     }
 
     public boolean hasDeltaPos() {
-        return true;
+        return getTo().getX() != getFrom().getX() || getTo().getY() != getFrom().getY() || getTo().getZ() != getFrom().getZ();
     }
 
     public boolean hasDeltaRot() {
-        return true;
+        return getTo().getYaw() != getFrom().getYaw() || getTo().getPitch() != getFrom().getPitch();
     }
 
     //If there are issues with setbacks, then this is probably it. 6/26/18

@@ -15,6 +15,7 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.potion.PotionEffect;
@@ -232,7 +233,7 @@ public class Speed extends AsyncMovementCheck implements Listener {
 
             //handle any pending launch events
             if(velocities.containsKey(player.getUniqueId()) && System.currentTimeMillis() - velocities.get(player.getUniqueId()).time <= ServerUtils.getPing(player) + 200 &&
-                    Math.abs(velocities.get(player.getUniqueId()).value - finalspeed) < 0.03) {
+                    Math.abs(velocities.get(player.getUniqueId()).value - finalspeed) < 0.3) { //I hate this absurdly high epsilon value. This is the fault of Minecraft; not mine.
                 launchVelocity.put(player.getUniqueId(), velocities.get(player.getUniqueId()).value);
                 velocities.remove(player.getUniqueId());
             }
@@ -323,10 +324,12 @@ public class Speed extends AsyncMovementCheck implements Listener {
         return 0;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onVelocity(PlayerVelocityEvent e) {
         UUID uuid = e.getPlayer().getUniqueId();
         Vector horizVelocity = new Vector(e.getVelocity().getX(), 0, e.getVelocity().getZ());
+        //Have to add a tiny bit to allow the client to do its BS.
+        horizVelocity.add(new Vector(e.getVelocity().getX() * 0.11, 0, e.getVelocity().getZ() * 0.11));
         velocities.put(uuid, new DoubleTime(horizVelocity.lengthSquared(), System.currentTimeMillis()));
     }
 

@@ -13,6 +13,7 @@ import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.potion.PotionEffect;
@@ -27,7 +28,6 @@ public class Fly extends AsyncMovementCheck implements Listener {
     //TODO: false flag with pistons
     //TODO: false flag on slime blocks
     //TODO: false flag while jumping down stairs
-    //TODO: I'd hate to do this... but should we ignore identical moves?
 
     //TODO: false flag when jumping on recently placed block
     //To fix this... You'll need to work on PhantomBlocks/ClientBlocks (more in HawkPlayer)
@@ -93,9 +93,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
                 legitLoc.put(p.getUniqueId(), event.getTo());
             }
 
-            //epsilon should be at least 0.06 when using jump boost, because the client doesn't like updating its position if it thinks it isn't significant enough
-            //if too large, then you can jump over things you normally can't
-            if(deltaY - expectedDeltaY > 0.03) { //oopsie daisy. client made a goof up
+            if(deltaY - expectedDeltaY > 0.03 && event.hasDeltaPos()) { //oopsie daisy. client made a goof up
 
                 //wait one little second: minecraft is being a pain in the ass and it wants to play tricks when you parkour on the very edge of blocks
                 //we need to check this first...
@@ -182,7 +180,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
         return 0;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onVelocity(PlayerVelocityEvent e) {
         UUID uuid = e.getPlayer().getUniqueId();
         velocities.put(uuid, new DoubleTime(e.getVelocity().getY(), System.currentTimeMillis()));

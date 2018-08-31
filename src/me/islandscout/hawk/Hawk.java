@@ -34,7 +34,7 @@ public class Hawk extends JavaPlugin {
     private FileConfiguration messages;
     private GUIManager guiManager;
     private LagCompensator lagCompensator;
-    private Map<UUID, HawkPlayer> profiles;
+    private Map<UUID, HawkPlayer> profiles; //TODO: Might want to put a sync lock on this
     private static int SERVER_VERSION;
     public static String FLAG_PREFIX;
     public static String BASE_PERMISSION = "hawk";

@@ -22,7 +22,7 @@ public class GroundSpoof extends AsyncMovementCheck implements Cancelless {
                 //minecraft is really getting on my nerves.
                 Location checkLoc = event.getFrom().clone();
                 checkLoc.setY(event.getTo().getY());
-                if(!AdjacentBlocks.onGroundReally(checkLoc, -1, false)) {
+                if(!AdjacentBlocks.onGroundReally(checkLoc, -1, false) && event.hasDeltaPos()) {
                     punish(event.getHawkPlayer());
                 }
 
