@@ -3,11 +3,15 @@ package me.islandscout.hawk.checks.movement;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
+import me.islandscout.hawk.utils.PhysicsUtils;
 import me.islandscout.hawk.utils.ServerUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerVelocityEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,9 +23,6 @@ import java.util.UUID;
 public class LiquidExit extends AsyncMovementCheck implements Listener {
 
     private Map<UUID, DoubleTime> kbTime;
-
-    //TODO: Support velocity/damage kb
-    //There must be a faster way to compute the integral of the velocity function
 
     public LiquidExit() {
         super("liquidexit", true, 0, 3, 0.99, 2000, "&7%player% failed liquid exit. VL: %vl%", null);
@@ -43,11 +44,20 @@ public class LiquidExit extends AsyncMovementCheck implements Listener {
             return;
 
         //emerged upwards from liquid
-        if(deltaY > 0 && atFrom.isLiquid() && !belowFrom.isLiquid()) {
-            if(!AdjacentBlocks.blockNearbyIsSolid(from)) {
+        if(deltaY > 0 && atFrom.isLiquid() && !belowFrom.isLiquid() && !AdjacentBlocks.blockNearbyIsSolid(from)) {
+            DoubleTime kb = kbTime.getOrDefault(p.getUniqueId(), new DoubleTime(0, 0));
+            double ticksSinceKb = System.currentTimeMillis() - kb.time;
+            ticksSinceKb /= 50;
+            //check if they're being knocked out of the water
+            if(PhysicsUtils.waterYVelFunc(kb.value, ticksSinceKb) < 0) {
                 punishAndTryRubberband(e.getHawkPlayer(), e, p.getLocation());
             }
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVelocity(PlayerVelocityEvent e) {
+        kbTime.put(e.getPlayer().getUniqueId(), new DoubleTime(e.getVelocity().getY(), System.currentTimeMillis() + ServerUtils.getPing(e.getPlayer())));
     }
 
     private class DoubleTime {
@@ -59,5 +69,10 @@ public class LiquidExit extends AsyncMovementCheck implements Listener {
             this.value = value;
             this.time = time;
         }
+    }
+
+    @Override
+    public void removeData(Player p) {
+        kbTime.remove(p.getUniqueId());
     }
 }

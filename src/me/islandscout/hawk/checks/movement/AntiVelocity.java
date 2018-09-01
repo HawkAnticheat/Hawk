@@ -18,8 +18,6 @@ import java.util.*;
 
 public class AntiVelocity extends AsyncMovementCheck implements Listener, Cancelless {
 
-    //TODO: False flag right as player hits the ground and immediately jumps
-
     private Map<UUID, VectorTime> initVelocities; //We're talking about initial launch velocities, on the tick
     private Map<UUID, Vector> velocityTracker;
     private static double FRICTION_AIR = 0.09;

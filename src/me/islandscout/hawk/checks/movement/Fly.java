@@ -29,6 +29,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
     //TODO: false flag with pistons
     //TODO: false flag on slime blocks
     //TODO: false flag while jumping down stairs
+    //TODO: false flag when kb'd out of water
     //TODO: BYPASS! You can fly over fences. Jump, then toggle fly, then walk straight.
     //Don't change how you determine if on ground, even though that's what caused this. Instead, check when landing when deltaY > 0
 
