@@ -23,7 +23,7 @@ public class ClockSpeed extends AsyncMovementCheck {
     private final double CALIBRATE_FASTER;
 
     public ClockSpeed() {
-        super("clockspeed", true, true, true, 0.995, 3, 2000, "&7%player% failed clockspeed. VL: %vl%, ping: %ping%, TPS: %tps%", null);
+        super("clockspeed", true, 0, 3, 0.995, 2000, "&7%player% failed clockspeed. VL: %vl%, ping: %ping%, TPS: %tps%", null);
         prevNanoTime = new HashMap<>();
         penalize = new HashSet<>();
         clockDrift = new HashMap<>();

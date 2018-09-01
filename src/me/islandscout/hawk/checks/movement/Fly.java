@@ -5,6 +5,7 @@ import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.*;
 import me.islandscout.hawk.utils.entities.EntityNMS;
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -24,7 +25,7 @@ import java.util.*;
 
 public class Fly extends AsyncMovementCheck implements Listener {
 
-    //TODO: Setup legit locations for appropriate setbacks
+    //TODO: false flag while "tripping" onto blocks (most noticeable with slabs)
     //TODO: false flag with pistons
     //TODO: false flag on slime blocks
     //TODO: false flag while jumping down stairs
@@ -48,16 +49,22 @@ public class Fly extends AsyncMovementCheck implements Listener {
     private Map<UUID, Integer> stupidMoves;
     private Map<UUID, List<Location>> locsOnPBlocks;
     private Map<UUID, DoubleTime> velocities; //launch velocities
+    private Set<UUID> failedSoDontUpdateRubberband; //Update rubberband loc until someone fails. In this case, do not update until they touch the ground.
+    private Map<UUID, Double> lastGroundYNotVerified;
+    private Map<UUID, Location> legitLocOnGround;
     private static final int STUPID_MOVES = 1; //Apparently you can jump in midair right as you fall off the edge of a block. You need to time it right.
 
     public Fly() {
-        super("fly", true, true, true, 0.995, 10, 1000, "&7%player% failed fly. VL: %vl%", null);
+        super("fly", true, 0, 10, 0.995, 1000, "&7%player% failed fly. VL: %vl%", null);
         lastDeltaY = new HashMap<>();
         inAir = new HashSet<>();
         legitLoc = new HashMap<>();
         stupidMoves = new HashMap<>();
         locsOnPBlocks = new HashMap<>();
         velocities = new HashMap<>();
+        failedSoDontUpdateRubberband = new HashSet<>();
+        lastGroundYNotVerified = new HashMap<>();
+        legitLocOnGround = new HashMap<>();
     }
 
     @Override
@@ -65,8 +72,9 @@ public class Fly extends AsyncMovementCheck implements Listener {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
         double deltaY = event.getTo().getY() - event.getFrom().getY();
-        if(pp.hasFlyPending())
+        if(pp.hasFlyPending() && p.getAllowFlight())
             return;
+        checkDiscontinuity(event);
         if(!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() &&
                 !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WATER) && !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.STATIONARY_WATER) &&
                 !isInClimbable(event.getTo()) && !isOnBoat(event.getTo())) {
@@ -118,6 +126,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
                 punish(pp);
                 tryRubberband(event, legitLoc.getOrDefault(p.getUniqueId(), event.getFrom()));
                 lastDeltaY.put(p.getUniqueId(), canCancel()? 0:deltaY);
+                failedSoDontUpdateRubberband.add(p.getUniqueId());
                 return;
             }
 
@@ -133,18 +142,33 @@ public class Fly extends AsyncMovementCheck implements Listener {
             stupidMoves.put(p.getUniqueId(), stupidMoves.getOrDefault(p.getUniqueId(), 0) + 1);
         }
 
-
-
         else {
             onGroundStuff(p, event);
         }
+
+        if(!failedSoDontUpdateRubberband.contains(p.getUniqueId()) || event.isOnGroundReally()) {
+            legitLoc.put(p.getUniqueId(), event.getFrom());
+            failedSoDontUpdateRubberband.remove(p.getUniqueId());
+        }
+
     }
 
     private void onGroundStuff(Player p, PositionEvent e) {
         lastDeltaY.put(p.getUniqueId(), 0D);
         inAir.remove(p.getUniqueId());
-        legitLoc.put(p.getUniqueId(), e.getFrom());
         stupidMoves.put(p.getUniqueId(), 0);
+        legitLocOnGround.put(p.getUniqueId(), e.getFrom());
+        lastGroundYNotVerified.put(p.getUniqueId(), e.getTo().getY());
+    }
+
+    //we'll check for step, too
+    private void checkDiscontinuity(PositionEvent e) {
+        if(e.isOnGroundReally() && e.getTo().getY() - lastGroundYNotVerified.getOrDefault(e.getPlayer().getUniqueId(), e.getFrom().getY()) > 1.25) {
+            punish(e.getHawkPlayer());
+            tryRubberband(e, legitLocOnGround.getOrDefault(e.getPlayer().getUniqueId(), e.getFrom()));
+            lastDeltaY.put(e.getPlayer().getUniqueId(), 0D);
+            failedSoDontUpdateRubberband.add(e.getPlayer().getUniqueId());
+        }
     }
 
     //TODO: Fix issues on edge of chunks
@@ -205,5 +229,6 @@ public class Fly extends AsyncMovementCheck implements Listener {
         legitLoc.remove(uuid);
         stupidMoves.remove(uuid);
         velocities.remove(uuid);
+        failedSoDontUpdateRubberband.remove(uuid);
     }
 }

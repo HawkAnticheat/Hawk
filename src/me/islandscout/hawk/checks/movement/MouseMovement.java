@@ -20,7 +20,7 @@ public class MouseMovement extends AsyncMovementCheck implements Cancelless {
     private Map<UUID, Double> lastLookDistanceSquared;
 
     public MouseMovement() {
-        super("mousemovement", true, false, true, 0.97, 5, 2000, "&7%player% may be using aimbot. VL %vl%", null);
+        super("mousemovement", true, -1, 5, 0.97, 2000, "&7%player% may be using aimbot. VL %vl%", null);
         lastLookDistanceSquared = new HashMap<>();
     }
 

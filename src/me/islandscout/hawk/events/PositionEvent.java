@@ -9,7 +9,7 @@ import java.util.*;
 
 public class PositionEvent extends Event {
 
-    //Remember that the client only updated position/rotation information if
+    //Remember that the client only updates position/rotation information if
     //it is significant enough. Use hasDeltaPos() hasDeltaRot() when necessary.
 
     private boolean onGround;
@@ -76,11 +76,9 @@ public class PositionEvent extends Event {
         return getTo().getYaw() != getFrom().getYaw() || getTo().getPitch() != getFrom().getPitch();
     }
 
-    //If there are issues with setbacks, then this is probably it. 6/26/18
     public void cancelAndSetBack(Location setback) {
-        if(!isCancelled()) { //added this recently to work around the comment below this line. This should somewhat fix movement checks interfering with each other.
-            //setTo(setback); //This is causing problems with setbacks and false pos and "Illegal move". Moved to PacketCore 6/27/18
-            cancelLocation = setback; //added 6/27/18
+        if(!isCancelled()) {
+            cancelLocation = setback;
             setCancelled(true);
             pp.setTeleporting(true);
             pp.setTeleportLoc(setback);

@@ -18,7 +18,7 @@ public class LiquidExit extends AsyncMovementCheck {
     //There must be a faster way to compute the integral of the velocity function
 
     public LiquidExit() {
-        super("liquidexit", true, true, true, 0.99, 3, 2000, "&7%player% failed liquid exit. VL: %vl%", null);
+        super("liquidexit", true, 0, 3, 0.99, 2000, "&7%player% failed liquid exit. VL: %vl%", null);
     }
 
     @Override

@@ -26,7 +26,7 @@ public class AntiVelocity extends AsyncMovementCheck implements Listener, Cancel
     private static final double EPSILON = 0.035;
 
     public AntiVelocity() {
-        super("antivelocity", true, false, true, 0.95, 5, 2000, "&7%player% may be using antivelocity. VL: %vl%", null);
+        super("antivelocity", true, -1, 5, 0.95, 2000, "&7%player% may be using antivelocity. VL: %vl%", null);
         velocities = new HashMap<>();
         FRICTION_AIR = (1 - FRICTION_AIR) * (1 - EPSILON);
         FRICTION_WATER = 1 - FRICTION_WATER * (1 - EPSILON);

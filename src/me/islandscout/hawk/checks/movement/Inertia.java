@@ -20,7 +20,7 @@ public class Inertia extends AsyncMovementCheck {
     private Map<UUID, Vector> vec;
 
     public Inertia() {
-        super("inertia", true, false, true, 0.995, 3, 2000, "&7%player% failed inertia. VL: %vl%", null);
+        super("inertia", true, -1, 3, 0.995, 2000, "&7%player% failed inertia. VL: %vl%", null);
         vec = new HashMap<>();
     }
 

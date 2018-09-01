@@ -1,4 +1,4 @@
-package me.islandscout.hawk.api;
+package me.islandscout.hawk.events.external;
 
 import me.islandscout.hawk.utils.Violation;
 import org.bukkit.Bukkit;
@@ -6,12 +6,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public final class HawkViolationEvent extends Event {
+public final class HawkFlagEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
     private Violation violation;
 
-    public HawkViolationEvent(Violation violation) {
+    public HawkFlagEvent(Violation violation) {
         this.violation = violation;
 
     }

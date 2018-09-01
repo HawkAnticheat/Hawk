@@ -6,6 +6,7 @@ import me.islandscout.hawk.utils.ServerUtils;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
 import me.islandscout.hawk.utils.blocks.BlockNMS7;
 import net.minecraft.server.v1_7_R4.*;
+import net.minecraft.server.v1_7_R4.Entity;
 import org.bukkit.*;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
@@ -53,7 +54,9 @@ public class PacketConverter7 {
         if(packet.c() == EnumEntityUseAction.ATTACK) action = InteractAction.ATTACK;
         else action = InteractAction.INTERACT;
         //get interacted entity. phew.
-        org.bukkit.entity.Entity entity = packet.a(((CraftWorld) pp.getLocation().getWorld()).getHandle()).getBukkitEntity();
+        Entity nmsEntity = packet.a(((CraftWorld) pp.getLocation().getWorld()).getHandle());
+        if(nmsEntity == null) return null; //interacting with a non-existent entity
+        org.bukkit.entity.Entity entity = nmsEntity.getBukkitEntity();
         return new InteractEntityEvent(p, pp, action, entity);
     }
 

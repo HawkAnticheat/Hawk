@@ -29,11 +29,7 @@ public class ExemptList {
     }
      */
 
-    public List<Player> getPlayers() {
-        List<Player> ps = new ArrayList<>();
-        for(UUID uuid : players) {
-            ps.add(Bukkit.getPlayer(uuid));
-        }
-        return ps;
+    public List<UUID> getList() {
+        return players;
     }
 }

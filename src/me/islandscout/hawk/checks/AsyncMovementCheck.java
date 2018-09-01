@@ -17,12 +17,12 @@ public abstract class AsyncMovementCheck extends AsyncCheck<PositionEvent> {
     //Player#getLocation() is recommended for rubberbanding for some checks since Spigot has additional movement checks after Hawk's checks.
     //A chain is as strong as its weakest link.
 
-    public AsyncMovementCheck(String name, boolean enabled, boolean cancelByDefault, boolean flagByDefault, double vlPassMultiplier, int minVlFlag, long flagCooldown, String flag, List<String> punishCommands) {
-        super(name, enabled, cancelByDefault, flagByDefault, vlPassMultiplier, minVlFlag, flagCooldown, flag, punishCommands);
+    public AsyncMovementCheck(String name, boolean enabled, int cancelThreshold, int flagThreshold, double vlPassMultiplier, long flagCooldown, String flag, List<String> punishCommands) {
+        super(name, enabled, cancelThreshold, flagThreshold, vlPassMultiplier, flagCooldown, flag, punishCommands);
     }
 
     public AsyncMovementCheck(String name, String flag) {
-        super(name, true, true, true, 0.9, 5, 1000, flag, null);
+        super(name, true, 0, 5, 0.9,  1000, flag, null);
     }
 
     protected void rubberband(PositionEvent event, Location setback) {
@@ -30,7 +30,7 @@ public abstract class AsyncMovementCheck extends AsyncCheck<PositionEvent> {
     }
 
     protected void tryRubberband(PositionEvent event, Location setback) {
-        if(canCancel())
+        if(canCancel() && event.getHawkPlayer().getVL(this) >= cancelThreshold)
             rubberband(event, setback);
     }
 

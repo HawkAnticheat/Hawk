@@ -3,15 +3,14 @@ package me.islandscout.hawk.checks;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.events.Event;
 import me.islandscout.hawk.utils.Placeholder;
-import org.bukkit.entity.Player;
 
 import java.util.List;
 
 //This should extend Check. Subcategories should extend this. Checks should not extend this.
 abstract class AsyncCheck<E extends Event> extends Check {
 
-    AsyncCheck(String name, boolean enabled, boolean cancelByDefault, boolean flagByDefault, double vlPassMultiplier, int minVlFlag, long flagCooldown, String flag, List<String> punishCommands) {
-        super(name, enabled, cancelByDefault, flagByDefault, vlPassMultiplier, minVlFlag, flagCooldown, flag, punishCommands);
+    AsyncCheck(String name, boolean enabled, int cancelThreshold, int flagThreshold, double vlPassMultiplier, long flagCooldown, String flag, List<String> punishCommands) {
+        super(name, enabled, cancelThreshold, flagThreshold, vlPassMultiplier, flagCooldown, flag, punishCommands);
     }
 
     void checkEvent(E e) {
@@ -24,7 +23,7 @@ abstract class AsyncCheck<E extends Event> extends Check {
     protected abstract void check(E e);
 
     protected void punish(HawkPlayer offender, boolean tryCancel, E e, Placeholder... placeholders) {
-        if(cancel && tryCancel)
+        if(canCancel() && tryCancel && offender.getVL(this) >= cancelThreshold)
             e.setCancelled(true);
         super.punish(offender, placeholders);
     }

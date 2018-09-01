@@ -28,10 +28,9 @@ import java.util.*;
 public abstract class Check {
 
     protected boolean enabled;
-    protected boolean cancel;
-    protected boolean flaggable;
+    protected int cancelThreshold;
+    protected int flagThreshold;
     protected double vlPassMultiplier;
-    protected int minVlFlag;
     protected long flagCooldown; //in milliseconds
     public static Hawk hawk;
     protected final String permission;
@@ -44,15 +43,14 @@ public abstract class Check {
      * Default values set in these constructors. Configuration may override them.
      * @param name name of check
      * @param enabled enable check
-     * @param cancelByDefault cancel by default
-     * @param flagByDefault flag by default
+     * @param cancelThreshold VL required to cancel
+     * @param flagThreshold VL required to flag
      * @param vlPassMultiplier VL pass multiplier (eg: 0.95)
-     * @param minVlFlag minimum VL to flag
      * @param flagCooldown flag cooldown duration (in milliseconds)
      * @param flag flag message
      * @param punishCommands list of commands to run
      */
-    Check(String name, boolean enabled, boolean cancelByDefault, boolean flagByDefault, double vlPassMultiplier, int minVlFlag, long flagCooldown, String flag, List<String> punishCommands) {
+    Check(String name, boolean enabled, int cancelThreshold, int flagThreshold, double vlPassMultiplier, long flagCooldown, String flag, List<String> punishCommands) {
         this.permission = Hawk.BASE_PERMISSION + ".bypass." + name;
         this.name = name;
         FileConfiguration hawkConfig = hawk.getConfig();
@@ -60,10 +58,9 @@ public abstract class Check {
         String path = "checks." + this.name + ".";
         this.enabled = ConfigHelper.getOrSetDefault(enabled, hawkConfig, path + "enabled");
         if(!(this instanceof Cancelless))
-            this.cancel = ConfigHelper.getOrSetDefault(cancelByDefault, hawkConfig, path + "cancel");
-        this.flaggable = ConfigHelper.getOrSetDefault(flagByDefault, hawkConfig, path + "flag");
+            this.cancelThreshold = ConfigHelper.getOrSetDefault(cancelThreshold, hawkConfig, path + "cancelThreshold");
+        this.flagThreshold = ConfigHelper.getOrSetDefault(flagThreshold, hawkConfig, path + "flag");
         this.vlPassMultiplier = ConfigHelper.getOrSetDefault(vlPassMultiplier, hawkConfig, path + "vlPassMultiplier");
-        this.minVlFlag = ConfigHelper.getOrSetDefault(minVlFlag, hawkConfig, path + "minVlFlag");
         this.flagCooldown = ConfigHelper.getOrSetDefault(flagCooldown, hawkConfig, path + "flagCooldown");
         if(punishCommands == null)
             punishCommands = Collections.emptyList();
@@ -83,19 +80,27 @@ public abstract class Check {
     }
 
     public boolean canCancel() {
-        return cancel;
+        return cancelThreshold > -1;
     }
 
-    public void setCancel(boolean cancel) {
-        this.cancel = cancel;
+    public void setCancelThreshold(int cancelThreshold) {
+        this.cancelThreshold = cancelThreshold;
     }
 
-    public boolean isFlaggable() {
-        return flaggable;
+    public boolean canFlag() {
+        return flagThreshold > -1;
     }
 
-    public void setFlaggable(boolean flaggable) {
-        this.flaggable = flaggable;
+    public void setFlagThreshold(int flagThreshold) {
+        this.flagThreshold = flagThreshold;
+    }
+
+    public int getCancelThreshold() {
+        return cancelThreshold;
+    }
+
+    public int getFlagThreshold() {
+        return flagThreshold;
     }
 
     public String getPermission() {
@@ -120,11 +125,11 @@ public abstract class Check {
     }
 
     private void flag(Player offender, HawkPlayer pp, Placeholder... placeholders) {
-        if(!flaggable)
+        if(!canFlag())
             return;
         if(System.currentTimeMillis() - lastFlagTimes.getOrDefault(offender.getUniqueId(), 0L) < flagCooldown)
             return;
-        if(pp.getVL(this) < minVlFlag)
+        if(pp.getVL(this) < flagThreshold)
             return;
         lastFlagTimes.put(offender.getUniqueId(), System.currentTimeMillis());
         String flag = this.flag;

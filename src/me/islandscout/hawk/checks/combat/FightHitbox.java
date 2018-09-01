@@ -52,7 +52,7 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
     private final boolean CHECK_OCCLUSION;
 
     public FightHitbox() {
-        super("fighthitbox", true, true, false, 0.95, 10000, 1000,"&7%player% failed combat hitbox. %type% VL: %vl%", null);
+        super("fighthitbox", true, 0, 10000, 0.95, 1000,"&7%player% failed combat hitbox. %type% VL: %vl%", null);
         MAX_REACH = ConfigHelper.getOrSetDefault(3.1, hawk.getConfig(), "checks.fighthitbox.maxReach");
         LAG_COMPENSATION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fighthitbox.lagCompensation");
         PING_LIMIT = ConfigHelper.getOrSetDefault(-1, hawk.getConfig(), "checks.fighthitbox.pingLimit");
@@ -109,7 +109,7 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
         else
             victimLocation = e.getEntity().getLocation();
 
-        Vector eyePos = new Vector(attackerEyeLocation.getX(), attackerEyeLocation.getY(), attackerEyeLocation.getZ());
+        Vector eyePos = new Vector(attackerEyeLocation.getX(), attacker.isSneaking() ? attackerEyeLocation.getY() - 0.08 : attackerEyeLocation.getY(), attackerEyeLocation.getZ());
         Vector direction = new Vector(attackerDirection.getX(), attackerDirection.getY(), attackerDirection.getZ());
         Ray attackerRay = new Ray(eyePos, direction);
 

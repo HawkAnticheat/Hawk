@@ -62,7 +62,7 @@ public class Speed extends AsyncMovementCheck implements Listener {
     private Map<UUID, Double> launchVelocity;
 
     public Speed() {
-        super("speed", true, true, true, 0.995, 10, 2000,"&7%player% failed speed. VL: %vl%", null);
+        super("speed", true, 0, 10, 0.995, 2000,"&7%player% failed speed. VL: %vl%", null);
         sprintgracetimer = new HashMap<>();
         speedygrace = new HashMap<>();
         speedygracetimer = new HashMap<>();
@@ -233,7 +233,7 @@ public class Speed extends AsyncMovementCheck implements Listener {
 
             //handle any pending launch events
             if(velocities.containsKey(player.getUniqueId()) && System.currentTimeMillis() - velocities.get(player.getUniqueId()).time <= ServerUtils.getPing(player) + 200 &&
-                    Math.abs(velocities.get(player.getUniqueId()).value - finalspeed) < 0.3) { //I hate this absurdly high epsilon value. This is the fault of Minecraft; not mine.
+                    Math.abs(velocities.get(player.getUniqueId()).value - finalspeed) < 0.3) { //I hate this absurdly high epsilon value. This is the fault of Minecraft; not me.
                 launchVelocity.put(player.getUniqueId(), velocities.get(player.getUniqueId()).value);
                 velocities.remove(player.getUniqueId());
             }

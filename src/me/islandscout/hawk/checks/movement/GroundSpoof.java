@@ -11,7 +11,7 @@ public class GroundSpoof extends AsyncMovementCheck implements Cancelless {
     //TODO: flip the onGround flag to false if this check fails. This will stop NoFall effectively.
 
     public GroundSpoof() {
-        super("groundspoof", true, false, true, 0.995, 3, 2000, "&7%player% failed ground spoof. VL: %vl%", null);
+        super("groundspoof", true, 0, 3, 0.995, 2000, "&7%player% failed ground spoof. VL: %vl%", null);
     }
 
     @Override

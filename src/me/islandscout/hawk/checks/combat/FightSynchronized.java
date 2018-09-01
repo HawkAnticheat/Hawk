@@ -28,7 +28,7 @@ public class FightSynchronized extends AsyncEntityInteractionCheck implements Ca
     private final int THRESHOLD;
 
     public FightSynchronized() {
-        super("fightsync", true, false, true, 0.95, 2, 1000, "&7%player% may be using killaura (SYNC). VL %vl%", null);
+        super("fightsync", true, -1, 2, 0.95, 1000, "&7%player% may be using killaura (SYNC). VL %vl%", null);
         attackTimes = new HashMap<>();
         samples = new HashMap<>();
         SAMPLE_SIZE = ConfigHelper.getOrSetDefault(20, hawk.getConfig(), "checks.fightsync.samplesize");

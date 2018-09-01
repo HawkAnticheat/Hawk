@@ -26,7 +26,7 @@ public class BlockBreakSpeed extends AsyncBlockDigCheck {
 
       No need to check if the player is using the appropriate tool, because Spigot already does that.
       Spigot will delay the block destruction if, for example, a player uses a diamond shovel to mine stone in 2x speed.
-      Additionally, Hawk's WrongBlock check will cancel it if the player starts mining another block.
+      Additionally, Hawk's WrongBlock check will cancelThreshold it if the player starts mining another block.
       A player using a diamond shovel to mine stone is able to break 1.4x faster using cheats. Might need to improve this.
     */
 

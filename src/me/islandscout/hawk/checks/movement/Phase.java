@@ -41,7 +41,7 @@ public class Phase extends AsyncMovementCheck {
     private final Map<UUID, Location> legitLoc;
 
     public Phase() {
-        super("phase", true, true, true, 0.995, 10, 2000, "&7%player% failed phase. Moved through %block%. VL: %vl%", null);
+        super("phase", true, 0, 10, 0.995, 2000, "&7%player% failed phase. Moved through %block%. VL: %vl%", null);
         legitLoc = new HashMap<>();
     }
 

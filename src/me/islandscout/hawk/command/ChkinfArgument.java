@@ -22,7 +22,7 @@ public class ChkinfArgument extends Argument {
                 sender.sendMessage(ChatColor.GOLD + "Status: " + (check.isEnabled() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED"));
                 sender.sendMessage(ChatColor.GOLD + "Category: " + check.getClass().getSuperclass().getSimpleName());
                 sender.sendMessage(ChatColor.GOLD + "Cancel: " + (check instanceof Cancelless ? ChatColor.GRAY + "N/A" : ((check.canCancel() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED"))));
-                sender.sendMessage(ChatColor.GOLD + "Flag: " + ((check.isFlaggable() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED")));
+                sender.sendMessage(ChatColor.GOLD + "Flag: " + ((check.canFlag() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED")));
                 return true;
             }
         }
