@@ -1,10 +1,12 @@
 package me.islandscout.hawk.listener.packets;
 
 import me.islandscout.hawk.modules.PacketCore;
+import me.islandscout.hawk.utils.Debug;
 import net.minecraft.util.io.netty.channel.ChannelDuplexHandler;
 import net.minecraft.util.io.netty.channel.ChannelHandlerContext;
 import net.minecraft.util.io.netty.channel.ChannelPromise;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
@@ -46,7 +48,12 @@ public class PacketListener7 {
             net.minecraft.util.io.netty.channel.Channel channel = (net.minecraft.util.io.netty.channel.Channel) channelField.get(((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer)p).getHandle().playerConnection.networkManager);
             channelField.setAccessible(false);
             net.minecraft.util.io.netty.channel.ChannelPipeline pipeline = channel.pipeline();
-            pipeline.addBefore("packet_handler", "hawk" + p.getName(), channelDuplexHandler);
+            if(pipeline == null)
+                return;
+            String handlerName = "hawk" + p.getName();
+            if(pipeline.get(handlerName) != null)
+                pipeline.remove(handlerName);
+            pipeline.addBefore("packet_handler", handlerName, channelDuplexHandler);
         }
         catch (NoSuchFieldException | SecurityException | IllegalAccessException e){
             e.printStackTrace();
@@ -60,10 +67,14 @@ public class PacketListener7 {
                 channelField.setAccessible(true);
                 net.minecraft.util.io.netty.channel.Channel channel = (net.minecraft.util.io.netty.channel.Channel) channelField.get(((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer)p).getHandle().playerConnection.networkManager);
                 channelField.setAccessible(false);
-                channel.eventLoop().submit(() -> {
+                //this is probably a bad idea
+                net.minecraft.util.io.netty.channel.ChannelPipeline pipeline = channel.pipeline();
+                pipeline.remove("hawk" + p.getName());
+                //old
+                /*channel.eventLoop().submit(() -> {
                     channel.pipeline().remove("hawk" + p.getName());
                     return null;
-                });
+                });*/
             }
             catch (NoSuchFieldException | SecurityException | IllegalAccessException e){
                 e.printStackTrace();

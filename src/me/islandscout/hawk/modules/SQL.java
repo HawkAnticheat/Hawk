@@ -73,13 +73,15 @@ public class SQL {
     private short loop = 1;
 
     void postBuffer() {
-        if(!enabled) return;
+        if(!enabled)
+            return;
         if(loop < postInterval) {
             loop++;
             return;
         }
         loop = 1;
-        if(violations.size() == 0) return;
+        if(violations.size() == 0)
+            return;
         List<Violation> asyncList = new ArrayList<>();
         asyncList.addAll(violations);
         violations.clear();
@@ -92,7 +94,7 @@ public class SQL {
             int i = 0;
             for(Violation loopViolation : asyncList) { //generate the rest of the statement as bulk
                 timestamp = new Timestamp(loopViolation.getTime());
-                statementBuild.append("(NULL, '").append(loopViolation.getPlayerUuid()).append("', '").append(loopViolation.getCheck()).append("', '").append(loopViolation.getPing()).append("', '").append(loopViolation.getVl()).append("', '").append(loopViolation.getServer()).append("', '").append(timestamp).append("'), ");
+                statementBuild.append("(NULL, '").append(loopViolation.getPlayer().getUniqueId()).append("', '").append(loopViolation.getCheck()).append("', '").append(loopViolation.getPing()).append("', '").append(loopViolation.getVl()).append("', '").append(loopViolation.getServer()).append("', '").append(timestamp).append("'), ");
                 if(statementBuild.length() > 8192) { //if exceeds certain length, stop, then post, then make a new statement if there is still more data to send
                     post(statementBuild.substring(0, statementBuild.length() - 2));
                     statementBuild.setLength(0);
@@ -115,5 +117,9 @@ public class SQL {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean isRunning() {
+        return conn != null && enabled;
     }
 }

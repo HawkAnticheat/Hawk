@@ -1,6 +1,5 @@
 package me.islandscout.hawk.checks.movement;
 
-import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
@@ -8,17 +7,25 @@ import me.islandscout.hawk.utils.ServerUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Stops water walk NCP bypass.
  */
-public class LiquidExit extends AsyncMovementCheck {
+public class LiquidExit extends AsyncMovementCheck implements Listener {
+
+    private Map<UUID, DoubleTime> kbTime;
 
     //TODO: Support velocity/damage kb
     //There must be a faster way to compute the integral of the velocity function
 
     public LiquidExit() {
         super("liquidexit", true, 0, 3, 0.99, 2000, "&7%player% failed liquid exit. VL: %vl%", null);
+        kbTime = new HashMap<>();
     }
 
     @Override
@@ -40,6 +47,17 @@ public class LiquidExit extends AsyncMovementCheck {
             if(!AdjacentBlocks.blockNearbyIsSolid(from)) {
                 punishAndTryRubberband(e.getHawkPlayer(), e, p.getLocation());
             }
+        }
+    }
+
+    private class DoubleTime {
+
+        private double value;
+        private long time;
+
+        private DoubleTime(double value, long time) {
+            this.value = value;
+            this.time = time;
         }
     }
 }

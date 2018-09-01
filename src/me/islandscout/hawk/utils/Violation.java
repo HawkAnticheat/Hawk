@@ -1,38 +1,38 @@
 package me.islandscout.hawk.utils;
 
+import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.checks.Check;
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
+import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
 public class Violation {
 
-    private String playerUuidShort;
-    private UUID playerUUID;
-    private String check;
+    private Player player;
+    private Check check;
     private long time;
     private short ping;
     private short vl;
+    private float tps;
     private String server;
 
-    public Violation(String playerUuid, String checkNameIEPermission, long time, short ping, short vl) {
-        this.playerUuidShort = playerUuid.replace("-", "");
-        this.playerUUID = UUID.fromString(playerUuid);
-        this.check = checkNameIEPermission.substring(12);
-        this.time = time;
-        this.ping = ping;
+    public Violation(HawkPlayer pp, Check check, short vl) {
+        this.player = pp.getPlayer();
+        this.check = check;
+        this.time = System.currentTimeMillis();
+        this.ping = (short)ServerUtils.getPing(pp.getPlayer());
         this.vl = vl;
+        this.tps = (float)ServerUtils.getTps();
         this.server = Bukkit.getServerName();
     }
 
-    public String getPlayerUuid() {
-        return playerUuidShort;
+    public Player getPlayer() {
+        return player;
     }
 
-    public UUID getPlayerUUID() {
-        return playerUUID;
-    }
-
-    public String getCheck() {
+    public Check getCheck() {
         return check;
     }
 
@@ -50,5 +50,9 @@ public class Violation {
 
     public String getServer() {
         return server;
+    }
+
+    public float getTps() {
+        return tps;
     }
 }

@@ -6,30 +6,18 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public final class HawkFlagEvent extends Event {
+public final class HawkViolationEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
     private Violation violation;
 
-    public HawkFlagEvent(Violation violation) {
+    public HawkViolationEvent(Violation violation) {
+        super(true); //TODO: make sure to check if the thread is async or not!
         this.violation = violation;
-
     }
 
-    public Player getPlayer() {
-        return Bukkit.getPlayer(violation.getPlayerUUID());
-    }
-
-    public long getTimeMillis() {
-        return violation.getTime();
-    }
-
-    public short getPing() {
-        return violation.getPing();
-    }
-
-    public short getVl() {
-        return violation.getVl();
+    public Violation getViolation() {
+        return violation;
     }
 
     public HandlerList getHandlers() {

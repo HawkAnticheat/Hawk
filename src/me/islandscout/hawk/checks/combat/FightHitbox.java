@@ -44,7 +44,6 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
 
     private final double MAX_REACH;
     private final int PING_LIMIT;
-    private final int CANCEL_ABOVE_VL;
     private final boolean CHECK_OTHER_ENTITIES;
     private final boolean LAG_COMPENSATION;
     private final boolean DEBUG_HITBOX;
@@ -60,7 +59,6 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
         DEBUG_RAY = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.debug.ray");
         CHECK_OCCLUSION = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.checkOccluding");
         CHECK_OTHER_ENTITIES = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.checkOtherEntities");
-        CANCEL_ABOVE_VL = ConfigHelper.getOrSetDefault(0, hawk.getConfig(), "checks.fighthitbox.cancelAboveVl");
     }
 
     protected void check(InteractEntityEvent e) {
@@ -74,7 +72,6 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
 
         HawkPlayer att = e.getHawkPlayer();
         Location attackerEyeLocation = att.getLocation().clone().add(0, 1.62, 0);
-        double currVL = att.getVL(this);
 
         //Extrapolate last position. (For 1.7 clients ONLY)
         //Unfortunately, there will be false positives from 1.7 users due to the nature of how the client interacts
@@ -134,14 +131,14 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
         }
 
         if(intersectVec3d == null) {
-            punish(att, currVL >= CANCEL_ABOVE_VL, e, new Placeholder("type", "Did not hit hitbox."));
+            punish(att, true, e, new Placeholder("type", "Did not hit hitbox."));
             return;
         }
         else {
             Location intersect = new Location(attacker.getWorld(), intersectVec3d.getX(), intersectVec3d.getY(), intersectVec3d.getZ());
             double interDistance = intersect.distance(attackerEyeLocation);
             if(interDistance > maxReach) {
-                punish(att, currVL >= CANCEL_ABOVE_VL, e, new Placeholder("type", "Reach: " + MathPlus.round(interDistance, 2) + "m"));
+                punish(att, true, e, new Placeholder("type", "Reach: " + MathPlus.round(interDistance, 2) + "m"));
                 return;
             }
             if(CHECK_OCCLUSION && interDistance > 1D) {
@@ -157,7 +154,7 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
                     Vector intersection = checkIntersection.intersectsRay(new Ray(attackerEyeLocation.toVector(), attackerDirection), 0, Float.MAX_VALUE);
                     if(intersection != null) {
                         if(intersection.distance(eyePos) < interDistance) {
-                            punish(att, currVL >= CANCEL_ABOVE_VL, e, new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType()));
+                            punish(att, true, e, new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType()));
                             return;
                         }
                     }

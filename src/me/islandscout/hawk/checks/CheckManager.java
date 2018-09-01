@@ -54,6 +54,7 @@ public class CheckManager {
         new MouseMovement();
         new FightNoSwing();
         new AntiVelocity();
+        new InvalidPitch();
 
         for(Check check : checkList) {
             if(check instanceof Listener)

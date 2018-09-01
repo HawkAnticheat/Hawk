@@ -32,7 +32,7 @@ public class FightAccuracy extends AsyncCustomCheck implements Listener, Cancell
     private Map<UUID, UUID> lastAttacked;
 
     public FightAccuracy() {
-        super("fight accuracy", "&7%player% may be using killaura (ACCURACY). Accuracy: %accuracy%, VL: %vl%");
+        super("fightaccuracy", "&7%player% may be using killaura (ACCURACY). Accuracy: %accuracy%, VL: %vl%");
         hddr = new HashMap<>();
         accuracy = new HashMap<>();
         attacksPerSec = new HashMap<>();

@@ -2,6 +2,7 @@ package me.islandscout.hawk.checks;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.events.external.HawkViolationEvent;
 import me.islandscout.hawk.modules.CommandExecutor;
 import me.islandscout.hawk.utils.*;
 import org.bukkit.Bukkit;
@@ -59,7 +60,7 @@ public abstract class Check {
         this.enabled = ConfigHelper.getOrSetDefault(enabled, hawkConfig, path + "enabled");
         if(!(this instanceof Cancelless))
             this.cancelThreshold = ConfigHelper.getOrSetDefault(cancelThreshold, hawkConfig, path + "cancelThreshold");
-        this.flagThreshold = ConfigHelper.getOrSetDefault(flagThreshold, hawkConfig, path + "flag");
+        this.flagThreshold = ConfigHelper.getOrSetDefault(flagThreshold, hawkConfig, path + "flagThreshold");
         this.vlPassMultiplier = ConfigHelper.getOrSetDefault(vlPassMultiplier, hawkConfig, path + "vlPassMultiplier");
         this.flagCooldown = ConfigHelper.getOrSetDefault(flagCooldown, hawkConfig, path + "flagCooldown");
         if(punishCommands == null)
@@ -134,46 +135,50 @@ public abstract class Check {
         lastFlagTimes.put(offender.getUniqueId(), System.currentTimeMillis());
         String flag = this.flag;
         double tps = MathPlus.round(ServerUtils.getTps(), 2);
-        flag = flag.replace("%player%", offender.getName()).replace("%check%", this.name).replace("%tps%", tps + "").replace("%ping%", ServerUtils.getPing(offender) + "ms").replace("%vl%", pp.getVL(this) + "");
+        int vl = pp.getVL(this);
+        flag = flag.replace("%player%", offender.getName()).replace("%check%", this.name).replace("%tps%", tps + "").replace("%ping%", ServerUtils.getPing(offender) + "ms").replace("%vl%", vl + "");
+        Violation violation = new Violation(pp, this, (short)vl);
 
         for(Placeholder placeholder : placeholders)
             flag = flag.replace("%" + placeholder.getKey() + "%", placeholder.getValue().toString());
-        broadcastMessage(flag);
+        broadcastMessage(flag, violation);
         logToConsole(flag);
         logToFile(flag);
-        /*
-        if(Config.sqlEnabled) hawk.getSql().addToBuffer(violation);
-        Bukkit.getServer().getPluginManager().callEvent(new HawkViolationEvent(violation));
-        */
-        //TODO: check if SQL is enabled, then send a query to SQL database
+
+
+        if(hawk.getSql().isRunning())
+            hawk.getSql().addToBuffer(violation);
+        if(hawk.canCallBukkitEvents())
+            Bukkit.getServer().getPluginManager().callEvent(new HawkViolationEvent(violation));
     }
 
-    private void broadcastMessage(String message) {
-        for(Player p : Bukkit.getOnlinePlayers()){
-            if(p.hasPermission("hawk.notify")) {
-                HawkPlayer admin = hawk.getHawkPlayer(p); //TODO: Optimize this by not calling getHawkPlayer for every Player. Caution: ConcurrentModException!!!!
-                if(admin.canReceiveFlags())
-                    p.sendMessage(Hawk.FLAG_PREFIX + " " + ChatColor.RESET + message);
+    //TODO: optimize this?
+    private void broadcastMessage(String message, Violation violation) {
+        if(hawk.canSendJSONMessages()) {
+            String offenderName = violation.getPlayer().getName();
+            String command = Hawk.FLAG_CLICK_COMMAND.replace("%player%", offenderName);
+            String commandPrompt = command.equals("") ? "" : "\n" + ChatColor.GRAY + "Click to run \"/" + command + "\"";
+            JSONMessageSender msg = new JSONMessageSender(Hawk.FLAG_PREFIX + ChatColor.RESET + "" + message);
+            msg.setHoverMsg("Check: " + violation.getCheck() + "\nVL: " + violation.getVl() + "\nPing: " + violation.getPing() + "ms\nTPS: " + MathPlus.round(violation.getTps(), 2) + "\nPlayer: " + offenderName + commandPrompt);
+            if(!commandPrompt.equals("")) msg.setClickCommand(command);
+            for(Player admin : Bukkit.getOnlinePlayers()){
+                if(admin.hasPermission("hawk.notify")) {
+                    HawkPlayer ppAdmin = hawk.getHawkPlayer(admin); //TODO: Optimize this by not calling getHawkPlayer for every Player. Caution: ConcurrentModException!!!!
+                    if(ppAdmin.canReceiveFlags())
+                        msg.sendMessage(admin);
+                }
+            }
+        }
+        else {
+            for(Player p : Bukkit.getOnlinePlayers()){
+                if(p.hasPermission("hawk.notify")) {
+                    HawkPlayer admin = hawk.getHawkPlayer(p); //TODO: Optimize this by not calling getHawkPlayer for every Player. Caution: ConcurrentModException!!!!
+                    if(admin.canReceiveFlags())
+                        p.sendMessage(Hawk.FLAG_PREFIX + " " + ChatColor.RESET + message);
+                }
             }
         }
     }
-
-    //TODO: Please work on this
-    /*private void broadcastMessageJSON(String message, Violation violation) {
-        String offenderName = Bukkit.getPlayer(violation.getPlayerUUID()).getName();
-        String command = Config.notificationClickCommand.replace("%player%", offenderName);
-        String commandPrompt = command.equals("") ? "" : "\n" + ChatColor.GRAY + "Click to doAction \"/" + command + "\"";
-        JSONMessageSender msg = new JSONMessageSender(prefix + ChatColor.RESET + "" + message);
-        msg.setHoverMsg("Check: " + violation.getCheck() + "\nVL: " + violation.getVl() + "\nPing: " + violation.getPing() + "ms\nTPS: " + plugin.getCheckManager().getLagCheck().getTps() + "\nPlayer: " + offenderName + commandPrompt);
-        if(!commandPrompt.equals("")) msg.setClickCommand(command);
-        for(Player admin : Bukkit.getOnlinePlayers()){
-            if(!plugin.getHawkCommand().getNotify().containsKey(admin)) {
-                plugin.getHawkCommand().getNotify().put(admin, true);
-            }
-            if(!admin.hasPermission("hawk.notify") || !plugin.getHawkCommand().getNotify().get(admin)) continue;
-            msg.sendMessage(admin);
-        }
-    }*/
 
     private void logToConsole(String message) {
         Bukkit.getConsoleSender().sendMessage(Hawk.FLAG_PREFIX + " " + ChatColor.RESET + "" + message);

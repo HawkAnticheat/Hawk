@@ -1,9 +1,9 @@
 package me.islandscout.hawk;
 
-import me.islandscout.hawk.api.HawkAPI;
 import me.islandscout.hawk.checks.CheckManager;
 import me.islandscout.hawk.command.HawkCommand;
 import me.islandscout.hawk.events.PositionEvent;
+import me.islandscout.hawk.events.external.HawkViolationEvent;
 import me.islandscout.hawk.gui.GUIManager;
 import me.islandscout.hawk.listener.BukkitListener;
 import me.islandscout.hawk.utils.ConfigHelper;
@@ -39,6 +39,9 @@ public class Hawk extends JavaPlugin {
     public static String FLAG_PREFIX;
     public static String BASE_PERMISSION = "hawk";
     public static String BUILD_NAME;
+    public static String FLAG_CLICK_COMMAND;
+    private boolean callBukkitEvents;
+    private boolean sendJSONMessages;
 
     @Override
     public void onEnable(){
@@ -46,7 +49,6 @@ public class Hawk extends JavaPlugin {
         BUILD_NAME = getDescription().getVersion();
         setServerVersion();
         loadModules();
-        setupAPI();
         saveConfigs();
         getLogger().info("Hawk Anticheat has been enabled. Copyright 2018 Islandscout. All rights reserved.");
     }
@@ -59,9 +61,17 @@ public class Hawk extends JavaPlugin {
     }
 
     public void loadModules() {
+        getLogger().info("Loading modules...");
         getServer().getPluginManager().registerEvents(new BukkitListener(this), this);
         messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
         FLAG_PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cHAWK:", messages, "prefix"));
+        FLAG_CLICK_COMMAND = ConfigHelper.getOrSetDefault("tp %player%", getConfig(), "flagClickCommand");
+        callBukkitEvents = ConfigHelper.getOrSetDefault(false, getConfig(), "callBukkitEvents");
+        sendJSONMessages = ConfigHelper.getOrSetDefault(false, getConfig(), "sendJSONMessages");
+        if(sendJSONMessages && getServerVersion() == 7) {
+            sendJSONMessages = false;
+            Bukkit.getLogger().warning("Hawk cannot send JSON flag messages on a 1.7.10 server! Please use 1.8.8 to use this feature.");
+        }
         profiles = new HashMap<>();
         sql = new SQL(this);
         sql.createTableIfNotExists();
@@ -78,10 +88,11 @@ public class Hawk extends JavaPlugin {
     }
 
     public void unloadModules() {
+        getLogger().info("Unloading modules...");
         plugin.packetCore.killListener();
         plugin.getCommand("hawk").setExecutor(null);
         HandlerList.unregisterAll(this);
-        //HawkViolationEvent.getHandlerList().unregister(plugin);
+        HawkViolationEvent.getHandlerList().unregister(plugin);
         guiManager = null;
         lagCompensator = null;
         checkManager = null;
@@ -126,10 +137,6 @@ public class Hawk extends JavaPlugin {
         File storageFile = new File(pluginFolder + File.separator + "logs.txt");
         textLogger = new TextLogger(this, enabled);
         textLogger.prepare(storageFile);
-    }
-
-    private void setupAPI() {
-        HawkAPI.plugin = this;
     }
 
     private void setServerVersion() {
@@ -184,5 +191,13 @@ public class Hawk extends JavaPlugin {
 
     public LagCompensator getLagCompensator() {
         return lagCompensator;
+    }
+
+    public boolean canCallBukkitEvents() {
+        return callBukkitEvents;
+    }
+
+    public boolean canSendJSONMessages() {
+        return sendJSONMessages;
     }
 }

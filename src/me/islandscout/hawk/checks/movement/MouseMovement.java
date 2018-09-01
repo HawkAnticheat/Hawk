@@ -17,6 +17,8 @@ import java.util.UUID;
  */
 public class MouseMovement extends AsyncMovementCheck implements Cancelless {
 
+    //TODO: Make this only flag when in combat
+
     private Map<UUID, Double> lastLookDistanceSquared;
 
     public MouseMovement() {

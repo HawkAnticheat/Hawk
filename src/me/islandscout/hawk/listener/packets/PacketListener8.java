@@ -35,16 +35,25 @@ public class PacketListener8 {
         };
         ChannelPipeline pipeline;
         pipeline = ((CraftPlayer)p).getHandle().playerConnection.networkManager.channel.pipeline();
-        if(pipeline != null) pipeline.addBefore("packet_handler", "hawk" + p.getName(), channelDuplexHandler);
+        if(pipeline == null)
+            return;
+        String handlerName = "hawk" + p.getName();
+        if(pipeline.get(handlerName) != null)
+            pipeline.remove(handlerName);
+        pipeline.addBefore("packet_handler", handlerName, channelDuplexHandler);
     }
 
     public void stop() {
         for (Player p : Bukkit.getOnlinePlayers()) {
             Channel channel = ((CraftPlayer) p).getHandle().playerConnection.networkManager.channel;
-            channel.eventLoop().submit(() -> {
+            //this is probably a bad idea
+            ChannelPipeline pipeline = channel.pipeline();
+            pipeline.remove("hawk" + p.getName());
+            //old
+            /*channel.eventLoop().submit(() -> {
                 channel.pipeline().remove("hawk" + p.getName());
                 return null;
-            });
+            });*/
         }
     }
 

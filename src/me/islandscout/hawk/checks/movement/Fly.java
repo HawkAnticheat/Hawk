@@ -29,6 +29,8 @@ public class Fly extends AsyncMovementCheck implements Listener {
     //TODO: false flag with pistons
     //TODO: false flag on slime blocks
     //TODO: false flag while jumping down stairs
+    //TODO: BYPASS! You can fly over fences. Jump, then toggle fly, then walk straight.
+    //Don't change how you determine if on ground, even though that's what caused this. Instead, check when landing when deltaY > 0
 
     //TODO: false flag when jumping on recently placed block
     //To fix this... You'll need to work on PhantomBlocks/ClientBlocks (more in HawkPlayer)
@@ -74,7 +76,6 @@ public class Fly extends AsyncMovementCheck implements Listener {
         double deltaY = event.getTo().getY() - event.getFrom().getY();
         if(pp.hasFlyPending() && p.getAllowFlight())
             return;
-        checkDiscontinuity(event);
         if(!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() &&
                 !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WATER) && !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.STATIONARY_WATER) &&
                 !isInClimbable(event.getTo()) && !isOnBoat(event.getTo())) {
@@ -159,16 +160,6 @@ public class Fly extends AsyncMovementCheck implements Listener {
         stupidMoves.put(p.getUniqueId(), 0);
         legitLocOnGround.put(p.getUniqueId(), e.getFrom());
         lastGroundYNotVerified.put(p.getUniqueId(), e.getTo().getY());
-    }
-
-    //we'll check for step, too
-    private void checkDiscontinuity(PositionEvent e) {
-        if(e.isOnGroundReally() && e.getTo().getY() - lastGroundYNotVerified.getOrDefault(e.getPlayer().getUniqueId(), e.getFrom().getY()) > 1.25) {
-            punish(e.getHawkPlayer());
-            tryRubberband(e, legitLocOnGround.getOrDefault(e.getPlayer().getUniqueId(), e.getFrom()));
-            lastDeltaY.put(e.getPlayer().getUniqueId(), 0D);
-            failedSoDontUpdateRubberband.add(e.getPlayer().getUniqueId());
-        }
     }
 
     //TODO: Fix issues on edge of chunks
