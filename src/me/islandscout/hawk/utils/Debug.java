@@ -16,7 +16,7 @@ public class Debug {
             calling?
             - For instance: getting the AABB of blocks from Block. Plants return null because BlockPlant extends Block
               and overrides the AABB getter method with its own.
-          - Get the class name and possibly the reference of the troublesome object. (toString() usually does this)
+          - Get the class name and possibly the reference of the troublesome object. (getClass().getName() usually does this)
      */
 
     public static void broadcastMessage(String str) {

@@ -79,6 +79,7 @@ public class BukkitListener implements Listener {
             hawk.getLagCompensator().processPosition(e.getTo(), e.getPlayer());
     }
 
+    //TODO: No... just, no...
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlace(BlockPlaceEvent e) {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());

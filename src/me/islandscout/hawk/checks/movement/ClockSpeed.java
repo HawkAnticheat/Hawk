@@ -11,6 +11,7 @@ import java.util.*;
 
 public class ClockSpeed extends AsyncMovementCheck {
 
+    //TODO: you might actually want to listen to flying packets in general, since position events will not go through during teleport
     //TODO: Cancel eating/shooting/regen if this fails
 
     private final Map<UUID, Long> prevNanoTime;

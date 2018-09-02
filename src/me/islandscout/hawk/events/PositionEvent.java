@@ -12,6 +12,8 @@ public class PositionEvent extends Event {
     //Remember that the client only updates position/rotation information if
     //it is significant enough. Use hasDeltaPos() hasDeltaRot() when necessary.
 
+    //Position events will not pass through checks if the player is teleporting.
+
     private boolean onGround;
     private boolean onGroundReally;
     private boolean teleported;
@@ -89,6 +91,10 @@ public class PositionEvent extends Event {
     public static void discardData() {
         last.clear();
         current.clear();
+    }
+
+    public static Location getLastPosition(HawkPlayer pp) {
+        return current.getOrDefault(pp.getUuid(), pp.getLocation());
     }
 
 }

@@ -26,25 +26,23 @@ public class PacketConverter7 {
     }
 
     private static PositionEvent packetToPosEvent(PacketPlayInFlying packet, Player p, HawkPlayer pp) {
-        Location loc = new Location(pp.getLocation().getWorld(),
-                pp.getLocation().getX(),
-                pp.getLocation().getY(),
-                pp.getLocation().getZ(),
-                pp.getLocation().getYaw(),
-                pp.getLocation().getPitch());
+        //default position
+        Location loc = PositionEvent.getLastPosition(pp);
+        loc = new Location(loc.getWorld(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
 
-        //has look
+        //update if has look
         if(packet.k()) {
             loc.setYaw(packet.g());
             loc.setPitch(packet.h());
         }
 
-        //has position
+        //update if has position
         if(packet.j()) {
             loc.setX(packet.c());
             loc.setY(packet.d());
             loc.setZ(packet.e());
         }
+
         return new PositionEvent(p, loc, packet.i(), pp);
     }
 

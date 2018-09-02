@@ -12,6 +12,8 @@ import java.util.*;
 
 public class FightSpeed extends AsyncEntityInteractionCheck {
 
+    //TODO: Rewrite this and have it based off client clock
+
     private Map<UUID, Double> lastClickTime; //in seconds
     private Map<UUID, List<Double>> deltaTimes;
     private static final double RECORD_SENSITIVITY = 5;

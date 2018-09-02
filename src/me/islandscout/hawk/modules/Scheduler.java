@@ -21,10 +21,10 @@ public class Scheduler {
         }, 0L, 20L);
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, () -> {
-            for(Player p : Bukkit.getOnlinePlayers()) {
-                HawkPlayer pp = hawk.getHawkPlayer(p); //TODO: Optimize this by not calling getHawkPlayer for every Player. Caution: ConcurrentModException!!!!
+            for(HawkPlayer pp : hawk.getHawkPlayers()) {
+                Player p = pp.getPlayer();
                 int newPing = ServerUtils.getPing(p);
-                pp.setPingJitter((short)Math.abs(newPing - pp.getPing()));
+                pp.setPingJitter((short)(newPing - pp.getPing()));
                 pp.setPing(ServerUtils.getPing(p));
             }
         }, 0L, 40L);

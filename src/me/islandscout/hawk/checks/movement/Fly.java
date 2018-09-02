@@ -53,8 +53,6 @@ public class Fly extends AsyncMovementCheck implements Listener {
     private Map<UUID, List<Location>> locsOnPBlocks;
     private Map<UUID, DoubleTime> velocities; //launch velocities
     private Set<UUID> failedSoDontUpdateRubberband; //Update rubberband loc until someone fails. In this case, do not update until they touch the ground.
-    private Map<UUID, Double> lastGroundYNotVerified;
-    private Map<UUID, Location> legitLocOnGround;
     private static final int STUPID_MOVES = 1; //Apparently you can jump in midair right as you fall off the edge of a block. You need to time it right.
 
     public Fly() {
@@ -66,8 +64,6 @@ public class Fly extends AsyncMovementCheck implements Listener {
         locsOnPBlocks = new HashMap<>();
         velocities = new HashMap<>();
         failedSoDontUpdateRubberband = new HashSet<>();
-        lastGroundYNotVerified = new HashMap<>();
-        legitLocOnGround = new HashMap<>();
     }
 
     @Override
@@ -159,8 +155,6 @@ public class Fly extends AsyncMovementCheck implements Listener {
         lastDeltaY.put(p.getUniqueId(), 0D);
         inAir.remove(p.getUniqueId());
         stupidMoves.put(p.getUniqueId(), 0);
-        legitLocOnGround.put(p.getUniqueId(), e.getFrom());
-        lastGroundYNotVerified.put(p.getUniqueId(), e.getTo().getY());
     }
 
     //TODO: Fix issues on edge of chunks

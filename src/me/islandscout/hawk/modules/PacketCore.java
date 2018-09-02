@@ -5,6 +5,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.events.*;
 import me.islandscout.hawk.listener.packets.PacketListener7;
 import me.islandscout.hawk.listener.packets.PacketListener8;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.PhantomBlock;
 import me.islandscout.hawk.utils.packets.PacketConverter7;
 import me.islandscout.hawk.utils.packets.PacketConverter8;
@@ -13,6 +14,9 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
+
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This class is mainly used to process packets that are intercepted from the Netty channels.
@@ -109,7 +113,6 @@ public class PacketCore {
             else if(posEvent.getFrom().getWorld().equals(posEvent.getTo().getWorld()) && posEvent.getTo().distanceSquared(posEvent.getFrom()) > 64) {
                 hawk.getLogger().warning(p.getName() + " may have tried to crash the server by moving too far! Distance: " + (posEvent.getTo().distance(posEvent.getFrom())));
                 posEvent.cancelAndSetBack(p.getLocation());
-                pp.kickPlayer("Illegal move");
                 return false;
             }
         }
@@ -129,7 +132,6 @@ public class PacketCore {
         if(event instanceof PositionEvent) {
             pp.setLastMoveTime(System.currentTimeMillis());
             if(event.isCancelled() && ((PositionEvent) event).getCancelLocation() != null) {
-                //setTo(setback);
                 ((PositionEvent) event).setTo(((PositionEvent) event).getCancelLocation());
                 pp.setTeleporting(true);
                 pp.teleportPlayer(((PositionEvent) event).getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);

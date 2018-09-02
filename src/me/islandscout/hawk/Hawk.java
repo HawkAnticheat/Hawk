@@ -20,6 +20,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Hawk extends JavaPlugin {
 
@@ -34,7 +35,7 @@ public class Hawk extends JavaPlugin {
     private FileConfiguration messages;
     private GUIManager guiManager;
     private LagCompensator lagCompensator;
-    private Map<UUID, HawkPlayer> profiles; //TODO: Might want to put a sync lock on this
+    private Map<UUID, HawkPlayer> profiles;
     private static int SERVER_VERSION;
     public static String FLAG_PREFIX;
     public static String BASE_PERMISSION = "hawk";
@@ -72,7 +73,7 @@ public class Hawk extends JavaPlugin {
             sendJSONMessages = false;
             Bukkit.getLogger().warning("Hawk cannot send JSON flag messages on a 1.7.10 server! Please use 1.8.8 to use this feature.");
         }
-        profiles = new HashMap<>();
+        profiles = new ConcurrentHashMap<>();
         sql = new SQL(this);
         sql.createTableIfNotExists();
         guiManager = new GUIManager(this);
@@ -171,6 +172,10 @@ public class Hawk extends JavaPlugin {
             result = profiles.get(p.getUniqueId());
         }
         return result;
+    }
+
+    public Collection<HawkPlayer> getHawkPlayers() {
+        return profiles.values();
     }
 
     public void addProfile(Player p) {

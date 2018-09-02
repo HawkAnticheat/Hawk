@@ -161,21 +161,19 @@ public abstract class Check {
             JSONMessageSender msg = new JSONMessageSender(Hawk.FLAG_PREFIX + ChatColor.RESET + "" + message);
             msg.setHoverMsg("Check: " + violation.getCheck() + "\nVL: " + violation.getVl() + "\nPing: " + violation.getPing() + "ms\nTPS: " + MathPlus.round(violation.getTps(), 2) + "\nPlayer: " + offenderName + commandPrompt);
             if(!commandPrompt.equals("")) msg.setClickCommand(command);
-            for(Player admin : Bukkit.getOnlinePlayers()){
-                if(admin.hasPermission("hawk.notify")) {
-                    HawkPlayer ppAdmin = hawk.getHawkPlayer(admin); //TODO: Optimize this by not calling getHawkPlayer for every Player. Caution: ConcurrentModException!!!!
-                    if(ppAdmin.canReceiveFlags())
-                        msg.sendMessage(admin);
-                }
+            for(HawkPlayer pp : hawk.getHawkPlayers()) {
+                if(pp.canReceiveFlags())
+                    pp.getPlayer().sendMessage(Hawk.FLAG_PREFIX + " " + ChatColor.RESET + message);
+            }
+            for(HawkPlayer pp : hawk.getHawkPlayers()) {
+                if(pp.canReceiveFlags())
+                    msg.sendMessage(pp.getPlayer());
             }
         }
         else {
-            for(Player p : Bukkit.getOnlinePlayers()){
-                if(p.hasPermission("hawk.notify")) {
-                    HawkPlayer admin = hawk.getHawkPlayer(p); //TODO: Optimize this by not calling getHawkPlayer for every Player. Caution: ConcurrentModException!!!!
-                    if(admin.canReceiveFlags())
-                        p.sendMessage(Hawk.FLAG_PREFIX + " " + ChatColor.RESET + message);
-                }
+            for(HawkPlayer pp : hawk.getHawkPlayers()) {
+                if(pp.canReceiveFlags())
+                    pp.getPlayer().sendMessage(Hawk.FLAG_PREFIX + " " + ChatColor.RESET + message);
             }
         }
     }

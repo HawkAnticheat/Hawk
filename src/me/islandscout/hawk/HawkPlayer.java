@@ -11,12 +11,13 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides essential and additional tools to analyze players during
  * packet interception. Recommended to use this rather than
- * Bukkit's implementation. Also provides tools for asynchronous
- * threads.
+ * Bukkit's implementation. Also provides tools for Netty
+ * thread.
  */
 public class HawkPlayer {
 
@@ -41,12 +42,11 @@ public class HawkPlayer {
     private long currentTick;
     private double maxY;
     private long flyPendingTime;
-    private Set<PhantomBlock> phantomBlocks; //TODO: You'll need to monitor this frequently because I'm sure there will a memory leak here.
-                                             //Perhaps have a limit to the amount of PhantomBlocks (16), then clear out old PhantomBlocks.
+    private Set<PhantomBlock> phantomBlocks;
 
     HawkPlayer(Player p, Hawk hawk) {
         this.uuid = p.getUniqueId();
-        vl = new HashMap<>();
+        vl = new ConcurrentHashMap<>();
         receiveFlags = true;
         this.p = p;
         this.location = p.getLocation();
@@ -87,7 +87,7 @@ public class HawkPlayer {
     }
 
     public boolean canReceiveFlags() {
-        return receiveFlags;
+        return receiveFlags && p.hasPermission(Hawk.BASE_PERMISSION + ".notify");
     }
 
     public void setReceiveFlags(boolean status) {
@@ -245,13 +245,13 @@ public class HawkPlayer {
     }
 
     //safely kill the connection
-    public synchronized void kickPlayer(String reason) {
+    public void kickPlayer(String reason) {
         online = false;
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.kickPlayer(reason), 0L);
     }
 
     //safely teleport player
-    public synchronized void teleportPlayer(Location location, PlayerTeleportEvent.TeleportCause teleportCause) {
+    public void teleportPlayer(Location location, PlayerTeleportEvent.TeleportCause teleportCause) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.teleport(location, teleportCause), 0L);
     }
 
