@@ -163,10 +163,6 @@ public abstract class Check {
             if(!commandPrompt.equals("")) msg.setClickCommand(command);
             for(HawkPlayer pp : hawk.getHawkPlayers()) {
                 if(pp.canReceiveFlags())
-                    pp.getPlayer().sendMessage(Hawk.FLAG_PREFIX + " " + ChatColor.RESET + message);
-            }
-            for(HawkPlayer pp : hawk.getHawkPlayers()) {
-                if(pp.canReceiveFlags())
                     msg.sendMessage(pp.getPlayer());
             }
         }
