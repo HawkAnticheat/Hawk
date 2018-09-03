@@ -104,6 +104,24 @@ public class AdjacentBlocks {
         return false;
     }
 
+    public static boolean blockAdjacentIsLiquid(Location loc) {
+        Location check = loc.clone();
+        Set<Block> sample = new HashSet<>();
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0.3, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, -0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, -0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
+        sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
+        for(Block b : sample) {
+            if(b != null && b.isLiquid())
+                return true;
+        }
+        return false;
+    }
+
     //TODO: this still needs to get optimized. Replace List with Set
     /**
      * Checks if the location is on ground. Good replacement for Entity#isOnGround()

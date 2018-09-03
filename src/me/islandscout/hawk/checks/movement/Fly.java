@@ -25,7 +25,6 @@ import java.util.*;
 
 public class Fly extends AsyncMovementCheck implements Listener {
 
-    //TODO: false flag while "tripping" onto blocks (most noticeable with slabs)
     //TODO: false flag with pistons
     //TODO: false flag on slime blocks
     //TODO: false flag while jumping down stairs
@@ -52,7 +51,6 @@ public class Fly extends AsyncMovementCheck implements Listener {
     private Map<UUID, Integer> stupidMoves;
     private Map<UUID, List<Location>> locsOnPBlocks;
     private Map<UUID, DoubleTime> velocities; //launch velocities
-    private Set<UUID> failedSoDontUpdateRubberband; //Update rubberband loc until someone fails. In this case, do not update until they touch the ground.
     private static final int STUPID_MOVES = 1; //Apparently you can jump in midair right as you fall off the edge of a block. You need to time it right.
 
     public Fly() {
@@ -63,7 +61,6 @@ public class Fly extends AsyncMovementCheck implements Listener {
         stupidMoves = new HashMap<>();
         locsOnPBlocks = new HashMap<>();
         velocities = new HashMap<>();
-        failedSoDontUpdateRubberband = new HashSet<>();
     }
 
     @Override
@@ -73,8 +70,8 @@ public class Fly extends AsyncMovementCheck implements Listener {
         double deltaY = event.getTo().getY() - event.getFrom().getY();
         if(pp.hasFlyPending() && p.getAllowFlight())
             return;
-        if(!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() &&
-                !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WATER) && !AdjacentBlocks.matIsAdjacent(event.getTo(), Material.STATIONARY_WATER) &&
+
+        if(!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() && !AdjacentBlocks.blockAdjacentIsLiquid(event.getTo()) &&
                 !isInClimbable(event.getTo()) && !isOnBoat(event.getTo())) {
 
             if(!inAir.contains(p.getUniqueId()) && deltaY > 0)
@@ -88,9 +85,17 @@ public class Fly extends AsyncMovementCheck implements Listener {
             }
 
             double expectedDeltaY = lastDeltaY.getOrDefault(p.getUniqueId(), 0D);
+            double epsilon = 0.03;
 
             //lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) - 0.025) * 0.8); //water function
-            lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) - 0.08) * 0.98);
+            if(AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WEB)) {
+                lastDeltaY.put(p.getUniqueId(), -0.007);
+                epsilon = 0.000001;
+                if(AdjacentBlocks.onGroundReally(event.getTo().clone().add(0, -0.03, 0), -1, false))
+                    return;
+            }
+            else
+                lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) - 0.08) * 0.98);
 
             //handle teleport
             if(event.hasTeleported()) {
@@ -99,7 +104,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
                 legitLoc.put(p.getUniqueId(), event.getTo());
             }
 
-            if(deltaY - expectedDeltaY > 0.03 && event.hasDeltaPos()) { //oopsie daisy. client made a goof up
+            if(deltaY - expectedDeltaY > epsilon && event.hasDeltaPos()) { //oopsie daisy. client made a goof up
 
                 //wait one little second: minecraft is being a pain in the ass and it wants to play tricks when you parkour on the very edge of blocks
                 //we need to check this first...
@@ -124,7 +129,6 @@ public class Fly extends AsyncMovementCheck implements Listener {
                 punish(pp);
                 tryRubberband(event, legitLoc.getOrDefault(p.getUniqueId(), event.getFrom()));
                 lastDeltaY.put(p.getUniqueId(), canCancel()? 0:deltaY);
-                failedSoDontUpdateRubberband.add(p.getUniqueId());
                 return;
             }
 
@@ -144,9 +148,8 @@ public class Fly extends AsyncMovementCheck implements Listener {
             onGroundStuff(p, event);
         }
 
-        if(!failedSoDontUpdateRubberband.contains(p.getUniqueId()) || event.isOnGroundReally()) {
+        if(event.isOnGroundReally()) {
             legitLoc.put(p.getUniqueId(), event.getFrom());
-            failedSoDontUpdateRubberband.remove(p.getUniqueId());
         }
 
     }
@@ -215,6 +218,5 @@ public class Fly extends AsyncMovementCheck implements Listener {
         legitLoc.remove(uuid);
         stupidMoves.remove(uuid);
         velocities.remove(uuid);
-        failedSoDontUpdateRubberband.remove(uuid);
     }
 }

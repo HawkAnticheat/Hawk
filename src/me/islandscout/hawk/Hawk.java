@@ -66,9 +66,9 @@ public class Hawk extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BukkitListener(this), this);
         messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
         FLAG_PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cHAWK:", messages, "prefix"));
-        FLAG_CLICK_COMMAND = ConfigHelper.getOrSetDefault("tp %player%", getConfig(), "flagClickCommand");
         callBukkitEvents = ConfigHelper.getOrSetDefault(false, getConfig(), "callBukkitEvents");
         sendJSONMessages = ConfigHelper.getOrSetDefault(false, getConfig(), "sendJSONMessages");
+        FLAG_CLICK_COMMAND = ConfigHelper.getOrSetDefault("tp %player%", getConfig(), "flagClickCommand");
         if(sendJSONMessages && getServerVersion() == 7) {
             sendJSONMessages = false;
             Bukkit.getLogger().warning("Hawk cannot send JSON flag messages on a 1.7.10 server! Please use 1.8.8 to use this feature.");

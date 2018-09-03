@@ -10,6 +10,7 @@ import me.islandscout.hawk.utils.PhantomBlock;
 import me.islandscout.hawk.utils.packets.PacketConverter7;
 import me.islandscout.hawk.utils.packets.PacketConverter8;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -104,8 +105,9 @@ public class PacketCore {
                 }
                 else {
                     //Help guide the confused client back to the tp location
-                    if (System.currentTimeMillis() - pp.getLastTeleportTime() > 1000)
+                    if (System.currentTimeMillis() - pp.getLastTeleportTime() > 1000) {
                         pp.teleportPlayer(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                    }
                     return false;
                 }
             }
