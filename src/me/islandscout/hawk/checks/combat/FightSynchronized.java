@@ -6,6 +6,7 @@ import me.islandscout.hawk.checks.Cancelless;
 import me.islandscout.hawk.events.InteractAction;
 import me.islandscout.hawk.events.InteractEntityEvent;
 import me.islandscout.hawk.utils.ConfigHelper;
+import me.islandscout.hawk.utils.Debug;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -31,7 +32,7 @@ public class FightSynchronized extends AsyncEntityInteractionCheck implements Ca
         super("fightsync", true, -1, 2, 0.95, 1000, "&7%player% may be using killaura (SYNC). VL %vl%", null);
         attackTimes = new HashMap<>();
         samples = new HashMap<>();
-        SAMPLE_SIZE = ConfigHelper.getOrSetDefault(20, hawk.getConfig(), "checks.fightsync.samplesize");
+        SAMPLE_SIZE = ConfigHelper.getOrSetDefault(10, hawk.getConfig(), "checks.fightsync.samplesize");
         THRESHOLD = ConfigHelper.getOrSetDefault(6, hawk.getConfig(), "checks.fightsync.threshold");
     }
 
@@ -41,12 +42,12 @@ public class FightSynchronized extends AsyncEntityInteractionCheck implements Ca
             return;
         Player attacker = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
-        samples.put(attacker.getUniqueId(), samples.getOrDefault(attacker, 0) + 1);
+        samples.put(attacker.getUniqueId(), samples.getOrDefault(attacker.getUniqueId(), 0) + 1);
         long diff = System.currentTimeMillis() - pp.getLastMoveTime();
         if (diff > 100) {
             diff = 100L;
         }
-        attackTimes.put(attacker.getUniqueId(), attackTimes.getOrDefault(attacker, 0L) + diff);
+        attackTimes.put(attacker.getUniqueId(), attackTimes.getOrDefault(attacker.getUniqueId(), 0L) + diff);
         if (samples.get(attacker.getUniqueId()) >= SAMPLE_SIZE) {
             samples.put(attacker.getUniqueId(), 0);
             attackTimes.put(attacker.getUniqueId(), attackTimes.get(attacker.getUniqueId()) / SAMPLE_SIZE);
@@ -55,8 +56,6 @@ public class FightSynchronized extends AsyncEntityInteractionCheck implements Ca
             }
             else
                 reward(pp);
-        } else {
-            samples.put(attacker.getUniqueId(), samples.get(attacker.getUniqueId()) + 1);
         }
     }
 
