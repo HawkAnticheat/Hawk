@@ -94,6 +94,8 @@ public class FightAccuracy extends AsyncCustomCheck implements Listener, Cancell
         long lastSwingTick = swingTick.getOrDefault(uuid, 0L);
 
         //proceed if victim's invulnerability is gone
+        //diff between current client tick and last swing tick should never be negative
+        //a bypass for this IS possible, but you'd get caught by clockspeed if you try to change your tickrate
         if(att.getCurrentTick() - lastSwingTick >= victim.getMaximumNoDamageTicks() / 2) {
             if(att.getLocation().distanceSquared(victim.getLocation()) > 9)
                 return;
@@ -150,5 +152,6 @@ public class FightAccuracy extends AsyncCustomCheck implements Listener, Cancell
         attacksPerSec.remove(uuid);
         tryingToAttack.remove(uuid);
         lastAttacked.remove(uuid);
+        swingTick.remove(uuid);
     }
 }

@@ -4,6 +4,8 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncEntityInteractionCheck;
 import me.islandscout.hawk.events.InteractAction;
 import me.islandscout.hawk.events.InteractEntityEvent;
+import me.islandscout.hawk.utils.AdjacentBlocks;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.ServerUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -27,7 +29,8 @@ public class FightCriticals extends AsyncEntityInteractionCheck {
             Block above = ServerUtils.getBlockAsync(loc.add(0, 2.3, 0));
             if(below == null || above == null)
                 return;
-            if((att.getFallDistance() < 0.3 && att.getFallDistance() != 0 && below.getType().isSolid() && !above.getType().isSolid())) {
+            if(AdjacentBlocks.onGroundReally(att.getLocation(), -1, true) && !att.isOnGround() ||
+                    (att.getFallDistance() < 0.3 && att.getFallDistance() != 0 && below.getType().isSolid() && !above.getType().isSolid())) {
                 punish(att, true, e);
                 return;
             }
