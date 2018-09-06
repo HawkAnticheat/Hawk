@@ -15,7 +15,6 @@ import java.util.UUID;
 public class FightNoSwing extends AsyncCustomCheck {
 
     private Map<UUID, Long> lastClientTickSwung;
-    private static final int THRESHOLD = 3;
 
     public FightNoSwing() {
         super("fightnoswing", "&7%player% failed noswing. VL: %vl%");
@@ -40,7 +39,7 @@ public class FightNoSwing extends AsyncCustomCheck {
             return;
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
-        if(!lastClientTickSwung.containsKey(p.getUniqueId()) || pp.getCurrentTick() - lastClientTickSwung.get(p.getUniqueId()) > THRESHOLD) {
+        if(!lastClientTickSwung.containsKey(p.getUniqueId()) || pp.getCurrentTick() != lastClientTickSwung.get(p.getUniqueId())) {
             punish(pp, true, e);
         }
         else {

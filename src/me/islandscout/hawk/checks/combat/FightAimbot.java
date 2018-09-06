@@ -23,13 +23,13 @@ import java.util.UUID;
  * analyzing mouse movement patterns during combat. Although
  * easily bypassed, it catches a significant number of cheaters.
  */
-public class MouseMovement extends AsyncCustomCheck implements Cancelless {
+public class FightAimbot extends AsyncCustomCheck implements Cancelless {
 
     private Map<UUID, Double> lastLookDistanceSquared;
     private Map<UUID, Long> lastAttackTick;
 
-    public MouseMovement() {
-        super("mousemovement", true, -1, 5, 0.97, 2000, "&7%player% may be using aimbot. VL %vl%", null);
+    public FightAimbot() {
+        super("fightaimbot", true, -1, 5, 0.97, 2000, "&7%player% may be using aimbot. VL %vl%", null);
         lastLookDistanceSquared = new HashMap<>();
         lastAttackTick = new HashMap<>();
     }

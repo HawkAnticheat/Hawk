@@ -9,6 +9,7 @@ import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.PhantomBlock;
 import me.islandscout.hawk.utils.packets.PacketConverter7;
 import me.islandscout.hawk.utils.packets.PacketConverter8;
+import net.minecraft.server.v1_7_R4.PacketPlayInFlying;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

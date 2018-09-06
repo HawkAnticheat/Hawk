@@ -7,6 +7,7 @@ import me.islandscout.hawk.events.ArmSwingEvent;
 import me.islandscout.hawk.events.Event;
 import me.islandscout.hawk.events.InteractAction;
 import me.islandscout.hawk.events.InteractEntityEvent;
+import me.islandscout.hawk.utils.Debug;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -29,7 +30,8 @@ public class FightAccuracy extends AsyncCustomCheck implements Listener, Cancell
     private Map<UUID, Map<UUID, Ratio>> accuracy;
     private Map<UUID, Float> attacksPerSec;
     private Map<UUID, UUID> tryingToAttack;
-    private Map<UUID, UUID> lastAttacked;
+    private Map<UUID, Player> lastAttacked;
+    private Map<UUID, Long> swingTick;
 
     public FightAccuracy() {
         super("fightaccuracy", "&7%player% may be using killaura (ACCURACY). Accuracy: %accuracy%, VL: %vl%");
@@ -38,6 +40,7 @@ public class FightAccuracy extends AsyncCustomCheck implements Listener, Cancell
         attacksPerSec = new HashMap<>();
         tryingToAttack = new HashMap<>();
         lastAttacked = new HashMap<>();
+        swingTick = new HashMap<>();
     }
 
     public void check(Event e) {
@@ -57,6 +60,8 @@ public class FightAccuracy extends AsyncCustomCheck implements Listener, Cancell
 
         HawkPlayer att = e.getHawkPlayer();
         Player pVictim = Bukkit.getPlayer(victim);
+        if(att.getCurrentTick() != swingTick.getOrDefault(uuid, 0L))
+            return;
         if(pVictim == null || att.getLocation().distanceSquared(pVictim.getLocation()) > 9)
             return;
 
@@ -65,8 +70,15 @@ public class FightAccuracy extends AsyncCustomCheck implements Listener, Cancell
         if(ratio.denominator == 0)
             return;
         ratio.numerator++;
-        accuracyToVictim.put(victim, ratio);
 
+        //now it's time to check accuracy
+        if(ratio.denominator >= 20) {
+            Debug.sendToPlayer(e.getPlayer(), "aim: " + ratio.getRatio());
+            ratio.normalize();
+        }
+
+
+        accuracyToVictim.put(victim, ratio);
         accuracy.put(uuid, accuracyToVictim);
     }
 
@@ -75,19 +87,25 @@ public class FightAccuracy extends AsyncCustomCheck implements Listener, Cancell
         if(!lastAttacked.containsKey(uuid))
             return;
 
-        UUID victim = lastAttacked.get(uuid);
-
         HawkPlayer att = e.getHawkPlayer();
-        Player pVictim = Bukkit.getPlayer(victim);
-        if(pVictim == null || att.getLocation().distanceSquared(pVictim.getLocation()) > 9)
+        Player victim = lastAttacked.get(uuid);
+        if(victim == null)
             return;
+        long lastSwingTick = swingTick.getOrDefault(uuid, 0L);
 
-        Map<UUID, Ratio> accuracyToVictim = accuracy.getOrDefault(uuid, new HashMap<>());
-        Ratio ratio = accuracyToVictim.getOrDefault(victim, new Ratio());
-        ratio.denominator++;
-        accuracyToVictim.put(victim, ratio);
+        //proceed if victim's invulnerability is gone
+        if(att.getCurrentTick() - lastSwingTick >= victim.getMaximumNoDamageTicks() / 2) {
+            if(att.getLocation().distanceSquared(victim.getLocation()) > 9)
+                return;
 
-        accuracy.put(uuid, accuracyToVictim);
+            Map<UUID, Ratio> accuracyToVictim = accuracy.getOrDefault(uuid, new HashMap<>());
+            Ratio ratio = accuracyToVictim.getOrDefault(victim.getUniqueId(), new Ratio());
+            ratio.denominator++;
+            accuracyToVictim.put(victim.getUniqueId(), ratio);
+
+            accuracy.put(uuid, accuracyToVictim);
+            swingTick.put(uuid, att.getCurrentTick());
+        }
     }
 
 
@@ -99,7 +117,7 @@ public class FightAccuracy extends AsyncCustomCheck implements Listener, Cancell
             return;
         Player attacker = (Player)e.getDamager();
         Player victim = (Player)e.getEntity();
-        lastAttacked.put(attacker.getUniqueId(), victim.getUniqueId());
+        lastAttacked.put(attacker.getUniqueId(), victim);
 
 
     }

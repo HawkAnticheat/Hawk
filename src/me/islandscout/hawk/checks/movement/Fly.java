@@ -51,6 +51,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
     private Map<UUID, Integer> stupidMoves;
     private Map<UUID, List<Location>> locsOnPBlocks;
     private Map<UUID, DoubleTime> velocities; //launch velocities
+    private Set<UUID> failedSoDontUpdateRubberband; //Update rubberband loc until someone fails. In this case, do not update until they touch the ground.
     private static final int STUPID_MOVES = 1; //Apparently you can jump in midair right as you fall off the edge of a block. You need to time it right.
 
     public Fly() {
@@ -61,6 +62,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
         stupidMoves = new HashMap<>();
         locsOnPBlocks = new HashMap<>();
         velocities = new HashMap<>();
+        failedSoDontUpdateRubberband = new HashSet<>();
     }
 
     @Override
@@ -70,7 +72,6 @@ public class Fly extends AsyncMovementCheck implements Listener {
         double deltaY = event.getTo().getY() - event.getFrom().getY();
         if(pp.hasFlyPending() && p.getAllowFlight())
             return;
-
         if(!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() && !AdjacentBlocks.blockAdjacentIsLiquid(event.getTo()) &&
                 !isInClimbable(event.getTo()) && !isOnBoat(event.getTo())) {
 
@@ -129,6 +130,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
                 punish(pp);
                 tryRubberband(event, legitLoc.getOrDefault(p.getUniqueId(), event.getFrom()));
                 lastDeltaY.put(p.getUniqueId(), canCancel()? 0:deltaY);
+                failedSoDontUpdateRubberband.add(p.getUniqueId());
                 return;
             }
 
@@ -148,8 +150,9 @@ public class Fly extends AsyncMovementCheck implements Listener {
             onGroundStuff(p, event);
         }
 
-        if(event.isOnGroundReally()) {
+        if(!failedSoDontUpdateRubberband.contains(p.getUniqueId()) || event.isOnGroundReally()) {
             legitLoc.put(p.getUniqueId(), event.getFrom());
+            failedSoDontUpdateRubberband.remove(p.getUniqueId());
         }
 
     }
@@ -218,5 +221,6 @@ public class Fly extends AsyncMovementCheck implements Listener {
         legitLoc.remove(uuid);
         stupidMoves.remove(uuid);
         velocities.remove(uuid);
+        failedSoDontUpdateRubberband.remove(uuid);
     }
 }

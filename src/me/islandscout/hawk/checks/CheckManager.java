@@ -51,10 +51,12 @@ public class CheckManager {
         new GroundSpoof();
         new FightSpeed();
         new FightAccuracy();
-        new MouseMovement();
+        new FightAimbot();
         new FightNoSwing();
         new AntiVelocity();
         new InvalidPitch();
+        new FightReachApprox();
+        new FightDirectionApprox();
 
         for(Check check : checkList) {
             if(check instanceof Listener)
