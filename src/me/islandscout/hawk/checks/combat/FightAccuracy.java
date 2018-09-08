@@ -73,7 +73,7 @@ public class FightAccuracy extends AsyncCustomCheck implements Listener, Cancell
 
         //now it's time to check accuracy
         if(ratio.denominator >= 20) {
-            Debug.sendToPlayer(e.getPlayer(), "aim: " + ratio.getRatio());
+            //Debug.sendToPlayer(e.getPlayer(), "aim: " + ratio.getRatio());
             ratio.normalize();
         }
 

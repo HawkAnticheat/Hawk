@@ -29,8 +29,10 @@ public class Fly extends AsyncMovementCheck implements Listener {
     //TODO: false flag on slime blocks
     //TODO: false flag while jumping down stairs
     //TODO: false flag when kb'd out of water
+    //TODO: false flag when jumping on edge of block. Perhaps extrapolate next "noPos" moves until they touch the block, then reset expectedDeltaY
     //TODO: BYPASS! You can fly over fences. Jump, then toggle fly, then walk straight.
     //Don't change how you determine if on ground, even though that's what caused this. Instead, check when landing when deltaY > 0
+    //perhaps check if player's jump height is great enough?
 
     //TODO: false flag when jumping on recently placed block
     //To fix this... You'll need to work on PhantomBlocks/ClientBlocks (more in HawkPlayer)

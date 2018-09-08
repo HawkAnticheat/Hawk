@@ -18,7 +18,7 @@ public class ToggleChecksWindow extends Window {
         List<Check> list = hawk.getCheckManager().getCheckList();
         for(int i = 0; i < list.size(); i++) {
             ItemStack status;
-            String display = list.get(i).toString();
+            String display = list.get(i).getName();
             status = new ItemStack(Material.INK_SACK);
             if(list.get(i).isEnabled()) {
                 status.setDurability((short)10);

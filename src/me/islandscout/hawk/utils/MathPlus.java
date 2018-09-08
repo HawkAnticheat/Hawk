@@ -1,6 +1,8 @@
 package me.islandscout.hawk.utils;
 
-public class MathPlus {
+public final class MathPlus {
+
+    private MathPlus() {}
 
     public static double round(double number, int decimals) {
         number *= Math.pow(10, decimals);
@@ -8,7 +10,7 @@ public class MathPlus {
         return number / Math.pow(10, decimals);
     }
 
-    public static double relativeAngleDegrees(double angleDegrees) {
+    public static double clampDegrees360(double angleDegrees) {
         angleDegrees %= 360;
         if(angleDegrees < 0)
             angleDegrees = 360 + angleDegrees;

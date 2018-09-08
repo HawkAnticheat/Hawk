@@ -3,7 +3,10 @@ package me.islandscout.hawk.checks.combat;
 import me.islandscout.hawk.checks.AsyncEntityInteractionCheck;
 import me.islandscout.hawk.events.InteractEntityEvent;
 import me.islandscout.hawk.utils.*;
+import me.islandscout.hawk.utils.entities.EntityNMS;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.craftbukkit.v1_7_R4.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -26,13 +29,17 @@ public class FightReachApprox extends AsyncEntityInteractionCheck {
         int ping = ServerUtils.getPing(e.getPlayer());
         if(PING_LIMIT > -1 && ping > PING_LIMIT)
             return;
+
         Location victimLocation;
         if(victimEntity instanceof Player && LAG_COMPENSATION)
             victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, (Player)victimEntity);
         else
             victimLocation = victimEntity.getLocation();
         double distanceSquared = victimLocation.distanceSquared(e.getHawkPlayer().getLocation());
-        if(distanceSquared > MAX_REACH) {
+        double maxReach = MAX_REACH;
+        if (e.getPlayer().getGameMode() == GameMode.CREATIVE)
+            maxReach += 17.64; //MC1.7: 1.8, MC1.8: 1.5
+        if(distanceSquared > maxReach) {
             punish(e.getHawkPlayer(), true, e, new Placeholder("distance", MathPlus.round(Math.sqrt(distanceSquared), 2)));
         }
         else {

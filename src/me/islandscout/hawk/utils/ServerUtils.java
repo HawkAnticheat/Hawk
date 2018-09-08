@@ -6,7 +6,9 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-public class ServerUtils {
+public final class ServerUtils {
+
+    private ServerUtils() {}
 
     public static int getPing(Player p) {
         if (Hawk.getServerVersion() == 8)

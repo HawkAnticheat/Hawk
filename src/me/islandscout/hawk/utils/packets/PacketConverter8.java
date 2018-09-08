@@ -10,7 +10,9 @@ import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.entity.Player;
 
-public class PacketConverter8 {
+public final class PacketConverter8 {
+
+    private PacketConverter8() {}
 
     public static Event packetToEvent(Object packet, Player p, HawkPlayer pp) {
         if(packet instanceof PacketPlayInFlying)  return packetToPosEvent((PacketPlayInFlying)packet, p, pp);

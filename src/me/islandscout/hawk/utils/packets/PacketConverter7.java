@@ -12,7 +12,9 @@ import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
 import org.bukkit.entity.*;
 
-public class PacketConverter7 {
+public final class PacketConverter7 {
+
+    private PacketConverter7() {}
 
     public static Event packetToEvent(Object packet, Player p, HawkPlayer pp) {
         if(packet instanceof PacketPlayInFlying)  return packetToPosEvent((PacketPlayInFlying)packet, p, pp);
@@ -28,7 +30,7 @@ public class PacketConverter7 {
     private static PositionEvent packetToPosEvent(PacketPlayInFlying packet, Player p, HawkPlayer pp) {
         //default position
         Location loc = PositionEvent.getLastPosition(pp);
-        loc = new Location(loc.getWorld(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
+        loc = new Location(pp.getLocation().getWorld(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
 
         //update if has look
         if(packet.k()) {

@@ -2,19 +2,13 @@ package me.islandscout.hawk.checks.combat;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncCustomCheck;
-import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.checks.Cancelless;
 import me.islandscout.hawk.events.Event;
-import me.islandscout.hawk.events.InteractAction;
 import me.islandscout.hawk.events.InteractEntityEvent;
 import me.islandscout.hawk.events.PositionEvent;
-import me.islandscout.hawk.utils.Debug;
-import net.minecraft.server.v1_7_R4.Position;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityInteractEvent;
 
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.UUID;
 

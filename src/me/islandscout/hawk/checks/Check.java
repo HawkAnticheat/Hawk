@@ -152,7 +152,6 @@ public abstract class Check {
             Bukkit.getServer().getPluginManager().callEvent(new HawkViolationEvent(violation));
     }
 
-    //TODO: optimize this?
     private void broadcastMessage(String message, Violation violation) {
         if(hawk.canSendJSONMessages()) {
             String offenderName = violation.getPlayer().getName();

@@ -51,7 +51,7 @@ public class Hawk extends JavaPlugin {
         setServerVersion();
         loadModules();
         saveConfigs();
-        getLogger().info("Hawk Anticheat has been enabled. Copyright 2018 Islandscout. All rights reserved.");
+        getLogger().info("Hawk Anticheat has been enabled. Copyright 2018 Islandscout.");
     }
 
     @Override

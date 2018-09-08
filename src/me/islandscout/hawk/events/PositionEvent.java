@@ -27,7 +27,6 @@ public class PositionEvent extends Event {
         last.put(p.getUniqueId(), current.getOrDefault(p.getUniqueId(), pp.getLocation()));
         current.put(p.getUniqueId(), update);
         this.onGround = onGround;
-        //TODO: NPE here
         onGroundReally = AdjacentBlocks.onGroundReally(update, update.getY() - last.getOrDefault(p.getUniqueId(), pp.getLocation()).getY(), true);
     }
 
