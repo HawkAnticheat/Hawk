@@ -144,8 +144,8 @@ public class AdjacentBlocks {
         //If too low, this might set off fly false flags when jumping on edge of blocks.
         Location check = loc.clone();
         List<Block> blocks = new ArrayList<>();
+        blocks.addAll(AdjacentBlocks.getBlocksInLocation(check));
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, -1, 0)));
-        blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, 0.999, 0)));
         Block prevBlock = null;
         for(int i = blocks.size() - 1; i >= 0; i--) {
             Block currBlock = blocks.get(i);
@@ -155,7 +155,7 @@ public class AdjacentBlocks {
             prevBlock = currBlock;
         }
 
-        AABB underFeet = new AABB(check.add(-0.3, 0, -0.3).toVector(), check.add(0.6, feetDepth, 0.6).toVector());
+        AABB underFeet = new AABB(loc.toVector().add(new Vector(-0.3, -feetDepth, -0.3)), loc.toVector().add(new Vector(0.3, 0, 0.3)));
         for(Block block : blocks) {
             BlockNMS bNMS = BlockNMS.getBlockNMS(block);
             if(block.isLiquid() || (!bNMS.isSolid() && Hawk.getServerVersion() == 8))
@@ -165,7 +165,7 @@ public class AdjacentBlocks {
                 //almost done. gotta do one more check... Check if their foot ain't in a block. (stops checkerclimb)
                 if(ignoreInGround) {
                     AABB topFeet = underFeet.clone();
-                    topFeet.translate(new Vector(0, feetDepth, 0));
+                    topFeet.translate(new Vector(0, feetDepth + 0.00001, 0));
                     for(Block block1 : AdjacentBlocks.getBlocksInLocation(loc)) {
                         BlockNMS bNMS1 = BlockNMS.getBlockNMS(block1);
                         if(block1.isLiquid() || (!bNMS1.isSolid() && Hawk.getServerVersion() == 8) || block1.getState().getData() instanceof Openable)

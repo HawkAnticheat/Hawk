@@ -30,6 +30,9 @@ public final class PacketConverter7 {
     private static PositionEvent packetToPosEvent(PacketPlayInFlying packet, Player p, HawkPlayer pp) {
         //default position
         Location loc = PositionEvent.getLastPosition(pp);
+
+        //There's an NPE here if someone teleports to another world using a dumb multi-world plugin (which sets the getTo location to null)
+        //I don't believe it is my responsibility to "fix" this. If there are enough complaints, I MIGHT consider looking into it.
         loc = new Location(pp.getLocation().getWorld(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
 
         //update if has look

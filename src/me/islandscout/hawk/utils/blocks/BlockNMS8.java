@@ -70,6 +70,13 @@ public class BlockNMS8 extends BlockNMS {
 
     private AABB[] getCollisionBoxes(net.minecraft.server.v1_8_R3.Block b, Location loc, BlockPosition bPos, IBlockData data) {
 
+        //define boxes for funny blocks
+        if(b instanceof BlockCarpet) {
+            AABB[] aabbarr = new AABB[1];
+            aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0.0625, 1)));
+            return aabbarr;
+        }
+
         List<AxisAlignedBB> bbs = new ArrayList<>();
         AxisAlignedBB cube = AxisAlignedBB.a(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), loc.getBlockX() + 1, loc.getBlockY() + 1, loc.getBlockZ() + 1);
         b.a(((CraftWorld) loc.getWorld()).getHandle(), bPos, data, cube, bbs, null);

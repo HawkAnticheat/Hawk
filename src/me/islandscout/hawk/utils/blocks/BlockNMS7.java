@@ -2,7 +2,8 @@ package me.islandscout.hawk.utils.blocks;
 
 import me.islandscout.hawk.utils.AABB;
 import net.minecraft.server.v1_7_R4.*;
-import org.bukkit.Location;
+import org.bukkit.*;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
 import org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer;
@@ -24,7 +25,7 @@ public class BlockNMS7 extends BlockNMS {
 
         strength = b.f(null, 0, 0, 0);
         hitbox = getHitBox(b, block.getLocation());
-        solid = block.getType().isSolid();
+        solid = isReallySolid(block);
         collisionBoxes = getCollisionBoxes(b, block.getLocation());
 
         this.block = b;
@@ -58,6 +59,13 @@ public class BlockNMS7 extends BlockNMS {
 
     private AABB[] getCollisionBoxes(net.minecraft.server.v1_7_R4.Block b, Location loc) {
 
+        //define boxes for funny blocks
+        if(b instanceof BlockCarpet) {
+            AABB[] aabbarr = new AABB[1];
+            aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0, 1)));
+            return aabbarr;
+        }
+
         List<AxisAlignedBB> bbs = new ArrayList<>();
         AxisAlignedBB cube = AxisAlignedBB.a(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), loc.getBlockX() + 1, loc.getBlockY() + 1, loc.getBlockZ() + 1);
         b.a(((CraftWorld) loc.getWorld()).getHandle(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), cube, bbs, null);
@@ -72,4 +80,12 @@ public class BlockNMS7 extends BlockNMS {
         return collisionBoxes;
     }
 
+
+    private boolean isReallySolid(Block b) {
+        boolean reallySolid = b.getType().isSolid();
+        if(b.getType() == Material.CARPET) {
+            reallySolid = true;
+        }
+        return reallySolid;
+    }
 }
