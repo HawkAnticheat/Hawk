@@ -27,6 +27,7 @@ public class BlockNMS7 extends BlockNMS {
         hitbox = getHitBox(b, block.getLocation());
         solid = isReallySolid(block);
         collisionBoxes = getCollisionBoxes(b, block.getLocation());
+        frictionFactor = b.frictionFactor;
 
         this.block = b;
     }
