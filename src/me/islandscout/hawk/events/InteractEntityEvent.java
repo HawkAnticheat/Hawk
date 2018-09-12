@@ -1,6 +1,7 @@
 package me.islandscout.hawk.events;
 
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.utils.packets.WrappedPacket;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -9,8 +10,8 @@ public class InteractEntityEvent extends Event {
     private InteractAction interactAction;
     private Entity entity;
 
-    public InteractEntityEvent(Player p, HawkPlayer pp, InteractAction action, Entity entity) {
-        super(p, pp);
+    public InteractEntityEvent(Player p, HawkPlayer pp, InteractAction action, Entity entity, WrappedPacket packet) {
+        super(p, pp, packet);
         interactAction = action;
         this.entity = entity;
     }

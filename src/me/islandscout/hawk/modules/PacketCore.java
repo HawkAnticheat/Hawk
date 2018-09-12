@@ -9,7 +9,10 @@ import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.PhantomBlock;
 import me.islandscout.hawk.utils.packets.PacketConverter7;
 import me.islandscout.hawk.utils.packets.PacketConverter8;
+import net.minecraft.server.v1_7_R4.PacketDataSerializer;
 import net.minecraft.server.v1_7_R4.PacketPlayInFlying;
+import net.minecraft.server.v1_7_R4.PacketPlayInPositionLook;
+import net.minecraft.util.io.netty.buffer.Unpooled;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -17,6 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -67,19 +71,6 @@ public class PacketCore {
         //ignore packets while player is no longer registered in Hawk
         if(!pp.isOnline())
             return false;
-
-        //TODO: Figure out how to use ByteBuf
-        /*if(packet instanceof PacketPlayInPositionLook) {
-            PacketDataSerializer ugh = new PacketDataSerializer(Unpooled.buffer(50));
-            ((PacketPlayInFlying) packet).b(ugh);
-            StringBuilder sb = new StringBuilder();
-            for(byte skid : ugh.array()) {
-                sb.append(skid).append(" ");
-            }
-            Debug.broadcastMessage(sb.toString());
-            //Debug.broadcastMessage(ugh.readBytes(3) + "");
-            ((PacketPlayInFlying) packet).a(ugh);
-        }*/
 
         Event event;
         if(serverVersion == 8)

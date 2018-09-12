@@ -25,26 +25,34 @@ public final class PacketConverter8 {
     }
 
     private static PositionEvent packetToPosEvent(PacketPlayInFlying packet, Player p, HawkPlayer pp) {
-        Location loc = new Location(pp.getLocation().getWorld(),
-                pp.getLocation().getX(),
-                pp.getLocation().getY(),
-                pp.getLocation().getZ(),
-                pp.getLocation().getYaw(),
-                pp.getLocation().getPitch());
+        //default position
+        Location loc = PositionEvent.getLastPosition(pp);
 
-        //has look
+        //There's an NPE here if someone teleports to another world using a dumb multi-world plugin (which sets the getTo location to null)
+        //I don't believe it is my responsibility to "fix" this. If there are enough complaints, I MIGHT consider looking into it.
+        loc = new Location(pp.getLocation().getWorld(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
+
+        WrappedPacket.PacketType pType = WrappedPacket.PacketType.FLYING;
+
+        //update if has look
         if(packet.h()) {
+            pType = WrappedPacket.PacketType.LOOK;
             loc.setYaw(packet.d());
             loc.setPitch(packet.e());
         }
 
-        //has position
+        //update if has position
         if(packet.g()) {
+            if(packet.h())
+                pType = WrappedPacket.PacketType.POSITION_LOOK;
+            else
+                pType = WrappedPacket.PacketType.POSITION;
             loc.setX(packet.a());
             loc.setY(packet.b());
             loc.setZ(packet.c());
         }
-        return new PositionEvent(p, loc, packet.f(), pp);
+
+        return new PositionEvent(p, loc, packet.f(), pp, new WrappedPacket8(packet, pType));
     }
 
     private static InteractEntityEvent packetToInterEvent(PacketPlayInUseEntity packet, Player p, HawkPlayer pp) {
@@ -54,7 +62,7 @@ public final class PacketConverter8 {
         else action = InteractAction.INTERACT;
         //get interacted entity. phew.
         org.bukkit.entity.Entity entity = packet.a(((CraftWorld) pp.getLocation().getWorld()).getHandle()).getBukkitEntity();
-        return new InteractEntityEvent(p, pp, action, entity);
+        return new InteractEntityEvent(p, pp, action, entity, new WrappedPacket8(packet, WrappedPacket.PacketType.USE_ENTITY));
     }
 
     private static BlockDigEvent packetToDigEvent(PacketPlayInBlockDig packet, Player p, HawkPlayer pp) {
@@ -82,7 +90,7 @@ public final class PacketConverter8 {
         }
 
         pp.setDigging(action == DigAction.START && block.getStrength() != 0);
-        return new BlockDigEvent(p, pp, action, loc.getBlock());
+        return new BlockDigEvent(p, pp, action, loc.getBlock(), new WrappedPacket8(packet, WrappedPacket.PacketType.BLOCK_DIG));
     }
 
     //TODO: work on this
@@ -91,6 +99,6 @@ public final class PacketConverter8 {
     }
 
     private static AbilitiesEvent packetToAbilitiesEvent(PacketPlayInAbilities packet, Player p, HawkPlayer pp) {
-        return new AbilitiesEvent(p, pp, packet.isFlying() && p.getAllowFlight());
+        return new AbilitiesEvent(p, pp, packet.isFlying() && p.getAllowFlight(), new WrappedPacket8(packet, WrappedPacket.PacketType.ABILITIES));
     }
 }

@@ -1,6 +1,7 @@
 package me.islandscout.hawk.events;
 
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.utils.packets.WrappedPacket;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -13,8 +14,8 @@ public class BlockPlaceEvent extends Event {
     private Material material;
     private BlockFace blockFace;
 
-    public BlockPlaceEvent(Player p, HawkPlayer pp, Location location, Material material, BlockFace blockFace) {
-        super(p, pp);
+    public BlockPlaceEvent(Player p, HawkPlayer pp, Location location, Material material, BlockFace blockFace, WrappedPacket packet) {
+        super(p, pp, packet);
         this.location = location;
         this.material = material;
         this.blockFace = blockFace;

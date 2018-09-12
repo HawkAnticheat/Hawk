@@ -35,20 +35,27 @@ public final class PacketConverter7 {
         //I don't believe it is my responsibility to "fix" this. If there are enough complaints, I MIGHT consider looking into it.
         loc = new Location(pp.getLocation().getWorld(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
 
+        WrappedPacket.PacketType pType = WrappedPacket.PacketType.FLYING;
+
         //update if has look
         if(packet.k()) {
+            pType = WrappedPacket.PacketType.LOOK;
             loc.setYaw(packet.g());
             loc.setPitch(packet.h());
         }
 
         //update if has position
         if(packet.j()) {
+            if(packet.k())
+                pType = WrappedPacket.PacketType.POSITION_LOOK;
+            else
+                pType = WrappedPacket.PacketType.POSITION;
             loc.setX(packet.c());
             loc.setY(packet.d());
             loc.setZ(packet.e());
         }
 
-        return new PositionEvent(p, loc, packet.i(), pp);
+        return new PositionEvent(p, loc, packet.i(), pp, new WrappedPacket7(packet, pType));
     }
 
     private static InteractEntityEvent packetToInterEvent(PacketPlayInUseEntity packet, Player p, HawkPlayer pp) {
@@ -60,7 +67,7 @@ public final class PacketConverter7 {
         Entity nmsEntity = packet.a(((CraftWorld) pp.getLocation().getWorld()).getHandle());
         if(nmsEntity == null) return null; //interacting with a non-existent entity
         org.bukkit.entity.Entity entity = nmsEntity.getBukkitEntity();
-        return new InteractEntityEvent(p, pp, action, entity);
+        return new InteractEntityEvent(p, pp, action, entity, new WrappedPacket7(packet, WrappedPacket.PacketType.USE_ENTITY));
     }
 
     private static BlockDigEvent packetToDigEvent(PacketPlayInBlockDig packet, Player p, HawkPlayer pp) {
@@ -87,15 +94,15 @@ public final class PacketConverter7 {
                 action = DigAction.COMPLETE;
         }
         pp.setDigging(action == DigAction.START && block.getStrength() != 0);
-        return new BlockDigEvent(p, pp, action, b);
+        return new BlockDigEvent(p, pp, action, b, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_DIG));
     }
 
     private static CustomPayLoadEvent packetToPayloadEvent(PacketPlayInCustomPayload packet, Player p, HawkPlayer pp) {
-        return new CustomPayLoadEvent(packet.c(), packet.length, packet.e(), p, pp);
+        return new CustomPayLoadEvent(packet.c(), packet.length, packet.e(), p, pp, new WrappedPacket7(packet, WrappedPacket.PacketType.CUSTOM_PAYLOAD));
     }
 
     private static AbilitiesEvent packetToAbilitiesEvent(PacketPlayInAbilities packet, Player p, HawkPlayer pp) {
-        return new AbilitiesEvent(p, pp, packet.isFlying() && p.getAllowFlight());
+        return new AbilitiesEvent(p, pp, packet.isFlying() && p.getAllowFlight(), new WrappedPacket7(packet, WrappedPacket.PacketType.ABILITIES));
     }
 
     //it appears that this gets called when interacting with blocks too
@@ -147,10 +154,10 @@ public final class PacketConverter7 {
         }
         if(y < 0)
             return null;
-        return new BlockPlaceEvent(p, pp, new Location(p.getWorld(), x, y, z), mat, face);
+        return new BlockPlaceEvent(p, pp, new Location(p.getWorld(), x, y, z), mat, face, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_PLACE));
     }
 
     private static ArmSwingEvent packetToArmSwingEvent(PacketPlayInArmAnimation packet, Player p, HawkPlayer pp) {
-        return new ArmSwingEvent(p, pp, packet.d());
+        return new ArmSwingEvent(p, pp, packet.d(), new WrappedPacket7(packet, WrappedPacket.PacketType.ARM_ANIMATION));
     }
 }

@@ -2,6 +2,7 @@ package me.islandscout.hawk.events;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.utils.AdjacentBlocks;
+import me.islandscout.hawk.utils.packets.WrappedPacket;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -22,8 +23,8 @@ public class PositionEvent extends Event {
     private static Map<UUID, Location> last = new HashMap<>();
     private static Map<UUID, Location> current = new HashMap<>();
 
-    public PositionEvent(Player p, Location update, boolean onGround, HawkPlayer pp) {
-        super(p, pp);
+    public PositionEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet) {
+        super(p, pp, packet);
         last.put(p.getUniqueId(), current.getOrDefault(p.getUniqueId(), pp.getLocation()));
         current.put(p.getUniqueId(), update);
         this.onGround = onGround;

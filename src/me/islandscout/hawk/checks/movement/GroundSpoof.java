@@ -1,17 +1,21 @@
 package me.islandscout.hawk.checks.movement;
 
 import me.islandscout.hawk.checks.AsyncMovementCheck;
-import me.islandscout.hawk.checks.Cancelless;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
+import me.islandscout.hawk.utils.ConfigHelper;
+import me.islandscout.hawk.utils.packets.WrappedPacket;
 import org.bukkit.Location;
 
-public class GroundSpoof extends AsyncMovementCheck implements Cancelless {
+public class GroundSpoof extends AsyncMovementCheck {
 
-    //TODO: flip the onGround flag to false if this check fails. This will stop NoFall effectively.
+    private final boolean STRICT;
+    private final boolean PREVENT_NOFALL;
 
     public GroundSpoof() {
-        super("groundspoof", true, 0, 3, 0.995, 2000, "&7%player% failed ground spoof. VL: %vl%", null);
+        super("groundspoof", true, -1, 3, 0.995, 2000, "&7%player% failed ground spoof. VL: %vl%", null);
+        STRICT = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.groundspoof.strict");
+        PREVENT_NOFALL = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.groundspoof.preventNofall");
     }
 
     @Override
@@ -19,16 +23,38 @@ public class GroundSpoof extends AsyncMovementCheck implements Cancelless {
         if(!event.isOnGroundReally()) {
             if(event.isOnGround()) {
 
-                //minecraft is really getting on my nerves.
+                //This tolerance allows for a bypass (which is caught by other movement checks).
+                //Set STRICT to true to patch the bypass, but to also create more false positives.
+                //Unfortunately, this issue is caused by how movement works in Minecraft, and cannot be fixed easily.
                 Location checkLoc = event.getFrom().clone();
                 checkLoc.setY(event.getTo().getY());
-                if(!AdjacentBlocks.onGroundReally(checkLoc, -1, false) && event.hasDeltaPos()) {
-                    punish(event.getHawkPlayer());
+                if(!STRICT && !AdjacentBlocks.onGroundReally(checkLoc, -1, false) && event.hasDeltaPos()) {
+                    punishAndTryRubberband(event.getHawkPlayer(), event, event.getPlayer().getLocation());
+                    if(PREVENT_NOFALL)
+                        setNotOnGround(event);
                 }
 
             } else {
                 reward(event.getHawkPlayer());
             }
+        }
+    }
+
+    //hmm... perhaps do this after all checks???
+    private void setNotOnGround(PositionEvent e) {
+        WrappedPacket packet = e.getWrappedPacket();
+        switch (packet.getType()) {
+            case FLYING:
+                packet.setByte(0, 0);
+                return;
+            case POSITION:
+                packet.setByte(32, 0);
+                return;
+            case LOOK:
+                packet.setByte(8, 0);
+                return;
+            case POSITION_LOOK:
+                packet.setByte(40, 0);
         }
     }
 }

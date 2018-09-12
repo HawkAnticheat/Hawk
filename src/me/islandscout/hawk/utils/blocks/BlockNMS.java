@@ -7,12 +7,12 @@ import org.bukkit.entity.Player;
 
 public abstract class BlockNMS {
 
-    float strength;
     private Block block;
-    protected AABB hitbox;
-    protected AABB[] collisionBoxes;
-    protected boolean solid;
-    protected float frictionFactor;
+    float strength;
+    AABB hitbox;
+    AABB[] collisionBoxes;
+    boolean solid;
+    float frictionFactor;
 
     BlockNMS(Block block) {
         this.block = block;
