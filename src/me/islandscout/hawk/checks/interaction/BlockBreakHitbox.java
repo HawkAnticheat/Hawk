@@ -12,15 +12,19 @@ import org.bukkit.util.Vector;
 
 public class BlockBreakHitbox extends AsyncBlockDigCheck {
 
+    //PASSED (9/12/18)
+
     private final boolean DEBUG_HITBOX;
     private final boolean DEBUG_RAY;
     private final boolean CHECK_DIG_START;
+    private final double MAX_REACH_SQUARED;
 
     public BlockBreakHitbox() {
-        super("blockbreakhitbox", "&7%player% failed block break hitbox. %type% VL: %vl%");
+        super("blockbreakhitbox", true, 5, 10, 0.9, 5000, "&7%player% failed block break hitbox. %type% VL: %vl%", null);
         DEBUG_HITBOX = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.debug.hitbox");
         DEBUG_RAY = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.debug.ray");
         CHECK_DIG_START = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.checkDigStart");
+        MAX_REACH_SQUARED = Math.pow(ConfigHelper.getOrSetDefault(6, hawk.getConfig(), "checks.blockbreakhitbox.maxReach"), 2);
     }
 
     @Override
@@ -62,19 +66,22 @@ public class BlockBreakHitbox extends AsyncBlockDigCheck {
         if(DEBUG_HITBOX)
             aabb.highlight(hawk, p.getWorld(), 0.25);
         if(DEBUG_RAY)
-            ray.highlight(hawk, p.getWorld(), 6, 0.3);
+            ray.highlight(hawk, p.getWorld(), Math.sqrt(MAX_REACH_SQUARED), 0.3);
 
-        Vector intersection = aabb.intersectsRay(ray, 0, 6);
+        Vector intersection = aabb.intersectsRay(ray, 0, Float.MAX_VALUE);
 
         if(intersection == null) {
             cancelDig(pp, e, new Placeholder("type", "Did not hit hitbox."));
+            return;
         }
-        else if(new Vector(intersection.getX() - eyeLoc.getX(), intersection.getY() - eyeLoc.getY(), intersection.getZ() - eyeLoc.getZ()).lengthSquared() > 36) {
+
+        double distanceSquared = new Vector(intersection.getX() - eyeLoc.getX(), intersection.getY() - eyeLoc.getY(), intersection.getZ() - eyeLoc.getZ()).lengthSquared();
+        if(distanceSquared > MAX_REACH_SQUARED) {
             cancelDig(pp, e, new Placeholder("type", "Reached too far."));
+            return;
         }
-        else {
-            reward(pp);
-        }
+
+        reward(pp);
     }
 
     private void cancelDig(HawkPlayer pp, BlockDigEvent e, Placeholder... placeholder) {

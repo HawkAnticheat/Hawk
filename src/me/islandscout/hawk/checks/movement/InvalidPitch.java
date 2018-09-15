@@ -6,6 +6,8 @@ import me.islandscout.hawk.events.PositionEvent;
 //Not really an important check. This just stops skids from thinking they're so cool.
 public class InvalidPitch extends AsyncMovementCheck {
 
+    //PASSED (9/11/18)
+
     public InvalidPitch() {
         super("invalidpitch", "&7%player% failed invalid pitch. VL: %vl%");
     }

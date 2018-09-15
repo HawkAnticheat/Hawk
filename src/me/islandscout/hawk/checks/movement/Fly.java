@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -29,7 +30,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
     //TODO: false flag on slime blocks
     //TODO: false flag while jumping down stairs
     //TODO: false flag when kb'd out of water
-    //TODO: false flag when jumping on edge of block. Perhaps extrapolate next "noPos" moves until they touch the block, then reset expectedDeltaY
+    //TO DO: false flag when jumping on edge of block. Perhaps extrapolate next "noPos" moves until they touch the block, then reset expectedDeltaY
     //TODO: BYPASS! You can fly over fences. Jump, then toggle fly, then walk straight.
     //Don't change how you determine if on ground, even though that's what caused this. Instead, check when landing when deltaY > 0
     //perhaps check if player's jump height is great enough?
@@ -140,10 +141,12 @@ public class Fly extends AsyncMovementCheck implements Listener {
 
             //the player is in air now, since they have a positive Y velocity and they're not on the ground
             if(inAir.contains(p.getUniqueId()))
+                //upwards now
                 stupidMoves.put(p.getUniqueId(), 0);
 
             //handle stupid moves, because the client tends to want to jump a little late if you jump off the edge of a block
             if(stupidMoves.getOrDefault(p.getUniqueId(), 0) >= STUPID_MOVES || (deltaY > 0 && AdjacentBlocks.onGroundReally(event.getFrom(), -1, true)))
+                //falling now
                 inAir.add(p.getUniqueId());
             stupidMoves.put(p.getUniqueId(), stupidMoves.getOrDefault(p.getUniqueId(), 0) + 1);
         }

@@ -13,6 +13,8 @@ import java.util.UUID;
 
 public class WrongBlock extends AsyncBlockDigCheck {
 
+    //PASSED (9/11/18)
+
     private Map<UUID, Block> blockinteracted;
 
     public WrongBlock() {

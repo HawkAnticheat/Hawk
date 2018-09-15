@@ -82,7 +82,6 @@ public class PacketCore {
         if(event == null)
             return true;
 
-
         if(event instanceof PositionEvent) {
             PositionEvent posEvent = (PositionEvent)event;
             posEvent.setTeleported(false);

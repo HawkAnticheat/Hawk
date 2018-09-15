@@ -12,20 +12,26 @@ import org.bukkit.entity.Player;
 
 public class FightReachApprox extends AsyncEntityInteractionCheck {
 
+    //TODO: Improve reach approximation. Seriously. This is trash.
+
     private final double MAX_REACH;
     private final int PING_LIMIT;
     private final boolean LAG_COMPENSATION;
+    private final boolean CHECK_OTHER_ENTITIES;
 
     public FightReachApprox() {
         super("fightreachapprox", "&7%player% failed fight reach (approximate). Reach: %distance%m VL: %vl%");
         MAX_REACH = Math.pow(ConfigHelper.getOrSetDefault(4, hawk.getConfig(), "checks.fightreachapprox.maxReach"), 2);
         PING_LIMIT = ConfigHelper.getOrSetDefault(-1, hawk.getConfig(), "checks.fightreachapprox.pingLimit");
         LAG_COMPENSATION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fightreachapprox.lagCompensation");
+        CHECK_OTHER_ENTITIES = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fightreachapprox.checkOtherEntities");
     }
 
     @Override
     protected void check(InteractEntityEvent e) {
         Entity victimEntity = e.getEntity();
+        if(!(victimEntity instanceof Player) && !CHECK_OTHER_ENTITIES)
+            return;
         int ping = ServerUtils.getPing(e.getPlayer());
         if(PING_LIMIT > -1 && ping > PING_LIMIT)
             return;

@@ -63,7 +63,7 @@ public class BlockNMS8 extends BlockNMS {
                 b.getType() == org.bukkit.Material.CARPET || matData instanceof Ladder ||
                 b.getType() == Material.REDSTONE_COMPARATOR || b.getType() == Material.REDSTONE_COMPARATOR_ON ||
                 b.getType() == Material.REDSTONE_COMPARATOR_OFF || b.getType() == Material.SOIL ||
-                b.getType() == Material.WATER_LILY) {
+                b.getType() == Material.WATER_LILY || b.getType() == Material.SNOW) {
             reallySolid = true;
         }
         return reallySolid;

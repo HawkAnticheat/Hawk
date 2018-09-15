@@ -3,78 +3,34 @@ package me.islandscout.hawk.checks.interaction;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncBlockPlacementCheck;
 import me.islandscout.hawk.events.BlockPlaceEvent;
-import me.islandscout.hawk.utils.Placeholder;
+import me.islandscout.hawk.utils.Debug;
 import org.bukkit.entity.Player;
 
 import java.util.*;
 
 public class BlockInteractSpeed extends AsyncBlockPlacementCheck {
 
-    private Map<UUID, Long> prevTime;
-    private Map<UUID, List<Long>> deltaTimes;
-    private Map<UUID, Float> hardFails;
-    private final int AVG_THRESHOLD;
-    private final int SAMPLE_SIZE;
-    private final double HARD_THRESHOLD;
+    private Map<UUID, Long> lastPlaceTick;
 
     public BlockInteractSpeed() {
         super("blockplacespeed", "&7%player% failed block place speed. VL: %vl%");
-        prevTime = new HashMap<>();
-        deltaTimes = new HashMap<>();
-        hardFails = new HashMap<>();
-        AVG_THRESHOLD = 15;
-        SAMPLE_SIZE = 10;
-        HARD_THRESHOLD = 1D/20*1000; //20
+        lastPlaceTick = new HashMap<>();
     }
 
     @Override
     protected void check(BlockPlaceEvent e) {
-        boolean passed = true;
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
-        long deltaTime = System.currentTimeMillis() - prevTime.getOrDefault(p.getUniqueId(), 0L);
-
-        if(deltaTime < HARD_THRESHOLD) {
-            double bps = 1/deltaTime*1000;
-            hardFails.put(p.getUniqueId(), hardFails.getOrDefault(p.getUniqueId(), 0F) + 1);
-            if(hardFails.get(p.getUniqueId()) > 5) {
-                punishAndTryCancelAndBlockDestroy(pp, e, new Placeholder("rate", bps + "bps"));
-                passed = false;
-            }
-        }
-
-        List<Long> deltaTimess = deltaTimes.getOrDefault(p.getUniqueId(), new ArrayList<>());
-        deltaTimess.add(deltaTime);
-
-        if(deltaTimess.size() >= SAMPLE_SIZE) {
-            long avg = 0;
-            for(Long loopDeltaTime : deltaTimess) {
-                avg += loopDeltaTime;
-            }
-            avg /= SAMPLE_SIZE;
-            deltaTimes.remove(p.getUniqueId());
-            double bps = avg == 0 ? Double.NaN : 1 / (avg / 1000D);
-            if(bps > AVG_THRESHOLD) {
-                punish(pp, new Placeholder("rate", bps + "bps"));
-                passed = false;
-            }
-        }
-        else {
-            deltaTimes.put(p.getUniqueId(), deltaTimess);
-        }
-
-        if(passed) {
+        if(pp.getCurrentTick() == lastPlaceTick.getOrDefault(p.getUniqueId(), 0L))
+            punishAndTryCancelAndBlockDestroy(pp, e);
+        else
             reward(pp);
-            hardFails.put(p.getUniqueId(), hardFails.getOrDefault(p.getUniqueId(), 0F) * 0.95F);
-        }
 
-        prevTime.put(p.getUniqueId(), System.currentTimeMillis());
+        lastPlaceTick.put(p.getUniqueId(), pp.getCurrentTick());
     }
 
     @Override
     public void removeData(Player p) {
-        prevTime.remove(p.getUniqueId());
-        deltaTimes.remove(p.getUniqueId());
-        hardFails.remove(p.getUniqueId());
+        lastPlaceTick.remove(p.getUniqueId());
     }
 }

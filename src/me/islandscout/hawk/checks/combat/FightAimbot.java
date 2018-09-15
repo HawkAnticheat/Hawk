@@ -19,6 +19,8 @@ import java.util.UUID;
  */
 public class FightAimbot extends AsyncCustomCheck implements Cancelless {
 
+    //PASSED (9/11/18)
+
     private Map<UUID, Double> lastLookDistanceSquared;
     private Map<UUID, Long> lastAttackTick;
 

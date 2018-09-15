@@ -42,6 +42,8 @@ import org.bukkit.util.Vector;
  */
 public class FightHitbox extends AsyncEntityInteractionCheck {
 
+    //TODO: TEST
+
     private final double MAX_REACH;
     private final int PING_LIMIT;
     private final boolean CHECK_OTHER_ENTITIES;
@@ -49,16 +51,18 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
     private final boolean DEBUG_HITBOX;
     private final boolean DEBUG_RAY;
     private final boolean CHECK_OCCLUSION;
+    private final boolean CHECK_BOX_INTERSECTION;
 
     public FightHitbox() {
         super("fighthitbox", true, 0, 10000, 0.95, 1000,"&7%player% failed combat hitbox. %type% VL: %vl%", null);
+        CHECK_BOX_INTERSECTION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fighthitbox.checkBoxIntersection");
+        CHECK_OCCLUSION = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.checkOccluding");
         MAX_REACH = ConfigHelper.getOrSetDefault(3.1, hawk.getConfig(), "checks.fighthitbox.maxReach");
+        CHECK_OTHER_ENTITIES = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.checkOtherEntities");
         LAG_COMPENSATION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fighthitbox.lagCompensation");
         PING_LIMIT = ConfigHelper.getOrSetDefault(-1, hawk.getConfig(), "checks.fighthitbox.pingLimit");
         DEBUG_HITBOX = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.debug.hitbox");
         DEBUG_RAY = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.debug.ray");
-        CHECK_OCCLUSION = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.checkOccluding");
-        CHECK_OTHER_ENTITIES = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.checkOtherEntities");
     }
 
     protected void check(InteractEntityEvent e) {
@@ -130,11 +134,7 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
             attackerRay.highlight(hawk, attacker.getWorld(), maxReach, 0.1);
         }
 
-        if(intersectVec3d == null) {
-            punish(att, true, e, new Placeholder("type", "Did not hit hitbox."));
-            return;
-        }
-        else {
+        if(intersectVec3d != null) {
             Location intersect = new Location(attacker.getWorld(), intersectVec3d.getX(), intersectVec3d.getY(), intersectVec3d.getZ());
             double interDistance = intersect.distance(attackerEyeLocation);
             if(interDistance > maxReach) {
@@ -162,6 +162,10 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
 
             }
         }
-        reward(att); //reward player
+        else if(CHECK_BOX_INTERSECTION) {
+            punish(att, true, e, new Placeholder("type", "Did not hit hitbox."));
+        }
+        else
+            reward(att); //reward player
     }
 }

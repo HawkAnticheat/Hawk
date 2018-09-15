@@ -22,8 +22,6 @@ import java.util.UUID;
  */
 public class LiquidExit extends AsyncMovementCheck implements Listener {
 
-    //TODO: false flag in lava
-
     private Map<UUID, DoubleTime> kbTime;
 
     public LiquidExit() {

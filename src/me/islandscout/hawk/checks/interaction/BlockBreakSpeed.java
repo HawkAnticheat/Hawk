@@ -4,6 +4,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncBlockDigCheck;
 import me.islandscout.hawk.events.DigAction;
 import me.islandscout.hawk.events.BlockDigEvent;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.Placeholder;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
 import org.bukkit.GameMode;
@@ -32,24 +33,20 @@ public class BlockBreakSpeed extends AsyncBlockDigCheck {
 
     //TODO: Shears and wool
 
-    private Map<UUID, Long> interactTime;
-    private Map<Material, Integer> materialTime;
-    private final int DURATION_OFFSET;
-    private final double CREATIVE_RATE;
+    private Map<UUID, Long> interactTick;
+    private final boolean PREVENT_SAME_TICK;
 
     public BlockBreakSpeed() {
         super("blockbreakspeed", "&7%player% failed block break speed. Block: %block%, Time: %time%, VL: %vl%");
-        interactTime = new HashMap<>();
-        materialTime = new HashMap<>();
-        DURATION_OFFSET = 55;
-        CREATIVE_RATE = 1/15D;
+        interactTick = new HashMap<>();
+        PREVENT_SAME_TICK = true;
     }
 
     public void check(BlockDigEvent e) {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
         if(e.getDigAction() == DigAction.START && p.getGameMode() != GameMode.CREATIVE) {
-            interactTime.put(p.getUniqueId(), System.currentTimeMillis());
+            interactTick.put(p.getUniqueId(), pp.getCurrentTick());
             return;
         }
         if(e.getDigAction() == DigAction.COMPLETE || p.getGameMode() == GameMode.CREATIVE) {
@@ -75,13 +72,12 @@ public class BlockBreakSpeed extends AsyncBlockDigCheck {
             expectedTime = potionEffect(expectedTime, p);
 
             expectedTime = Math.round(expectedTime * 100000) / 100000D;
-            double actualTime = (System.currentTimeMillis() - interactTime.getOrDefault(p.getUniqueId(), 0L) + DURATION_OFFSET) / 1000D;
+            double actualTime = (pp.getCurrentTick() - interactTick.getOrDefault(p.getUniqueId(), 0L) + 1) * 0.05;
 
             if(p.getGameMode() == GameMode.CREATIVE)
-                expectedTime = CREATIVE_RATE;
+                expectedTime = 0.05;
 
-            //Debug.broadcastMessage("ACTUAL: " + actualTime + ", EXPECTED: " + expectedTime);
-            if(actualTime < expectedTime) {
+            if(actualTime < expectedTime || (PREVENT_SAME_TICK && pp.getCurrentTick() == interactTick.getOrDefault(p.getUniqueId(), 0L))) {
                 punishAndTryCancelAndBlockRespawn(pp, e, new Placeholder("block", b.getType()), new Placeholder("time", actualTime + "s"));
             }
             else {
@@ -89,7 +85,7 @@ public class BlockBreakSpeed extends AsyncBlockDigCheck {
             }
 
             if(p.getGameMode() == GameMode.CREATIVE)
-                interactTime.put(p.getUniqueId(), System.currentTimeMillis());
+                interactTick.put(p.getUniqueId(), pp.getCurrentTick());
         }
     }
 
@@ -113,5 +109,10 @@ public class BlockBreakSpeed extends AsyncBlockDigCheck {
             break;
         }
         return expectedTime;
+    }
+
+    @Override
+    public void removeData(Player p) {
+        interactTick.remove(p.getUniqueId());
     }
 }

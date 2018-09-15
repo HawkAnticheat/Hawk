@@ -14,6 +14,8 @@ import java.util.UUID;
 
 public class FightNoSwing extends AsyncCustomCheck {
 
+    //PASSED (9/11/18)
+
     private Map<UUID, Long> lastClientTickSwung;
 
     public FightNoSwing() {

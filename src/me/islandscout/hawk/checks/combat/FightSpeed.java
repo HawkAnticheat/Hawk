@@ -13,6 +13,8 @@ import java.util.*;
 
 public class FightSpeed extends AsyncEntityInteractionCheck {
 
+    //PASSED (9/11/18)
+
     private Map<UUID, Long> lastClickTime; //in client ticks
     private Map<UUID, List<Long>> deltaTimes;
     private static final double RECORD_SENSITIVITY = 4; //don't log click if it took longer than these ticks

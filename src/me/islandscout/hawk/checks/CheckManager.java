@@ -2,14 +2,9 @@ package me.islandscout.hawk.checks;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.checks.combat.*;
-import me.islandscout.hawk.checks.interaction.BlockBreakHitbox;
-import me.islandscout.hawk.checks.interaction.BlockBreakSpeed;
-import me.islandscout.hawk.checks.interaction.WrongBlock;
+import me.islandscout.hawk.checks.interaction.*;
 import me.islandscout.hawk.checks.movement.*;
-import me.islandscout.hawk.events.BlockDigEvent;
-import me.islandscout.hawk.events.Event;
-import me.islandscout.hawk.events.InteractEntityEvent;
-import me.islandscout.hawk.events.PositionEvent;
+import me.islandscout.hawk.events.*;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -50,18 +45,15 @@ public class CheckManager {
         new LiquidExit();
         new GroundSpoof();
         new FightSpeed();
-        new FightAccuracy();
+        //new FightAccuracy();
         new FightAimbot();
         new FightNoSwing();
         new AntiVelocity();
         new InvalidPitch();
         new FightReachApprox();
         new FightDirectionApprox();
-
-        for(Check check : checkList) {
-            if(check instanceof Listener)
-                Bukkit.getPluginManager().registerEvents((Listener)check, hawk);
-        }
+        new BlockInteractHitbox();
+        new BlockInteractSpeed();
 
         hawk.saveConfigs();
     }
@@ -82,6 +74,9 @@ public class CheckManager {
                     asyncCheck.checkEvent(e);
                 }
                 else if(check instanceof AsyncBlockDigCheck && e instanceof BlockDigEvent) {
+                    asyncCheck.checkEvent(e);
+                }
+                else if(check instanceof AsyncBlockPlacementCheck && e instanceof BlockPlaceEvent) {
                     asyncCheck.checkEvent(e);
                 }
             }

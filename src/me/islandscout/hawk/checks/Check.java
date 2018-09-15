@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 
 import java.util.*;
 
@@ -69,6 +70,8 @@ public abstract class Check {
         path = "flags." + this.name;
         this.flag = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault(flag, msgs, path));
         this.lastFlagTimes = new HashMap<>();
+        if(this instanceof Listener)
+            Bukkit.getPluginManager().registerEvents((Listener)this, hawk);
         hawk.getCheckManager().getCheckList().add(this);
     }
 
@@ -104,7 +107,7 @@ public abstract class Check {
         return flagThreshold;
     }
 
-    public String getPermission() {
+    public String getBypassPermission() {
         return permission;
     }
 

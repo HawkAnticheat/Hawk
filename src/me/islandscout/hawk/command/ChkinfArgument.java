@@ -5,6 +5,7 @@ import me.islandscout.hawk.checks.Check;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class ChkinfArgument extends Argument {
 
@@ -23,6 +24,10 @@ public class ChkinfArgument extends Argument {
                 sender.sendMessage(ChatColor.GOLD + "Category: " + check.getClass().getSuperclass().getSimpleName());
                 sender.sendMessage(ChatColor.GOLD + "Cancel: " + (check instanceof Cancelless ? ChatColor.GRAY + "N/A" : ((check.canCancel() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED"))));
                 sender.sendMessage(ChatColor.GOLD + "Flag: " + ((check.canFlag() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED")));
+
+                boolean bypass = sender.hasPermission(check.getBypassPermission()) || ((sender instanceof Player) && hawk.getCheckManager().getExemptList().containsPlayer(((Player) sender).getUniqueId()));
+
+                sender.sendMessage(ChatColor.GOLD + "You " + (!bypass ? "do not " : "") + "have permission to bypass this check.");
                 return true;
             }
         }
