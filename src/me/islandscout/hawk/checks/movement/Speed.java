@@ -327,9 +327,20 @@ public class Speed extends AsyncMovementCheck implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onVelocity(PlayerVelocityEvent e) {
         UUID uuid = e.getPlayer().getUniqueId();
-        Vector horizVelocity = new Vector(e.getVelocity().getX(), 0, e.getVelocity().getZ());
+        Vector vector = null;
+        if(Hawk.getServerVersion() == 7) {
+            vector = e.getVelocity();
+        }
+        else if(Hawk.getServerVersion() == 8) {
+            //lmao Bukkit is broken. event velocity is broken when attacked by a player (NMS.EntityHuman.java, attack(Entity))
+            vector = e.getPlayer().getVelocity();
+        }
+        if(vector == null)
+            return;
+
+        Vector horizVelocity = new Vector(vector.getX(), 0, vector.getZ());
         //Have to add a tiny bit to allow the client to do its BS.
-        horizVelocity.add(new Vector(e.getVelocity().getX() * 0.11, 0, e.getVelocity().getZ() * 0.11));
+        horizVelocity.add(new Vector(vector.getX() * 0.11, 0, vector.getZ() * 0.11));
         velocities.put(uuid, new DoubleTime(horizVelocity.lengthSquared(), System.currentTimeMillis()));
     }
 

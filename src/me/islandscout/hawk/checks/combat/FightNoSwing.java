@@ -48,4 +48,9 @@ public class FightNoSwing extends AsyncCustomCheck {
             reward(pp);
         }
     }
+
+    @Override
+    public void removeData(Player p) {
+        lastClientTickSwung.remove(p.getUniqueId());
+    }
 }

@@ -1,10 +1,11 @@
 package me.islandscout.hawk.listener.packets;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPipeline;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
 import me.islandscout.hawk.modules.PacketCore;
+import me.islandscout.hawk.utils.Debug;
+import net.minecraft.server.v1_8_R3.PacketDataSerializer;
+import net.minecraft.server.v1_8_R3.PacketPlayOutEntityVelocity;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -31,6 +32,12 @@ public class PacketListener8 {
                 }
 
                 super.channelRead(context, packet);
+            }
+
+            @Override
+            public void write(ChannelHandlerContext context, Object packet, ChannelPromise promise) throws Exception {
+
+                super.write(context, packet, promise);
             }
         };
         ChannelPipeline pipeline;

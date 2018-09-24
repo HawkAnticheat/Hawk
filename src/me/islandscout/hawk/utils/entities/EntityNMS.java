@@ -8,6 +8,7 @@ public abstract class EntityNMS {
 
     protected Entity entity;
     protected AABB aabb;
+    protected int id;
 
     EntityNMS(Entity entity) {
         this.entity = entity;

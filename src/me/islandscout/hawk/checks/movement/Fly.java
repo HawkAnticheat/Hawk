@@ -1,15 +1,14 @@
 package me.islandscout.hawk.checks.movement;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.*;
 import me.islandscout.hawk.utils.entities.EntityNMS;
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -131,7 +130,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
 
                 //scold the child
                 punish(pp);
-                tryRubberband(event, legitLoc.getOrDefault(p.getUniqueId(), event.getFrom()));
+                tryRubberband(event, legitLoc.getOrDefault(p.getUniqueId(), p.getLocation()));
                 lastDeltaY.put(p.getUniqueId(), canCancel()? 0:deltaY);
                 failedSoDontUpdateRubberband.add(p.getUniqueId());
                 return;
@@ -156,7 +155,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
         }
 
         if(!failedSoDontUpdateRubberband.contains(p.getUniqueId()) || event.isOnGroundReally()) {
-            legitLoc.put(p.getUniqueId(), event.getFrom());
+            legitLoc.put(p.getUniqueId(), p.getLocation());
             failedSoDontUpdateRubberband.remove(p.getUniqueId());
         }
 
@@ -204,7 +203,18 @@ public class Fly extends AsyncMovementCheck implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onVelocity(PlayerVelocityEvent e) {
         UUID uuid = e.getPlayer().getUniqueId();
-        velocities.put(uuid, new DoubleTime(e.getVelocity().getY(), System.currentTimeMillis()));
+        Vector vector = null;
+        if(Hawk.getServerVersion() == 7) {
+            vector = e.getVelocity();
+        }
+        else if(Hawk.getServerVersion() == 8) {
+            //lmao Bukkit is broken. event velocity is broken when attacked by a player (NMS.EntityHuman.java, attack(Entity))
+            vector = e.getPlayer().getVelocity();
+        }
+        if(vector == null)
+            return;
+
+        velocities.put(uuid, new DoubleTime(vector.getY(), System.currentTimeMillis()));
     }
 
     private class DoubleTime {

@@ -131,5 +131,6 @@ public class AntiVelocity extends AsyncMovementCheck implements Listener, Cancel
     @Override
     public void removeData(Player p) {
         initVelocities.remove(p.getUniqueId());
+        velocityTracker.remove(p.getUniqueId());
     }
 }

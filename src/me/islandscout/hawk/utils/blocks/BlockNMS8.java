@@ -1,6 +1,7 @@
 package me.islandscout.hawk.utils.blocks;
 
 import me.islandscout.hawk.utils.AABB;
+import me.islandscout.hawk.utils.Debug;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.*;
 import org.bukkit.Material;
@@ -75,6 +76,11 @@ public class BlockNMS8 extends BlockNMS {
         if(b instanceof BlockCarpet) {
             AABB[] aabbarr = new AABB[1];
             aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0.0625, 1)));
+            return aabbarr;
+        }
+        if(b instanceof BlockSnow && data.get(BlockSnow.LAYERS) == 1) {
+            AABB[] aabbarr = new AABB[1];
+            aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0, 1)));
             return aabbarr;
         }
 

@@ -33,6 +33,7 @@ public class HawkCommand implements CommandExecutor {
         arguments.add(new ChktoggleArgument());
         arguments.add(new MsgArgument());
         arguments.add(new BroadcastArgument());
+        arguments.add(new DevArgument());
 
         Argument.setHawkReference(hawk);
     }
@@ -99,6 +100,8 @@ public class HawkCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.GOLD + "/hawk " + argument.getUsage() + ": " + ChatColor.GRAY + argument.getDescription());
         }
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m----------------------&r &8[ &e" + pageNumber + ":" + maxPage + " &8] &7&m----------------------"));
+        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GOLD + "WARNING: " + ChatColor.RESET + "This product is still not yet ready for release. You will most likely encounter issues.");
+        sender.sendMessage("Please report any issues you find on the Discord server @ https://discord.gg/rQGb5DV");
         sender.sendMessage(ChatColor.GRAY + "Build " + Hawk.BUILD_NAME);
     }
 }

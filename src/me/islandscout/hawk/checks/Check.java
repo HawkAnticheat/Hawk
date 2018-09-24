@@ -7,6 +7,7 @@ import me.islandscout.hawk.modules.CommandExecutor;
 import me.islandscout.hawk.utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -165,12 +166,14 @@ public abstract class Check {
             if(!commandPrompt.equals("")) msg.setClickCommand(command);
             for(HawkPlayer pp : hawk.getHawkPlayers()) {
                 if(pp.canReceiveFlags())
+                    pp.getPlayer().playSound(pp.getLocation(), Sound.NOTE_PIANO, 1, 1);
                     msg.sendMessage(pp.getPlayer());
             }
         }
         else {
             for(HawkPlayer pp : hawk.getHawkPlayers()) {
                 if(pp.canReceiveFlags())
+                    pp.getPlayer().playSound(pp.getLocation(), Sound.NOTE_PIANO, 1, 1);
                     pp.getPlayer().sendMessage(Hawk.FLAG_PREFIX + " " + ChatColor.RESET + message);
             }
         }

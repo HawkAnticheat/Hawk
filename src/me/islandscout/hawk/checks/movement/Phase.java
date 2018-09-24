@@ -81,14 +81,14 @@ public class Phase extends AsyncMovementCheck {
                     if(bukkitBlock == null)
                         continue;
 
-                    if(!bukkitBlock.getType().isSolid())
+                    BlockNMS block = BlockNMS.getBlockNMS(bukkitBlock);
+                    if(!block.isSolid())
                         continue;
 
                     if(bukkitBlock.getState().getData() instanceof Openable && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD && distanceSquared <= VERTICAL_DISTANCE_THRESHOLD) {
                         continue;
                     }
 
-                    BlockNMS block = BlockNMS.getBlockNMS(bukkitBlock);
                     for(AABB test : block.getCollisionBoxes()) {
                         //check if "test" box is even in "bigBox"
                         if (!test.isColliding(bigBox))

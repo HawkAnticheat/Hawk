@@ -17,6 +17,7 @@ public class PositionEvent extends Event {
 
     private boolean onGround;
     private boolean onGroundReally;
+    //TODO: Have an onGroundReally boolean for the getFrom position. Should make things faster since checks don't have to compute it all the time.
     private boolean teleported;
     private Location cancelLocation;
 

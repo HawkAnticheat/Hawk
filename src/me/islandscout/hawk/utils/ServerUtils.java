@@ -46,9 +46,9 @@ public final class ServerUtils {
 
     public static double getStress() {
         if (Hawk.getServerVersion() == 8)
-            return net.minecraft.server.v1_8_R3.MathHelper.a(net.minecraft.server.v1_8_R3.MinecraftServer.getServer().h) * 1.0E-6D;
+            return net.minecraft.server.v1_8_R3.MathHelper.a(net.minecraft.server.v1_8_R3.MinecraftServer.getServer().h) * 2.0E-8D;
         if (Hawk.getServerVersion() == 7)
-            return net.minecraft.server.v1_7_R4.MathHelper.a(net.minecraft.server.v1_7_R4.MinecraftServer.getServer().g) * 1.0E-6D;
+            return net.minecraft.server.v1_7_R4.MathHelper.a(net.minecraft.server.v1_7_R4.MinecraftServer.getServer().g) * 2.0E-8D;
         return -1;
     }
 
