@@ -6,7 +6,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,7 +99,7 @@ public class HawkCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.GOLD + "/hawk " + argument.getUsage() + ": " + ChatColor.GRAY + argument.getDescription());
         }
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m----------------------&r &8[ &e" + pageNumber + ":" + maxPage + " &8] &7&m----------------------"));
-        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GOLD + "WARNING: " + ChatColor.RESET + "This product is still not yet ready for release. You will most likely encounter issues.");
+        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GOLD + "WARNING: " + ChatColor.RESET + "This product is still not ready for release. You will most likely encounter issues.");
         sender.sendMessage("Please report any issues you find on the Discord server @ https://discord.gg/rQGb5DV");
         sender.sendMessage(ChatColor.GRAY + "Build " + Hawk.BUILD_NAME);
     }

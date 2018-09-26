@@ -161,7 +161,7 @@ public abstract class Check {
             String offenderName = violation.getPlayer().getName();
             String command = Hawk.FLAG_CLICK_COMMAND.replace("%player%", offenderName);
             String commandPrompt = command.equals("") ? "" : "\n" + ChatColor.GRAY + "Click to run \"/" + command + "\"";
-            JSONMessageSender msg = new JSONMessageSender(Hawk.FLAG_PREFIX + ChatColor.RESET + "" + message);
+            JSONMessageSender msg = new JSONMessageSender(Hawk.FLAG_PREFIX + ChatColor.RESET + " " + message);
             msg.setHoverMsg("Check: " + violation.getCheck() + "\nVL: " + violation.getVl() + "\nPing: " + violation.getPing() + "ms\nTPS: " + MathPlus.round(violation.getTps(), 2) + "\nPlayer: " + offenderName + commandPrompt);
             if(!commandPrompt.equals("")) msg.setClickCommand(command);
             for(HawkPlayer pp : hawk.getHawkPlayers()) {

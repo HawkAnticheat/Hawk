@@ -3,10 +3,8 @@ package me.islandscout.hawk.checks.combat;
 import me.islandscout.hawk.checks.AsyncEntityInteractionCheck;
 import me.islandscout.hawk.events.InteractEntityEvent;
 import me.islandscout.hawk.utils.*;
-import me.islandscout.hawk.utils.entities.EntityNMS;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_7_R4.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 

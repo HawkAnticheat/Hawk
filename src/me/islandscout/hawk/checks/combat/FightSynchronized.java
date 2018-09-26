@@ -6,7 +6,6 @@ import me.islandscout.hawk.checks.Cancelless;
 import me.islandscout.hawk.events.InteractAction;
 import me.islandscout.hawk.events.InteractEntityEvent;
 import me.islandscout.hawk.utils.ConfigHelper;
-import me.islandscout.hawk.utils.Debug;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;

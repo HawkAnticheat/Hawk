@@ -5,11 +5,9 @@ import me.islandscout.hawk.checks.AsyncEntityInteractionCheck;
 import me.islandscout.hawk.events.InteractAction;
 import me.islandscout.hawk.events.InteractEntityEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
-import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.ServerUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 
 public class FightCriticals extends AsyncEntityInteractionCheck {
 

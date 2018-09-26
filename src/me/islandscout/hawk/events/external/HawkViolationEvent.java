@@ -1,8 +1,6 @@
 package me.islandscout.hawk.events.external;
 
 import me.islandscout.hawk.utils.Violation;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 

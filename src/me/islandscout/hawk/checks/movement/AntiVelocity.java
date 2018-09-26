@@ -1,5 +1,6 @@
 package me.islandscout.hawk.checks.movement;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.checks.Cancelless;
@@ -114,7 +115,17 @@ public class AntiVelocity extends AsyncMovementCheck implements Listener, Cancel
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onVelocity(PlayerVelocityEvent e) {
         UUID uuid = e.getPlayer().getUniqueId();
-        initVelocities.put(uuid, new VectorTime(e.getVelocity(), System.currentTimeMillis()));
+        Vector vector = null;
+        if(Hawk.getServerVersion() == 7) {
+            vector = e.getVelocity();
+        }
+        else if(Hawk.getServerVersion() == 8) {
+            //lmao Bukkit is broken. event velocity is broken when attacked by a player (NMS.EntityHuman.java, attack(Entity))
+            vector = e.getPlayer().getVelocity();
+        }
+        if(vector == null)
+            return;
+        initVelocities.put(uuid, new VectorTime(vector, System.currentTimeMillis()));
     }
 
     private class VectorTime {

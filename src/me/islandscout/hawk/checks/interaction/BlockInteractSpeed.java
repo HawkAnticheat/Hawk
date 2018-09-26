@@ -3,7 +3,6 @@ package me.islandscout.hawk.checks.interaction;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncBlockPlacementCheck;
 import me.islandscout.hawk.events.BlockPlaceEvent;
-import me.islandscout.hawk.utils.Debug;
 import org.bukkit.entity.Player;
 
 import java.util.*;

@@ -5,9 +5,7 @@ import me.islandscout.hawk.checks.combat.*;
 import me.islandscout.hawk.checks.interaction.*;
 import me.islandscout.hawk.checks.movement.*;
 import me.islandscout.hawk.events.*;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +52,7 @@ public class CheckManager {
         new FightDirectionApprox();
         new BlockInteractHitbox();
         new BlockInteractSpeed();
+        //new SpeedRewrite();
 
         hawk.saveConfigs();
     }

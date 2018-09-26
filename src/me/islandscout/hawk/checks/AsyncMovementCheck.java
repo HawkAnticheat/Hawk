@@ -4,7 +4,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.Placeholder;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
 import java.util.List;
 

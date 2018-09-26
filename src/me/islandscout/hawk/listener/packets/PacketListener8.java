@@ -1,11 +1,7 @@
 package me.islandscout.hawk.listener.packets;
 
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import me.islandscout.hawk.modules.PacketCore;
-import me.islandscout.hawk.utils.Debug;
-import net.minecraft.server.v1_8_R3.PacketDataSerializer;
-import net.minecraft.server.v1_8_R3.PacketPlayOutEntityVelocity;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;

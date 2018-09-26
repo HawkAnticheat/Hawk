@@ -8,7 +8,6 @@ import me.islandscout.hawk.utils.ServerUtils;
 import me.islandscout.hawk.utils.blocks.BlockNMS7;
 import me.islandscout.hawk.utils.blocks.BlockNMS8;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 
 import java.util.List;
 

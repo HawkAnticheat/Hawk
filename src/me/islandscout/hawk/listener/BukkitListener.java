@@ -2,9 +2,8 @@ package me.islandscout.hawk.listener;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.PhantomBlock;
-import net.minecraft.server.v1_8_R3.World;
-import net.minecraft.server.v1_8_R3.WorldServer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -40,12 +39,12 @@ public class BukkitListener implements Listener {
         hawk.getCheckManager().removeData(e.getPlayer());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onTeleport(PlayerTeleportEvent e) {
-        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
-        if(e.isCancelled()) {
+        if(!e.getTo().getWorld().equals(e.getFrom().getWorld())) {
             return;
         }
+        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         pp.setTeleporting(true);
         pp.setTeleportLoc(e.getTo());
         pp.setLocation(e.getTo());
@@ -53,18 +52,14 @@ public class BukkitListener implements Listener {
         hawk.getLagCompensator().processPosition(e.getTo(), e.getPlayer());
     }
 
-    //LOL! I HATE YOU SO MUCH, BUKKIT! GIVE ME THE CORRECT GETTO LOCATION!
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void portalEvent(PlayerPortalEvent e) {
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void worldChangeEvent(PlayerChangedWorldEvent e) {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
-        if(e.isCancelled()) {
-            return;
-        }
         pp.setTeleporting(true);
-        pp.setTeleportLoc(e.getTo());
-        pp.setLocation(e.getTo());
+        pp.setTeleportLoc(e.getPlayer().getLocation());
+        pp.setLocation(e.getPlayer().getLocation());
         pp.setLastTeleportTime(System.currentTimeMillis());
-        hawk.getLagCompensator().processPosition(e.getTo(), e.getPlayer());
+        hawk.getLagCompensator().processPosition(e.getPlayer().getLocation(), e.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

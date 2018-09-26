@@ -3,10 +3,7 @@ package me.islandscout.hawk.utils;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.Check;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
 import org.bukkit.entity.Player;
-
-import java.util.UUID;
 
 public class Violation {
 

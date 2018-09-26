@@ -1,7 +1,6 @@
 package me.islandscout.hawk.utils.blocks;
 
 import me.islandscout.hawk.utils.AABB;
-import me.islandscout.hawk.utils.Debug;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.*;
 import org.bukkit.Material;

@@ -1,12 +1,10 @@
 package me.islandscout.hawk.listener.packets;
 
 import me.islandscout.hawk.modules.PacketCore;
-import me.islandscout.hawk.utils.Debug;
 import net.minecraft.util.io.netty.channel.ChannelDuplexHandler;
 import net.minecraft.util.io.netty.channel.ChannelHandlerContext;
 import net.minecraft.util.io.netty.channel.ChannelPromise;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;

@@ -6,7 +6,6 @@ import me.islandscout.hawk.events.BlockDigEvent;
 import me.islandscout.hawk.utils.Placeholder;
 import me.islandscout.hawk.utils.blocks.BlockNMS7;
 import me.islandscout.hawk.utils.blocks.BlockNMS8;
-import org.bukkit.entity.Player;
 
 import java.util.List;
 

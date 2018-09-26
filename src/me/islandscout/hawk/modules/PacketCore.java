@@ -9,20 +9,11 @@ import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.PhantomBlock;
 import me.islandscout.hawk.utils.packets.PacketConverter7;
 import me.islandscout.hawk.utils.packets.PacketConverter8;
-import net.minecraft.server.v1_7_R4.PacketDataSerializer;
-import net.minecraft.server.v1_7_R4.PacketPlayInFlying;
-import net.minecraft.server.v1_7_R4.PacketPlayInPositionLook;
-import net.minecraft.util.io.netty.buffer.Unpooled;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
-
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This class is mainly used to process packets that are intercepted from the Netty channels.

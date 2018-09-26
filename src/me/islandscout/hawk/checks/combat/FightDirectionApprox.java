@@ -3,7 +3,6 @@ package me.islandscout.hawk.checks.combat;
 import me.islandscout.hawk.checks.AsyncEntityInteractionCheck;
 import me.islandscout.hawk.events.InteractEntityEvent;
 import me.islandscout.hawk.utils.ConfigHelper;
-import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.ServerUtils;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;

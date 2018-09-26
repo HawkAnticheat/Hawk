@@ -5,9 +5,7 @@ import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
 import me.islandscout.hawk.utils.ConfigHelper;
-import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.packets.WrappedPacket;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 
 public class GroundSpoof extends AsyncMovementCheck {
