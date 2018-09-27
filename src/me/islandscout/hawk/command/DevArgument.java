@@ -2,7 +2,6 @@ package me.islandscout.hawk.command;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.utils.ServerUtils;
-import net.minecraft.server.v1_8_R3.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -20,7 +19,11 @@ public class DevArgument extends Argument {
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
         sender.sendMessage("Server ver.: " + Bukkit.getVersion());
         sender.sendMessage("Bukkit ver.: " + Bukkit.getBukkitVersion());
-        String nmsPackage = MinecraftServer.class.getPackage().getName();
+        String nmsPackage = "";
+        if (Hawk.getServerVersion() == 8)
+            nmsPackage = net.minecraft.server.v1_8_R3.MinecraftServer.class.getPackage().getName();
+        else if (Hawk.getServerVersion() == 7)
+            nmsPackage = net.minecraft.server.v1_7_R4.MinecraftServer.class.getPackage().getName();
         sender.sendMessage("NMS ver.: " + nmsPackage.substring(nmsPackage.lastIndexOf(".") + 1));
         sender.sendMessage("Hawk ver.: " + Hawk.BUILD_NAME);
         if(sender instanceof Player) {
