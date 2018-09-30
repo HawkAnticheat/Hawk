@@ -42,7 +42,7 @@ import org.bukkit.util.Vector;
  */
 public class FightHitbox extends AsyncEntityInteractionCheck {
 
-    //TODO: TEST
+    //PASSED: (9/30/18)
 
     private final double MAX_REACH;
     private final int PING_LIMIT;
@@ -164,8 +164,9 @@ public class FightHitbox extends AsyncEntityInteractionCheck {
         }
         else if(CHECK_BOX_INTERSECTION) {
             punish(att, true, e, new Placeholder("type", "Did not hit hitbox."));
+            return;
         }
-        else
-            reward(att); //reward player
+
+        reward(att); //reward player
     }
 }

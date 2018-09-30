@@ -5,8 +5,10 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.AsyncMovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.ServerUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -35,7 +37,6 @@ public class Speed extends AsyncMovementCheck implements Listener {
     private static final int WATER_UNDER_GRACE = 16;
     private static final double SPEED_THRES_SOFT = Math.pow(0.36055513, 2);
     private static final double SPEED_THRES_HARD = Math.pow(0.632455532, 2);
-    private static final double DAMAGE_SPEED = 1.0; //you must square this value to use it
     private static final int FAIL_BUFFER_1 = 4;
     private static final int FAIL_BUFFER_2 = 9;
     private static final boolean FAIL_BUFFER_RESET = true;
@@ -55,7 +56,7 @@ public class Speed extends AsyncMovementCheck implements Listener {
     private Map<UUID, Integer> watergrace;
     private Map<UUID, Location> lastLegitLoc;
     private Map<UUID, Long> penalizeTimestamp;
-    private Map<UUID, DoubleTime> velocities; //launch velocities
+    private Map<UUID, List<DoubleTime>> velocities; //launch velocities
     private Map<UUID, Double> launchVelocity;
 
     public Speed() {
@@ -228,11 +229,24 @@ public class Speed extends AsyncMovementCheck implements Listener {
                 speedThresHard *= player.getWalkSpeed() * 15;
             }
 
-            //handle any pending launch events
-            if(velocities.containsKey(player.getUniqueId()) && System.currentTimeMillis() - velocities.get(player.getUniqueId()).time <= ServerUtils.getPing(player) + 200 &&
-                    Math.abs(velocities.get(player.getUniqueId()).value - finalspeed) < 0.3) { //I hate this absurdly high epsilon value. This is the fault of Minecraft; not me.
-                launchVelocity.put(player.getUniqueId(), velocities.get(player.getUniqueId()).value);
-                velocities.remove(player.getUniqueId());
+            //handle any pending knockbacks
+            if(velocities.containsKey(player.getUniqueId()) && velocities.get(player.getUniqueId()).size() > 0) {
+                List<DoubleTime> kbs = velocities.get(player.getUniqueId());
+                //pending knockbacks must be in order; get the first entry in the list.
+                //if the first entry doesn't work (probably because they were fired on the same tick),
+                //then work down the list until we find something
+                int kbIndex;
+                for(kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
+                    DoubleTime kb = kbs.get(kbIndex);
+                    if(System.currentTimeMillis() - kb.time <= ServerUtils.getPing(player) + 200) {
+                        if(Math.abs(kb.value - finalspeed) < 0.01) {
+                            launchVelocity.put(player.getUniqueId(), kb.value);
+                            kbs = kbs.subList(kbIndex + 1, kbs.size());
+                            break;
+                        }
+                    }
+                }
+                velocities.put(player.getUniqueId(), kbs);
             }
             if(launchVelocity.getOrDefault(player.getUniqueId(), 0D) > 0) {
                 speedThresSoft = Math.max(speedThresSoft, launchVelocity.getOrDefault(player.getUniqueId(), 0D));
@@ -336,9 +350,9 @@ public class Speed extends AsyncMovementCheck implements Listener {
             return;
 
         Vector horizVelocity = new Vector(vector.getX(), 0, vector.getZ());
-        //Have to add a tiny bit to allow the client to do its BS.
-        horizVelocity.add(new Vector(vector.getX() * 0.11, 0, vector.getZ() * 0.11));
-        velocities.put(uuid, new DoubleTime(horizVelocity.lengthSquared(), System.currentTimeMillis()));
+        List<DoubleTime> kbs = velocities.getOrDefault(uuid, new ArrayList<>());
+        kbs.add(new DoubleTime(horizVelocity.lengthSquared(), System.currentTimeMillis()));
+        velocities.put(uuid, kbs);
     }
 
     private class DoubleTime {

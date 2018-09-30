@@ -51,7 +51,7 @@ public class Fly extends AsyncMovementCheck implements Listener {
     private Set<UUID> inAir;
     private Map<UUID, Integer> stupidMoves;
     private Map<UUID, List<Location>> locsOnPBlocks;
-    private Map<UUID, DoubleTime> velocities; //launch velocities
+    private Map<UUID, List<DoubleTime>> velocities; //launch velocities
     private Set<UUID> failedSoDontUpdateRubberband; //Update rubberband loc until someone fails. In this case, do not update until they touch the ground.
     private static final int STUPID_MOVES = 1; //Apparently you can jump in midair right as you fall off the edge of a block. You need to time it right.
 
@@ -79,11 +79,24 @@ public class Fly extends AsyncMovementCheck implements Listener {
             if(!inAir.contains(p.getUniqueId()) && deltaY > 0)
                 lastDeltaY.put(p.getUniqueId(), 0.42 + getJumpBoostLvl(p) * 0.1);
 
-            //handle any pending launch events
-            if(velocities.containsKey(p.getUniqueId()) && System.currentTimeMillis() - velocities.get(p.getUniqueId()).time <= ServerUtils.getPing(p) + 200 &&
-                    Math.abs(velocities.get(p.getUniqueId()).value - deltaY) < 0.01) {
-                lastDeltaY.put(p.getUniqueId(), velocities.get(p.getUniqueId()).value);
-                velocities.remove(p.getUniqueId());
+            //handle any pending knockbacks
+            if(velocities.containsKey(p.getUniqueId()) && velocities.get(p.getUniqueId()).size() > 0) {
+                List<DoubleTime> kbs = velocities.get(p.getUniqueId());
+                //pending knockbacks must be in order; get the first entry in the list.
+                //if the first entry doesn't work (probably because they were fired on the same tick),
+                //then work down the list until we find something
+                int kbIndex;
+                for(kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
+                    DoubleTime kb = kbs.get(kbIndex);
+                    if(System.currentTimeMillis() - kb.time <= ServerUtils.getPing(p) + 200) {
+                        if(Math.abs(kb.value - deltaY) < 0.01) {
+                            lastDeltaY.put(p.getUniqueId(), kb.value);
+                            kbs = kbs.subList(kbIndex + 1, kbs.size());
+                            break;
+                        }
+                    }
+                }
+                velocities.put(p.getUniqueId(), kbs);
             }
 
             double expectedDeltaY = lastDeltaY.getOrDefault(p.getUniqueId(), 0D);
@@ -213,7 +226,9 @@ public class Fly extends AsyncMovementCheck implements Listener {
         if(vector == null)
             return;
 
-        velocities.put(uuid, new DoubleTime(vector.getY(), System.currentTimeMillis()));
+        List<DoubleTime> kbs = velocities.getOrDefault(uuid, new ArrayList<>());
+        kbs.add(new DoubleTime(vector.getY(), System.currentTimeMillis()));
+        velocities.put(uuid, kbs);
     }
 
     private class DoubleTime {
