@@ -29,9 +29,9 @@ public class AdjacentBlocks {
         blocks.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         blocks.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         Block prevBlock = null;
-        for(int i = blocks.size() - 1; i >= 0; i--) {
+        for (int i = blocks.size() - 1; i >= 0; i--) {
             Block currBlock = blocks.get(i);
-            if(currBlock == null || currBlock.getType() == Material.AIR || (prevBlock != null && currBlock.equals(prevBlock))) {
+            if (currBlock == null || currBlock.getType() == Material.AIR || (currBlock.equals(prevBlock))) {
                 blocks.remove(i);
             }
             prevBlock = currBlock;
@@ -50,8 +50,8 @@ public class AdjacentBlocks {
         sample.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
-        for(Block b : sample) {
-            if(b != null && b.getType() == material)
+        for (Block b : sample) {
+            if (b != null && b.getType() == material)
                 return true;
         }
         return false;
@@ -79,8 +79,8 @@ public class AdjacentBlocks {
         sample.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
-        for(Block b : sample) {
-            if(b != null && b.getType().name().contains(name))
+        for (Block b : sample) {
+            if (b != null && b.getType().name().contains(name))
                 return true;
         }
         return false;
@@ -97,8 +97,8 @@ public class AdjacentBlocks {
         sample.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
-        for(Block b : sample) {
-            if(b != null && b.getType().isSolid())
+        for (Block b : sample) {
+            if (b != null && b.getType().isSolid())
                 return true;
         }
         return false;
@@ -115,14 +115,15 @@ public class AdjacentBlocks {
         sample.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
-        for(Block b : sample) {
-            if(b != null && b.isLiquid())
+        for (Block b : sample) {
+            if (b != null && b.isLiquid())
                 return true;
         }
         return false;
     }
 
     //TODO: this still needs to get optimized. Replace List with Set
+
     /**
      * Checks if the location is on ground. Good replacement for Entity#isOnGround()
      * since that flag can be spoofed by the client. Hawk's definition of being on
@@ -130,15 +131,16 @@ public class AdjacentBlocks {
      * a solid block's AABB, and there must be at least 1 solid block AABB collision
      * with the AABB defining the thin area below the location (represents below the
      * player's feet).
-     * @param loc Test location
-     * @param yVelocity Y-velocity
+     *
+     * @param loc            Test location
+     * @param yVelocity      Y-velocity
      * @param ignoreInGround return false if location is inside something
      * @return boolean
      */
     //if not sure what your velocity is, just put -1 for velocity
     //if you just want to check for location, just put -1 for velocity
     public static boolean onGroundReally(Location loc, double yVelocity, boolean ignoreInGround) {
-        if(yVelocity > 0.5625) //allows stepping up short blocks, but not full blocks
+        if (yVelocity > 0.5625) //allows stepping up short blocks, but not full blocks
             return false;
         double feetDepth = 0.02; //Don't set this too low. The client doesn't like to send moves unless they are significant enough.
         //If too low, this might set off fly false flags when jumping on edge of blocks.
@@ -147,30 +149,30 @@ public class AdjacentBlocks {
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check));
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, -1, 0)));
         Block prevBlock = null;
-        for(int i = blocks.size() - 1; i >= 0; i--) {
+        for (int i = blocks.size() - 1; i >= 0; i--) {
             Block currBlock = blocks.get(i);
-            if(prevBlock != null && currBlock.equals(prevBlock)) {
+            if (prevBlock != null && currBlock.equals(prevBlock)) {
                 blocks.remove(i);
             }
             prevBlock = currBlock;
         }
 
         AABB underFeet = new AABB(loc.toVector().add(new Vector(-0.3, -feetDepth, -0.3)), loc.toVector().add(new Vector(0.3, 0, 0.3)));
-        for(Block block : blocks) {
+        for (Block block : blocks) {
             BlockNMS bNMS = BlockNMS.getBlockNMS(block);
-            if(block.isLiquid() || (!bNMS.isSolid() && Hawk.getServerVersion() == 8))
+            if (block.isLiquid() || (!bNMS.isSolid() && Hawk.getServerVersion() == 8))
                 continue;
-            if(bNMS.isColliding(underFeet)) {
+            if (bNMS.isColliding(underFeet)) {
 
                 //almost done. gotta do one more check... Check if their foot ain't in a block. (stops checkerclimb)
-                if(ignoreInGround) {
+                if (ignoreInGround) {
                     AABB topFeet = underFeet.clone();
                     topFeet.translate(new Vector(0, feetDepth + 0.00001, 0));
-                    for(Block block1 : AdjacentBlocks.getBlocksInLocation(loc)) {
+                    for (Block block1 : AdjacentBlocks.getBlocksInLocation(loc)) {
                         BlockNMS bNMS1 = BlockNMS.getBlockNMS(block1);
-                        if(block1.isLiquid() || (!bNMS1.isSolid() && Hawk.getServerVersion() == 8) || block1.getState().getData() instanceof Openable)
+                        if (block1.isLiquid() || (!bNMS1.isSolid() && Hawk.getServerVersion() == 8) || block1.getState().getData() instanceof Openable)
                             continue;
-                        if(bNMS1.isColliding(topFeet))
+                        if (bNMS1.isColliding(topFeet))
                             return false;
                     }
                 }
@@ -181,6 +183,7 @@ public class AdjacentBlocks {
         return false;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean blockNearbyIsSolid(Location loc) {
         Location check = loc.clone();
         Set<Block> sample = new HashSet<>();
@@ -192,8 +195,8 @@ public class AdjacentBlocks {
         sample.add(ServerUtils.getBlockAsync(check.add(-1, 0, 0)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 1)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 1)));
-        for(Block b : sample) {
-            if(b != null && b.getType().isSolid())
+        for (Block b : sample) {
+            if (b != null && b.getType().isSolid())
                 return true;
         }
         return false;

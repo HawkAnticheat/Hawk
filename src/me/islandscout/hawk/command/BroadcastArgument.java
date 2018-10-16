@@ -20,7 +20,7 @@ public class BroadcastArgument extends Argument {
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
         List<String> list = new LinkedList<>(Arrays.asList(args));
         list.remove(0);
-        String msg = Hawk.FLAG_PREFIX + ChatColor.RESET + " " + ChatColor.translateAlternateColorCodes('&', String.join(" ", list));
+        String msg = Hawk.FLAG_PREFIX + ChatColor.translateAlternateColorCodes('&', String.join(" ", list));
         Bukkit.broadcastMessage(msg);
         return true;
     }

@@ -2,7 +2,8 @@ package me.islandscout.hawk.utils;
 
 public final class PhysicsUtils {
 
-    private PhysicsUtils() {}
+    private PhysicsUtils() {
+    }
 
     public static double waterYPosFunc(double initVelocityY, double deltaTime) {
         deltaTime++;

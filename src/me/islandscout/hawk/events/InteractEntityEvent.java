@@ -7,8 +7,8 @@ import org.bukkit.entity.Player;
 
 public class InteractEntityEvent extends Event {
 
-    private InteractAction interactAction;
-    private Entity entity;
+    private final InteractAction interactAction;
+    private final Entity entity;
 
     public InteractEntityEvent(Player p, HawkPlayer pp, InteractAction action, Entity entity, WrappedPacket packet) {
         super(p, pp, packet);

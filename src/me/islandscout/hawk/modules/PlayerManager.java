@@ -1,8 +1,7 @@
-package me.islandscout.hawk.listener;
+package me.islandscout.hawk.modules;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.PhantomBlock;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -13,11 +12,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.*;
 
-public class BukkitListener implements Listener {
+public class PlayerManager implements Listener {
 
     private final Hawk hawk;
 
-    public BukkitListener(Hawk hawk) {
+    public PlayerManager(Hawk hawk) {
         this.hawk = hawk;
     }
 
@@ -29,11 +28,6 @@ public class BukkitListener implements Listener {
     }
 
     @EventHandler
-    public void onJoin(PlayerJoinEvent e) {
-        hawk.getPacketCore().setupListenerForPlayer(e.getPlayer());
-    }
-
-    @EventHandler
     public void onQuit(PlayerQuitEvent e) {
         hawk.removeProfile(e.getPlayer().getUniqueId());
         hawk.getCheckManager().removeData(e.getPlayer());
@@ -41,7 +35,7 @@ public class BukkitListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onTeleport(PlayerTeleportEvent e) {
-        if(!e.getTo().getWorld().equals(e.getFrom().getWorld())) {
+        if (!e.getTo().getWorld().equals(e.getFrom().getWorld())) {
             return;
         }
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
@@ -49,7 +43,6 @@ public class BukkitListener implements Listener {
         pp.setTeleportLoc(e.getTo());
         pp.setLocation(e.getTo());
         pp.setLastTeleportTime(System.currentTimeMillis());
-        hawk.getLagCompensator().processPosition(e.getTo(), e.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -59,7 +52,6 @@ public class BukkitListener implements Listener {
         pp.setTeleportLoc(e.getPlayer().getLocation());
         pp.setLocation(e.getPlayer().getLocation());
         pp.setLastTeleportTime(System.currentTimeMillis());
-        hawk.getLagCompensator().processPosition(e.getPlayer().getLocation(), e.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -67,13 +59,6 @@ public class BukkitListener implements Listener {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         pp.setTeleporting(true);
         pp.setTeleportLoc(e.getRespawnLocation());
-        hawk.getLagCompensator().processPosition(e.getRespawnLocation(), e.getPlayer());
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onMove(PlayerMoveEvent e) {
-        if(!e.isCancelled())
-            hawk.getLagCompensator().processPosition(e.getTo(), e.getPlayer());
     }
 
     //TODO: No... just, no...
@@ -82,17 +67,18 @@ public class BukkitListener implements Listener {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> {
             PhantomBlock pBlockDel = null;
-            for(PhantomBlock pBlock : pp.getPhantomBlocks()) {
+            for (PhantomBlock pBlock : pp.getPhantomBlocks()) {
                 Location a = pBlock.getLocation();
                 Location b = e.getBlockPlaced().getLocation();
-                if((int)a.getX() == (int)b.getX() && (int)a.getY() == (int)b.getY() && (int)a.getZ() == (int)b.getZ()) {
+                if ((int) a.getX() == (int) b.getX() && (int) a.getY() == (int) b.getY() && (int) a.getZ() == (int) b.getZ()) {
                     pBlockDel = pBlock;
                     break;
                 }
             }
-            if(pBlockDel == null)
+            if (pBlockDel == null)
                 return;
             pp.getPhantomBlocks().remove(pBlockDel);
         }, 1 + pp.getPing());
     }
+
 }

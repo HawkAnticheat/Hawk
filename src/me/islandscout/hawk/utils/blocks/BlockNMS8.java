@@ -2,7 +2,7 @@ package me.islandscout.hawk.utils.blocks;
 
 import me.islandscout.hawk.utils.AABB;
 import net.minecraft.server.v1_8_R3.*;
-import org.bukkit.*;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
@@ -16,7 +16,7 @@ import java.util.List;
 
 public class BlockNMS8 extends BlockNMS {
 
-    private net.minecraft.server.v1_8_R3.Block block;
+    private final net.minecraft.server.v1_8_R3.Block block;
 
     public BlockNMS8(Block block) {
         super(block);
@@ -41,7 +41,7 @@ public class BlockNMS8 extends BlockNMS {
 
     public void sendPacketToPlayer(Player p) {
         Location loc = getBukkitBlock().getLocation();
-        PacketPlayOutBlockChange pac = new PacketPlayOutBlockChange(((CraftWorld)loc.getWorld()).getHandle(), new BlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+        PacketPlayOutBlockChange pac = new PacketPlayOutBlockChange(((CraftWorld) loc.getWorld()).getHandle(), new BlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
         ((CraftPlayer) p).getHandle().playerConnection.sendPacket(pac);
     }
 
@@ -57,9 +57,9 @@ public class BlockNMS8 extends BlockNMS {
     private boolean isReallySolid(Block b) {
         boolean reallySolid = b.getType().isSolid();
         MaterialData matData = b.getState().getData();
-        if(matData instanceof Sign || matData instanceof Banner)
+        if (matData instanceof Sign || matData instanceof Banner)
             reallySolid = false;
-        else if(matData instanceof FlowerPot || matData instanceof Diode || matData instanceof Skull ||
+        else if (matData instanceof FlowerPot || matData instanceof Diode || matData instanceof Skull ||
                 b.getType() == org.bukkit.Material.CARPET || matData instanceof Ladder ||
                 b.getType() == Material.REDSTONE_COMPARATOR || b.getType() == Material.REDSTONE_COMPARATOR_ON ||
                 b.getType() == Material.REDSTONE_COMPARATOR_OFF || b.getType() == Material.SOIL ||
@@ -72,12 +72,12 @@ public class BlockNMS8 extends BlockNMS {
     private AABB[] getCollisionBoxes(net.minecraft.server.v1_8_R3.Block b, Location loc, BlockPosition bPos, IBlockData data) {
 
         //define boxes for funny blocks
-        if(b instanceof BlockCarpet) {
+        if (b instanceof BlockCarpet) {
             AABB[] aabbarr = new AABB[1];
             aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0.0625, 1)));
             return aabbarr;
         }
-        if(b instanceof BlockSnow && data.get(BlockSnow.LAYERS) == 1) {
+        if (b instanceof BlockSnow && data.get(BlockSnow.LAYERS) == 1) {
             AABB[] aabbarr = new AABB[1];
             aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0, 1)));
             return aabbarr;
@@ -88,7 +88,7 @@ public class BlockNMS8 extends BlockNMS {
         b.a(((CraftWorld) loc.getWorld()).getHandle(), bPos, data, cube, bbs, null);
 
         AABB[] collisionBoxes = new AABB[bbs.size()];
-        for(int i = 0; i < bbs.size(); i++) {
+        for (int i = 0; i < bbs.size(); i++) {
             AxisAlignedBB bb = bbs.get(i);
             AABB collisionBox = new AABB(new Vector(bb.a, bb.b, bb.c), new Vector(bb.d, bb.e, bb.f));
             collisionBoxes[i] = collisionBox;

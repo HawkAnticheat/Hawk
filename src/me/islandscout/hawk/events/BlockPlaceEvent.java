@@ -10,9 +10,9 @@ public class BlockPlaceEvent extends Event {
 
     //WARNING: Also gets called when interacting with blocks.
 
-    private Location location;
-    private Material material;
-    private BlockFace blockFace;
+    private final Location location;
+    private final Material material;
+    private final BlockFace blockFace;
 
     public BlockPlaceEvent(Player p, HawkPlayer pp, Location location, Material material, BlockFace blockFace, WrappedPacket packet) {
         super(p, pp, packet);

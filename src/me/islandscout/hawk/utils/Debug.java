@@ -6,7 +6,8 @@ import org.bukkit.entity.Player;
 
 public final class Debug {
 
-    private Debug() {}
+    private Debug() {
+    }
 
     /*
         Debugging tips:

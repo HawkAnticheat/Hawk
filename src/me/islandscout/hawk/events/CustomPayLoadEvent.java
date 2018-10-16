@@ -6,9 +6,9 @@ import org.bukkit.entity.Player;
 
 public class CustomPayLoadEvent extends Event {
 
-    private String tag;
-    private int length;
-    private byte[] data;
+    private final String tag;
+    private final int length;
+    private final byte[] data;
 
     public CustomPayLoadEvent(String tag, int length, byte[] data, Player p, HawkPlayer pp, WrappedPacket packet) {
         super(p, pp, packet);

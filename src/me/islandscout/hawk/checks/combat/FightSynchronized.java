@@ -1,7 +1,7 @@
 package me.islandscout.hawk.checks.combat;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.checks.AsyncEntityInteractionCheck;
+import me.islandscout.hawk.checks.EntityInteractionCheck;
 import me.islandscout.hawk.checks.Cancelless;
 import me.islandscout.hawk.events.InteractAction;
 import me.islandscout.hawk.events.InteractEntityEvent;
@@ -18,17 +18,17 @@ import java.util.UUID;
  * time. Although easily bypassed, it catches a significant
  * number of cheaters.
  */
-public class FightSynchronized extends AsyncEntityInteractionCheck implements Cancelless {
+public class FightSynchronized extends EntityInteractionCheck implements Cancelless {
 
     //TODO: False positives after HUGE lag spikes. This can falsely ban players. Have a VL cooldown for lag catchup?
 
-    private Map<UUID, Long> attackTimes;
-    private Map<UUID, Integer> samples;
+    private final Map<UUID, Long> attackTimes;
+    private final Map<UUID, Integer> samples;
     private final int SAMPLE_SIZE;
     private final int THRESHOLD;
 
     public FightSynchronized() {
-        super("fightsync", true, -1, 2, 0.95, 1000, "&7%player% may be using killaura (SYNC). VL %vl%", null);
+        super("fightsync", true, -1, 2, 0.95, 5000, "%player% may be using killaura (SYNC). VL %vl%", null);
         attackTimes = new HashMap<>();
         samples = new HashMap<>();
         SAMPLE_SIZE = ConfigHelper.getOrSetDefault(10, hawk.getConfig(), "checks.fightsync.samplesize");
@@ -37,7 +37,7 @@ public class FightSynchronized extends AsyncEntityInteractionCheck implements Ca
 
     @Override
     public void check(InteractEntityEvent event) {
-        if(event.getInteractAction() != InteractAction.ATTACK)
+        if (event.getInteractAction() != InteractAction.ATTACK)
             return;
         Player attacker = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
@@ -51,9 +51,8 @@ public class FightSynchronized extends AsyncEntityInteractionCheck implements Ca
             samples.put(attacker.getUniqueId(), 0);
             attackTimes.put(attacker.getUniqueId(), attackTimes.get(attacker.getUniqueId()) / SAMPLE_SIZE);
             if (attackTimes.get(attacker.getUniqueId()) < THRESHOLD) {
-                punish(pp);
-            }
-            else
+                punish(pp, false, event);
+            } else
                 reward(pp);
         }
     }

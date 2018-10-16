@@ -7,8 +7,8 @@ import org.bukkit.entity.Player;
 
 public class BlockDigEvent extends Event {
 
-    private DigAction digAction;
-    private Block block;
+    private final DigAction digAction;
+    private final Block block;
 
     public BlockDigEvent(Player p, HawkPlayer pp, DigAction action, Block block, WrappedPacket packet) {
         super(p, pp, packet);

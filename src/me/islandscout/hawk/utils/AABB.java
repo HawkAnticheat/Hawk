@@ -19,19 +19,19 @@ public class AABB implements Cloneable {
     /**
      * Calculates intersection with the given ray between a certain distance
      * interval.
-     *
+     * <p>
      * Ray-box intersection is using IEEE numerical properties to ensure the
      * test is both robust and efficient, as described in:
-     *
+     * <p>
      * Amy Williams, Steve Barrus, R. Keith Morley, and Peter Shirley: "An
      * Efficient and Robust Ray-Box Intersection Algorithm" Journal of graphics
      * tools, 10(1):49-54, 2005
      *
-     * @param ray incident ray
+     * @param ray     incident ray
      * @param minDist minimum distance
      * @param maxDist maximum distance
      * @return intersection point on the bounding box (only the first is
-     *         returned) or null if no intersection
+     * returned) or null if no intersection
      */
     public Vector intersectsRay(Ray ray, float minDist, float maxDist) {
         Vector invDir = new Vector(1f / ray.getDirection().getX(), 1f / ray.getDirection().getY(), 1f / ray.getDirection().getZ());
@@ -79,14 +79,14 @@ public class AABB implements Cloneable {
         return null;
     }
 
-    public void highlight(Hawk hawk, World world, double accuracy){
+    public void highlight(Hawk hawk, World world, double accuracy) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> {
-            for(double x = min.getX(); x <= max.getX(); x+=accuracy){
-                for(double y = min.getY(); y <= max.getY(); y+=accuracy) {
-                    for (double z = min.getZ(); z <= max.getZ(); z+=accuracy) {
+            for (double x = min.getX(); x <= max.getX(); x += accuracy) {
+                for (double y = min.getY(); y <= max.getY(); y += accuracy) {
+                    for (double z = min.getZ(); z <= max.getZ(); z += accuracy) {
                         Vector position = new Vector(x, y, z);
-                        world.playEffect(position.toLocation(world), Effect.COLOURED_DUST,1);
-                        world.playEffect(position.toLocation(world), Effect.COLOURED_DUST,1);
+                        world.playEffect(position.toLocation(world), Effect.COLOURED_DUST, 1);
+                        world.playEffect(position.toLocation(world), Effect.COLOURED_DUST, 1);
                     }
                 }
             }
@@ -100,16 +100,13 @@ public class AABB implements Cloneable {
     }
 
     public boolean isColliding(AABB other) {
-        if(max.getX() < other.getMin().getX() || min.getX() > other.getMax().getX()) {
+        if (max.getX() < other.getMin().getX() || min.getX() > other.getMax().getX()) {
             return false;
         }
-        if(max.getY() < other.getMin().getY() || min.getY() > other.getMax().getY()) {
+        if (max.getY() < other.getMin().getY() || min.getY() > other.getMax().getY()) {
             return false;
         }
-        if(max.getZ() < other.getMin().getZ() || min.getZ() > other.getMax().getZ()) {
-            return false;
-        }
-        return true;
+        return !(max.getZ() < other.getMin().getZ()) && !(min.getZ() > other.getMax().getZ());
     }
 
     public AABB clone() {
@@ -119,8 +116,7 @@ public class AABB implements Cloneable {
             clone.min = this.min.clone();
             clone.max = this.max.clone();
             return clone;
-        }
-        catch (CloneNotSupportedException e) {
+        } catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }
         return null;

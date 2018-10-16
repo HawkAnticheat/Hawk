@@ -10,13 +10,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides essential and additional tools to analyze players during
  * packet interception. Recommended to use this rather than
- * Bukkit's implementation. Also provides tools for Netty
+ * Bukkit's implementation. Also provides tools for the Netty
  * thread.
  */
 public class HawkPlayer {
@@ -24,13 +27,13 @@ public class HawkPlayer {
     private final UUID uuid;
     private final Map<Check, Double> vl;
     private boolean digging;
-    private boolean receiveFlags;
+    private boolean receiveNotifications;
     private boolean online;
-    private Player p;
+    private final Player p;
     private boolean teleporting;
     private Location teleportLoc;
     private long lastTeleportTime;
-    private Hawk hawk;
+    private final Hawk hawk;
     private Location location;
     private Vector velocity;
     private float deltaYaw;
@@ -42,15 +45,15 @@ public class HawkPlayer {
     private long currentTick;
     private double maxY;
     private long flyPendingTime;
-    private Set<PhantomBlock> phantomBlocks;
+    private final Set<PhantomBlock> phantomBlocks;
 
     HawkPlayer(Player p, Hawk hawk) {
         this.uuid = p.getUniqueId();
         vl = new ConcurrentHashMap<>();
-        receiveFlags = true;
+        receiveNotifications = true;
         this.p = p;
         this.location = p.getLocation();
-        this.onGround = ((Entity)p).isOnGround();
+        this.onGround = ((Entity) p).isOnGround();
         this.hawk = hawk;
         this.ping = ServerUtils.getPing(p);
         this.pingJitter = 0;
@@ -58,7 +61,7 @@ public class HawkPlayer {
     }
 
     public int getVL(Check check) {
-        return (int)(double)vl.getOrDefault(check, 0D);
+        return (int) (double) vl.getOrDefault(check, 0D);
     }
 
     public void setVL(Check check, double vl) {
@@ -86,12 +89,12 @@ public class HawkPlayer {
         this.digging = digging;
     }
 
-    public boolean canReceiveFlags() {
-        return receiveFlags && p.hasPermission(Hawk.BASE_PERMISSION + ".notify");
+    public boolean canReceiveNotifications() {
+        return receiveNotifications && p.hasPermission(Hawk.BASE_PERMISSION + ".notify");
     }
 
-    public void setReceiveFlags(boolean status) {
-        receiveFlags = status;
+    public void setReceiveNotifications(boolean status) {
+        receiveNotifications = status;
     }
 
     public boolean isOnline() {
@@ -206,7 +209,7 @@ public class HawkPlayer {
 
     //call this before updating whether on ground or not
     public void updateFallDistance(Location loc) {
-        if(onGround)
+        if (onGround)
             maxY = loc.getY();
         else
             maxY = Math.max(loc.getY(), maxY);
@@ -229,19 +232,18 @@ public class HawkPlayer {
         return phantomBlocks;
     }
 
-    public boolean addPhantomBlock(PhantomBlock pBlock) {
+    public void addPhantomBlock(PhantomBlock pBlock) {
         //memory-leak police on duty
         Set<PhantomBlock> oldPBlocks = new HashSet<>();
-        for(PhantomBlock loopPBlock : phantomBlocks) {
-            if(System.currentTimeMillis() - loopPBlock.getInitTime() > 2000) {
+        for (PhantomBlock loopPBlock : phantomBlocks) {
+            if (System.currentTimeMillis() - loopPBlock.getInitTime() > 2000) {
                 oldPBlocks.add(loopPBlock);
             }
         }
         phantomBlocks.removeAll(oldPBlocks);
-        if(phantomBlocks.size() >= 16)
-            return false;
+        if (phantomBlocks.size() >= 16)
+            return;
         phantomBlocks.add(pBlock);
-        return true;
     }
 
     //safely kill the connection
@@ -270,9 +272,19 @@ public class HawkPlayer {
 
         Location loc = location.clone();
         loc.add(eVelocity);
-        loc.setYaw(loc.getYaw() + (float)eDeltaRotation.getX());
-        loc.setPitch(loc.getPitch() + (float)eDeltaRotation.getY());
+        loc.setYaw(loc.getYaw() + (float) eDeltaRotation.getX());
+        loc.setPitch(loc.getPitch() + (float) eDeltaRotation.getY());
 
         return loc;
     }
+
+    /*
+    public PlayerCheckData getCheckData(Check check) {
+        return playerCheckData[check.getId()];
+    }
+
+    public void setCheckData(Check check, PlayerCheckData data) {
+        playerCheckData[check.getId()] = data;
+    }
+    */
 }

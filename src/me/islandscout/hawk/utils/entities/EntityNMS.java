@@ -6,16 +6,15 @@ import org.bukkit.entity.Entity;
 
 public abstract class EntityNMS {
 
-    protected Entity entity;
-    protected AABB aabb;
+    AABB collisionBox;
     protected int id;
+    //hitbox appears to grow 0.1249 per side. verify?
 
-    EntityNMS(Entity entity) {
-        this.entity = entity;
+    EntityNMS() {
     }
 
     public static EntityNMS getEntityNMS(Entity entity) {
-        if(Hawk.getServerVersion() == 8)
+        if (Hawk.getServerVersion() == 8)
             return new EntityNMS8(entity);
         else
             return new EntityNMS7(entity);
@@ -23,6 +22,6 @@ public abstract class EntityNMS {
 
 
     public AABB getCollisionBox() {
-        return aabb;
+        return collisionBox;
     }
 }

@@ -16,15 +16,15 @@ public class Scheduler {
 
     public void startSchedulers() {
         Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, () -> {
-            hawk.getTextLogger().updateFile();
+            hawk.getViolationLogger().updateFile();
             hawk.getSql().postBuffer();
         }, 0L, 20L);
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, () -> {
-            for(HawkPlayer pp : hawk.getHawkPlayers()) {
+            for (HawkPlayer pp : hawk.getHawkPlayers()) {
                 Player p = pp.getPlayer();
                 int newPing = ServerUtils.getPing(p);
-                pp.setPingJitter((short)(newPing - pp.getPing()));
+                pp.setPingJitter((short) (newPing - pp.getPing()));
                 pp.setPing(ServerUtils.getPing(p));
             }
         }, 0L, 40L);

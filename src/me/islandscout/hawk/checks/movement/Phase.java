@@ -1,17 +1,20 @@
 package me.islandscout.hawk.checks.movement;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.checks.AsyncMovementCheck;
+import me.islandscout.hawk.checks.MovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.*;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.material.Openable;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * The Phase check tests collision with blocks between players'
@@ -19,11 +22,9 @@ import java.util.*;
  * any sort of phase, including v-clip. The bounding box of the
  * player is shrunk to reduce false positives, of course.
  */
-public class Phase extends AsyncMovementCheck {
-    
+public class Phase extends MovementCheck {
+
     //TODO: False positive due to block updating inside player bounding box or if someone teleports into a block. Probably can only fix TP issue.
-    //TO DO: If a player sends a move with a large distance and passes through ANY solid block, flag it!
-    //TO DO: Logging in while on ground may cause you to get stuck on ground. Make safe locations to fix this.
 
     //decrease bounding box size if there are false positives.
     //(these values shrink the bounding box)
@@ -41,7 +42,7 @@ public class Phase extends AsyncMovementCheck {
     private final Map<UUID, Location> legitLoc;
 
     public Phase() {
-        super("phase", true, 0, 10, 0.995, 2000, "&7%player% failed phase. Moved through %block%. VL: %vl%", null);
+        super("phase", true, 0, 10, 0.995, 5000, "%player% failed phase. Moved through %block%. VL: %vl%", null);
         legitLoc = new HashMap<>();
     }
 
@@ -51,7 +52,7 @@ public class Phase extends AsyncMovementCheck {
         Location locFrom = event.getFrom();
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
-        if(!legitLoc.containsKey(p.getUniqueId()))
+        if (!legitLoc.containsKey(p.getUniqueId()))
             legitLoc.put(p.getUniqueId(), p.getLocation().clone());
         Location setback = legitLoc.get(p.getUniqueId());
         double distanceSquared = locFrom.distanceSquared(locTo);
@@ -72,35 +73,39 @@ public class Phase extends AsyncMovementCheck {
         Vector maxBigBox = new Vector(Math.max(playerFrom.getMax().getX(), playerTo.getMax().getX()), Math.max(playerFrom.getMax().getY(), playerTo.getMax().getY()), Math.max(playerFrom.getMax().getZ(), playerTo.getMax().getZ()));
         AABB bigBox = new AABB(minBigBox, maxBigBox);
 
-        for (int x = bigBox.getMin().getBlockX(); x <= bigBox.getMax().getBlockX(); x++) {
-            for (int y = bigBox.getMin().getBlockY(); y <= bigBox.getMax().getBlockY(); y++) {
-                for (int z = bigBox.getMin().getBlockZ(); z <= bigBox.getMax().getBlockZ(); z++) {
+        //way too many indentations here
+        GameMode gm = p.getGameMode();
+        if(gm == GameMode.SURVIVAL || gm == GameMode.ADVENTURE || gm == GameMode.CREATIVE) {
+            for (int x = bigBox.getMin().getBlockX(); x <= bigBox.getMax().getBlockX(); x++) {
+                for (int y = bigBox.getMin().getBlockY(); y <= bigBox.getMax().getBlockY(); y++) {
+                    for (int z = bigBox.getMin().getBlockZ(); z <= bigBox.getMax().getBlockZ(); z++) {
 
-                    Block bukkitBlock = ServerUtils.getBlockAsync(new Location(locTo.getWorld(), x, y, z));
+                        Block bukkitBlock = ServerUtils.getBlockAsync(new Location(locTo.getWorld(), x, y, z));
 
-                    if(bukkitBlock == null)
-                        continue;
-
-                    BlockNMS block = BlockNMS.getBlockNMS(bukkitBlock);
-                    if(!block.isSolid())
-                        continue;
-
-                    if(bukkitBlock.getState().getData() instanceof Openable && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD && distanceSquared <= VERTICAL_DISTANCE_THRESHOLD) {
-                        continue;
-                    }
-
-                    for(AABB test : block.getCollisionBoxes()) {
-                        //check if "test" box is even in "bigBox"
-                        if (!test.isColliding(bigBox))
+                        if (bukkitBlock == null)
                             continue;
 
-                        boolean xCollide = collides2d(test.getMin().getZ(), test.getMax().getZ(), test.getMin().getY(), test.getMax().getY(), playerFrom.getMin().getZ(), playerFrom.getMax().getZ(), playerFrom.getMin().getY(), playerFrom.getMax().getY(), moveDirection.getZ(), moveDirection.getY());
-                        boolean yCollide = collides2d(test.getMin().getX(), test.getMax().getX(), test.getMin().getZ(), test.getMax().getZ(), playerFrom.getMin().getX(), playerFrom.getMax().getX(), playerFrom.getMin().getZ(), playerFrom.getMax().getZ(), moveDirection.getX(), moveDirection.getZ());
-                        boolean zCollide = collides2d(test.getMin().getX(), test.getMax().getX(), test.getMin().getY(), test.getMax().getY(), playerFrom.getMin().getX(), playerFrom.getMax().getX(), playerFrom.getMin().getY(), playerFrom.getMax().getY(), moveDirection.getX(), moveDirection.getY());
-                        if (xCollide && yCollide && zCollide) {
-                            punish(pp, new Placeholder("block", bukkitBlock.getType()));
-                            tryRubberband(event, setback);
-                            return;
+                        BlockNMS block = BlockNMS.getBlockNMS(bukkitBlock);
+                        if (!block.isSolid())
+                            continue;
+
+                        if (bukkitBlock.getState().getData() instanceof Openable && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD && distanceSquared <= VERTICAL_DISTANCE_THRESHOLD) {
+                            continue;
+                        }
+
+                        for (AABB test : block.getCollisionBoxes()) {
+                            //check if "test" box is even in "bigBox"
+                            if (!test.isColliding(bigBox))
+                                continue;
+
+                            boolean xCollide = collides2d(test.getMin().getZ(), test.getMax().getZ(), test.getMin().getY(), test.getMax().getY(), playerFrom.getMin().getZ(), playerFrom.getMax().getZ(), playerFrom.getMin().getY(), playerFrom.getMax().getY(), moveDirection.getZ(), moveDirection.getY());
+                            boolean yCollide = collides2d(test.getMin().getX(), test.getMax().getX(), test.getMin().getZ(), test.getMax().getZ(), playerFrom.getMin().getX(), playerFrom.getMax().getX(), playerFrom.getMin().getZ(), playerFrom.getMax().getZ(), moveDirection.getX(), moveDirection.getZ());
+                            boolean zCollide = collides2d(test.getMin().getX(), test.getMax().getX(), test.getMin().getY(), test.getMax().getY(), playerFrom.getMin().getX(), playerFrom.getMax().getX(), playerFrom.getMin().getY(), playerFrom.getMax().getY(), moveDirection.getX(), moveDirection.getY());
+                            if (xCollide && yCollide && zCollide) {
+                                punish(pp, false, event, new Placeholder("block", bukkitBlock.getType()));
+                                tryRubberband(event, setback);
+                                return;
+                            }
                         }
                     }
                 }
@@ -115,24 +120,23 @@ public class Phase extends AsyncMovementCheck {
 
     //2d collision test. check if hexagon collides with rectangle
     private boolean collides2d(double testMinX, double testMaxX, double testMinY, double testMaxY, double otherMinX, double otherMaxX, double otherMinY, double otherMaxY, double otherExtrudeX, double otherExtrudeY) {
-        if(otherExtrudeX == 0)
+        if (otherExtrudeX == 0)
             return true; //prevent division by 0
         double slope = otherExtrudeY / otherExtrudeX;
         double height;
         double height2;
         Coordinate2D lowerPoint;
         Coordinate2D upperPoint;
-        if(otherExtrudeX > 0) { //extruding to the right
-            height = -(slope * (otherExtrudeY > 0 ? otherMaxX:otherMinX)) + otherMinY;
-            height2 = -(slope * (otherExtrudeY > 0 ? otherMinX:otherMaxX)) + otherMaxY;
-            lowerPoint = new Coordinate2D((otherExtrudeY > 0 ? testMaxX:testMinX), testMinY);
-            upperPoint = new Coordinate2D((otherExtrudeY > 0 ? testMinX:testMaxX), testMaxY);
-        }
-        else { //extruding to the left
-            height = -(slope * (otherExtrudeY <= 0 ? otherMaxX:otherMinX)) + otherMinY;
-            height2 = -(slope * (otherExtrudeY <= 0 ? otherMinX:otherMaxX)) + otherMaxY;
-            lowerPoint = new Coordinate2D((otherExtrudeY <= 0 ? testMaxX:testMinX), testMinY);
-            upperPoint = new Coordinate2D((otherExtrudeY <= 0 ? testMinX:testMaxX), testMaxY);
+        if (otherExtrudeX > 0) { //extruding to the right
+            height = -(slope * (otherExtrudeY > 0 ? otherMaxX : otherMinX)) + otherMinY;
+            height2 = -(slope * (otherExtrudeY > 0 ? otherMinX : otherMaxX)) + otherMaxY;
+            lowerPoint = new Coordinate2D((otherExtrudeY > 0 ? testMaxX : testMinX), testMinY);
+            upperPoint = new Coordinate2D((otherExtrudeY > 0 ? testMinX : testMaxX), testMaxY);
+        } else { //extruding to the left
+            height = -(slope * (otherExtrudeY <= 0 ? otherMaxX : otherMinX)) + otherMinY;
+            height2 = -(slope * (otherExtrudeY <= 0 ? otherMinX : otherMaxX)) + otherMaxY;
+            lowerPoint = new Coordinate2D((otherExtrudeY <= 0 ? testMaxX : testMinX), testMinY);
+            upperPoint = new Coordinate2D((otherExtrudeY <= 0 ? testMinX : testMaxX), testMaxY);
         }
         Line lowerLine = new Line(height, slope);
         Line upperLine = new Line(height2, slope);

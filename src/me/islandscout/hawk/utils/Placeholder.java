@@ -2,8 +2,8 @@ package me.islandscout.hawk.utils;
 
 public class Placeholder {
 
-    private String key;
-    private Object value;
+    private final String key;
+    private final Object value;
 
     public Placeholder(String key, Object value) {
         this.key = key;

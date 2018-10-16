@@ -8,8 +8,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public abstract class Element {
 
-    private int location;
-    private ItemStack itemStack;
+    private final int location;
+    private final ItemStack itemStack;
 
     Element(int location, Material mat, String name) {
         this.location = location;
@@ -32,5 +32,5 @@ public abstract class Element {
         return itemStack;
     }
 
-    abstract void doAction(Player p, Hawk hawk);
+    public abstract void doAction(Player p, Hawk hawk);
 }

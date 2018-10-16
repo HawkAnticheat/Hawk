@@ -29,17 +29,16 @@ public class Ray implements Cloneable {
             clone.origin = this.origin.clone();
             clone.direction = this.direction.clone();
             return clone;
-        }
-        catch (CloneNotSupportedException e) {
+        } catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public void highlight(Hawk hawk, World world, double blocksAway, double accuracy){
+    public void highlight(Hawk hawk, World world, double blocksAway, double accuracy) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> {
-            for(double x = 0; x < blocksAway; x+=accuracy) {
-                world.playEffect(getPointAtDistance(x).toLocation(world), Effect.COLOURED_DUST,1);
+            for (double x = 0; x < blocksAway; x += accuracy) {
+                world.playEffect(getPointAtDistance(x).toLocation(world), Effect.COLOURED_DUST, 1);
             }
         }, 0L);
 

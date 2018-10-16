@@ -1,7 +1,7 @@
 package me.islandscout.hawk.checks.combat;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.checks.AsyncCustomCheck;
+import me.islandscout.hawk.checks.CustomCheck;
 import me.islandscout.hawk.events.ArmSwingEvent;
 import me.islandscout.hawk.events.Event;
 import me.islandscout.hawk.events.InteractAction;
@@ -12,23 +12,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class FightNoSwing extends AsyncCustomCheck {
+public class FightNoSwing extends CustomCheck {
 
     //PASSED (9/11/18)
 
-    private Map<UUID, Long> lastClientTickSwung;
+    private final Map<UUID, Long> lastClientTickSwung;
 
     public FightNoSwing() {
-        super("fightnoswing", "&7%player% failed noswing. VL: %vl%");
+        super("fightnoswing", "%player% failed noswing. VL: %vl%");
         lastClientTickSwung = new HashMap<>();
     }
 
     @Override
     protected void check(Event event) {
-        if(event instanceof ArmSwingEvent)
-            processSwing((ArmSwingEvent)event);
-        else if(event instanceof InteractEntityEvent)
-            processHit((InteractEntityEvent)event);
+        if (event instanceof ArmSwingEvent)
+            processSwing((ArmSwingEvent) event);
+        else if (event instanceof InteractEntityEvent)
+            processHit((InteractEntityEvent) event);
 
     }
 
@@ -37,14 +37,13 @@ public class FightNoSwing extends AsyncCustomCheck {
     }
 
     private void processHit(InteractEntityEvent e) {
-        if(e.getInteractAction() != InteractAction.ATTACK)
+        if (e.getInteractAction() != InteractAction.ATTACK)
             return;
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
-        if(!lastClientTickSwung.containsKey(p.getUniqueId()) || pp.getCurrentTick() != lastClientTickSwung.get(p.getUniqueId())) {
+        if (!lastClientTickSwung.containsKey(p.getUniqueId()) || pp.getCurrentTick() != lastClientTickSwung.get(p.getUniqueId())) {
             punish(pp, true, e);
-        }
-        else {
+        } else {
             reward(pp);
         }
     }

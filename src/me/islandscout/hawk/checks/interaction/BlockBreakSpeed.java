@@ -1,9 +1,9 @@
 package me.islandscout.hawk.checks.interaction;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.checks.AsyncBlockDigCheck;
-import me.islandscout.hawk.events.DigAction;
+import me.islandscout.hawk.checks.BlockDigCheck;
 import me.islandscout.hawk.events.BlockDigEvent;
+import me.islandscout.hawk.events.DigAction;
 import me.islandscout.hawk.utils.Placeholder;
 import me.islandscout.hawk.utils.blocks.BlockNMS;
 import org.bukkit.GameMode;
@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class BlockBreakSpeed extends AsyncBlockDigCheck {
+public class BlockBreakSpeed extends BlockDigCheck {
 
     /*
       Conforms to 1.8 block breaking standards
@@ -31,11 +31,11 @@ public class BlockBreakSpeed extends AsyncBlockDigCheck {
 
     //TODO: Shears and wool
 
-    private Map<UUID, Long> interactTick;
+    private final Map<UUID, Long> interactTick;
     private final boolean PREVENT_SAME_TICK;
 
     public BlockBreakSpeed() {
-        super("blockbreakspeed", "&7%player% failed block break speed. Block: %block%, Time: %time%, VL: %vl%");
+        super("blockbreakspeed", "%player% failed block break speed. Block: %block%, Time: %time%, VL: %vl%");
         interactTick = new HashMap<>();
         PREVENT_SAME_TICK = true;
     }
@@ -43,11 +43,11 @@ public class BlockBreakSpeed extends AsyncBlockDigCheck {
     public void check(BlockDigEvent e) {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
-        if(e.getDigAction() == DigAction.START && p.getGameMode() != GameMode.CREATIVE) {
+        if (e.getDigAction() == DigAction.START && p.getGameMode() != GameMode.CREATIVE) {
             interactTick.put(p.getUniqueId(), pp.getCurrentTick());
             return;
         }
-        if(e.getDigAction() == DigAction.COMPLETE || p.getGameMode() == GameMode.CREATIVE) {
+        if (e.getDigAction() == DigAction.COMPLETE || p.getGameMode() == GameMode.CREATIVE) {
             Block b = e.getBlock();
             float hardness = BlockNMS.getBlockNMS(b).getStrength();
 
@@ -58,40 +58,39 @@ public class BlockBreakSpeed extends AsyncBlockDigCheck {
             enchant = enchant > 0 ? (enchant * enchant) + 1 : 0;
 
             String name = p.getItemInHand().toString();
-            if(name.contains("SPADE") || name.contains("PICKAXE") || name.contains("AXE")) {
-                if(name.contains("WOOD")) expectedTime *= 1D / (2 + enchant);
-                else if(name.contains("STONE")) expectedTime *= 1D / (4 + enchant);
-                else if(name.contains("IRON")) expectedTime *= 1D / (6 + enchant);
-                else if(name.contains("DIAMOND")) expectedTime *= 1D / (8 + enchant);
-                else if(name.contains("GOLD")) expectedTime *= 1D / (12 + enchant);
-            }
-            else expectedTime *= 1 / (enchant > 0 ? enchant : 1);
+            if (name.contains("SPADE") || name.contains("PICKAXE") || name.contains("AXE")) {
+                if (name.contains("WOOD")) expectedTime *= 1D / (2 + enchant);
+                else if (name.contains("STONE")) expectedTime *= 1D / (4 + enchant);
+                else if (name.contains("IRON")) expectedTime *= 1D / (6 + enchant);
+                else if (name.contains("DIAMOND")) expectedTime *= 1D / (8 + enchant);
+                else if (name.contains("GOLD")) expectedTime *= 1D / (12 + enchant);
+            } else expectedTime *= 1 / (enchant > 0 ? enchant : 1);
 
             expectedTime = potionEffect(expectedTime, p);
 
             expectedTime = Math.round(expectedTime * 100000) / 100000D;
             double actualTime = (pp.getCurrentTick() - interactTick.getOrDefault(p.getUniqueId(), 0L) + 1) * 0.05;
 
-            if(p.getGameMode() == GameMode.CREATIVE)
+            if (p.getGameMode() == GameMode.CREATIVE)
                 expectedTime = 0.05;
 
-            if(actualTime < expectedTime || (PREVENT_SAME_TICK && pp.getCurrentTick() == interactTick.getOrDefault(p.getUniqueId(), 0L))) {
+            if (actualTime < expectedTime || (PREVENT_SAME_TICK && pp.getCurrentTick() == interactTick.getOrDefault(p.getUniqueId(), 0L))) {
                 punishAndTryCancelAndBlockRespawn(pp, e, new Placeholder("block", b.getType()), new Placeholder("time", actualTime + "s"));
-            }
-            else {
+            } else {
                 reward(pp);
             }
 
-            if(p.getGameMode() == GameMode.CREATIVE)
+            if (p.getGameMode() == GameMode.CREATIVE)
                 interactTick.put(p.getUniqueId(), pp.getCurrentTick());
         }
     }
 
     private double potionEffect(double expectedTime, Player p) {
-        for(PotionEffect effect : p.getActivePotionEffects()) {
-            if(!effect.getType().equals(PotionEffectType.FAST_DIGGING) && !effect.getType().equals(PotionEffectType.SLOW_DIGGING)) continue;
+        for (PotionEffect effect : p.getActivePotionEffects()) {
+            if (!effect.getType().equals(PotionEffectType.FAST_DIGGING) && !effect.getType().equals(PotionEffectType.SLOW_DIGGING))
+                continue;
             expectedTime *= 1 / (((effect.getAmplifier() + 1) * 0.2) + 1);
-            if(effect.getType().equals(PotionEffectType.SLOW_DIGGING)) {
+            if (effect.getType().equals(PotionEffectType.SLOW_DIGGING)) {
                 int poteffect = effect.getAmplifier() + 1;
                 switch (poteffect) {
                     case 1:

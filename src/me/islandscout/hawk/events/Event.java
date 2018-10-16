@@ -7,9 +7,9 @@ import org.bukkit.entity.Player;
 public abstract class Event {
 
     protected boolean cancelled;
-    protected Player p;
-    protected HawkPlayer pp;
-    protected WrappedPacket wPacket;
+    protected final Player p;
+    protected final HawkPlayer pp;
+    protected final WrappedPacket wPacket;
 
     public Event(Player p, HawkPlayer pp, WrappedPacket wPacket) {
         this.p = p;

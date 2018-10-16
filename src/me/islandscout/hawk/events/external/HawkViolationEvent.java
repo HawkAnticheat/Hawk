@@ -7,7 +7,7 @@ import org.bukkit.event.HandlerList;
 public final class HawkViolationEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
-    private Violation violation;
+    private final Violation violation;
 
     public HawkViolationEvent(Violation violation) {
         super(true); //TODO: make sure to check if the thread is async or not!

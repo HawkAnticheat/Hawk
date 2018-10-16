@@ -1,4 +1,4 @@
-package me.islandscout.hawk.listener.packets;
+package me.islandscout.hawk.listener;
 
 import io.netty.channel.*;
 import me.islandscout.hawk.modules.PacketCore;
@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 
 public class PacketListener8 {
 
-    private PacketCore packetCore;
+    private final PacketCore packetCore;
 
     public PacketListener8(PacketCore packetCore) {
         this.packetCore = packetCore;
@@ -21,9 +21,9 @@ public class PacketListener8 {
 
                 //TODO: Get rid of this try/catch when you're done debugging
                 try {
-                    if(!packetCore.process(packet, p)) return; //prevent packet from getting processed by Bukkit if a check fails
-                }
-                catch(Exception e) {
+                    if (!packetCore.process(packet, p))
+                        return; //prevent packet from getting processed by Bukkit if a check fails
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
@@ -37,11 +37,11 @@ public class PacketListener8 {
             }
         };
         ChannelPipeline pipeline;
-        pipeline = ((CraftPlayer)p).getHandle().playerConnection.networkManager.channel.pipeline();
-        if(pipeline == null)
+        pipeline = ((CraftPlayer) p).getHandle().playerConnection.networkManager.channel.pipeline();
+        if (pipeline == null)
             return;
         String handlerName = "hawk" + p.getName();
-        if(pipeline.get(handlerName) != null)
+        if (pipeline.get(handlerName) != null)
             pipeline.remove(handlerName);
         pipeline.addBefore("packet_handler", handlerName, channelDuplexHandler);
     }

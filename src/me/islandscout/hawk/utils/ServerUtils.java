@@ -8,7 +8,8 @@ import org.bukkit.entity.Player;
 
 public final class ServerUtils {
 
-    private ServerUtils() {}
+    private ServerUtils() {
+    }
 
     public static int getPing(Player p) {
         if (Hawk.getServerVersion() == 8)
@@ -20,11 +21,11 @@ public final class ServerUtils {
 
     //ONLY WORKS ON SPIGOT #1649 OR DERIVATIVES
     public static int getClientVersion(Player p) {
-        if(Hawk.getServerVersion() == 7) {
+        if (Hawk.getServerVersion() == 7) {
             int protocol = ((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer) p).getHandle().playerConnection.networkManager.getVersion();
-            if(protocol == 47)
+            if (protocol == 47)
                 return 8;
-            else if(protocol == 5)
+            else if (protocol == 5)
                 return 7;
             /*
             If above causes issues for people not running 1.7.10, try this:
@@ -54,14 +55,14 @@ public final class ServerUtils {
 
     //Will return null if chunk in location is not in memory. Do not modify blocks asynchronously!
     public static Block getBlockAsync(Location loc) {
-        if(loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4))
+        if (loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4))
             return loc.getBlock();
         return null;
     }
 
     //Will return null if chunk in location is not in memory. Do not modify chunks asynchronously!
     public static Chunk getChunkAsync(Location loc) {
-        if(loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4))
+        if (loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4))
             return loc.getChunk();
         return null;
     }

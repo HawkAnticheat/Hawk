@@ -1,8 +1,9 @@
 package me.islandscout.hawk.checks.movement;
 
+import javafx.util.Pair;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.checks.AsyncMovementCheck;
+import me.islandscout.hawk.checks.MovementCheck;
 import me.islandscout.hawk.checks.Cancelless;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
@@ -15,12 +16,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
-public class AntiVelocity extends AsyncMovementCheck implements Listener, Cancelless {
+public class AntiVelocity extends MovementCheck implements Listener, Cancelless {
 
-    private Map<UUID, VectorTime> initVelocities; //We're talking about initial launch velocities, on the tick
-    private Map<UUID, Vector> velocityTracker;
+    private final Map<UUID, Pair<Vector, Long>> initVelocities; //We're talking about initial launch velocities, on the tick
+    private final Map<UUID, Vector> velocityTracker;
     private static double FRICTION_AIR = 0.09;
     private static double FRICTION_WATER = 0.2;
     private static double FRICTION_GROUND = 0.46;
@@ -28,7 +31,7 @@ public class AntiVelocity extends AsyncMovementCheck implements Listener, Cancel
     private static boolean TRACK_PATH;
 
     public AntiVelocity() {
-        super("antivelocity", true, -1, 5, 0.95, 2000, "&7%player% may be using antivelocity. VL: %vl%", null);
+        super("antivelocity", true, -1, 5, 0.95, 5000, "%player% may be using antivelocity. VL: %vl%", null);
         initVelocities = new HashMap<>();
         velocityTracker = new HashMap<>();
         FRICTION_AIR = (1 - FRICTION_AIR) * (1 - EPSILON);
@@ -44,29 +47,29 @@ public class AntiVelocity extends AsyncMovementCheck implements Listener, Cancel
         Vector currVelocity = new Vector(event.getTo().getX() - event.getFrom().getX(), event.getTo().getY() - event.getFrom().getY(), event.getTo().getZ() - event.getFrom().getZ());
         long currTime = System.currentTimeMillis();
         int ping = ServerUtils.getPing(p);
-        if(!p.isFlying() && !p.isInsideVehicle()) {
+        if (!p.isFlying() && !p.isInsideVehicle()) {
 
             //Prepare to track player movement
-            if(initVelocities.containsKey(p.getUniqueId())) {
+            if (initVelocities.containsKey(p.getUniqueId())) {
                 //discard if velocity is downwards
-                if(initVelocities.get(p.getUniqueId()).vector.getY() < 0) {
+                if (initVelocities.get(p.getUniqueId()).getKey().getY() < 0) {
                     initVelocities.remove(p.getUniqueId());
                     return;
                 }
-                double dot = currVelocity.dot(initVelocities.get(p.getUniqueId()).vector);
+                double dot = currVelocity.dot(initVelocities.get(p.getUniqueId()).getKey());
                 //check if it's taking too long for the player to register the kb
-                if (currTime - initVelocities.get(p.getUniqueId()).time > ping + 300) {
-                    punish(pp);
+                if (currTime - initVelocities.get(p.getUniqueId()).getValue() > ping + 300) {
+                    punish(pp, false, event);
                     initVelocities.remove(p.getUniqueId());
-                } else if(dot > 0.2){
+                } else if (dot > 0.2) {
                     //update tracker map
-                    if(!TRACK_PATH)
+                    if (!TRACK_PATH)
                         reward(pp);
-                    velocityTracker.put(p.getUniqueId(), initVelocities.get(p.getUniqueId()).vector);
+                    velocityTracker.put(p.getUniqueId(), initVelocities.get(p.getUniqueId()).getKey());
                     initVelocities.remove(p.getUniqueId());
                 }
             }
-            if(!TRACK_PATH || !velocityTracker.containsKey(p.getUniqueId()) || initVelocities.containsKey(p.getUniqueId())) {
+            if (!TRACK_PATH || !velocityTracker.containsKey(p.getUniqueId()) || initVelocities.containsKey(p.getUniqueId())) {
                 return;
             }
 
@@ -74,22 +77,20 @@ public class AntiVelocity extends AsyncMovementCheck implements Listener, Cancel
             Vector expectedVelocity = velocityTracker.get(p.getUniqueId());
 
             //clear map element if vector is no longer significant
-            if(expectedVelocity.lengthSquared() <= 0.1) {
+            if (expectedVelocity.lengthSquared() <= 0.1) {
                 velocityTracker.remove(p.getUniqueId());
-            }
-            else {
+            } else {
                 Vector diff = currVelocity.clone().subtract(expectedVelocity);
                 double dot = diff.dot(expectedVelocity);
-                if(dot < -0.07) {
-                    punish(pp);
-                }
-                else {
+                if (dot < -0.07) {
+                    punish(pp, false, event);
+                } else {
                     reward(pp);
                 }
             }
 
             //update tracker by applying vertical friction
-            if(!event.isOnGroundReally())
+            if (!event.isOnGroundReally())
                 expectedVelocity.setY((expectedVelocity.getY() - 0.08) * 0.98);
             else {
                 expectedVelocity.setY(0);
@@ -97,7 +98,7 @@ public class AntiVelocity extends AsyncMovementCheck implements Listener, Cancel
 
             //update tracker by applying horizontal friction
             //on ground
-            if(AdjacentBlocks.onGroundReally(event.getFrom(), -1, false)) {
+            if (AdjacentBlocks.onGroundReally(event.getFrom(), -1, false)) {
                 expectedVelocity.setX(expectedVelocity.getX() * FRICTION_GROUND);
                 expectedVelocity.setZ(expectedVelocity.getZ() * FRICTION_GROUND);
             }
@@ -116,27 +117,15 @@ public class AntiVelocity extends AsyncMovementCheck implements Listener, Cancel
     public void onVelocity(PlayerVelocityEvent e) {
         UUID uuid = e.getPlayer().getUniqueId();
         Vector vector = null;
-        if(Hawk.getServerVersion() == 7) {
+        if (Hawk.getServerVersion() == 7) {
             vector = e.getVelocity();
-        }
-        else if(Hawk.getServerVersion() == 8) {
+        } else if (Hawk.getServerVersion() == 8) {
             //lmao Bukkit is broken. event velocity is broken when attacked by a player (NMS.EntityHuman.java, attack(Entity))
             vector = e.getPlayer().getVelocity();
         }
-        if(vector == null)
+        if (vector == null)
             return;
-        initVelocities.put(uuid, new VectorTime(vector, System.currentTimeMillis()));
-    }
-
-    private class VectorTime {
-
-        private Vector vector;
-        private long time;
-
-        private VectorTime(Vector vector, long time) {
-            this.vector = vector;
-            this.time = time;
-        }
+        initVelocities.put(uuid, new Pair<>(vector, System.currentTimeMillis()));
     }
 
     @Override

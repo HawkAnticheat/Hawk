@@ -9,8 +9,8 @@ import org.bukkit.util.Vector;
 public class EntityNMS8 extends EntityNMS {
 
     public EntityNMS8(Entity entity) {
-        super(entity);
-        AxisAlignedBB bb = ((CraftEntity)entity).getHandle().getBoundingBox();
-        aabb = new AABB(new Vector(bb.a, bb.b, bb.c), new Vector(bb.d, bb.e, bb.f));
+        super();
+        AxisAlignedBB bb = ((CraftEntity) entity).getHandle().getBoundingBox();
+        collisionBox = new AABB(new Vector(bb.a, bb.b, bb.c), new Vector(bb.d, bb.e, bb.f));
     }
 }

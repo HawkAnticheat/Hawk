@@ -10,13 +10,13 @@ import java.util.List;
 
 public abstract class Window {
 
-    protected Inventory inventory;
+    protected final Inventory inventory;
     protected final Hawk hawk;
-    protected List<Element> elements;
-    protected Player p;
+    protected final List<Element> elements;
+    protected final Player p;
 
     public Window(Hawk hawk, Player p, int rows, String title) {
-        inventory = Bukkit.createInventory(null, rows*9, title);
+        inventory = Bukkit.createInventory(null, rows * 9, title);
         this.p = p;
         this.hawk = hawk;
         this.elements = new ArrayList<>();
@@ -31,7 +31,7 @@ public abstract class Window {
     }
 
     protected void prepareInventory() {
-        for(Element element : elements)
+        for (Element element : elements)
             inventory.setItem(element.getLocation(), element.getItemStack());
     }
 }

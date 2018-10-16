@@ -18,10 +18,10 @@ public class KickArgument extends Argument {
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        if(args.length < 3)
+        if (args.length < 3)
             return false;
         Player target = Bukkit.getPlayer(args[1]);
-        if(target == null) {
+        if (target == null) {
             sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[1] + "\"");
             return true;
         }

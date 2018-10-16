@@ -2,16 +2,21 @@ package me.islandscout.hawk.modules;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.events.*;
-import me.islandscout.hawk.listener.packets.PacketListener7;
-import me.islandscout.hawk.listener.packets.PacketListener8;
-import me.islandscout.hawk.utils.Debug;
+import me.islandscout.hawk.events.AbilitiesEvent;
+import me.islandscout.hawk.events.BlockPlaceEvent;
+import me.islandscout.hawk.events.Event;
+import me.islandscout.hawk.events.PositionEvent;
+import me.islandscout.hawk.listener.PacketListener7;
+import me.islandscout.hawk.listener.PacketListener8;
 import me.islandscout.hawk.utils.PhantomBlock;
 import me.islandscout.hawk.utils.packets.PacketConverter7;
 import me.islandscout.hawk.utils.packets.PacketConverter8;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
@@ -19,11 +24,11 @@ import org.bukkit.util.Vector;
  * This class is mainly used to process packets that are intercepted from the Netty channels.
  * Remember, caution is advised when accessing the Bukkit API from the Netty thread.
  */
-public class PacketCore {
+public class PacketCore implements Listener {
 
     //Welcome to TCP damnation.
 
-    private int serverVersion;
+    private final int serverVersion;
     private final Hawk hawk;
     private PacketListener7 packetListener7;
     private PacketListener8 packetListener8;
@@ -32,20 +37,18 @@ public class PacketCore {
         this.serverVersion = serverVersion;
         this.hawk = hawk;
         try {
-            if(serverVersion == 7) {
+            if (serverVersion == 7) {
                 packetListener7 = new PacketListener7(this);
-                hawk.getLogger().info("Using MC 1.7_R4 Netty API for packet interception.");
-            }
-            else if(serverVersion == 8) {
+                hawk.getLogger().info("Using NMS 1.7_R4 NIO for packet interception.");
+            } else if (serverVersion == 8) {
                 packetListener8 = new PacketListener8(this);
-                hawk.getLogger().info("Using MC 1.8_R3 Netty API for packet interception.");
-            }
-            else warnConsole(hawk);
-        }
-        catch (NoClassDefFoundError e) {
+                hawk.getLogger().info("Using NMS 1.8_R3 NIO for packet interception.");
+            } else warnConsole(hawk);
+        } catch (NoClassDefFoundError e) {
             e.printStackTrace();
             warnConsole(hawk);
         }
+        Bukkit.getPluginManager().registerEvents(this, hawk);
     }
 
     private void warnConsole(Hawk hawk) {
@@ -56,36 +59,36 @@ public class PacketCore {
         Bukkit.getPluginManager().disablePlugin(hawk);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean process(Object packet, Player p) {
         HawkPlayer pp = hawk.getHawkPlayer(p);
 
         //ignore packets while player is no longer registered in Hawk
-        if(!pp.isOnline())
+        if (!pp.isOnline())
             return false;
 
         Event event;
-        if(serverVersion == 8)
+        if (serverVersion == 8)
             event = PacketConverter8.packetToEvent(packet, p, pp);
-        else if(serverVersion == 7)
+        else if (serverVersion == 7)
             event = PacketConverter7.packetToEvent(packet, p, pp);
         else
             return true;
-        if(event == null)
+        if (event == null)
             return true;
 
-        if(event instanceof PositionEvent) {
-            PositionEvent posEvent = (PositionEvent)event;
+        if (event instanceof PositionEvent) {
+            PositionEvent posEvent = (PositionEvent) event;
             posEvent.setTeleported(false);
             pp.incrementCurrentTick();
             //handle teleports
-            if(pp.isTeleporting()) {
+            if (pp.isTeleporting()) {
                 Location tpLoc = pp.getTeleportLoc();
-                if(tpLoc.getWorld().equals(posEvent.getTo().getWorld()) && posEvent.getTo().distanceSquared(tpLoc) < 0.001) {
+                if (tpLoc.getWorld().equals(posEvent.getTo().getWorld()) && posEvent.getTo().distanceSquared(tpLoc) < 0.001) {
                     posEvent.setFrom(tpLoc);
                     pp.setTeleporting(false);
                     posEvent.setTeleported(true);
-                }
-                else {
+                } else {
                     //Help guide the confused client back to the tp location
                     if (System.currentTimeMillis() - pp.getLastTeleportTime() > 1000) {
                         pp.teleportPlayer(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
@@ -94,7 +97,7 @@ public class PacketCore {
                 }
             }
             //handle illegal move
-            else if(posEvent.getFrom().getWorld().equals(posEvent.getTo().getWorld()) && posEvent.getTo().distanceSquared(posEvent.getFrom()) > 64) {
+            else if (posEvent.getFrom().getWorld().equals(posEvent.getTo().getWorld()) && posEvent.getTo().distanceSquared(posEvent.getFrom()) > 64) {
                 hawk.getLogger().warning(p.getName() + " may have tried to crash the server by moving too far! Distance: " + (posEvent.getTo().distance(posEvent.getFrom())));
                 posEvent.cancelAndSetBack(p.getLocation());
                 return false;
@@ -102,9 +105,9 @@ public class PacketCore {
         }
 
         //handle block placing
-        if(event instanceof BlockPlaceEvent) {
-            BlockPlaceEvent bPlaceEvent = (BlockPlaceEvent)event;
-            if(bPlaceEvent.getLocation().distanceSquared(pp.getLocation()) < 36) {
+        if (event instanceof BlockPlaceEvent) {
+            BlockPlaceEvent bPlaceEvent = (BlockPlaceEvent) event;
+            if (bPlaceEvent.getLocation().distanceSquared(pp.getLocation()) < 36) {
                 PhantomBlock phantomBlock = new PhantomBlock(bPlaceEvent.getLocation(), bPlaceEvent.getMaterial());
                 pp.addPhantomBlock(phantomBlock);
             }
@@ -113,14 +116,13 @@ public class PacketCore {
         hawk.getCheckManager().dispatchEvent(event);
 
         //update HawkPlayer
-        if(event instanceof PositionEvent) {
+        if (event instanceof PositionEvent) {
             pp.setLastMoveTime(System.currentTimeMillis());
-            if(event.isCancelled() && ((PositionEvent) event).getCancelLocation() != null) {
+            if (event.isCancelled() && ((PositionEvent) event).getCancelLocation() != null) {
                 ((PositionEvent) event).setTo(((PositionEvent) event).getCancelLocation());
                 pp.setTeleporting(true);
                 pp.teleportPlayer(((PositionEvent) event).getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
-            }
-            else {
+            } else {
                 Location to = ((PositionEvent) event).getTo();
                 Location from = ((PositionEvent) event).getFrom();
                 pp.setVelocity(new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ()));
@@ -132,7 +134,7 @@ public class PacketCore {
             }
 
         }
-        if(event instanceof AbilitiesEvent && !event.isCancelled() && ((AbilitiesEvent) event).isFlying()) {
+        if (event instanceof AbilitiesEvent && !event.isCancelled() && ((AbilitiesEvent) event).isFlying()) {
             pp.setFlyPendingTime(System.currentTimeMillis());
         }
 
@@ -140,27 +142,30 @@ public class PacketCore {
     }
 
     public void killListener() {
-        if(serverVersion == 8) {
+        if (serverVersion == 8) {
             packetListener8.stop();
-        }
-        else if(serverVersion == 7) {
+        } else if (serverVersion == 7) {
             packetListener7.stop();
         }
     }
 
-    public void setupListenerOnlinePlayers() {
-        for(Player p : Bukkit.getOnlinePlayers()) {
+    public void setupListenerForOnlinePlayers() {
+        for (Player p : Bukkit.getOnlinePlayers()) {
             hawk.getHawkPlayer(p).setOnline(true);
             setupListenerForPlayer(p);
         }
     }
 
-    public void setupListenerForPlayer(Player p) {
-        if(serverVersion == 8) {
+    private void setupListenerForPlayer(Player p) {
+        if (serverVersion == 8) {
             packetListener8.start(p);
-        }
-        else if(serverVersion == 7) {
+        } else if (serverVersion == 7) {
             packetListener7.start(p);
         }
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent e) {
+        setupListenerForPlayer(e.getPlayer());
     }
 }

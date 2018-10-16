@@ -6,7 +6,9 @@ import me.islandscout.hawk.utils.packets.WrappedPacket;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class PositionEvent extends Event {
 
@@ -15,14 +17,14 @@ public class PositionEvent extends Event {
 
     //Position events will not pass through checks if the player is teleporting.
 
-    private boolean onGround;
-    private boolean onGroundReally;
+    private final boolean onGround;
+    private final boolean onGroundReally;
     //TODO: Have an onGroundReally boolean for the getFrom position. Should make things faster since checks don't have to compute it all the time.
     private boolean teleported;
     private Location cancelLocation;
 
-    private static Map<UUID, Location> last = new HashMap<>();
-    private static Map<UUID, Location> current = new HashMap<>();
+    private static final Map<UUID, Location> last = new HashMap<>();
+    private static final Map<UUID, Location> current = new HashMap<>();
 
     public PositionEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet) {
         super(p, pp, packet);
@@ -81,7 +83,7 @@ public class PositionEvent extends Event {
     }
 
     public void cancelAndSetBack(Location setback) {
-        if(!isCancelled()) {
+        if (!isCancelled()) {
             cancelLocation = setback;
             setCancelled(true);
             pp.setTeleporting(true);

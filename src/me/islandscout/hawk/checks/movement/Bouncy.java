@@ -1,10 +1,10 @@
 package me.islandscout.hawk.checks.movement;
 
-import me.islandscout.hawk.checks.AsyncMovementCheck;
+import me.islandscout.hawk.checks.MovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.Debug;
 
-public class Bouncy extends AsyncMovementCheck {
+public class Bouncy extends MovementCheck {
 
     //Debug class
 
@@ -19,18 +19,18 @@ public class Bouncy extends AsyncMovementCheck {
     @Override
     protected void check(PositionEvent event) {
         double deltaY = event.getTo().getY() - event.getFrom().getY();
-        if(!event.isOnGround())
+        if (!event.isOnGround())
             velocityOnImpact = event.getTo().getY() - event.getFrom().getY();
-        if(!falling && deltaY < 0) {
+        if (!falling && deltaY < 0) {
             falling = true;
             maxYPos = event.getFrom().getY();
         }
-        if(falling && deltaY >= 0) {
+        if (falling && deltaY >= 0) {
             falling = false;
             Debug.broadcastMessage("BOUNCE VELOCITY: " + (event.getTo().getY() - event.getFrom().getY()));
             Debug.broadcastMessage("----");
         }
-        if(event.isOnGround() && falling) {
+        if (event.isOnGround() && falling) {
             Debug.broadcastMessage("MAX Y: " + (maxYPos - event.getTo().getBlockY()));
             Debug.broadcastMessage("APPROX IMPACT VELOCITY: " + velocityOnImpact);
         }

@@ -17,7 +17,7 @@ public class MainMenuWindow extends Window {
 
         elements.add(new Element(4, Material.WORKBENCH, "Toggle Checks") {
             @Override
-            protected void doAction(Player p, Hawk hawk) {
+            public void doAction(Player p, Hawk hawk) {
                 Window checks = new ToggleChecksWindow(hawk, p);
                 hawk.getGuiManager().sendWindow(p, checks);
             }
@@ -25,20 +25,20 @@ public class MainMenuWindow extends Window {
 
         elements.add(new Element(5, Material.PAPER, "Reload Configuration") {
             @Override
-            protected void doAction(Player p, Hawk hawk) {
+            public void doAction(Player p, Hawk hawk) {
                 Bukkit.dispatchCommand(p, "hawk reload");
             }
         });
 
         ItemStack notify = new ItemStack(Material.INK_SACK);
-        notify.setDurability((short)(pp.canReceiveFlags() ? 10 : 8));
+        notify.setDurability((short) (pp.canReceiveNotifications() ? 10 : 8));
         ItemMeta notifyName = notify.getItemMeta();
-        notifyName.setDisplayName(pp.canReceiveFlags() ? "Notifications: ON" : "Notifications: OFF");
+        notifyName.setDisplayName(pp.canReceiveNotifications() ? "Notifications: ON" : "Notifications: OFF");
         notify.setItemMeta(notifyName);
         elements.add(new Element(3, notify) {
             @Override
-            protected void doAction(Player p, Hawk hawk) {
-                pp.setReceiveFlags(!pp.canReceiveFlags());
+            public void doAction(Player p, Hawk hawk) {
+                pp.setReceiveNotifications(!pp.canReceiveNotifications());
                 Window mainMenu = new MainMenuWindow(hawk, p);
                 hawk.getGuiManager().sendWindow(p, mainMenu);
             }
@@ -46,7 +46,7 @@ public class MainMenuWindow extends Window {
 
         elements.add(new Element(8, Material.WOOD_DOOR, "Exit GUI") {
             @Override
-            protected void doAction(Player p, Hawk hawk) {
+            public void doAction(Player p, Hawk hawk) {
                 p.closeInventory();
             }
         });

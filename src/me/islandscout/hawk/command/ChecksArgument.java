@@ -16,12 +16,12 @@ public class ChecksArgument extends Argument {
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        List<Check> checks = hawk.getCheckManager().getCheckList();
+        List<Check> checks = hawk.getCheckManager().getChecks();
         List<String> chkNames = new ArrayList<>();
         int enabled = 0;
-        for(Check check : checks) {
+        for (Check check : checks) {
             chkNames.add((check.isEnabled() ? ChatColor.GREEN : ChatColor.RED) + check.getName());
-            if(check.isEnabled())
+            if (check.isEnabled())
                 enabled++;
         }
         sender.sendMessage(ChatColor.GOLD + "Checks (" + enabled + "/" + checks.size() + " enabled): " + String.join(", ", chkNames));

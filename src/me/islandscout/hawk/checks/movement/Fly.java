@@ -1,13 +1,17 @@
 package me.islandscout.hawk.checks.movement;
 
+import javafx.util.Pair;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.checks.AsyncMovementCheck;
+import me.islandscout.hawk.checks.MovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
-import me.islandscout.hawk.utils.*;
+import me.islandscout.hawk.utils.AABB;
+import me.islandscout.hawk.utils.AdjacentBlocks;
+import me.islandscout.hawk.utils.ServerUtils;
 import me.islandscout.hawk.utils.entities.EntityNMS;
-import net.minecraft.server.v1_8_R3.EntityHuman;
-import org.bukkit.*;
+import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
@@ -22,7 +26,28 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class Fly extends AsyncMovementCheck implements Listener {
+/**
+ * In vanilla Minecraft, a free-falling player must fall a
+ * specific distance for every succeeding move. Hawk's flight
+ * check attempts to enforce this vanilla mechanic to prevent
+ * players from using fly modifications.
+ * <p>
+ * For every succeeding move a free-falling player is in the
+ * air, the player's vertical velocity is:
+ * <p>
+ * (v_(n-1) - 0.08) * 0.98
+ * <p>
+ * A continuous function which describes a free-falling player's
+ * vertical velocity given the amount of ticks passed is:
+ * <p>
+ * v(x) = (3.92 + v_i) * 0.98^x - 3.92
+ * <p>
+ * A continuous function which describes a free-falling player's
+ * vertical position given the amount of ticks passed is:
+ * <p>
+ * p(x) = -3.92x - 0.98^x * 50(3.92 + v_i) + 50(3.92 + v_i) + p_i
+ */
+public class Fly extends MovementCheck implements Listener {
 
     //TODO: false flag with pistons
     //TODO: false flag on slime blocks
@@ -46,22 +71,22 @@ public class Fly extends AsyncMovementCheck implements Listener {
     //location; a fly bypass. The priority system should give priority to older setback locations if a conflict like this
     //should occur.
 
-    private Map<UUID, Double> lastDeltaY;
-    private Map<UUID, Location> legitLoc;
-    private Set<UUID> inAir;
-    private Map<UUID, Integer> stupidMoves;
-    private Map<UUID, List<Location>> locsOnPBlocks;
-    private Map<UUID, List<DoubleTime>> velocities; //launch velocities
-    private Set<UUID> failedSoDontUpdateRubberband; //Update rubberband loc until someone fails. In this case, do not update until they touch the ground.
+    private final Map<UUID, Double> lastDeltaY;
+    private final Map<UUID, Location> legitLoc;
+    private final Set<UUID> inAir;
+    private final Map<UUID, Integer> stupidMoves;
+    //private Map<UUID, List<Location>> locsOnPBlocks;
+    private final Map<UUID, List<Pair<Double, Long>>> velocities; //launch velocities
+    private final Set<UUID> failedSoDontUpdateRubberband; //Update rubberband loc until someone fails. In this case, do not update until they touch the ground.
     private static final int STUPID_MOVES = 1; //Apparently you can jump in midair right as you fall off the edge of a block. You need to time it right.
 
     public Fly() {
-        super("fly", true, 0, 10, 0.995, 1000, "&7%player% failed fly. VL: %vl%", null);
+        super("fly", true, 0, 10, 0.995, 5000, "%player% failed fly. VL: %vl%", null);
         lastDeltaY = new HashMap<>();
         inAir = new HashSet<>();
         legitLoc = new HashMap<>();
         stupidMoves = new HashMap<>();
-        locsOnPBlocks = new HashMap<>();
+        //locsOnPBlocks = new HashMap<>();
         velocities = new HashMap<>();
         failedSoDontUpdateRubberband = new HashSet<>();
     }
@@ -71,26 +96,26 @@ public class Fly extends AsyncMovementCheck implements Listener {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
         double deltaY = event.getTo().getY() - event.getFrom().getY();
-        if(pp.hasFlyPending() && p.getAllowFlight())
+        if (pp.hasFlyPending() && p.getAllowFlight())
             return;
-        if(!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() && !AdjacentBlocks.blockAdjacentIsLiquid(event.getTo()) &&
+        if (!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() && !AdjacentBlocks.blockAdjacentIsLiquid(event.getTo()) &&
                 !isInClimbable(event.getTo()) && !isOnBoat(event.getTo())) {
 
-            if(!inAir.contains(p.getUniqueId()) && deltaY > 0)
+            if (!inAir.contains(p.getUniqueId()) && deltaY > 0)
                 lastDeltaY.put(p.getUniqueId(), 0.42 + getJumpBoostLvl(p) * 0.1);
 
             //handle any pending knockbacks
-            if(velocities.containsKey(p.getUniqueId()) && velocities.get(p.getUniqueId()).size() > 0) {
-                List<DoubleTime> kbs = velocities.get(p.getUniqueId());
+            if (velocities.containsKey(p.getUniqueId()) && velocities.get(p.getUniqueId()).size() > 0) {
+                List<Pair<Double, Long>> kbs = velocities.get(p.getUniqueId());
                 //pending knockbacks must be in order; get the first entry in the list.
                 //if the first entry doesn't work (probably because they were fired on the same tick),
                 //then work down the list until we find something
                 int kbIndex;
-                for(kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
-                    DoubleTime kb = kbs.get(kbIndex);
-                    if(System.currentTimeMillis() - kb.time <= ServerUtils.getPing(p) + 200) {
-                        if(Math.abs(kb.value - deltaY) < 0.01) {
-                            lastDeltaY.put(p.getUniqueId(), kb.value);
+                for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
+                    Pair<Double, Long> kb = kbs.get(kbIndex);
+                    if (System.currentTimeMillis() - kb.getValue() <= ServerUtils.getPing(p) + 200) {
+                        if (Math.abs(kb.getKey() - deltaY) < 0.01) {
+                            lastDeltaY.put(p.getUniqueId(), kb.getKey());
                             kbs = kbs.subList(kbIndex + 1, kbs.size());
                             break;
                         }
@@ -103,47 +128,46 @@ public class Fly extends AsyncMovementCheck implements Listener {
             double epsilon = 0.03;
 
             //lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) - 0.025) * 0.8); //water function
-            if(AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WEB)) {
+            if (AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WEB)) {
                 lastDeltaY.put(p.getUniqueId(), -0.007);
                 epsilon = 0.000001;
-                if(AdjacentBlocks.onGroundReally(event.getTo().clone().add(0, -0.03, 0), -1, false))
+                if (AdjacentBlocks.onGroundReally(event.getTo().clone().add(0, -0.03, 0), -1, false))
                     return;
-            }
-            else
+            } else
                 lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) - 0.08) * 0.98);
 
             //handle teleport
-            if(event.hasTeleported()) {
+            if (event.hasTeleported()) {
                 lastDeltaY.put(p.getUniqueId(), 0D);
                 expectedDeltaY = 0;
                 legitLoc.put(p.getUniqueId(), event.getTo());
             }
 
-            if(deltaY - expectedDeltaY > epsilon && event.hasDeltaPos()) { //oopsie daisy. client made a goof up
+            if (deltaY - expectedDeltaY > epsilon && event.hasDeltaPos()) { //oopsie daisy. client made a goof up
 
                 //wait one little second: minecraft is being a pain in the ass and it wants to play tricks when you parkour on the very edge of blocks
                 //we need to check this first...
-                if(deltaY < 0) {
+                if (deltaY < 0) {
                     Location checkLoc = event.getFrom().clone();
                     checkLoc.setY(event.getTo().getY());
-                    if(AdjacentBlocks.onGroundReally(checkLoc, deltaY, false)) {
-                        onGroundStuff(p, event);
+                    if (AdjacentBlocks.onGroundReally(checkLoc, deltaY, false)) {
+                        onGroundStuff(p);
                         return;
                     }
                     //extrapolate move BEFORE getFrom, then check
                     checkLoc.setY(event.getFrom().getY());
                     checkLoc.setX(checkLoc.getX() - (event.getTo().getX() - event.getFrom().getX()));
                     checkLoc.setZ(checkLoc.getZ() - (event.getTo().getZ() - event.getFrom().getZ()));
-                    if(AdjacentBlocks.onGroundReally(checkLoc, deltaY, false)) {
-                        onGroundStuff(p, event);
+                    if (AdjacentBlocks.onGroundReally(checkLoc, deltaY, false)) {
+                        onGroundStuff(p);
                         return;
                     }
                 }
 
                 //scold the child
-                punish(pp);
+                punish(pp, false, event);
                 tryRubberband(event, legitLoc.getOrDefault(p.getUniqueId(), p.getLocation()));
-                lastDeltaY.put(p.getUniqueId(), canCancel()? 0:deltaY);
+                lastDeltaY.put(p.getUniqueId(), canCancel() ? 0 : deltaY);
                 failedSoDontUpdateRubberband.add(p.getUniqueId());
                 return;
             }
@@ -151,29 +175,27 @@ public class Fly extends AsyncMovementCheck implements Listener {
             reward(pp);
 
             //the player is in air now, since they have a positive Y velocity and they're not on the ground
-            if(inAir.contains(p.getUniqueId()))
+            if (inAir.contains(p.getUniqueId()))
                 //upwards now
                 stupidMoves.put(p.getUniqueId(), 0);
 
             //handle stupid moves, because the client tends to want to jump a little late if you jump off the edge of a block
-            if(stupidMoves.getOrDefault(p.getUniqueId(), 0) >= STUPID_MOVES || (deltaY > 0 && AdjacentBlocks.onGroundReally(event.getFrom(), -1, true)))
+            if (stupidMoves.getOrDefault(p.getUniqueId(), 0) >= STUPID_MOVES || (deltaY > 0 && AdjacentBlocks.onGroundReally(event.getFrom(), -1, true)))
                 //falling now
                 inAir.add(p.getUniqueId());
             stupidMoves.put(p.getUniqueId(), stupidMoves.getOrDefault(p.getUniqueId(), 0) + 1);
+        } else {
+            onGroundStuff(p);
         }
 
-        else {
-            onGroundStuff(p, event);
-        }
-
-        if(!failedSoDontUpdateRubberband.contains(p.getUniqueId()) || event.isOnGroundReally()) {
+        if (!failedSoDontUpdateRubberband.contains(p.getUniqueId()) || event.isOnGroundReally()) {
             legitLoc.put(p.getUniqueId(), p.getLocation());
             failedSoDontUpdateRubberband.remove(p.getUniqueId());
         }
 
     }
 
-    private void onGroundStuff(Player p, PositionEvent e) {
+    private void onGroundStuff(Player p) {
         lastDeltaY.put(p.getUniqueId(), 0D);
         inAir.remove(p.getUniqueId());
         stupidMoves.put(p.getUniqueId(), 0);
@@ -182,16 +204,16 @@ public class Fly extends AsyncMovementCheck implements Listener {
     //TODO: Fix issues on edge of chunks
     private boolean isOnBoat(Location loc) {
         Chunk chunk = ServerUtils.getChunkAsync(loc);
-        if(chunk == null)
+        if (chunk == null)
             return false;
         Entity[] entities = chunk.getEntities().clone(); //Thread safety (IOOB exception), so clone?
-        for(Entity entity : entities) {
-            if(entity instanceof Boat) {
+        for (Entity entity : entities) {
+            if (entity instanceof Boat) {
                 AABB boatBB = EntityNMS.getEntityNMS(entity).getCollisionBox();
                 AABB feet = new AABB(
                         new Vector(-0.3, -0.4, -0.3).add(loc.toVector()),
                         new Vector(0.3, 0, 0.3).add(loc.toVector()));
-                if(feet.isColliding(boatBB))
+                if (feet.isColliding(boatBB))
                     return true;
             }
         }
@@ -204,8 +226,8 @@ public class Fly extends AsyncMovementCheck implements Listener {
     }
 
     private int getJumpBoostLvl(Player p) {
-        for(PotionEffect pEffect : p.getActivePotionEffects()) {
-            if(pEffect.getType().equals(PotionEffectType.JUMP)) {
+        for (PotionEffect pEffect : p.getActivePotionEffects()) {
+            if (pEffect.getType().equals(PotionEffectType.JUMP)) {
                 return pEffect.getAmplifier() + 1;
             }
         }
@@ -216,30 +238,18 @@ public class Fly extends AsyncMovementCheck implements Listener {
     public void onVelocity(PlayerVelocityEvent e) {
         UUID uuid = e.getPlayer().getUniqueId();
         Vector vector = null;
-        if(Hawk.getServerVersion() == 7) {
+        if (Hawk.getServerVersion() == 7) {
             vector = e.getVelocity();
-        }
-        else if(Hawk.getServerVersion() == 8) {
+        } else if (Hawk.getServerVersion() == 8) {
             //lmao Bukkit is broken. event velocity is broken when attacked by a player (NMS.EntityHuman.java, attack(Entity))
             vector = e.getPlayer().getVelocity();
         }
-        if(vector == null)
+        if (vector == null)
             return;
 
-        List<DoubleTime> kbs = velocities.getOrDefault(uuid, new ArrayList<>());
-        kbs.add(new DoubleTime(vector.getY(), System.currentTimeMillis()));
+        List<Pair<Double, Long>> kbs = velocities.getOrDefault(uuid, new ArrayList<>());
+        kbs.add(new Pair<>(vector.getY(), System.currentTimeMillis()));
         velocities.put(uuid, kbs);
-    }
-
-    private class DoubleTime {
-
-        private double value;
-        private long time;
-
-        private DoubleTime(double value, long time) {
-            this.value = value;
-            this.time = time;
-        }
     }
 
     @Override

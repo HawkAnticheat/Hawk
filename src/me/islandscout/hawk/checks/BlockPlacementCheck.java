@@ -11,25 +11,25 @@ import org.bukkit.block.Block;
 
 import java.util.List;
 
-public abstract class AsyncBlockPlacementCheck extends AsyncCheck<BlockPlaceEvent> {
+public abstract class BlockPlacementCheck extends Check<BlockPlaceEvent> {
 
-    public AsyncBlockPlacementCheck(String name, boolean enabled, int cancelThreshold, int flagThreshold, double vlPassMultiplier, long flagCooldown, String flag, List<String> punishCommands) {
+    protected BlockPlacementCheck(String name, boolean enabled, int cancelThreshold, int flagThreshold, double vlPassMultiplier, long flagCooldown, String flag, List<String> punishCommands) {
         super(name, enabled, cancelThreshold, flagThreshold, vlPassMultiplier, flagCooldown, flag, punishCommands);
+        hawk.getCheckManager().getBlockPlacementChecks().add(this);
     }
 
-    public AsyncBlockPlacementCheck(String name, String flag) {
-        super(name, true, 0, 5, 0.9,  1000, flag, null);
+    protected BlockPlacementCheck(String name, String flag) {
+        this(name, true, 0, 5, 0.9, 5000, flag, null);
     }
 
     protected void punishAndTryCancelAndBlockDestroy(HawkPlayer offender, BlockPlaceEvent event, Placeholder... placeholders) {
         punish(offender, true, event, placeholders);
         Block b = ServerUtils.getBlockAsync(event.getLocation());
-        if(offender.getVL(this) < cancelThreshold || b == null)
+        if (offender.getVL(this) < cancelThreshold || b == null)
             return;
-        if(Hawk.getServerVersion() == 7) {
+        if (Hawk.getServerVersion() == 7) {
             BlockNMS7.getBlockNMS(b).sendPacketToPlayer(offender.getPlayer());
-        }
-        else if(Hawk.getServerVersion() == 8) {
+        } else if (Hawk.getServerVersion() == 8) {
             BlockNMS8.getBlockNMS(b).sendPacketToPlayer(offender.getPlayer());
         }
     }

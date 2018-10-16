@@ -8,11 +8,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class HawkCommand implements CommandExecutor {
 
-    private List<Argument> arguments;
+    private final List<Argument> arguments;
 
     private final Hawk hawk;
     private static final String NO_PERMISSION = ChatColor.RED + "You do not have permission to perform this action.";
@@ -33,33 +34,39 @@ public class HawkCommand implements CommandExecutor {
         arguments.add(new MsgArgument());
         arguments.add(new BroadcastArgument());
         arguments.add(new DevArgument());
+        arguments.add(new BanArgument());
+        arguments.add(new MuteArgument());
+        arguments.add(new UnbanArgument());
+        arguments.add(new UnmuteArgument());
 
-        Argument.setHawkReference(hawk);
+        Collections.sort(arguments);
+
+        Argument.hawk = hawk;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if(args.length > 0) {
-            for(Argument arg : arguments) {
+        if (args.length > 0) {
+            //TODO: Do a binary search here
+            for (Argument arg : arguments) {
                 String argName = arg.getName();
-                if(argName.equalsIgnoreCase(args[0])) {
-                    if(!sender.hasPermission(Hawk.BASE_PERMISSION + ".cmd." + argName)) {
+                if (argName.equalsIgnoreCase(args[0])) {
+                    if (!sender.hasPermission(Hawk.BASE_PERMISSION + ".cmd." + argName)) {
                         sender.sendMessage(NO_PERMISSION);
                         return true;
-                    }
-                    else {
-                        if(!arg.process(sender, cmd, label, args)) {
+                    } else {
+                        if (!arg.process(sender, cmd, label, args)) {
                             sender.sendMessage(ChatColor.RED + "Usage: /hawk " + arg.getUsage());
                         }
                         return true;
                     }
                 }
             }
-            if(args[0].equalsIgnoreCase("help")) {
-                if(args.length > 1) {
+            if (args[0].equalsIgnoreCase("help")) {
+                if (args.length > 1) {
                     int pageNumber = -1;
                     try {
-                        pageNumber = Integer.parseInt(args[1]);
+                        pageNumber = Integer.parseInt(args[1]) - 1;
                     } catch (NumberFormatException ignore) {
                     }
                     if (pageNumber < 0) {
@@ -68,19 +75,16 @@ public class HawkCommand implements CommandExecutor {
                     } else {
                         sendUsage(sender, pageNumber);
                     }
-                }
-                else {
+                } else {
                     sendUsage(sender, 0);
                 }
-            }
-            else {
+            } else {
                 sendUsage(sender, 0);
                 sender.sendMessage(ChatColor.RED + "Unknown argument.");
             }
-        }
-        else {
+        } else {
             sendUsage(sender, 0);
-            if(sender instanceof Player) {
+            if (sender instanceof Player) {
                 hawk.getGuiManager().sendMenuWindow((Player) sender);
             }
         }
@@ -88,17 +92,17 @@ public class HawkCommand implements CommandExecutor {
     }
 
     private void sendUsage(CommandSender sender, int pageNumber) {
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m-----------------&r &8&l[ &eHawk AntiCheat &8&l]&r &7&m-----------------"));
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m-----------------&r &8&l[ &eHawk Anticheat &8&l]&r &7&m-----------------"));
         int maxPage = (arguments.size() - 1) / ENTRIES_PER_PAGE;
-        if(pageNumber > maxPage)
+        if (pageNumber > maxPage)
             pageNumber = maxPage;
         int argsIndex = pageNumber * ENTRIES_PER_PAGE;
         int pageMaxIndex = argsIndex + ENTRIES_PER_PAGE;
-        for(int i = argsIndex; i < pageMaxIndex && i < arguments.size(); i++) {
+        for (int i = argsIndex; i < pageMaxIndex && i < arguments.size(); i++) {
             Argument argument = arguments.get(i);
             sender.sendMessage(ChatColor.GOLD + "/hawk " + argument.getUsage() + ": " + ChatColor.GRAY + argument.getDescription());
         }
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m----------------------&r &8[ &e" + pageNumber + ":" + maxPage + " &8] &7&m----------------------"));
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m----------------------&r &8[ &ePage " + (pageNumber + 1) + " of " + (maxPage + 1) + " &8] &7&m----------------------"));
         sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GOLD + "WARNING: " + ChatColor.RESET + "This product is still not ready for release. You will most likely encounter issues.");
         sender.sendMessage("Please report any issues you find on the Discord server @ https://discord.gg/rQGb5DV");
         sender.sendMessage(ChatColor.GRAY + "Build " + Hawk.BUILD_NAME);

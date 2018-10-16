@@ -13,7 +13,7 @@ public class WrappedPacket7 extends WrappedPacket {
     }
 
     public Packet getPacket() {
-        return (Packet)packet;
+        return (Packet) packet;
     }
 
     public void setByte(int index, int value) {

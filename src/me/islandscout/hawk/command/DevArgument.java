@@ -6,6 +6,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DevArgument extends Argument {
 
@@ -26,17 +30,22 @@ public class DevArgument extends Argument {
             nmsPackage = net.minecraft.server.v1_7_R4.MinecraftServer.class.getPackage().getName();
         sender.sendMessage("NMS ver.: " + nmsPackage.substring(nmsPackage.lastIndexOf(".") + 1));
         sender.sendMessage("Hawk ver.: " + Hawk.BUILD_NAME);
-        if(sender instanceof Player) {
-            int clientVer = ServerUtils.getClientVersion((Player)sender);
+        if (sender instanceof Player) {
+            int clientVer = ServerUtils.getClientVersion((Player) sender);
             sender.sendMessage("Possible client ver.: 1." + clientVer + ".x");
-            sender.sendMessage("Ping: " + ServerUtils.getPing((Player)sender) + "ms");
-        }
-        else {
+            sender.sendMessage("Ping: " + ServerUtils.getPing((Player) sender) + "ms");
+        } else {
             sender.sendMessage("Possible client ver.: N/A");
             sender.sendMessage("Ping: N/A");
         }
         sender.sendMessage("TPS: " + ServerUtils.getTps());
         sender.sendMessage("Load: " + ServerUtils.getStress());
+        List<String> plugNames = new ArrayList<>();
+        for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+            plugNames.add(plugin.getName()); //we want ALL loaded plugins, even disabled plugins
+        }
+        sender.sendMessage("Plugins loaded (" + Bukkit.getPluginManager().getPlugins().length + "): "
+                + String.join(",", plugNames));
         return true;
     }
 }

@@ -1,7 +1,7 @@
 package me.islandscout.hawk.checks.movement;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.checks.AsyncMovementCheck;
+import me.islandscout.hawk.checks.MovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.ConfigHelper;
 import org.bukkit.ChatColor;
@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-public class ClockSpeed extends AsyncMovementCheck {
+public class ClockSpeed extends MovementCheck {
 
     //TODO: you might actually want to listen to flying packets in general, since position events will not go through during teleport
     //TODO: Cancel eating/shooting/regen if this fails
@@ -24,7 +24,7 @@ public class ClockSpeed extends AsyncMovementCheck {
     private final double CALIBRATE_FASTER;
 
     public ClockSpeed() {
-        super("clockspeed", true, 5, 10, 0.995, 10000, "&7%player% failed clockspeed. VL: %vl%, ping: %ping%, TPS: %tps%", null);
+        super("clockspeed", true, 5, 10, 0.995, 10000, "%player% failed clockspeed. VL: %vl%, ping: %ping%, TPS: %tps%", null);
         prevNanoTime = new HashMap<>();
         penalize = new HashSet<>();
         clockDrift = new HashMap<>();
@@ -39,10 +39,10 @@ public class ClockSpeed extends AsyncMovementCheck {
     protected void check(PositionEvent event) {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
-        if(event.hasTeleported())
+        if (event.hasTeleported())
             return;
         long time = System.nanoTime();
-        if(!prevNanoTime.containsKey(p.getUniqueId())) {
+        if (!prevNanoTime.containsKey(p.getUniqueId())) {
             prevNanoTime.put(p.getUniqueId(), time);
             return;
         }
@@ -51,18 +51,17 @@ public class ClockSpeed extends AsyncMovementCheck {
 
         long drift = clockDrift.getOrDefault(p.getUniqueId(), 0L);
         drift += time - 50000000L;
-        if(drift > MAX_CATCHUP_TIME)
+        if (drift > MAX_CATCHUP_TIME)
             drift = MAX_CATCHUP_TIME;
-        if(DEBUG) {
+        if (DEBUG) {
             double msOffset = drift * 1E-6;
-            p.sendMessage((msOffset < 0 ? (msOffset < THRESHOLD ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.BLUE) + "CLOCK DRIFT: " + msOffset + "ms");
+            p.sendMessage((msOffset < 0 ? (msOffset < THRESHOLD ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.BLUE) + "CLOCK DRIFT: " + -msOffset + "ms");
         }
-        if(drift * 1E-6 < THRESHOLD) {
+        if (drift * 1E-6 < THRESHOLD) {
             punishAndTryRubberband(pp, event, p.getLocation());
-        }
-        else
+        } else
             reward(pp);
-        if(drift < 0)
+        if (drift < 0)
             drift *= CALIBRATE_FASTER;
         else
             drift *= CALIBRATE_SLOWER;

@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 
 public abstract class BlockNMS {
 
-    private Block block;
+    private final Block block;
     float strength;
     AABB hitbox;
     AABB[] collisionBoxes;
@@ -39,15 +39,15 @@ public abstract class BlockNMS {
     }
 
     public boolean isColliding(AABB other) {
-        for(AABB cBox : collisionBoxes) {
-            if(cBox.isColliding(other))
+        for (AABB cBox : collisionBoxes) {
+            if (cBox.isColliding(other))
                 return true;
         }
         return false;
     }
 
     public static BlockNMS getBlockNMS(Block b) {
-        if(Hawk.getServerVersion() == 8)
+        if (Hawk.getServerVersion() == 8)
             return new BlockNMS8(b);
         else
             return new BlockNMS7(b);
@@ -58,6 +58,7 @@ public abstract class BlockNMS {
     }
 
     //Man, I hate having to do this. I don't know why Bukkit is confused over the definition of SOLID.
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isSolid() {
         return solid;
     }

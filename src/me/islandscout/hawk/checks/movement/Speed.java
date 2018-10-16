@@ -1,14 +1,13 @@
 package me.islandscout.hawk.checks.movement;
 
+import javafx.util.Pair;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.checks.AsyncMovementCheck;
+import me.islandscout.hawk.checks.MovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
-import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.ServerUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -24,14 +23,13 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 
-public class Speed extends AsyncMovementCheck implements Listener {
+public class Speed extends MovementCheck implements Listener {
 
     //This was moved from the old Hawk codebase.
     //I hate having to dig around this horror. But, hey, if this works, I'm leaving this alone.
     //I'm gonna bet that a bypass will pop up. In that case, I'll have to redo this entire thing.
 
-    //TODO: CLEAN THIS HELL HOLE UP
-    //TODO: YOU MUST GET BLOCKS USING SERVERUTILS!!!
+    //THIS IS BEING REWRITTEN
 
     private static final int WATER_TREAD_GRACE = 12;
     private static final int WATER_UNDER_GRACE = 16;
@@ -47,20 +45,20 @@ public class Speed extends AsyncMovementCheck implements Listener {
     private static double FRICTION_GROUND = 0.46;
     private static final double EPSILON = 0.035;
 
-    private Map<UUID, Integer> sprintgracetimer;
-    private Map<UUID, Integer> speedygrace;
-    private Map<UUID, Integer> speedygracetimer;
-    private Map<UUID, Integer> speedbuffer;
-    private Map<UUID, Integer> speed1;
-    private Map<UUID, Integer> sneakgrace;
-    private Map<UUID, Integer> watergrace;
-    private Map<UUID, Location> lastLegitLoc;
-    private Map<UUID, Long> penalizeTimestamp;
-    private Map<UUID, List<DoubleTime>> velocities; //launch velocities
-    private Map<UUID, Double> launchVelocity;
+    private final Map<UUID, Integer> sprintgracetimer;
+    private final Map<UUID, Integer> speedygrace;
+    private final Map<UUID, Integer> speedygracetimer;
+    private final Map<UUID, Integer> speedbuffer;
+    private final Map<UUID, Integer> speed1;
+    private final Map<UUID, Integer> sneakgrace;
+    private final Map<UUID, Integer> watergrace;
+    private final Map<UUID, Location> lastLegitLoc;
+    private final Map<UUID, Long> penalizeTimestamp;
+    private final Map<UUID, List<Pair<Double, Long>>> velocities; //launch velocities
+    private final Map<UUID, Double> launchVelocity;
 
     public Speed() {
-        super("speed", true, 0, 10, 0.995, 2000,"&7%player% failed speed. VL: %vl%", null);
+        super("speed", true, 0, 10, 0.995, 5000, "%player% failed speed. VL: %vl%", null);
         sprintgracetimer = new HashMap<>();
         speedygrace = new HashMap<>();
         speedygracetimer = new HashMap<>();
@@ -82,13 +80,14 @@ public class Speed extends AsyncMovementCheck implements Listener {
     public void check(PositionEvent event) {
         final Player player = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
-        if(event.hasTeleported())
+        if (event.hasTeleported())
             lastLegitLoc.put(player.getUniqueId(), event.getTo());
-        if (!player.isFlying()) { //TODO: give a bit of grace time after one toggles fly off
+        if (!player.isFlying()) {
+
+            if (!event.hasDeltaPos())
+                return;
 
             double finalspeed = Math.pow(event.getTo().getX() - event.getFrom().getX(), 2) + Math.pow(event.getTo().getZ() - event.getFrom().getZ(), 2);
-            if(finalspeed < 0.0001)
-                return;
 
             double speedThresSoft = SPEED_THRES_SOFT;
             double speedThresHard = SPEED_THRES_HARD;
@@ -188,7 +187,7 @@ public class Speed extends AsyncMovementCheck implements Listener {
                             speedbuffer.put(player.getUniqueId(), 0); //reset speed buffer once player has dove into the water
                         }
                     }
-                    if(Hawk.getServerVersion() > 7 && player.getInventory().getBoots() != null)
+                    if (Hawk.getServerVersion() > 7 && player.getInventory().getBoots() != null)
                         speedThresSoft += 0.0386 * player.getInventory().getBoots().getEnchantmentLevel(Enchantment.DEPTH_STRIDER); //increase threshold if player has depth-strider enchant
                     if (!(AdjacentBlocks.matContainsStringIsAdjacent(event.getTo().clone().add(0, 1, 0), "WATER") || AdjacentBlocks.matContainsStringIsAdjacent(event.getTo().clone().add(0, 1, 0), "LAVA"))) {
                         watergrace.put(player.getUniqueId(), 0); //set delay back to 0 if still treading water
@@ -230,17 +229,17 @@ public class Speed extends AsyncMovementCheck implements Listener {
             }
 
             //handle any pending knockbacks
-            if(velocities.containsKey(player.getUniqueId()) && velocities.get(player.getUniqueId()).size() > 0) {
-                List<DoubleTime> kbs = velocities.get(player.getUniqueId());
+            if (velocities.containsKey(player.getUniqueId()) && velocities.get(player.getUniqueId()).size() > 0) {
+                List<Pair<Double, Long>> kbs = velocities.get(player.getUniqueId());
                 //pending knockbacks must be in order; get the first entry in the list.
                 //if the first entry doesn't work (probably because they were fired on the same tick),
                 //then work down the list until we find something
                 int kbIndex;
-                for(kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
-                    DoubleTime kb = kbs.get(kbIndex);
-                    if(System.currentTimeMillis() - kb.time <= ServerUtils.getPing(player) + 200) {
-                        if(Math.abs(kb.value - finalspeed) < 0.01) {
-                            launchVelocity.put(player.getUniqueId(), kb.value);
+                for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
+                    Pair<Double, Long> kb = kbs.get(kbIndex);
+                    if (System.currentTimeMillis() - kb.getValue() <= ServerUtils.getPing(player) + 200) {
+                        if (Math.abs(kb.getKey() - finalspeed) < 0.01) {
+                            launchVelocity.put(player.getUniqueId(), kb.getKey());
                             kbs = kbs.subList(kbIndex + 1, kbs.size());
                             break;
                         }
@@ -248,19 +247,19 @@ public class Speed extends AsyncMovementCheck implements Listener {
                 }
                 velocities.put(player.getUniqueId(), kbs);
             }
-            if(launchVelocity.getOrDefault(player.getUniqueId(), 0D) > 0) {
+            if (launchVelocity.getOrDefault(player.getUniqueId(), 0D) > 0) {
                 speedThresSoft = Math.max(speedThresSoft, launchVelocity.getOrDefault(player.getUniqueId(), 0D));
                 speedThresHard = Math.max(speedThresSoft, speedThresHard);
                 //applying horizontal friction
                 //on ground
-                if(AdjacentBlocks.onGroundReally(event.getFrom(), -1, false)) {
+                if (AdjacentBlocks.onGroundReally(event.getFrom(), -1, false)) {
                     launchVelocity.put(player.getUniqueId(), launchVelocity.get(player.getUniqueId()) * FRICTION_GROUND);
                 }
                 //in air
                 else {
                     launchVelocity.put(player.getUniqueId(), launchVelocity.get(player.getUniqueId()) * FRICTION_AIR);
                 }
-                if(launchVelocity.get(player.getUniqueId()) <= 0.05)
+                if (launchVelocity.get(player.getUniqueId()) <= 0.05)
                     launchVelocity.remove(player.getUniqueId());
             }
 
@@ -288,13 +287,13 @@ public class Speed extends AsyncMovementCheck implements Listener {
         }
 
         reward(pp);
-        if(System.currentTimeMillis() - penalizeTimestamp.getOrDefault(player.getUniqueId(), 0L) >= 500)
+        if (System.currentTimeMillis() - penalizeTimestamp.getOrDefault(player.getUniqueId(), 0L) >= 500)
             lastLegitLoc.put(player.getUniqueId(), player.getLocation());
     }
 
     private void startLoops() {
         Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, () -> {
-            for(Player player : Bukkit.getOnlinePlayers()) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
                 speedbuffer.put(player.getUniqueId(), 0);
             }
         }, 0L, 20L);
@@ -339,31 +338,19 @@ public class Speed extends AsyncMovementCheck implements Listener {
     public void onVelocity(PlayerVelocityEvent e) {
         UUID uuid = e.getPlayer().getUniqueId();
         Vector vector = null;
-        if(Hawk.getServerVersion() == 7) {
+        if (Hawk.getServerVersion() == 7) {
             vector = e.getVelocity();
-        }
-        else if(Hawk.getServerVersion() == 8) {
+        } else if (Hawk.getServerVersion() == 8) {
             //lmao Bukkit is broken. event velocity is broken when attacked by a player (NMS.EntityHuman.java, attack(Entity))
             vector = e.getPlayer().getVelocity();
         }
-        if(vector == null)
+        if (vector == null)
             return;
 
         Vector horizVelocity = new Vector(vector.getX(), 0, vector.getZ());
-        List<DoubleTime> kbs = velocities.getOrDefault(uuid, new ArrayList<>());
-        kbs.add(new DoubleTime(horizVelocity.lengthSquared(), System.currentTimeMillis()));
+        List<Pair<Double, Long>> kbs = velocities.getOrDefault(uuid, new ArrayList<>());
+        kbs.add(new Pair<>(horizVelocity.lengthSquared(), System.currentTimeMillis()));
         velocities.put(uuid, kbs);
-    }
-
-    private class DoubleTime {
-
-        private double value;
-        private long time;
-
-        private DoubleTime(double value, long time) {
-            this.value = value;
-            this.time = time;
-        }
     }
 
     public void removeData(Player player) {

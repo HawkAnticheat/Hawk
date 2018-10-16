@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 
 public class ArmSwingEvent extends Event {
 
-    private int type;
+    private final int type;
 
     public ArmSwingEvent(Player p, HawkPlayer pp, int type, WrappedPacket packet) {
         super(p, pp, packet);

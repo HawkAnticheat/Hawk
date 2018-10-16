@@ -10,33 +10,32 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class TextLogger {
+public class ViolationLogger {
 
-    private Hawk hawk;
+    private final Hawk hawk;
     private File storageFile;
-    private List<String> buffer = new ArrayList<>();
-    private boolean enabled;
+    private final List<String> buffer = new ArrayList<>();
+    private final boolean enabled;
 
-    public TextLogger(Hawk hawk, boolean enabled) {
+    public ViolationLogger(Hawk hawk, boolean enabled) {
         this.hawk = hawk;
         this.enabled = enabled;
     }
 
     public void prepare(File loggerFile) {
         storageFile = loggerFile;
-        if(!storageFile.exists() && enabled) {
+        if (!storageFile.exists() && enabled) {
             try {
                 //noinspection ResultOfMethodCallIgnored
                 storageFile.createNewFile();
-            }
-            catch(IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
     public void logMessage(String message) {
-        if(!enabled) return;
+        if (!enabled) return;
         message = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('§', message));
         Calendar date = Calendar.getInstance();
         String hour = date.get(Calendar.HOUR_OF_DAY) < 10 ? "0" + date.get(Calendar.HOUR_OF_DAY) : "" + date.get(Calendar.HOUR_OF_DAY);
@@ -46,16 +45,15 @@ public class TextLogger {
     }
 
     void updateFile() {
-        if(!enabled) return;
-        if(buffer.size() == 0) return;
-        List<String> asyncList = new ArrayList<>();
-        asyncList.addAll(buffer);
+        if (!enabled) return;
+        if (buffer.size() == 0) return;
+        List<String> asyncList = new ArrayList<>(buffer);
         buffer.clear();
         BukkitScheduler hawkLogger = Bukkit.getServer().getScheduler();
         hawkLogger.runTaskAsynchronously(hawk, () -> {
-            try(FileWriter fw = new FileWriter(storageFile, true);
-                BufferedWriter bw = new BufferedWriter(fw);
-                PrintWriter out = new PrintWriter(bw)) {
+            try (FileWriter fw = new FileWriter(storageFile, true);
+                 BufferedWriter bw = new BufferedWriter(fw);
+                 PrintWriter out = new PrintWriter(bw)) {
                 for (String aBuffer : asyncList) {
                     out.println(aBuffer);
                 }

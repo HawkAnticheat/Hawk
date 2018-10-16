@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
  */
 public class JSONMessageSender {
 
-    private TextComponent msg;
+    private final TextComponent msg;
 
     public JSONMessageSender(String message) {
         this.msg = new TextComponent(message);

@@ -4,8 +4,8 @@ public abstract class WrappedPacket {
 
     //I should probably make a nice API for this. Unfortunately, I don't have THAT much
     //time on my hands to spare.
-    protected Object packet;
-    private PacketType type;
+    protected final Object packet;
+    private final PacketType type;
 
     WrappedPacket(Object packet, PacketType type) {
         this.packet = packet;

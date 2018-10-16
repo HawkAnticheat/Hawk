@@ -1,13 +1,12 @@
 package me.islandscout.hawk;
 
-import me.islandscout.hawk.checks.CheckManager;
+import me.islandscout.hawk.modules.CheckManager;
 import me.islandscout.hawk.command.HawkCommand;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.events.external.HawkViolationEvent;
-import me.islandscout.hawk.gui.GUIManager;
-import me.islandscout.hawk.listener.BukkitListener;
-import me.islandscout.hawk.utils.ConfigHelper;
+import me.islandscout.hawk.modules.GUIManager;
 import me.islandscout.hawk.modules.*;
+import me.islandscout.hawk.utils.ConfigHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
@@ -19,33 +18,39 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Hawk extends JavaPlugin {
 
-    //Words cannot describe how awful I think this game is.
+    //I take that back: this game does have its problems, but it's still fun to play on.
+    //Made with passion in the U.S.A.
 
     private CheckManager checkManager;
     private Scheduler scheduler;
     private SQL sql;
     private Hawk plugin;
     private PacketCore packetCore;
-    private TextLogger textLogger;
+    private ViolationLogger violationLogger;
     private FileConfiguration messages;
     private GUIManager guiManager;
     private LagCompensator lagCompensator;
+    private BanManager banManager;
+    private MuteManager muteManager;
     private Map<UUID, HawkPlayer> profiles;
     private static int SERVER_VERSION;
     public static String FLAG_PREFIX;
-    public static String BASE_PERMISSION = "hawk";
+    public static final String BASE_PERMISSION = "hawk";
     public static String BUILD_NAME;
     public static String FLAG_CLICK_COMMAND;
     private boolean callBukkitEvents;
     private boolean sendJSONMessages;
+    private boolean playSoundOnFlag;
 
     @Override
-    public void onEnable(){
+    public void onEnable() {
         plugin = this;
         BUILD_NAME = getDescription().getVersion();
         setServerVersion();
@@ -63,13 +68,14 @@ public class Hawk extends JavaPlugin {
 
     public void loadModules() {
         getLogger().info("Loading modules...");
-        getServer().getPluginManager().registerEvents(new BukkitListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerManager(this), this);
         messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
-        FLAG_PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cHAWK:", messages, "prefix"));
+        FLAG_PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cHAWK: &7", messages, "prefix"));
         callBukkitEvents = ConfigHelper.getOrSetDefault(false, getConfig(), "callBukkitEvents");
         sendJSONMessages = ConfigHelper.getOrSetDefault(false, getConfig(), "sendJSONMessages");
+        playSoundOnFlag = ConfigHelper.getOrSetDefault(false, getConfig(), "playSoundOnFlag");
         FLAG_CLICK_COMMAND = ConfigHelper.getOrSetDefault("tp %player%", getConfig(), "flagClickCommand");
-        if(sendJSONMessages && getServerVersion() == 7) {
+        if (sendJSONMessages && getServerVersion() == 7) {
             sendJSONMessages = false;
             Bukkit.getLogger().warning("Hawk cannot send JSON flag messages on a 1.7.10 server! Please use 1.8.8 to use this feature.");
         }
@@ -78,13 +84,17 @@ public class Hawk extends JavaPlugin {
         sql.createTableIfNotExists();
         guiManager = new GUIManager(this);
         lagCompensator = new LagCompensator(this);
+        banManager = new BanManager(this);
+        banManager.loadBannedPlayers();
+        muteManager = new MuteManager(this);
+        muteManager.loadMutedPlayers();
         startLoggerFile();
         checkManager = new CheckManager(plugin);
         checkManager.loadChecks();
         scheduler = new Scheduler(this);
         scheduler.startSchedulers();
         packetCore = new PacketCore(SERVER_VERSION, this);
-        packetCore.setupListenerOnlinePlayers();
+        packetCore.setupListenerForOnlinePlayers();
         registerCommand();
     }
 
@@ -97,38 +107,38 @@ public class Hawk extends JavaPlugin {
         guiManager = null;
         lagCompensator = null;
         checkManager = null;
+        banManager.saveBannedPlayers();
+        banManager = null;
+        muteManager.saveMutedPlayers();
+        muteManager = null;
         PositionEvent.discardData();
         profiles = null;
         sql.closeConnection();
         sql = null;
         Bukkit.getScheduler().cancelTasks(this);
         scheduler = null;
-        textLogger = null;
+        violationLogger = null;
     }
 
     public void saveConfigs() {
         saveConfig();
         try {
             messages.save(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             getLogger().severe("Could not save messages to messages.yml");
             e.printStackTrace();
         }
     }
 
-    private void registerCommand(){
-        plugin.getCommand("hawk").setExecutor(new HawkCommand(this));
-        Map<String, Map<String, Object>> map = getDescription().getCommands();
-        for (Map.Entry<String, Map<String, Object>> entry : map.entrySet()) {
-            PluginCommand command = getCommand(entry.getKey());
-            command.setPermission(Hawk.BASE_PERMISSION + ".cmd");
-            if(messages.isSet("unknownCommandMsg"))
-                command.setPermissionMessage(ChatColor.translateAlternateColorCodes('&', messages.getString("unknownCommandMsg")));
-            else {
-                messages.set("unknownCommandMsg", "Unknown command. Type \"/help\" for help.");
-                command.setPermissionMessage(ChatColor.translateAlternateColorCodes('&', messages.getString("unknownCommandMsg")));
-            }
+    private void registerCommand() {
+        PluginCommand cmd = plugin.getCommand("hawk");
+        cmd.setExecutor(new HawkCommand(this));
+        cmd.setPermission(Hawk.BASE_PERMISSION + ".cmd");
+        if (messages.isSet("unknownCommandMsg"))
+            cmd.setPermissionMessage(ChatColor.translateAlternateColorCodes('&', messages.getString("unknownCommandMsg")));
+        else {
+            messages.set("unknownCommandMsg", "Unknown command. Type \"/help\" for help.");
+            cmd.setPermissionMessage(ChatColor.translateAlternateColorCodes('&', messages.getString("unknownCommandMsg")));
         }
     }
 
@@ -136,22 +146,31 @@ public class Hawk extends JavaPlugin {
         boolean enabled = ConfigHelper.getOrSetDefault(true, getConfig(), "logToFile");
         String pluginFolder = plugin.getDataFolder().getAbsolutePath();
         File storageFile = new File(pluginFolder + File.separator + "logs.txt");
-        textLogger = new TextLogger(this, enabled);
-        textLogger.prepare(storageFile);
+        violationLogger = new ViolationLogger(this, enabled);
+        violationLogger.prepare(storageFile);
     }
 
     private void setServerVersion() {
-        if(Bukkit.getBukkitVersion().substring(0, 4).equals("1.7.")) SERVER_VERSION = 7;
-        else if(Bukkit.getBukkitVersion().substring(0, 4).equals("1.8.")) SERVER_VERSION = 8;
-        else SERVER_VERSION = 0;
-
+        switch (Bukkit.getBukkitVersion().substring(0, 4)) {
+            case "1.7.":
+                SERVER_VERSION = 7;
+                break;
+            case "1.8.":
+                SERVER_VERSION = 8;
+                break;
+            default:
+                SERVER_VERSION = 0;
+                break;
+        }
     }
 
     public FileConfiguration getMessages() {
         return messages;
     }
 
-    public CheckManager getCheckManager() { return checkManager; }
+    public CheckManager getCheckManager() {
+        return checkManager;
+    }
 
     public SQL getSql() {
         return plugin.sql;
@@ -167,7 +186,7 @@ public class Hawk extends JavaPlugin {
 
     public HawkPlayer getHawkPlayer(Player p) {
         HawkPlayer result = profiles.get(p.getUniqueId());
-        if(result == null) {
+        if (result == null) {
             addProfile(p);
             result = profiles.get(p.getUniqueId());
         }
@@ -186,16 +205,20 @@ public class Hawk extends JavaPlugin {
         profiles.remove(uuid);
     }
 
-    public PacketCore getPacketCore() {
-        return packetCore;
-    }
-
-    public TextLogger getTextLogger() {
-        return textLogger;
+    public ViolationLogger getViolationLogger() {
+        return violationLogger;
     }
 
     public LagCompensator getLagCompensator() {
         return lagCompensator;
+    }
+
+    public BanManager getBanManager() {
+        return banManager;
+    }
+
+    public MuteManager getMuteManager() {
+        return muteManager;
     }
 
     public boolean canCallBukkitEvents() {
@@ -204,5 +227,9 @@ public class Hawk extends JavaPlugin {
 
     public boolean canSendJSONMessages() {
         return sendJSONMessages;
+    }
+
+    public boolean canPlaySoundOnFlag() {
+        return playSoundOnFlag;
     }
 }

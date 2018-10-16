@@ -7,9 +7,9 @@ import org.bukkit.util.Vector;
 
 public class PhantomBlock {
 
-    private Location location;
-    private Material material;
-    private long initTime;
+    private final Location location;
+    private final Material material;
+    private final long initTime;
 
     public PhantomBlock(Location location, Material material) {
         this.location = location;
@@ -33,9 +33,9 @@ public class PhantomBlock {
         AABB feet = new AABB(
                 new Vector(-0.3, -0.01, -0.3).add(playerLoc.toVector()),
                 new Vector(0.3, 0, 0.3).add(playerLoc.toVector()));
-        for(PhantomBlock pBlock : pp.getPhantomBlocks()) {
+        for (PhantomBlock pBlock : pp.getPhantomBlocks()) {
             AABB cube = new AABB(pBlock.getLocation().toVector(), pBlock.getLocation().toVector().add(new Vector(1, 1, 1)));
-            if(feet.isColliding(cube)) {
+            if (feet.isColliding(cube)) {
                 return pBlock;
             }
         }

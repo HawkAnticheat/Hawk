@@ -7,21 +7,21 @@ import org.bukkit.entity.Player;
 
 public class Violation {
 
-    private Player player;
-    private Check check;
-    private long time;
-    private short ping;
-    private short vl;
-    private float tps;
-    private String server;
+    private final Player player;
+    private final Check check;
+    private final long time;
+    private final short ping;
+    private final short vl;
+    private final float tps;
+    private final String server;
 
     public Violation(HawkPlayer pp, Check check, short vl) {
         this.player = pp.getPlayer();
         this.check = check;
         this.time = System.currentTimeMillis();
-        this.ping = (short)ServerUtils.getPing(pp.getPlayer());
+        this.ping = (short) ServerUtils.getPing(pp.getPlayer());
         this.vl = vl;
-        this.tps = (float)ServerUtils.getTps();
+        this.tps = (float) ServerUtils.getTps();
         this.server = Bukkit.getServerName();
     }
 

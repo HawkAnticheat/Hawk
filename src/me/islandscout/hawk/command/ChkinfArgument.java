@@ -15,17 +15,18 @@ public class ChkinfArgument extends Argument {
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        if(args.length < 2)
+        if (args.length < 2)
             return false;
-        for(Check check : hawk.getCheckManager().getCheckList()) {
-            if(check.getName().equalsIgnoreCase(args[1])) {
+        for (Check check : hawk.getCheckManager().getChecks()) {
+            if (check.getName().equalsIgnoreCase(args[1])) {
                 sender.sendMessage(ChatColor.GOLD + "Basic information about check \"" + check.getName() + "\":");
+                sender.sendMessage(ChatColor.GOLD + "ID: " + check.getId());
                 sender.sendMessage(ChatColor.GOLD + "Status: " + (check.isEnabled() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED"));
                 sender.sendMessage(ChatColor.GOLD + "Category: " + check.getClass().getSuperclass().getSimpleName());
                 sender.sendMessage(ChatColor.GOLD + "Cancel: " + (check instanceof Cancelless ? ChatColor.GRAY + "N/A" : ((check.canCancel() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED"))));
                 sender.sendMessage(ChatColor.GOLD + "Flag: " + ((check.canFlag() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED")));
 
-                boolean bypass = sender.hasPermission(check.getBypassPermission()) || ((sender instanceof Player) && hawk.getCheckManager().getExemptList().containsPlayer(((Player) sender).getUniqueId()));
+                boolean bypass = sender.hasPermission(check.getBypassPermission()) || ((sender instanceof Player) && hawk.getCheckManager().getExemptedPlayers().contains(((Player) sender).getUniqueId()));
 
                 sender.sendMessage(ChatColor.GOLD + "You " + (!bypass ? "do not " : "") + "have permission to bypass this check.");
                 return true;
