@@ -1,10 +1,25 @@
+/*
+ * This file is part of Hawk Anticheat.
+ *
+ * Hawk Anticheat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Hawk Anticheat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Hawk Anticheat.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package me.islandscout.hawk;
 
-import me.islandscout.hawk.modules.CheckManager;
 import me.islandscout.hawk.command.HawkCommand;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.events.external.HawkViolationEvent;
-import me.islandscout.hawk.modules.GUIManager;
 import me.islandscout.hawk.modules.*;
 import me.islandscout.hawk.utils.ConfigHelper;
 import org.bukkit.Bukkit;
@@ -26,7 +41,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Hawk extends JavaPlugin {
 
     //I take that back: this game does have its problems, but it's still fun to play on.
-    //Made with passion in the U.S.A.
+    //If you don't like my HashMap soup, then guess what: I don't care.
+    //Made with passion in U.S.A.
 
     private CheckManager checkManager;
     private Scheduler scheduler;

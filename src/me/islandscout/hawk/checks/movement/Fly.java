@@ -1,3 +1,20 @@
+/*
+ * This file is part of Hawk Anticheat.
+ *
+ * Hawk Anticheat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Hawk Anticheat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Hawk Anticheat.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package me.islandscout.hawk.checks.movement;
 
 import javafx.util.Pair;
@@ -111,9 +128,10 @@ public class Fly extends MovementCheck implements Listener {
                 //if the first entry doesn't work (probably because they were fired on the same tick),
                 //then work down the list until we find something
                 int kbIndex;
+                long currTime = System.currentTimeMillis();
                 for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
                     Pair<Double, Long> kb = kbs.get(kbIndex);
-                    if (System.currentTimeMillis() - kb.getValue() <= ServerUtils.getPing(p) + 200) {
+                    if (currTime - kb.getValue() <= ServerUtils.getPing(p) + 200) {
                         if (Math.abs(kb.getKey() - deltaY) < 0.01) {
                             lastDeltaY.put(p.getUniqueId(), kb.getKey());
                             kbs = kbs.subList(kbIndex + 1, kbs.size());

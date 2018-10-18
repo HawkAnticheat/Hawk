@@ -1,3 +1,20 @@
+/*
+ * This file is part of Hawk Anticheat.
+ *
+ * Hawk Anticheat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Hawk Anticheat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Hawk Anticheat.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package me.islandscout.hawk.checks.movement;
 
 import javafx.util.Pair;
@@ -6,8 +23,10 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.MovementCheck;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.ServerUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -235,10 +254,11 @@ public class Speed extends MovementCheck implements Listener {
                 //if the first entry doesn't work (probably because they were fired on the same tick),
                 //then work down the list until we find something
                 int kbIndex;
+                long currTime = System.currentTimeMillis();
                 for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
                     Pair<Double, Long> kb = kbs.get(kbIndex);
-                    if (System.currentTimeMillis() - kb.getValue() <= ServerUtils.getPing(player) + 200) {
-                        if (Math.abs(kb.getKey() - finalspeed) < 0.01) {
+                    if (currTime - kb.getValue() <= ServerUtils.getPing(player) + 200) {
+                        if (Math.abs(Math.sqrt(kb.getKey()) - Math.sqrt(finalspeed)) < 0.15) { //such a big epsilon. I hate this game's movement
                             launchVelocity.put(player.getUniqueId(), kb.getKey());
                             kbs = kbs.subList(kbIndex + 1, kbs.size());
                             break;
@@ -348,8 +368,9 @@ public class Speed extends MovementCheck implements Listener {
             return;
 
         Vector horizVelocity = new Vector(vector.getX(), 0, vector.getZ());
+        double magnitude = horizVelocity.length() + 0.018; //add epsilon for precision errors
         List<Pair<Double, Long>> kbs = velocities.getOrDefault(uuid, new ArrayList<>());
-        kbs.add(new Pair<>(horizVelocity.lengthSquared(), System.currentTimeMillis()));
+        kbs.add(new Pair<>(magnitude * magnitude, System.currentTimeMillis()));
         velocities.put(uuid, kbs);
     }
 

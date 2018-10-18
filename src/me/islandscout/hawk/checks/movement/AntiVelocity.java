@@ -1,3 +1,20 @@
+/*
+ * This file is part of Hawk Anticheat.
+ *
+ * Hawk Anticheat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Hawk Anticheat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Hawk Anticheat.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package me.islandscout.hawk.checks.movement;
 
 import javafx.util.Pair;
@@ -8,6 +25,7 @@ import me.islandscout.hawk.checks.Cancelless;
 import me.islandscout.hawk.events.PositionEvent;
 import me.islandscout.hawk.utils.AdjacentBlocks;
 import me.islandscout.hawk.utils.ConfigHelper;
+import me.islandscout.hawk.utils.Debug;
 import me.islandscout.hawk.utils.ServerUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,28 +34,17 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class AntiVelocity extends MovementCheck implements Listener, Cancelless {
 
-    private final Map<UUID, Pair<Vector, Long>> initVelocities; //We're talking about initial launch velocities, on the tick
-    private final Map<UUID, Vector> velocityTracker;
-    private static double FRICTION_AIR = 0.09;
-    private static double FRICTION_WATER = 0.2;
-    private static double FRICTION_GROUND = 0.46;
-    private static final double EPSILON = 0.035;
-    private static boolean TRACK_PATH;
+    //this is such a pain
+
+    private final Map<UUID, List<Pair<Vector, Long>>> velocities; //launch velocities
 
     public AntiVelocity() {
-        super("antivelocity", true, -1, 5, 0.95, 5000, "%player% may be using antivelocity. VL: %vl%", null);
-        initVelocities = new HashMap<>();
-        velocityTracker = new HashMap<>();
-        FRICTION_AIR = (1 - FRICTION_AIR) * (1 - EPSILON);
-        FRICTION_WATER = 1 - FRICTION_WATER * (1 - EPSILON);
-        FRICTION_GROUND = 1 - FRICTION_GROUND * (1 - EPSILON);
-        TRACK_PATH = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.antivelocity.trackpath");
+        super("antivelocity", false, -1, 5, 0.95, 5000, "%player% may be using antivelocity. VL: %vl%", null);
+        velocities = new HashMap<>();
     }
 
     @Override
@@ -49,66 +56,29 @@ public class AntiVelocity extends MovementCheck implements Listener, Cancelless 
         int ping = ServerUtils.getPing(p);
         if (!p.isFlying() && !p.isInsideVehicle()) {
 
-            //Prepare to track player movement
-            if (initVelocities.containsKey(p.getUniqueId())) {
-                //discard if velocity is downwards
-                if (initVelocities.get(p.getUniqueId()).getKey().getY() < 0) {
-                    initVelocities.remove(p.getUniqueId());
-                    return;
+            //handle any pending knockbacks
+            if (velocities.containsKey(p.getUniqueId()) && velocities.get(p.getUniqueId()).size() > 0) {
+                List<Pair<Vector, Long>> kbs = velocities.get(p.getUniqueId());
+                //pending knockbacks must be in order; get the first entry in the list.
+                //if the first entry doesn't work (probably because they were fired on the same tick),
+                //then work down the list until we find something
+                int kbIndex;
+                for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
+                    Pair<Vector, Long> kb = kbs.get(kbIndex);
+                    if (currTime - kb.getValue() <= ping + 200) {
+                        if (currVelocity.angle(kb.getKey()) < 0.26 && currVelocity.clone().subtract(kb.getKey()).length() < 0.14) {
+                            reward(pp);
+                            kbs = kbs.subList(kbIndex + 1, kbs.size());
+                            break;
+                        }
+                    } else if (kbIndex == kbs.size() - 1){
+                        //We've waited too long. Flag the player.
+                        kbs.clear();
+                        punish(pp, false, event);
+                    }
                 }
-                double dot = currVelocity.dot(initVelocities.get(p.getUniqueId()).getKey());
-                //check if it's taking too long for the player to register the kb
-                if (currTime - initVelocities.get(p.getUniqueId()).getValue() > ping + 300) {
-                    punish(pp, false, event);
-                    initVelocities.remove(p.getUniqueId());
-                } else if (dot > 0.2) {
-                    //update tracker map
-                    if (!TRACK_PATH)
-                        reward(pp);
-                    velocityTracker.put(p.getUniqueId(), initVelocities.get(p.getUniqueId()).getKey());
-                    initVelocities.remove(p.getUniqueId());
-                }
+                velocities.put(p.getUniqueId(), kbs);
             }
-            if (!TRACK_PATH || !velocityTracker.containsKey(p.getUniqueId()) || initVelocities.containsKey(p.getUniqueId())) {
-                return;
-            }
-
-            //Now we can keep track of movement since we have a reference velocity to compare to
-            Vector expectedVelocity = velocityTracker.get(p.getUniqueId());
-
-            //clear map element if vector is no longer significant
-            if (expectedVelocity.lengthSquared() <= 0.1) {
-                velocityTracker.remove(p.getUniqueId());
-            } else {
-                Vector diff = currVelocity.clone().subtract(expectedVelocity);
-                double dot = diff.dot(expectedVelocity);
-                if (dot < -0.07) {
-                    punish(pp, false, event);
-                } else {
-                    reward(pp);
-                }
-            }
-
-            //update tracker by applying vertical friction
-            if (!event.isOnGroundReally())
-                expectedVelocity.setY((expectedVelocity.getY() - 0.08) * 0.98);
-            else {
-                expectedVelocity.setY(0);
-            }
-
-            //update tracker by applying horizontal friction
-            //on ground
-            if (AdjacentBlocks.onGroundReally(event.getFrom(), -1, false)) {
-                expectedVelocity.setX(expectedVelocity.getX() * FRICTION_GROUND);
-                expectedVelocity.setZ(expectedVelocity.getZ() * FRICTION_GROUND);
-            }
-            //in air
-            else {
-                expectedVelocity.setX(expectedVelocity.getX() * FRICTION_AIR);
-                expectedVelocity.setZ(expectedVelocity.getZ() * FRICTION_AIR);
-            }
-
-            //TODO: If collide with a solid block, clear tracker element.
 
         }
     }
@@ -125,12 +95,14 @@ public class AntiVelocity extends MovementCheck implements Listener, Cancelless 
         }
         if (vector == null)
             return;
-        initVelocities.put(uuid, new Pair<>(vector, System.currentTimeMillis()));
+
+        List<Pair<Vector, Long>> kbs = velocities.getOrDefault(uuid, new ArrayList<>());
+        kbs.add(new Pair<>(vector, System.currentTimeMillis()));
+        velocities.put(uuid, kbs);
     }
 
     @Override
     public void removeData(Player p) {
-        initVelocities.remove(p.getUniqueId());
-        velocityTracker.remove(p.getUniqueId());
+        velocities.remove(p.getUniqueId());
     }
 }
