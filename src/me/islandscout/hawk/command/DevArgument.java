@@ -45,7 +45,7 @@ public class DevArgument extends Argument {
             plugNames.add(plugin.getName()); //we want ALL loaded plugins, even disabled plugins
         }
         sender.sendMessage("Plugins loaded (" + Bukkit.getPluginManager().getPlugins().length + "): "
-                + String.join(",", plugNames));
+                + String.join(", ", plugNames));
         return true;
     }
 }

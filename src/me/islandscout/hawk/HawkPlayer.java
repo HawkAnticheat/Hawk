@@ -53,6 +53,7 @@ public class HawkPlayer {
         receiveNotifications = true;
         this.p = p;
         this.location = p.getLocation();
+        this.velocity = new Vector();
         this.onGround = ((Entity) p).isOnGround();
         this.hawk = hawk;
         this.ping = ServerUtils.getPing(p);

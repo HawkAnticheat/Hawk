@@ -4,8 +4,10 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.CustomCheck;
 import me.islandscout.hawk.checks.Cancelless;
 import me.islandscout.hawk.events.*;
+import me.islandscout.hawk.utils.MathPlus;
 import me.islandscout.hawk.utils.Placeholder;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,24 +18,35 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * The FightAccuracy check is designed to flag players whose aim accuracies are
+ * improbably high. Because of the design choices for this check, there are
+ * multiple known bypasses, and because of this, this check depends on other
+ * checks.
+ */
 public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
 
     private final Map<UUID, Map<UUID, FightData>> accuracy;
-    private final Map<UUID, Player> lastAttacked;
-    private final Map<UUID, Vector> attackerToVictim;
+    private final Map<UUID, HawkPlayer> lastAttacked;
     private final Map<UUID, Long> swingTick; //The swing used to compare with corresponding hit. Special; do not replace!
-    private final Map<UUID, Double> checkEligibility; //Used to determine whether a player is active enough to check. Range: 0.0-1.0
-    private static final double ELIGIBILITY_THRESHOLD = 0.7;
-    private static final double ACCURACY_THRESHOLD = 0.8;
-    private static final double SWINGS_UNTIL_CHECK = 20;
+    private final Map<UUID, Double> activity; //Used to determine whether a player is active enough to check. Range: 0.0-1.0
+    private final double ACTIVITY_THRESHOLD;
+    private final double ACCURACY_THRESHOLD;
+    private final double SWINGS_UNTIL_CHECK;
+    private final double MIN_PRECISION_THRESHOLD;
+    private final boolean DEBUG;
 
     public FightAccuracy() {
-        super("fightaccuracy", "%player% may be using killaura (ACCURACY). Accuracy: %accuracy%, VL: %vl%");
+        super("fightaccuracy", true, -1, 0, 0.99, 5000, "%player% may be using killaura (ACCURACY). Accuracy: %accuracy%, VL: %vl%", null);
         accuracy = new HashMap<>();
         lastAttacked = new HashMap<>();
-        attackerToVictim = new HashMap<>();
         swingTick = new HashMap<>();
-        checkEligibility = new HashMap<>();
+        activity = new HashMap<>();
+        ACTIVITY_THRESHOLD = (double)customSetting("activityThreshold", "", 0.7D);
+        ACCURACY_THRESHOLD = (double)customSetting("accuracyThreshold", "", 0.9D);
+        SWINGS_UNTIL_CHECK = (int)customSetting("swingsUntilCheck", "", 20);
+        MIN_PRECISION_THRESHOLD = (double)customSetting("minPrecisionThreshold", "", 0.3D);
+        DEBUG = (boolean)customSetting("debug", "", false);
     }
 
     public void check(Event e) {
@@ -41,8 +54,6 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
             hitProcessor((InteractEntityEvent) e);
         } else if (e instanceof ArmSwingEvent) {
             swingProcessor((ArmSwingEvent) e);
-        } else if (e instanceof PositionEvent) {
-            moveProcessor((PositionEvent) e);
         }
     }
 
@@ -55,7 +66,8 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
         HawkPlayer att = e.getHawkPlayer();
         Player pVictim = Bukkit.getPlayer(victim);
 
-        //This hit event must be with its corresponding swing
+        //This hit event must be with its corresponding swing.
+        //You can bypass this by using noswing, but you'll get flagged by FightNoSwing for using that.
         if (att.getCurrentTick() != swingTick.getOrDefault(uuid, 0L) || pVictim == null)
             return;
 
@@ -65,12 +77,25 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
             return;
         fightData.hits++;
 
-        //now it's time to check accuracy
+        //Now it's time to check accuracy.
+        //Anyone having an accuracy over 100% should re-evaluate what they're doing with their life.
+        //Technically this is a bug, but I'll keep it for the sake of ratting out garbage-juice skids.
         if (fightData.swings >= SWINGS_UNTIL_CHECK) {
-            if(fightData.getRatio() > ACCURACY_THRESHOLD && checkEligibility.getOrDefault(uuid, 0D) > ELIGIBILITY_THRESHOLD) {
-                punish(att, false, e, new Placeholder("accuracy", fightData.getRatio() * 100 + "%"));
+            if(DEBUG) {
+                att.getPlayer().sendMessage("Checking aim...");
+                att.getPlayer().sendMessage("Activity: " + activity.getOrDefault(uuid, 0D));
+                att.getPlayer().sendMessage("Activity threshold: " + ACTIVITY_THRESHOLD);
+                att.getPlayer().sendMessage("Aim accuracy: " + fightData.getRatio() * 100 + "%");
+                att.getPlayer().sendMessage("Aim accuracy threshold: " + ACCURACY_THRESHOLD * 100 + "%");
             }
-            //Debug.sendToPlayer(e.getPlayer(), "aim: " + fightData.getRatio());
+            if(fightData.getRatio() > ACCURACY_THRESHOLD && activity.getOrDefault(uuid, 0D) >= ACTIVITY_THRESHOLD) {
+                if(DEBUG) {
+                    att.getPlayer().sendMessage(ChatColor.RED + "FAIL");
+                }
+                punish(att, false, e, new Placeholder("accuracy", MathPlus.round(fightData.getRatio() * 100, 2) + "%"));
+            } else if (DEBUG) {
+                att.getPlayer().sendMessage(ChatColor.GREEN + "PASS");
+            }
             fightData.normalize();
         }
 
@@ -84,7 +109,7 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
             return;
 
         HawkPlayer att = e.getHawkPlayer();
-        Player victim = lastAttacked.get(uuid);
+        HawkPlayer victim = lastAttacked.get(uuid);
         if (victim == null)
             return;
         long lastSwingTick = swingTick.getOrDefault(uuid, 0L);
@@ -92,42 +117,43 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
         //proceed if victim's invulnerability is gone
         //diff between current client tick and last swing tick should never be negative
         //a bypass for this IS possible, but you'd get caught by clockspeed if you try to change your tickrate
-        if (att.getCurrentTick() - lastSwingTick >= victim.getMaximumNoDamageTicks() / 2) {
-            if (att.getLocation().distanceSquared(victim.getLocation()) > 9)
-                return;
+        if (att.getCurrentTick() - lastSwingTick >= victim.getPlayer().getMaximumNoDamageTicks() / 2) {
 
             Map<UUID, FightData> accuracyToVictim = accuracy.getOrDefault(uuid, new HashMap<>());
-            FightData fightData = accuracyToVictim.getOrDefault(victim.getUniqueId(), new FightData());
+            FightData fightData = accuracyToVictim.getOrDefault(victim.getUuid(), new FightData());
             fightData.swings++;
-            accuracyToVictim.put(victim.getUniqueId(), fightData);
+            accuracyToVictim.put(victim.getUuid(), fightData);
 
             accuracy.put(uuid, accuracyToVictim);
             swingTick.put(uuid, att.getCurrentTick());
         }
-    }
 
-    private void moveProcessor(PositionEvent e) {
-        UUID uuid = e.getPlayer().getUniqueId();
-        if(lastAttacked.get(uuid) == null) {
-            return;
+        //determine how far the opponent has moved horizontally on local coordinates and compute required mouse precision
+        Vector victimVelocity = victim.getVelocity().clone().setY(0);
+        Vector attackerDirection = att.getPlayer().getLocation().getDirection().clone().setY(0);
+        double localMovement = Math.sin(victimVelocity.angle(attackerDirection)) * victimVelocity.length();
+        if(Double.isNaN(localMovement))
+            localMovement = 0D;
+        double requiredPrecision = localMovement * att.getLocation().distance(victim.getLocation());
+        double activity = this.activity.getOrDefault(uuid, 0D);
+
+        if(DEBUG) {
+            if(requiredPrecision >= MIN_PRECISION_THRESHOLD && activity < ACTIVITY_THRESHOLD && activity + 0.02 >= ACTIVITY_THRESHOLD) {
+                att.getPlayer().sendMessage(ChatColor.GREEN + "You are now eligible to be checked by fightaccuracy because your opponent is moving significantly.");
+            }
+            else if(requiredPrecision < MIN_PRECISION_THRESHOLD && activity >= ACTIVITY_THRESHOLD && activity - 0.01 < ACTIVITY_THRESHOLD) {
+                att.getPlayer().sendMessage(ChatColor.RED + "You are no longer eligible to be checked by fightaccuracy because your opponent is not moving enough.");
+            }
         }
-        Player vic = lastAttacked.get(uuid);
-        Player p = e.getPlayer();
-        HawkPlayer pp = e.getHawkPlayer();
-        Vector curr = vic.getLocation().toVector().subtract(pp.getLocation().toVector()).setY(0);
-        Vector last = attackerToVictim.getOrDefault(uuid, curr);
-        double requiredPrecision = Math.tan(0.5 * curr.angle(last)) * curr.length();
-        double eligibility = checkEligibility.getOrDefault(uuid, 0D);
-        if(!Double.isNaN(requiredPrecision) && requiredPrecision >= 0.075) {
-            //increase eligibility
-            checkEligibility.put(uuid, Math.min(eligibility + 0.02, 1));
+
+        if (requiredPrecision >= MIN_PRECISION_THRESHOLD) {
+            //increase activity
+            this.activity.put(uuid, Math.min(activity + 0.02, 1));
         } else {
-            //decrease eligibility
-            checkEligibility.put(uuid, Math.max(eligibility - 0.02, 0));
+            //decrease activity
+            this.activity.put(uuid, Math.max(activity - 0.01, 0));
         }
-        attackerToVictim.put(p.getUniqueId(), curr);
     }
-
 
     @EventHandler
     public void damageDealt(EntityDamageByEntityEvent e) {
@@ -135,14 +161,13 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
             return;
         Player attacker = (Player) e.getDamager();
         Player victim = (Player) e.getEntity();
-        lastAttacked.put(attacker.getUniqueId(), victim);
+        lastAttacked.put(attacker.getUniqueId(), hawk.getHawkPlayer(victim));
     }
 
     private class FightData {
 
         private float hits;
         private float swings;
-        private long lastHitTick;
 
         private FightData() {
             hits = 0;
@@ -163,9 +188,8 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
     public void removeData(Player p) {
         UUID uuid = p.getUniqueId();
         accuracy.remove(uuid);
-        attackerToVictim.remove(uuid);
         lastAttacked.remove(uuid);
         swingTick.remove(uuid);
-        checkEligibility.remove(uuid);
+        activity.remove(uuid);
     }
 }
