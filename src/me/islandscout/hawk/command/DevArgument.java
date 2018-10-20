@@ -47,6 +47,7 @@ public class DevArgument extends Argument {
             nmsPackage = net.minecraft.server.v1_7_R4.MinecraftServer.class.getPackage().getName();
         sender.sendMessage("NMS ver.: " + nmsPackage.substring(nmsPackage.lastIndexOf(".") + 1));
         sender.sendMessage("Hawk ver.: " + Hawk.BUILD_NAME);
+        sender.sendMessage("Java info: " + System.getProperty("java.version") + "; " + System.getProperty("java.vm.vendor") + "; " + System.getProperty("java.vm.name"));
         if (sender instanceof Player) {
             int clientVer = ServerUtils.getClientVersion((Player) sender);
             sender.sendMessage("Possible client ver.: 1." + clientVer + ".x");

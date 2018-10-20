@@ -17,7 +17,7 @@
 
 package me.islandscout.hawk.modules;
 
-import javafx.util.Pair;
+import me.islandscout.hawk.utils.Pair;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.utils.ConfigHelper;
 import org.bukkit.Bukkit;

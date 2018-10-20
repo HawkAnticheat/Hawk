@@ -17,7 +17,7 @@
 
 package me.islandscout.hawk.checks.movement;
 
-import javafx.util.Pair;
+import me.islandscout.hawk.utils.Pair;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.checks.MovementCheck;
