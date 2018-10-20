@@ -17,8 +17,8 @@
 
 package me.islandscout.hawk.command;
 
-import me.islandscout.hawk.checks.Cancelless;
-import me.islandscout.hawk.checks.Check;
+import me.islandscout.hawk.check.Cancelless;
+import me.islandscout.hawk.check.Check;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

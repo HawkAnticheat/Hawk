@@ -19,7 +19,7 @@ package me.islandscout.hawk.gui;
 
 
 import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.checks.Check;
+import me.islandscout.hawk.check.Check;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

@@ -24,7 +24,7 @@ import org.bukkit.command.CommandSender;
 public class ReloadArgument extends Argument {
 
     public ReloadArgument() {
-        super("reload", "", "Reload Hawk configuration, modules, and checks.");
+        super("reload", "", "Reload Hawk configuration, module, and check.");
     }
 
     @Override

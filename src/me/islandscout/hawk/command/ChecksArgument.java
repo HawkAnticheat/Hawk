@@ -17,7 +17,7 @@
 
 package me.islandscout.hawk.command;
 
-import me.islandscout.hawk.checks.Check;
+import me.islandscout.hawk.check.Check;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -28,7 +28,7 @@ import java.util.List;
 public class ChecksArgument extends Argument {
 
     ChecksArgument() {
-        super("checks", "", "Provides a list of Hawk checks.");
+        super("check", "", "Provides a list of Hawk check.");
     }
 
     @Override

@@ -17,9 +17,9 @@
 
 package me.islandscout.hawk;
 
-import me.islandscout.hawk.checks.Check;
-import me.islandscout.hawk.utils.PhantomBlock;
-import me.islandscout.hawk.utils.ServerUtils;
+import me.islandscout.hawk.check.Check;
+import me.islandscout.hawk.util.PhantomBlock;
+import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;

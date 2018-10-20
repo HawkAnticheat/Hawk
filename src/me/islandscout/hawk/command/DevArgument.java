@@ -18,7 +18,7 @@
 package me.islandscout.hawk.command;
 
 import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.utils.ServerUtils;
+import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

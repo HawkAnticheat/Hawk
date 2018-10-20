@@ -18,10 +18,10 @@
 package me.islandscout.hawk;
 
 import me.islandscout.hawk.command.HawkCommand;
-import me.islandscout.hawk.events.PositionEvent;
-import me.islandscout.hawk.events.external.HawkViolationEvent;
-import me.islandscout.hawk.modules.*;
-import me.islandscout.hawk.utils.ConfigHelper;
+import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.external.HawkViolationEvent;
+import me.islandscout.hawk.module.*;
+import me.islandscout.hawk.util.ConfigHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
