@@ -18,7 +18,7 @@
 package me.islandscout.hawk;
 
 import me.islandscout.hawk.check.Check;
-import me.islandscout.hawk.util.PhantomBlock;
+import me.islandscout.hawk.util.ClientBlock;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -62,7 +62,7 @@ public class HawkPlayer {
     private long currentTick;
     private double maxY;
     private long flyPendingTime;
-    private final Set<PhantomBlock> phantomBlocks;
+    private final Set<ClientBlock> clientBlocks;
 
     HawkPlayer(Player p, Hawk hawk) {
         this.uuid = p.getUniqueId();
@@ -75,7 +75,7 @@ public class HawkPlayer {
         this.hawk = hawk;
         this.ping = ServerUtils.getPing(p);
         this.pingJitter = 0;
-        phantomBlocks = new HashSet<>();
+        clientBlocks = new HashSet<>();
     }
 
     public int getVL(Check check) {
@@ -219,6 +219,7 @@ public class HawkPlayer {
 
     public void incrementCurrentTick() {
         this.currentTick++;
+        manageClientBlocks();
     }
 
     public double getFallDistance() {
@@ -246,22 +247,24 @@ public class HawkPlayer {
         return p;
     }
 
-    public Set<PhantomBlock> getPhantomBlocks() {
-        return phantomBlocks;
+    public Set<ClientBlock> getClientBlocks() {
+        return clientBlocks;
     }
 
-    public void addPhantomBlock(PhantomBlock pBlock) {
-        //memory-leak police on duty
-        Set<PhantomBlock> oldPBlocks = new HashSet<>();
-        for (PhantomBlock loopPBlock : phantomBlocks) {
-            if (System.currentTimeMillis() - loopPBlock.getInitTime() > 2000) {
+    public void addClientBlock(ClientBlock pBlock) {
+        if (clientBlocks.size() >= 16)
+            return;
+        clientBlocks.add(pBlock);
+    }
+
+    private void manageClientBlocks() {
+        Set<ClientBlock> oldPBlocks = new HashSet<>();
+        for (ClientBlock loopPBlock : clientBlocks) {
+            if (currentTick - loopPBlock.getInitTick() > 5) {
                 oldPBlocks.add(loopPBlock);
             }
         }
-        phantomBlocks.removeAll(oldPBlocks);
-        if (phantomBlocks.size() >= 16)
-            return;
-        phantomBlocks.add(pBlock);
+        clientBlocks.removeAll(oldPBlocks);
     }
 
     //safely kill the connection

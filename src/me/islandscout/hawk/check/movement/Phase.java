@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * The Phase check tests collision with block between players'
+ * The Phase check tests collision with blocks between players'
  * moves. Theoretically, this will effectively detect and block
  * any sort of phase, including v-clip. The bounding box of the
  * player is shrunk to reduce false positives, of course.

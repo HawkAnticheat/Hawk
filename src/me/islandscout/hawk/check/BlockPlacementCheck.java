@@ -39,10 +39,16 @@ public abstract class BlockPlacementCheck extends Check<BlockPlaceEvent> {
         this(name, true, 0, 5, 0.9, 5000, flag, null);
     }
 
-    protected void punishAndTryCancelAndBlockDestroy(HawkPlayer offender, BlockPlaceEvent event, Placeholder... placeholders) {
+    protected void punishAndTryCancelAndBlockRespawn(HawkPlayer offender, BlockPlaceEvent event, Placeholder... placeholders) {
         punish(offender, true, event, placeholders);
+        if (offender.getVL(this) < cancelThreshold)
+            return;
+        blockRespawn(offender, event);
+    }
+
+    protected void blockRespawn(HawkPlayer offender, BlockPlaceEvent event) {
         Block b = ServerUtils.getBlockAsync(event.getLocation());
-        if (offender.getVL(this) < cancelThreshold || b == null)
+        if(b == null)
             return;
         if (Hawk.getServerVersion() == 7) {
             BlockNMS7.getBlockNMS(b).sendPacketToPlayer(offender.getPlayer());

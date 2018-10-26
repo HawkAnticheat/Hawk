@@ -20,35 +20,23 @@ package me.islandscout.hawk.check.interaction;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockPlacementCheck;
 import me.islandscout.hawk.event.BlockPlaceEvent;
-import org.bukkit.entity.Player;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+/** This check prevents players from interacting on
+ * unavailable locations on blocks. Players must be
+ * looking at the face of the block they want to interact
+ * with.
+ */
+public class WrongBlockFace extends BlockPlacementCheck {
 
-public class BlockInteractSpeed extends BlockPlacementCheck {
-
-    private final Map<UUID, Long> lastPlaceTick;
-
-    public BlockInteractSpeed() {
-        super("blockplacespeed", "%player% failed block place speed. VL: %vl%");
-        lastPlaceTick = new HashMap<>();
+    public WrongBlockFace() {
+        super("wrongblockface", true, 0, 10, 0.99, 5000, "%player% failed wrongblockface; interacted on invalid block face, VL: %vl%", null);
     }
 
     @Override
     protected void check(BlockPlaceEvent e) {
-        Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
-        if (pp.getCurrentTick() == lastPlaceTick.getOrDefault(p.getUniqueId(), 0L))
+        if(e.getTargetedBlockFaceNormal().dot(pp.getLocation().getDirection()) >= 0) {
             punishAndTryCancelAndBlockRespawn(pp, e);
-        else
-            reward(pp);
-
-        lastPlaceTick.put(p.getUniqueId(), pp.getCurrentTick());
-    }
-
-    @Override
-    public void removeData(Player p) {
-        lastPlaceTick.remove(p.getUniqueId());
+        }
     }
 }

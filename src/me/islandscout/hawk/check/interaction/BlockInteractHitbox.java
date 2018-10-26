@@ -20,25 +20,30 @@ package me.islandscout.hawk.check.interaction;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockPlacementCheck;
 import me.islandscout.hawk.event.BlockPlaceEvent;
-import me.islandscout.hawk.util.AABB;
-import me.islandscout.hawk.util.ConfigHelper;
-import me.islandscout.hawk.util.Placeholder;
-import me.islandscout.hawk.util.Ray;
+import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.util.block.BlockNMS;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
 
 public class BlockInteractHitbox extends BlockPlacementCheck {
 
     private final boolean DEBUG_HITBOX;
     private final boolean DEBUG_RAY;
-    private final double MAX_REACH_SQUARED;
+    private final double MAX_REACH;
+    private final boolean CHECK_OCCLUSION;
+    private final boolean ALWAYS_CANCEL_OCCLUSION;
 
     public BlockInteractHitbox() {
         super("blockinteracthitbox", true, 10, 10, 0.9, 5000, "%player% failed block interact hitbox. %type% VL: %vl%", null);
         DEBUG_HITBOX = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockinteracthitbox.debug.hitbox");
         DEBUG_RAY = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockinteracthitbox.debug.ray");
-        MAX_REACH_SQUARED = Math.pow(ConfigHelper.getOrSetDefault(6, hawk.getConfig(), "checks.blockinteracthitbox.maxReach"), 2);
+        MAX_REACH = ConfigHelper.getOrSetDefault(6, hawk.getConfig(), "checks.blockinteracthitbox.maxReach");
+        CHECK_OCCLUSION = (boolean)customSetting("enabled", "checkOccluding", true);
+        ALWAYS_CANCEL_OCCLUSION = (boolean)customSetting("alwaysCancel", "checkOccluding", true);
     }
 
     @Override
@@ -47,29 +52,61 @@ public class BlockInteractHitbox extends BlockPlacementCheck {
         HawkPlayer pp = e.getHawkPlayer();
         Location eyeLoc = pp.getLocation().clone();
         eyeLoc.add(0, (p.isSneaking() ? 1.54 : 1.62), 0);
-        Location targetLocation = e.getTargetBlockLocation();
+        Location targetLocation = e.getTargetedBlockLocation();
 
         Vector min = targetLocation.toVector();
         Vector max = targetLocation.toVector().add(new Vector(1, 1, 1));
         AABB aabb = new AABB(min, max);
-
+        Vector direction = eyeLoc.getDirection();
         Ray ray = new Ray(eyeLoc.toVector(), eyeLoc.getDirection());
 
         if (DEBUG_HITBOX)
             aabb.highlight(hawk, p.getWorld(), 0.25);
         if (DEBUG_RAY)
-            ray.highlight(hawk, p.getWorld(), Math.sqrt(MAX_REACH_SQUARED), 0.3);
+            ray.highlight(hawk, p.getWorld(), MAX_REACH, 0.3);
 
         Vector intersection = aabb.intersectsRay(ray, 0, Float.MAX_VALUE);
 
         if (intersection == null) {
-            punishAndTryCancelAndBlockDestroy(pp, e, new Placeholder("type", "Did not hit hitbox."));
+            punishAndTryCancelAndBlockRespawn(pp, e, new Placeholder("type", "Did not hit hitbox."));
             return;
         }
 
-        double distanceSquared = new Vector(intersection.getX() - eyeLoc.getX(), intersection.getY() - eyeLoc.getY(), intersection.getZ() - eyeLoc.getZ()).lengthSquared();
-        if (distanceSquared > MAX_REACH_SQUARED) {
-            punishAndTryCancelAndBlockDestroy(pp, e, new Placeholder("type", "Reached too far."));
+        double distance = new Vector(intersection.getX() - eyeLoc.getX(), intersection.getY() - eyeLoc.getY(), intersection.getZ() - eyeLoc.getZ()).length();
+
+        if (CHECK_OCCLUSION) {
+            Vector eyePos = eyeLoc.toVector();
+            BlockIterator iter = new BlockIterator(p.getWorld(), eyePos, direction, 0, (int) distance + 2);
+            while (iter.hasNext()) {
+                Block bukkitBlock = iter.next();
+
+                if (bukkitBlock.getType() == Material.AIR || bukkitBlock.isLiquid())
+                    continue;
+                if (bukkitBlock.getLocation().equals(targetLocation))
+                    break;
+
+                BlockNMS b = BlockNMS.getBlockNMS(bukkitBlock);
+                AABB checkIntersection = new AABB(b.getHitBox().getMin(), b.getHitBox().getMax());
+                Vector occludeIntersection = checkIntersection.intersectsRay(new Ray(eyePos, direction), 0, Float.MAX_VALUE);
+                if (occludeIntersection != null) {
+                    if (occludeIntersection.distance(eyePos) < distance) {
+                        Placeholder ph = new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType());
+                        if(ALWAYS_CANCEL_OCCLUSION) {
+                            punish(pp, true, e, ph);
+                            e.setCancelled(true);
+                            blockRespawn(pp, e);
+                        } else {
+                            punishAndTryCancelAndBlockRespawn(pp, e, ph);
+                        }
+                        return;
+                    }
+                }
+            }
+
+        }
+
+        if (distance > MAX_REACH) {
+            punishAndTryCancelAndBlockRespawn(pp, e, new Placeholder("type", "Reached too far."));
             return;
         }
 

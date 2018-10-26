@@ -17,14 +17,11 @@
 
 package me.islandscout.hawk.check.movement;
 
-import me.islandscout.hawk.util.Pair;
+import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
-import me.islandscout.hawk.util.AABB;
-import me.islandscout.hawk.util.AdjacentBlocks;
-import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.util.entity.EntityNMS;
 import org.bukkit.Chunk;
 import org.bukkit.Location;

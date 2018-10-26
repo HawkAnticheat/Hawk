@@ -20,35 +20,25 @@ package me.islandscout.hawk.check.interaction;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockPlacementCheck;
 import me.islandscout.hawk.event.BlockPlaceEvent;
-import org.bukkit.entity.Player;
+import me.islandscout.hawk.util.ServerUtils;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+public class ImpossiblePlacement extends BlockPlacementCheck {
 
-public class BlockInteractSpeed extends BlockPlacementCheck {
-
-    private final Map<UUID, Long> lastPlaceTick;
-
-    public BlockInteractSpeed() {
-        super("blockplacespeed", "%player% failed block place speed. VL: %vl%");
-        lastPlaceTick = new HashMap<>();
+    public ImpossiblePlacement() {
+        super("impossibleplacement", true, 0, 0, 0.999, 5000, "%player% failed impossibleplacement, VL: %vl%", null);
     }
 
     @Override
     protected void check(BlockPlaceEvent e) {
-        Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
-        if (pp.getCurrentTick() == lastPlaceTick.getOrDefault(p.getUniqueId(), 0L))
+        Block targetedBlock = ServerUtils.getBlockAsync(e.getTargetedBlockLocation());
+        if(targetedBlock == null)
+            return;
+        Material mat = targetedBlock.getType();
+        if(targetedBlock.isLiquid() || mat == Material.AIR) {
             punishAndTryCancelAndBlockRespawn(pp, e);
-        else
-            reward(pp);
-
-        lastPlaceTick.put(p.getUniqueId(), pp.getCurrentTick());
-    }
-
-    @Override
-    public void removeData(Player p) {
-        lastPlaceTick.remove(p.getUniqueId());
+        }
     }
 }

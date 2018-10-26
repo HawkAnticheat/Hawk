@@ -84,6 +84,8 @@ public class CheckManager {
         new FightDirectionApprox();
         new BlockInteractHitbox();
         new BlockInteractSpeed();
+        new WrongBlockFace();
+        new ImpossiblePlacement();
         //new SpeedRewrite();
 
         hawk.saveConfigs();

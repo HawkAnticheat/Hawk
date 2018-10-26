@@ -36,7 +36,7 @@ import org.bukkit.util.Vector;
  * The hit detection in Minecraft is mostly determined by the client,
  * thus servers are left to trust the client. (There are a few exceptions
  * for the unmodified Notchian server such as preventing hits exceeding 6
- * block from the target entity). This poses a problem for players and
+ * blocks from the target entity). This poses a problem for players and
  * server owners since players can modify the client to manipulate hit
  * detection and allow for cheating when in combat with other players.
  * <p>

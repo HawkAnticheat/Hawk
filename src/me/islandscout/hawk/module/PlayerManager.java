@@ -19,7 +19,7 @@ package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.util.PhantomBlock;
+import me.islandscout.hawk.util.ClientBlock;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -78,13 +78,12 @@ public class PlayerManager implements Listener {
         pp.setTeleportLoc(e.getRespawnLocation());
     }
 
-    //TODO: No... just, no...
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlace(BlockPlaceEvent e) {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> {
-            PhantomBlock pBlockDel = null;
-            for (PhantomBlock pBlock : pp.getPhantomBlocks()) {
+            ClientBlock pBlockDel = null;
+            for (ClientBlock pBlock : pp.getClientBlocks()) {
                 Location a = pBlock.getLocation();
                 Location b = e.getBlockPlaced().getLocation();
                 if ((int) a.getX() == (int) b.getX() && (int) a.getY() == (int) b.getY() && (int) a.getZ() == (int) b.getZ()) {
@@ -94,7 +93,7 @@ public class PlayerManager implements Listener {
             }
             if (pBlockDel == null)
                 return;
-            pp.getPhantomBlocks().remove(pBlockDel);
+            pp.getClientBlocks().remove(pBlockDel);
         }, 1 + pp.getPing());
     }
 

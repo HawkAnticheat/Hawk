@@ -22,9 +22,13 @@ import me.islandscout.hawk.check.BlockDigCheck;
 import me.islandscout.hawk.event.BlockDigEvent;
 import me.islandscout.hawk.event.DigAction;
 import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.util.block.BlockNMS;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
 
 public class BlockBreakHitbox extends BlockDigCheck {
@@ -34,14 +38,18 @@ public class BlockBreakHitbox extends BlockDigCheck {
     private final boolean DEBUG_HITBOX;
     private final boolean DEBUG_RAY;
     private final boolean CHECK_DIG_START;
-    private final double MAX_REACH_SQUARED;
+    private final double MAX_REACH;
+    private final boolean CHECK_OCCLUSION;
+    private final boolean ALWAYS_CANCEL_OCCLUSION;
 
     public BlockBreakHitbox() {
         super("blockbreakhitbox", true, 5, 10, 0.9, 5000, "%player% failed block break hitbox. %type% VL: %vl%", null);
         DEBUG_HITBOX = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.debug.hitbox");
         DEBUG_RAY = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.debug.ray");
         CHECK_DIG_START = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.checkDigStart");
-        MAX_REACH_SQUARED = Math.pow(ConfigHelper.getOrSetDefault(6, hawk.getConfig(), "checks.blockbreakhitbox.maxReach"), 2);
+        MAX_REACH = ConfigHelper.getOrSetDefault(6, hawk.getConfig(), "checks.blockbreakhitbox.maxReach");
+        CHECK_OCCLUSION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.blockbreakhitbox.checkOccluding.enabled");
+        ALWAYS_CANCEL_OCCLUSION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.blockbreakhitbox.checkOccluding.alwaysCancel");
     }
 
     @Override
@@ -77,13 +85,13 @@ public class BlockBreakHitbox extends BlockDigCheck {
         Vector min = bLoc.toVector();
         Vector max = bLoc.toVector().add(new Vector(1, 1, 1));
         AABB aabb = new AABB(min, max);
-
-        Ray ray = new Ray(eyeLoc.toVector(), eyeLoc.getDirection());
+        Vector direction = eyeLoc.getDirection();
+        Ray ray = new Ray(eyeLoc.toVector(), direction);
 
         if (DEBUG_HITBOX)
             aabb.highlight(hawk, p.getWorld(), 0.25);
         if (DEBUG_RAY)
-            ray.highlight(hawk, p.getWorld(), Math.sqrt(MAX_REACH_SQUARED), 0.3);
+            ray.highlight(hawk, p.getWorld(), MAX_REACH, 0.3);
 
         Vector intersection = aabb.intersectsRay(ray, 0, Float.MAX_VALUE);
 
@@ -92,8 +100,40 @@ public class BlockBreakHitbox extends BlockDigCheck {
             return;
         }
 
-        double distanceSquared = new Vector(intersection.getX() - eyeLoc.getX(), intersection.getY() - eyeLoc.getY(), intersection.getZ() - eyeLoc.getZ()).lengthSquared();
-        if (distanceSquared > MAX_REACH_SQUARED) {
+        double distance = new Vector(intersection.getX() - eyeLoc.getX(), intersection.getY() - eyeLoc.getY(), intersection.getZ() - eyeLoc.getZ()).length();
+
+        if (CHECK_OCCLUSION) {
+            Vector eyePos = eyeLoc.toVector();
+            BlockIterator iter = new BlockIterator(p.getWorld(), eyePos, direction, 0, (int) distance + 2);
+            while (iter.hasNext()) {
+                Block bukkitBlock = iter.next();
+
+                if (bukkitBlock.getType() == Material.AIR || bukkitBlock.isLiquid())
+                    continue;
+                if (bukkitBlock.getLocation().equals(bLoc))
+                    break;
+
+                BlockNMS b = BlockNMS.getBlockNMS(bukkitBlock);
+                AABB checkIntersection = new AABB(b.getHitBox().getMin(), b.getHitBox().getMax());
+                Vector occludeIntersection = checkIntersection.intersectsRay(new Ray(eyePos, direction), 0, Float.MAX_VALUE);
+                if (occludeIntersection != null) {
+                    if (occludeIntersection.distance(eyePos) < distance) {
+                        Placeholder ph = new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType());
+                        if(ALWAYS_CANCEL_OCCLUSION) {
+                            punish(pp, true, e, ph);
+                            e.setCancelled(true);
+                            blockRespawn(pp, e);
+                        } else {
+                            cancelDig(pp, e, ph);
+                        }
+                        return;
+                    }
+                }
+            }
+
+        }
+
+        if (distance > MAX_REACH) {
             cancelDig(pp, e, new Placeholder("type", "Reached too far."));
             return;
         }

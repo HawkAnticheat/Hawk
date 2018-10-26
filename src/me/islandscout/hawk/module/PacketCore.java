@@ -25,7 +25,8 @@ import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.listener.PacketListener7;
 import me.islandscout.hawk.listener.PacketListener8;
-import me.islandscout.hawk.util.PhantomBlock;
+import me.islandscout.hawk.util.ClientBlock;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
 import org.bukkit.Bukkit;
@@ -38,7 +39,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
 /**
- * This class is mainly used to process packet that are intercepted from the Netty channels.
+ * This class is mainly used to process packets that are intercepted from the Netty channels.
  * Remember, caution is advised when accessing the Bukkit API from the Netty thread.
  */
 public class PacketCore implements Listener {
@@ -121,16 +122,16 @@ public class PacketCore implements Listener {
             }
         }
 
+        hawk.getCheckManager().dispatchEvent(event);
+
         //handle block placing
         if (event instanceof BlockPlaceEvent) {
             BlockPlaceEvent bPlaceEvent = (BlockPlaceEvent) event;
-            if (bPlaceEvent.getLocation().distanceSquared(pp.getLocation()) < 36) {
-                PhantomBlock phantomBlock = new PhantomBlock(bPlaceEvent.getLocation(), bPlaceEvent.getMaterial());
-                pp.addPhantomBlock(phantomBlock);
+            if (!bPlaceEvent.isCancelled()) {
+                ClientBlock clientBlock = new ClientBlock(bPlaceEvent.getLocation(), pp.getCurrentTick(), bPlaceEvent.getMaterial());
+                pp.addClientBlock(clientBlock);
             }
         }
-
-        hawk.getCheckManager().dispatchEvent(event);
 
         //update HawkPlayer
         if (event instanceof PositionEvent) {

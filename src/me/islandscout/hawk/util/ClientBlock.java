@@ -22,16 +22,18 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
-public class PhantomBlock {
+import java.util.Set;
+
+public class ClientBlock {
 
     private final Location location;
     private final Material material;
-    private final long initTime;
+    private final long initTick;
 
-    public PhantomBlock(Location location, Material material) {
+    public ClientBlock(Location location, long clientTick, Material material) {
         this.location = location;
         this.material = material;
-        initTime = System.currentTimeMillis();
+        initTick = clientTick;
     }
 
     public Location getLocation() {
@@ -42,15 +44,18 @@ public class PhantomBlock {
         return material;
     }
 
-    public long getInitTime() {
-        return initTime;
+    public long getInitTick() {
+        return initTick;
     }
 
-    public static PhantomBlock playerIsOnPhantomBlock(HawkPlayer pp, Location playerLoc) {
+    public static ClientBlock playerIsOnAClientBlock(HawkPlayer pp, Location playerLoc) {
+        Set<ClientBlock> clientBlocks = pp.getClientBlocks();
+        if(clientBlocks.size() == 0)
+            return null;
         AABB feet = new AABB(
                 new Vector(-0.3, -0.01, -0.3).add(playerLoc.toVector()),
                 new Vector(0.3, 0, 0.3).add(playerLoc.toVector()));
-        for (PhantomBlock pBlock : pp.getPhantomBlocks()) {
+        for (ClientBlock pBlock : clientBlocks) {
             AABB cube = new AABB(pBlock.getLocation().toVector(), pBlock.getLocation().toVector().add(new Vector(1, 1, 1)));
             if (feet.isColliding(cube)) {
                 return pBlock;

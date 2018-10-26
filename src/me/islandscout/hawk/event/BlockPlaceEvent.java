@@ -22,6 +22,7 @@ import me.islandscout.hawk.util.packet.WrappedPacket;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 public class BlockPlaceEvent extends Event {
 
@@ -42,7 +43,7 @@ public class BlockPlaceEvent extends Event {
         return location;
     }
 
-    public Location getTargetBlockLocation() {
+    public Location getTargetedBlockLocation() {
         switch (blockFace) {
             case TOP:
                 return new Location(location.getWorld(), location.getX(), location.getY() - 1, location.getZ());
@@ -64,7 +65,26 @@ public class BlockPlaceEvent extends Event {
         return material;
     }
 
-    public BlockFace getBlockFace() {
+    public Vector getTargetedBlockFaceNormal() {
+        switch (blockFace) {
+            case TOP:
+                return new Vector(0, 1, 0);
+            case BOTTOM:
+                return new Vector(0, -1, 0);
+            case SOUTH:
+                return new Vector(0, 0, 1);
+            case NORTH:
+                return new Vector(0, 0, -1);
+            case WEST:
+                return new Vector(-1, 0, 0);
+            case EAST:
+                return new Vector(1, 0, 0);
+            default:
+                return null;
+        }
+    }
+
+    public BlockFace getTargetedBlockFace() {
         return blockFace;
     }
 
