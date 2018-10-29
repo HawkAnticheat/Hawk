@@ -21,6 +21,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.util.ConfigHelper;
+import me.islandscout.hawk.util.Debug;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -41,11 +42,11 @@ public class ClockSpeed extends MovementCheck {
     private final double CALIBRATE_FASTER;
 
     public ClockSpeed() {
-        super("clockspeed", true, 5, 10, 0.995, 10000, "%player% failed clockspeed. VL: %vl%, ping: %ping%, TPS: %tps%", null);
+        super("clockspeed", true, 10, 10, 0.995, 10000, "%player% failed clockspeed. VL: %vl%, ping: %ping%, TPS: %tps%", null);
         prevNanoTime = new HashMap<>();
         penalize = new HashSet<>();
         clockDrift = new HashMap<>();
-        THRESHOLD = -ConfigHelper.getOrSetDefault(10, hawk.getConfig(), "checks.clockspeed.threshold");
+        THRESHOLD = -ConfigHelper.getOrSetDefault(30, hawk.getConfig(), "checks.clockspeed.clockDriftThreshold");
         MAX_CATCHUP_TIME = 1000000 * ConfigHelper.getOrSetDefault(500, hawk.getConfig(), "checks.clockspeed.maxCatchupTime");
         DEBUG = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.clockspeed.debug");
         CALIBRATE_SLOWER = 1 - ConfigHelper.getOrSetDefault(0.003, hawk.getConfig(), "checks.clockspeed.calibrateSlower");

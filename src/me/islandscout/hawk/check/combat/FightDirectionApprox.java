@@ -17,6 +17,7 @@
 
 package me.islandscout.hawk.check.combat;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.util.ConfigHelper;
@@ -48,9 +49,20 @@ public class FightDirectionApprox extends EntityInteractionCheck {
         int ping = ServerUtils.getPing(e.getPlayer());
         if (PING_LIMIT > -1 && ping > PING_LIMIT)
             return;
+        HawkPlayer att = e.getHawkPlayer();
+
+        Vector attackerLocation;
+        Vector direction;
+        if(ServerUtils.getClientVersion(att.getPlayer()) == 7) {
+            attackerLocation = att.getPredictedLocation().toVector().setY(0);
+            direction = att.getPredictedLocation().getDirection().clone().setY(0);
+        }
+        else {
+            attackerLocation = att.getLocation().toVector().setY(0);
+            direction = att.getLocation().getDirection().clone().setY(0);
+        }
+
         Vector victimLocation;
-        Vector attackerLocation = e.getHawkPlayer().getLocation().toVector().setY(0);
-        Vector direction = e.getHawkPlayer().getLocation().getDirection().clone().setY(0);
         if (victimEntity instanceof Player && LAG_COMPENSATION)
             victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, (Player) victimEntity).toVector().setY(0);
         else

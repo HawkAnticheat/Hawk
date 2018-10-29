@@ -94,28 +94,20 @@ public class FightHitbox extends EntityInteractionCheck {
             return;
 
         HawkPlayer att = e.getHawkPlayer();
-        Location attackerEyeLocation = att.getLocation().clone().add(0, 1.62, 0);
+        Location attackerEyeLocation;
 
         //Extrapolate last position. (For 1.7 clients ONLY)
-        //Unfortunately, there will be false positives from 1.7 users due to the nature of how the client interacts
-        //with entities. There is no effective way to stop these false positives without creating bypasses.
+        //Unfortunately, there will be false positives from 1.7 users because 1.7's hit detection isn't broken (unlike 1.8).
+        //There is no effective way to stop these false positives without creating bypasses.
         if (ServerUtils.getClientVersion(attacker) == 7) {
-            Vector attackerVelocity = att.getVelocity().clone();
-            Vector attackerDeltaRotation = new Vector(att.getDeltaYaw(), att.getDeltaPitch(), 0);
-            double moveDelay = System.currentTimeMillis() - att.getLastMoveTime();
-            if (moveDelay >= 100) {
-                moveDelay = 0D;
-            } else {
-                moveDelay = moveDelay / 50;
-            }
-            attackerVelocity.multiply(moveDelay);
-            attackerDeltaRotation.multiply(moveDelay);
-
-            attackerEyeLocation.add(attackerVelocity);
-
-            attackerEyeLocation.setYaw(attackerEyeLocation.getYaw() + (float) attackerDeltaRotation.getX());
-            attackerEyeLocation.setPitch(attackerEyeLocation.getPitch() + (float) attackerDeltaRotation.getY());
+            attackerEyeLocation = att.getPredictedLocation().add(0, 1.62, 0);
         }
+        else {
+            attackerEyeLocation = att.getLocation().clone().add(0, 1.62, 0);
+        }
+
+        Ray shitter = new Ray(att.getLocation().toVector().add(new Vector(0, 1.62, 0)), att.getLocation().getDirection());
+        shitter.highlight(hawk, att.getLocation().getWorld(), 5, 0.3);
 
         Vector attackerDirection = attackerEyeLocation.getDirection();
 

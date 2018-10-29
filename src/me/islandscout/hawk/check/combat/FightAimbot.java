@@ -24,6 +24,7 @@ import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.event.PositionEvent;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,13 +39,19 @@ public class FightAimbot extends CustomCheck implements Cancelless {
 
     //PASSED (9/11/18)
 
-    private final Map<UUID, Double> lastLookDistanceSquared;
+    private final Map<UUID, Double> lastLookDistance;
     private final Map<UUID, Long> lastAttackTick;
+    private final Map<UUID, Vector> lastMouseMoves;
+    private final boolean CHECK_ACCEL;
+    private final double ACCEL_THRES;
 
     public FightAimbot() {
         super("fightaimbot", true, -1, 5, 0.97, 5000, "%player% may be using aimbot. VL %vl%", null);
-        lastLookDistanceSquared = new HashMap<>();
+        lastLookDistance = new HashMap<>();
         lastAttackTick = new HashMap<>();
+        lastMouseMoves = new HashMap<>();
+        CHECK_ACCEL = (boolean)customSetting("enabled", "checkMouseAccel", false);
+        ACCEL_THRES = (double)customSetting("threshold", "checkMouseAccel", 50D);
     }
 
     public void check(Event e) {
@@ -59,19 +66,23 @@ public class FightAimbot extends CustomCheck implements Cancelless {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
         UUID uuid = p.getUniqueId();
-        if (pp.getCurrentTick() - lastAttackTick.getOrDefault(uuid, 0L) > 2)
-            return;
-        double lookDistanceSquared = pp.getDeltaYaw() * pp.getDeltaYaw() + pp.getDeltaPitch() * pp.getDeltaPitch();
+        Vector mouseMove = new Vector(pp.getDeltaYaw(), pp.getDeltaPitch(), 0);
+        Vector lastMouseMove = lastMouseMoves.getOrDefault(uuid, new Vector(0, 0, 0));
+        double mouseSpeed = mouseMove.length();
+        double mouseAccel = lastMouseMove.subtract(mouseMove).length();
 
-        if (lastLookDistanceSquared.containsKey(uuid)) {
-            if (lastLookDistanceSquared.get(uuid) > 8 && lookDistanceSquared < 0.001 && System.currentTimeMillis() - pp.getLastMoveTime() < 60) {
+        if(pp.getCurrentTick() - lastAttackTick.getOrDefault(uuid, 0L) <= 2) {
+            //check for incredible mouse acceleration OR quick frequent pauses in mouse movement
+            if ((mouseAccel > ACCEL_THRES && CHECK_ACCEL) || (
+                    lastLookDistance.containsKey(uuid) && lastLookDistance.get(uuid) > 8 && mouseSpeed < 0.001 &&
+                    System.currentTimeMillis() - pp.getLastMoveTime() < 60)) {
                 punish(pp, false, e);
-            } else {
-                reward(pp);
             }
         }
 
-        lastLookDistanceSquared.put(uuid, lookDistanceSquared);
+
+        lastLookDistance.put(uuid, mouseSpeed);
+        lastMouseMoves.put(uuid, mouseMove);
     }
 
     private void processHit(InteractEntityEvent e) {
@@ -81,7 +92,7 @@ public class FightAimbot extends CustomCheck implements Cancelless {
     }
 
     public void removeData(Player p) {
-        lastLookDistanceSquared.remove(p.getUniqueId());
+        lastLookDistance.remove(p.getUniqueId());
         lastAttackTick.remove(p.getUniqueId());
     }
 }

@@ -66,8 +66,8 @@ public class BlockNMS7 extends BlockNMS {
         Vector min;
         Vector max;
         if (nmsAABB == null) {
-            min = new Vector(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-            max = new Vector(loc.getBlockX() + 1, loc.getBlockY() + 1, loc.getBlockZ() + 1);
+            min = new Vector(0, 0, 0);
+            max = new Vector(0, 0, 0);
         } else {
             min = new Vector(nmsAABB.a, nmsAABB.b, nmsAABB.c);
             max = new Vector(nmsAABB.d, nmsAABB.e, nmsAABB.f);

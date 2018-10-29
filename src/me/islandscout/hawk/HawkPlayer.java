@@ -278,23 +278,24 @@ public class HawkPlayer {
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.teleport(location, teleportCause), 0L);
     }
 
-    //Returns predicted server location of player at current millisecond
-    public Location getExtrapolatedLocation() {
-        Vector eVelocity = velocity.clone();
-        Vector eDeltaRotation = new Vector(deltaYaw, deltaPitch, 0);
+    //Returns predicted location/direction of player between current and next client move
+    //Useful for predicting where a 1.7 player may be facing during an attack packet
+    public Location getPredictedLocation() {
+        Vector movement = velocity.clone();
+        Vector rotation = new Vector(deltaYaw, deltaPitch, 0);
         double moveDelay = System.currentTimeMillis() - lastMoveTime;
         if (moveDelay >= 100) {
             moveDelay = 0D;
         } else {
             moveDelay = moveDelay / 50;
         }
-        eVelocity.multiply(moveDelay);
-        eDeltaRotation.multiply(moveDelay);
+        movement.multiply(moveDelay);
+        rotation.multiply(moveDelay);
 
         Location loc = location.clone();
-        loc.add(eVelocity);
-        loc.setYaw(loc.getYaw() + (float) eDeltaRotation.getX());
-        loc.setPitch(loc.getPitch() + (float) eDeltaRotation.getY());
+        loc.add(movement);
+        loc.setYaw(loc.getYaw() + (float) rotation.getX());
+        loc.setPitch(loc.getPitch() + (float) rotation.getY());
 
         return loc;
     }

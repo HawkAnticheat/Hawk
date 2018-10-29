@@ -17,6 +17,7 @@
 
 package me.islandscout.hawk.check.combat;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.util.ConfigHelper;
@@ -51,21 +52,30 @@ public class FightReachApprox extends EntityInteractionCheck {
         int ping = ServerUtils.getPing(e.getPlayer());
         if (PING_LIMIT > -1 && ping > PING_LIMIT)
             return;
+        HawkPlayer att = e.getHawkPlayer();
+
+        Location attackerLocation;
+        if(ServerUtils.getClientVersion(att.getPlayer()) == 7) {
+            attackerLocation = att.getPredictedLocation();
+        }
+        else {
+            attackerLocation = att.getLocation();
+        }
 
         Location victimLocation;
         if (victimEntity instanceof Player && LAG_COMPENSATION)
             victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, (Player) victimEntity);
         else
             victimLocation = victimEntity.getLocation();
-        double feetFeetDistanceSquared = victimLocation.distanceSquared(e.getHawkPlayer().getLocation());
-        double eyeFeetDistanceSquared = victimLocation.distanceSquared(e.getHawkPlayer().getLocation().clone().add(0, 1.62, 0));
+        double feetFeetDistanceSquared = victimLocation.distanceSquared(attackerLocation);
+        double eyeFeetDistanceSquared = victimLocation.distanceSquared(attackerLocation.clone().add(0, 1.62, 0));
         double maxReach = MAX_REACH;
         if (e.getPlayer().getGameMode() == GameMode.CREATIVE)
             maxReach += 17.64; //MC1.7: 1.8, MC1.8: 1.5
         if (feetFeetDistanceSquared > maxReach && eyeFeetDistanceSquared > maxReach) {
-            punish(e.getHawkPlayer(), true, e, new Placeholder("distance", MathPlus.round(Math.sqrt(feetFeetDistanceSquared), 2)));
+            punish(att, true, e, new Placeholder("distance", MathPlus.round(Math.sqrt(feetFeetDistanceSquared), 2)));
         } else {
-            reward(e.getHawkPlayer());
+            reward(att);
         }
     }
 }
