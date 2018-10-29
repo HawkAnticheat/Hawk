@@ -106,9 +106,6 @@ public class FightHitbox extends EntityInteractionCheck {
             attackerEyeLocation = att.getLocation().clone().add(0, 1.62, 0);
         }
 
-        Ray shitter = new Ray(att.getLocation().toVector().add(new Vector(0, 1.62, 0)), att.getLocation().getDirection());
-        shitter.highlight(hawk, att.getLocation().getWorld(), 5, 0.3);
-
         Vector attackerDirection = attackerEyeLocation.getDirection();
 
         double maxReach = MAX_REACH;
