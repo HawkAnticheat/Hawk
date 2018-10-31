@@ -20,8 +20,8 @@ package me.islandscout.hawk.util;
 //Because OpenJDK does not include JavaFX, I need to make my own Pair.
 public class Pair<K,V> {
 
-    private K key;
-    private V value;
+    private final K key;
+    private final V value;
 
     public Pair(K key, V value) {
         this.key = key;
