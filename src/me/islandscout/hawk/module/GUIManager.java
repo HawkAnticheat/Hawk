@@ -85,7 +85,16 @@ public class GUIManager implements Listener {
             }
         }
     }
-
+    
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event){
+        if (!(event.getPlayer() instanceof Player)) return;
+        
+        if (activeWindows.containsKey(event.getPlayer().getUniqueId())){
+            activeWindows.remove(event.getPlayer().getUniqueId());
+        }
+    }
+  
     public void stop() {
         for(UUID uuid : activeWindows.keySet()) {
             Player p = Bukkit.getPlayer(uuid);
