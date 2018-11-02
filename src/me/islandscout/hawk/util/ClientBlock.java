@@ -24,8 +24,23 @@ import org.bukkit.util.Vector;
 
 import java.util.Set;
 
+/**
+ * ClientBlocks allow Hawk to track the placement of blocks
+ * before they get processed by the server. This is very
+ * useful for mitigating client-server synchronization delay
+ * caused by the server taking nearly up to 100ms to process
+ * a block. This should especially be used in movement
+ * checks to significantly reduce annoying false-positives,
+ * but caution is advised since ClientBlocks may be spoofed.
+ * Since they can be spoofed by the client or canceled by
+ * the main thread for whatever reason, I highly advise
+ * making a system--in each check utilising ClientBlocks--
+ * that keeps track of expired ClientBlocks.
+ */
 public class ClientBlock {
 
+    public static final long CLIENTTICKS_UNTIL_EXPIRE = 5;
+    public static final int MAX_PER_PLAYER = 16;
     private final Location location;
     private final Material material;
     private final long initTick;

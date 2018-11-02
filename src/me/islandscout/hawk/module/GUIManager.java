@@ -22,6 +22,7 @@ import me.islandscout.hawk.gui.Element;
 import me.islandscout.hawk.gui.MainMenuWindow;
 import me.islandscout.hawk.gui.Window;
 import me.islandscout.hawk.util.ConfigHelper;
+import me.islandscout.hawk.util.Debug;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -37,7 +38,7 @@ public class GUIManager implements Listener {
 
     private final Map<UUID, Window> activeWindows;
     private final Hawk hawk;
-    private final boolean enabled;
+    private boolean enabled;
 
     public GUIManager(Hawk hawk) {
         this.hawk = hawk;
@@ -92,4 +93,15 @@ public class GUIManager implements Listener {
         if (activeWindows.containsKey(event.getPlayer().getUniqueId())){
             activeWindows.remove(event.getPlayer().getUniqueId());
         }
+    }
+  
+    public void stop() {
+        for(UUID uuid : activeWindows.keySet()) {
+            Player p = Bukkit.getPlayer(uuid);
+            if(p == null)
+                return;
+            p.closeInventory();
+        }
+        enabled = false;
+    }
 }

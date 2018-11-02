@@ -120,6 +120,7 @@ public class Hawk extends JavaPlugin {
         plugin.getCommand("hawk").setExecutor(null);
         HandlerList.unregisterAll(this);
         HawkViolationEvent.getHandlerList().unregister(plugin);
+        guiManager.stop();
         guiManager = null;
         lagCompensator = null;
         checkManager = null;

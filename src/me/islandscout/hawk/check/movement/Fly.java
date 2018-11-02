@@ -59,7 +59,7 @@ import java.util.*;
  * A continuous function which describes a free-falling player's
  * vertical position given the amount of ticks passed is:
  * <p>
- * p(x) = -3.92x - 0.98^x * 50(3.92 + v_i) + 50(3.92 + v_i) + p_i
+ * p(x) = -3.92(x+1) - 0.98^(x+1) * 50(3.92 + v_i) + 50(3.92 + v_i) + p_i
  */
 public class Fly extends MovementCheck implements Listener {
 
@@ -179,6 +179,12 @@ public class Fly extends MovementCheck implements Listener {
                     }
                 }
 
+                //TODO: improve this
+                if(event.isOnClientBlock() != null) {
+                    onGroundStuff(p);
+                    return;
+                }
+
                 //scold the child
                 punish(pp, false, event);
                 tryRubberband(event, legitLoc.getOrDefault(p.getUniqueId(), p.getLocation()));
@@ -221,6 +227,7 @@ public class Fly extends MovementCheck implements Listener {
         Chunk chunk = ServerUtils.getChunkAsync(loc);
         if (chunk == null)
             return false;
+        //TODO: Async issues
         Entity[] entities = chunk.getEntities().clone(); //Thread safety (IOOB exception), so clone?
         for (Entity entity : entities) {
             if (entity instanceof Boat) {

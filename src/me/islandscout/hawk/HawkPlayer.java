@@ -252,7 +252,7 @@ public class HawkPlayer {
     }
 
     public void addClientBlock(ClientBlock pBlock) {
-        if (clientBlocks.size() >= 16)
+        if (clientBlocks.size() >= ClientBlock.MAX_PER_PLAYER)
             return;
         clientBlocks.add(pBlock);
     }
@@ -260,7 +260,7 @@ public class HawkPlayer {
     private void manageClientBlocks() {
         Set<ClientBlock> oldPBlocks = new HashSet<>();
         for (ClientBlock loopPBlock : clientBlocks) {
-            if (currentTick - loopPBlock.getInitTick() > 5) {
+            if (currentTick - loopPBlock.getInitTick() > ClientBlock.CLIENTTICKS_UNTIL_EXPIRE) {
                 oldPBlocks.add(loopPBlock);
             }
         }
