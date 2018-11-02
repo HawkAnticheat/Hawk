@@ -116,6 +116,16 @@ public class AABB implements Cloneable {
         max.add(vector);
     }
 
+    //translate AABB so that the min point is located at the given vector (AABB origin is min)
+    public void translateTo(Vector vector) {
+        max.setX(vector.getX() + (max.getX() - min.getX()));
+        max.setY(vector.getY() + (max.getY() - min.getY()));
+        max.setZ(vector.getZ() + (max.getZ() - min.getZ()));
+        min.setX(vector.getX());
+        min.setY(vector.getY());
+        min.setZ(vector.getZ());
+    }
+
     public boolean isColliding(AABB other) {
         if (max.getX() < other.getMin().getX() || min.getX() > other.getMax().getX()) {
             return false;

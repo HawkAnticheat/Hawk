@@ -66,7 +66,7 @@ public class LiquidExit extends MovementCheck implements Listener {
         //emerged upwards from liquid
         if (deltaY > 0 && atFrom.isLiquid() && !belowFrom.isLiquid() && !AdjacentBlocks.blockNearbyIsSolid(from)) {
             Pair<Double, Long> kb = kbTime.getOrDefault(p.getUniqueId(), new Pair<>(0D, 0L));
-            double ticksSinceKb = System.currentTimeMillis() - kb.getValue();
+            long ticksSinceKb = System.currentTimeMillis() - kb.getValue();
             ticksSinceKb /= 50;
             //check if they're being knocked out of the water
             if (PhysicsUtils.waterYVelFunc(kb.getKey(), ticksSinceKb) < 0) {

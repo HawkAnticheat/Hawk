@@ -17,11 +17,16 @@
 
 package me.islandscout.hawk.event;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.util.AABB;
 import me.islandscout.hawk.util.AdjacentBlocks;
+import me.islandscout.hawk.util.ClientBlock;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.WrappedPacket;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -78,6 +83,19 @@ public class PositionEvent extends Event {
 
     public boolean isOnGroundReally() {
         return onGroundReally;
+    }
+
+    public ClientBlock isOnClientBlock() {
+        AABB feet = new AABB(getTo().toVector().add(new Vector(-0.3, -0.02, -0.3)), getTo().toVector().add(new Vector(0.3, 0, 0.3)));
+        AABB aboveFeet = feet.clone();
+        aboveFeet.translate(new Vector(0, 0.020001, 0));
+        AABB cube = new AABB(new Vector(0, 0, 0), new Vector(1, 1, 1));
+        for(ClientBlock cBlock : pp.getClientBlocks()) {
+            cube.translateTo(cBlock.getLocation().toVector());
+            if(cBlock.getMaterial().isSolid() && feet.isColliding(cube) && !aboveFeet.isColliding(cube))
+                return cBlock;
+        }
+        return null;
     }
 
     public boolean hasTeleported() {

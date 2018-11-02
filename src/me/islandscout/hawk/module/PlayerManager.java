@@ -78,23 +78,4 @@ public class PlayerManager implements Listener {
         pp.setTeleportLoc(e.getRespawnLocation());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlace(BlockPlaceEvent e) {
-        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
-        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> {
-            ClientBlock pBlockDel = null;
-            for (ClientBlock pBlock : pp.getClientBlocks()) {
-                Location a = pBlock.getLocation();
-                Location b = e.getBlockPlaced().getLocation();
-                if ((int) a.getX() == (int) b.getX() && (int) a.getY() == (int) b.getY() && (int) a.getZ() == (int) b.getZ()) {
-                    pBlockDel = pBlock;
-                    break;
-                }
-            }
-            if (pBlockDel == null)
-                return;
-            pp.getClientBlocks().remove(pBlockDel);
-        }, 1 + pp.getPing());
-    }
-
 }
