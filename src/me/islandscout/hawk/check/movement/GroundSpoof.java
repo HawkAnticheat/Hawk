@@ -35,7 +35,7 @@ public class GroundSpoof extends MovementCheck {
     public GroundSpoof() {
         super("groundspoof", true, -1, 3, 0.995, 5000, "%player% failed ground spoof. VL: %vl%", null);
         STRICT = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.groundspoof.strict");
-        PREVENT_NOFALL = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.groundspoof.preventNoFallDmg");
+        PREVENT_NOFALL = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.groundspoof.preventNoFall");
     }
 
     @Override
@@ -48,7 +48,10 @@ public class GroundSpoof extends MovementCheck {
                 //Unfortunately, this issue is caused by how movement works in Minecraft, and cannot be fixed easily.
                 Location checkLoc = event.getFrom().clone();
                 checkLoc.setY(event.getTo().getY());
-                if (!STRICT && !AdjacentBlocks.onGroundReally(checkLoc, -1, false) && event.hasDeltaPos()) {
+                if(!STRICT && AdjacentBlocks.onGroundReally(checkLoc, -1, false))
+                    return;
+
+                if (event.isOnClientBlock() == null) {
                     punishAndTryRubberband(event.getHawkPlayer(), event, event.getPlayer().getLocation());
                     if (PREVENT_NOFALL)
                         setNotOnGround(event);

@@ -39,6 +39,10 @@ public abstract class WrappedPacket {
 
     public abstract byte[] getBytes();
 
+    public abstract Object readPacket();
+
+    public abstract void overwritePacket(Object packetDataSerializer);
+
     public enum PacketType {
         FLYING,
         POSITION,
@@ -50,5 +54,7 @@ public abstract class WrappedPacket {
         ABILITIES,
         BLOCK_PLACE,
         ARM_ANIMATION,
+        HELD_ITEM_SLOT,
+        ENTITY_META_DATA
     }
 }

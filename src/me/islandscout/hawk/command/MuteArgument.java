@@ -30,8 +30,6 @@ import java.util.List;
 
 public class MuteArgument extends Argument {
 
-    //TODO: Test this
-
     MuteArgument() {
         super("mute", "<player> <seconds> <reason>", "Mute a player using Hawk's mute manager.");
     }

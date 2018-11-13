@@ -39,7 +39,7 @@ public class CheckManager {
     //make these HashSets?
     private final List<Check> checks;
     private final List<BlockDigCheck> blockDigChecks;
-    private final List<BlockPlacementCheck> blockPlacementChecks;
+    private final List<BlockInteractionCheck> blockInteractionChecks;
     private final List<CustomCheck> customChecks;
     private final List<EntityInteractionCheck> entityInteractionChecks;
     private final List<MovementCheck> movementChecks;
@@ -50,7 +50,7 @@ public class CheckManager {
         exemptedPlayers = new HashSet<>();
         checks = new ArrayList<>();
         blockDigChecks = new ArrayList<>();
-        blockPlacementChecks = new ArrayList<>();
+        blockInteractionChecks = new ArrayList<>();
         customChecks = new ArrayList<>();
         entityInteractionChecks = new ArrayList<>();
         movementChecks = new ArrayList<>();
@@ -86,6 +86,7 @@ public class CheckManager {
         new BlockInteractSpeed();
         new WrongBlockFace();
         new ImpossiblePlacement();
+        new AutoPotion();
         //new SpeedRewrite();
 
         hawk.saveConfigs();
@@ -94,7 +95,7 @@ public class CheckManager {
     private void unloadChecks() {
         checks.clear();
         blockDigChecks.clear();
-        blockPlacementChecks.clear();
+        blockInteractionChecks.clear();
         customChecks.clear();
         entityInteractionChecks.clear();
         movementChecks.clear();
@@ -114,9 +115,9 @@ public class CheckManager {
         } else if (e instanceof BlockDigEvent) {
             for (BlockDigCheck check : blockDigChecks)
                 check.checkEvent((BlockDigEvent) e);
-        } else if (e instanceof BlockPlaceEvent) {
-            for (BlockPlacementCheck check : blockPlacementChecks)
-                check.checkEvent((BlockPlaceEvent) e);
+        } else if (e instanceof MaterialInteractionEvent && ((MaterialInteractionEvent) e).getInteractionType() != MaterialInteractionEvent.InteractionType.USE_ITEM) {
+            for (BlockInteractionCheck check : blockInteractionChecks)
+                check.checkEvent((MaterialInteractionEvent) e);
         }
     }
 
@@ -133,8 +134,8 @@ public class CheckManager {
         return blockDigChecks;
     }
 
-    public List<BlockPlacementCheck> getBlockPlacementChecks() {
-        return blockPlacementChecks;
+    public List<BlockInteractionCheck> getBlockInteractionChecks() {
+        return blockInteractionChecks;
     }
 
     public List<CustomCheck> getCustomChecks() {

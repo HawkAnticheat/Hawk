@@ -47,15 +47,16 @@ public class ToggleChecksWindow extends Window {
             ItemMeta buttonName = status.getItemMeta();
             buttonName.setDisplayName(display);
             status.setItemMeta(buttonName);
-            elements.add(i, new Element(i, status) {
+            final int location = i;
+            elements[i] = new Element(status) {
                 @Override
                 public void doAction(Player p, Hawk hawk) {
-                    Check check = hawk.getCheckManager().getChecks().get(getLocation());
+                    Check check = hawk.getCheckManager().getChecks().get(location);
                     check.setEnabled(!check.isEnabled());
                     Window window = new ToggleChecksWindow(hawk, p);
                     hawk.getGuiManager().sendWindow(p, window);
                 }
-            });
+            };
 
             prepareInventory();
         }

@@ -34,23 +34,42 @@ public class WrappedPacket7 extends WrappedPacket {
     }
 
     public void setByte(int index, int value) {
-        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(256));
+        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
         try {
-            ((Packet) packet).b(serializer); //"b" method writes to PacketDataSerializer
+            ((Packet) packet).b(serializer); //"b" method writes to PacketDataSerializer (reads from packet)
             serializer.setByte(index, value);
-            ((Packet) packet).a(serializer); //"a" method interprets PacketDataSerializer
+            ((Packet) packet).a(serializer); //"a" method interprets PacketDataSerializer (writes to packet)
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public byte[] getBytes() {
-        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(256));
+        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
         try {
-            ((Packet) packet).b(serializer); //"b" method writes to PacketDataSerializer
+            ((Packet) packet).b(serializer); //"b" method writes to PacketDataSerializer (reads from packet)
         } catch (IOException e) {
             e.printStackTrace();
         }
         return serializer.array();
+    }
+
+    public PacketDataSerializer readPacket() {
+        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
+        try {
+            ((Packet) packet).b(serializer); //"b" method writes to PacketDataSerializer (reads from packet)
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return serializer;
+    }
+
+    public void overwritePacket(Object packetDataSerializer) {
+        PacketDataSerializer serializer = (PacketDataSerializer)packetDataSerializer;
+        try {
+            ((Packet) packet).a(serializer); //"a" method interprets PacketDataSerializer (writes to packet)
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

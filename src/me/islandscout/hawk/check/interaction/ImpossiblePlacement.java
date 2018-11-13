@@ -18,20 +18,20 @@
 package me.islandscout.hawk.check.interaction;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.check.BlockPlacementCheck;
-import me.islandscout.hawk.event.BlockPlaceEvent;
+import me.islandscout.hawk.check.BlockInteractionCheck;
+import me.islandscout.hawk.event.MaterialInteractionEvent;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
-public class ImpossiblePlacement extends BlockPlacementCheck {
+public class ImpossiblePlacement extends BlockInteractionCheck {
 
     public ImpossiblePlacement() {
         super("impossibleplacement", true, 0, 0, 0.999, 5000, "%player% failed impossibleplacement, VL: %vl%", null);
     }
 
     @Override
-    protected void check(BlockPlaceEvent e) {
+    protected void check(MaterialInteractionEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
         Block targetedBlock = ServerUtils.getBlockAsync(e.getTargetedBlockLocation());
         if(targetedBlock == null)

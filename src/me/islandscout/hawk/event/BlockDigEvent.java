@@ -40,4 +40,11 @@ public class BlockDigEvent extends Event {
     public Block getBlock() {
         return block;
     }
+
+    public enum DigAction {
+
+        START,
+        CANCEL,
+        COMPLETE
+    }
 }

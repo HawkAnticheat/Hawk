@@ -30,8 +30,6 @@ import java.util.List;
 
 public class BanArgument extends Argument {
 
-    //TODO: Test this
-
     public BanArgument() {
         super("ban", "<player> <seconds> <reason>", "Ban a player using Hawk's ban manager.");
     }

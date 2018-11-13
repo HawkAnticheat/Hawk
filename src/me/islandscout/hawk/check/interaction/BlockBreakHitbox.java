@@ -20,7 +20,6 @@ package me.islandscout.hawk.check.interaction;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockDigCheck;
 import me.islandscout.hawk.event.BlockDigEvent;
-import me.islandscout.hawk.event.DigAction;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.block.BlockNMS;
 import org.bukkit.GameMode;
@@ -144,9 +143,9 @@ public class BlockBreakHitbox extends BlockDigCheck {
     private void cancelDig(HawkPlayer pp, BlockDigEvent e, Placeholder... placeholder) {
         if (pp.getPlayer().getGameMode() == GameMode.CREATIVE) {
             punishAndTryCancelAndBlockRespawn(pp, e, placeholder);
-        } else if (e.getDigAction() == DigAction.COMPLETE) {
+        } else if (e.getDigAction() == BlockDigEvent.DigAction.COMPLETE) {
             punishAndTryCancelAndBlockRespawn(pp, e, placeholder);
-        } else if (CHECK_DIG_START && e.getDigAction() == DigAction.START) {
+        } else if (CHECK_DIG_START && e.getDigAction() == BlockDigEvent.DigAction.START) {
             punish(pp, true, e, placeholder);
         }
     }

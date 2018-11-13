@@ -21,36 +21,42 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.util.ConfigHelper;
-import me.islandscout.hawk.util.Debug;
+import me.islandscout.hawk.util.MathPlus;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 
 import java.util.*;
 
-public class ClockSpeed extends MovementCheck {
-
-    //TODO: you might actually want to listen to flying packets in general, since position events will not go through during teleport
-    //TODO: Cancel eating/shooting/regen if this fails
+public class ClockSpeed extends MovementCheck implements Listener {
 
     private final Map<UUID, Long> prevNanoTime;
     private final Map<UUID, Long> clockDrift;
-    private final Set<UUID> penalize;
     private final boolean DEBUG;
     private final double THRESHOLD;
     private final long MAX_CATCHUP_TIME;
     private final double CALIBRATE_SLOWER;
     private final double CALIBRATE_FASTER;
+    private final boolean RUBBERBAND;
+    private final boolean RESET_DRIFT_ON_FAIL;
+    private final boolean DENY_ACTIONS;
 
     public ClockSpeed() {
         super("clockspeed", true, 10, 10, 0.995, 10000, "%player% failed clockspeed. VL: %vl%, ping: %ping%, TPS: %tps%", null);
         prevNanoTime = new HashMap<>();
-        penalize = new HashSet<>();
         clockDrift = new HashMap<>();
         THRESHOLD = -ConfigHelper.getOrSetDefault(30, hawk.getConfig(), "checks.clockspeed.clockDriftThreshold");
         MAX_CATCHUP_TIME = 1000000 * ConfigHelper.getOrSetDefault(500, hawk.getConfig(), "checks.clockspeed.maxCatchupTime");
         DEBUG = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.clockspeed.debug");
         CALIBRATE_SLOWER = 1 - ConfigHelper.getOrSetDefault(0.003, hawk.getConfig(), "checks.clockspeed.calibrateSlower");
         CALIBRATE_FASTER = 1 - ConfigHelper.getOrSetDefault(0.03, hawk.getConfig(), "checks.clockspeed.calibrateFaster");
+        RUBBERBAND = (boolean)customSetting("rubberbandOnFail", "", true);
+        RESET_DRIFT_ON_FAIL = (boolean)customSetting("resetDriftOnFail", "", false);
+        DENY_ACTIONS = (boolean)customSetting("denyActionsOnFail", "", true);
     }
 
     @Override
@@ -73,10 +79,15 @@ public class ClockSpeed extends MovementCheck {
             drift = MAX_CATCHUP_TIME;
         if (DEBUG) {
             double msOffset = drift * 1E-6;
-            p.sendMessage((msOffset < 0 ? (msOffset < THRESHOLD ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.BLUE) + "CLOCK DRIFT: " + -msOffset + "ms");
+            p.sendMessage((msOffset < 0 ? (msOffset < THRESHOLD ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.BLUE) + "CLOCK DRIFT: " + MathPlus.round(-msOffset, 2) + "ms");
         }
         if (drift * 1E-6 < THRESHOLD) {
-            punishAndTryRubberband(pp, event, p.getLocation());
+            if(RUBBERBAND)
+                punishAndTryRubberband(pp, event, p.getLocation());
+            else
+                punish(pp, true, event);
+            if(RESET_DRIFT_ON_FAIL)
+                drift = 0;
         } else
             reward(pp);
         if (drift < 0)
@@ -90,6 +101,21 @@ public class ClockSpeed extends MovementCheck {
     public void removeData(Player p) {
         prevNanoTime.remove(p.getUniqueId());
         clockDrift.remove(p.getUniqueId());
-        penalize.remove(p.getUniqueId());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onConsume(PlayerItemConsumeEvent e) {
+        Player p = e.getPlayer();
+        if(!p.hasPermission(permission) && clockDrift.get(p.getUniqueId()) * 1E-6 < THRESHOLD && DENY_ACTIONS)
+            e.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onShoot(EntityShootBowEvent e) {
+        if(e instanceof Player) {
+            Player p = (Player) e.getEntity();
+            if (!p.hasPermission(permission) && clockDrift.get(p.getUniqueId()) * 1E-6 < THRESHOLD && DENY_ACTIONS)
+                e.setCancelled(true);
+        }
     }
 }

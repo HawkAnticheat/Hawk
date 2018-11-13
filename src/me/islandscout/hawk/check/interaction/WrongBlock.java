@@ -20,7 +20,6 @@ package me.islandscout.hawk.check.interaction;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockDigCheck;
 import me.islandscout.hawk.event.BlockDigEvent;
-import me.islandscout.hawk.event.DigAction;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
@@ -43,9 +42,9 @@ public class WrongBlock extends BlockDigCheck {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
         Block b = e.getBlock();
-        if (e.getDigAction() == DigAction.START) {
+        if (e.getDigAction() == BlockDigEvent.DigAction.START) {
             blockinteracted.put(p.getUniqueId(), e.getBlock());
-        } else if (e.getDigAction() == DigAction.COMPLETE) {
+        } else if (e.getDigAction() == BlockDigEvent.DigAction.COMPLETE) {
             if ((!blockinteracted.containsKey(p.getUniqueId()) || !b.equals(blockinteracted.get(p.getUniqueId())))) {
                 punishAndTryCancelAndBlockRespawn(pp, e);
             } else

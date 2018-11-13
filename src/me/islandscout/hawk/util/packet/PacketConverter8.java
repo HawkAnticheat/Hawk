@@ -23,9 +23,10 @@ import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.util.block.BlockNMS;
 import me.islandscout.hawk.util.block.BlockNMS8;
 import net.minecraft.server.v1_8_R3.*;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 public final class PacketConverter8 {
 
@@ -41,10 +42,12 @@ public final class PacketConverter8 {
         if (packet instanceof PacketPlayInAbilities)
             return packetToAbilitiesEvent((PacketPlayInAbilities) packet, p, pp);
         if (packet instanceof PacketPlayInBlockPlace)
-            return packetToBlockPlaceEvent((PacketPlayInBlockPlace) packet, p, pp);
+            return packetToUseEvent((PacketPlayInBlockPlace) packet, p, pp);
         if (packet instanceof PacketPlayInArmAnimation)
             return packetToArmSwingEvent((PacketPlayInArmAnimation) packet, p, pp);
-        else return null;
+        if (packet instanceof PacketPlayInHeldItemSlot)
+            return packetToItemSwitchEvent((PacketPlayInHeldItemSlot) packet, p, pp);
+        return null;
     }
 
     private static PositionEvent packetToPosEvent(PacketPlayInFlying packet, Player p, HawkPlayer pp) {
@@ -100,22 +103,22 @@ public final class PacketConverter8 {
         BlockNMS block = new BlockNMS8(ServerUtils.getBlockAsync(loc));
 
         PacketPlayInBlockDig.EnumPlayerDigType digType = packet.c();
-        DigAction action;
+        BlockDigEvent.DigAction action;
         switch (digType) {
             case START_DESTROY_BLOCK:
-                action = DigAction.START;
+                action = BlockDigEvent.DigAction.START;
                 break;
             case ABORT_DESTROY_BLOCK:
-                action = DigAction.CANCEL;
+                action = BlockDigEvent.DigAction.CANCEL;
                 break;
             case STOP_DESTROY_BLOCK:
-                action = DigAction.COMPLETE;
+                action = BlockDigEvent.DigAction.COMPLETE;
                 break;
             default:
-                action = DigAction.COMPLETE;
+                action = BlockDigEvent.DigAction.COMPLETE;
         }
 
-        pp.setDigging(action == DigAction.START && block.getStrength() != 0);
+        pp.setDigging(action == BlockDigEvent.DigAction.START && block.getStrength() != 0);
         return new BlockDigEvent(p, pp, action, loc.getBlock(), new WrappedPacket8(packet, WrappedPacket.PacketType.BLOCK_DIG));
     }
 
@@ -129,7 +132,7 @@ public final class PacketConverter8 {
     }
 
     //it appears that this gets called when interacting with blocks too
-    private static BlockPlaceEvent packetToBlockPlaceEvent(PacketPlayInBlockPlace packet, Player p, HawkPlayer pp) {
+    private static MaterialInteractionEvent packetToUseEvent(PacketPlayInBlockPlace packet, Player p, HawkPlayer pp) {
         org.bukkit.Material mat;
         if (packet.getItemStack() != null && packet.getItemStack().getItem() != null) {
             Block block = Block.asBlock(packet.getItemStack().getItem());
@@ -143,44 +146,64 @@ public final class PacketConverter8 {
         int x = bPos.getX();
         int y = bPos.getY();
         int z = bPos.getZ();
-        BlockPlaceEvent.BlockFace face;
+        Vector targetedPosition = new Vector(x, y, z);
+        MaterialInteractionEvent.BlockFace face;
         //Debug.broadcastMessage("FACE: " + packet.getFace());
         //Debug.broadcastMessage(x + " " + y + " " + z);
-        //Debug.broadcastMessage(packet.h() + "");
+        //Debug.broadcastMessage(mat + "");
+
+        MaterialInteractionEvent.InteractionType interactionType;
+        //first vector is for 1.8 clients, second is for 1.7
+        if(!targetedPosition.equals(new Vector(-1, -1, -1)) && !targetedPosition.equals(new Vector(-1, 255, -1))) {
+            if(mat != null && mat != org.bukkit.Material.AIR) {
+                interactionType = MaterialInteractionEvent.InteractionType.PLACE_BLOCK;
+            }
+            else {
+                interactionType = MaterialInteractionEvent.InteractionType.INTERACT_BLOCK;
+            }
+        }
+        else {
+            interactionType = MaterialInteractionEvent.InteractionType.USE_ITEM;
+        }
+
         switch (packet.getFace()) {
             case 0:
-                face = BlockPlaceEvent.BlockFace.BOTTOM;
+                face = MaterialInteractionEvent.BlockFace.BOTTOM;
                 y -= 1;
                 break;
             case 1:
-                face = BlockPlaceEvent.BlockFace.TOP;
+                face = MaterialInteractionEvent.BlockFace.TOP;
                 y += 1;
                 break;
             case 2:
-                face = BlockPlaceEvent.BlockFace.NORTH;
+                face = MaterialInteractionEvent.BlockFace.NORTH;
                 z -= 1;
                 break;
             case 3:
-                face = BlockPlaceEvent.BlockFace.SOUTH;
+                face = MaterialInteractionEvent.BlockFace.SOUTH;
                 z += 1;
                 break;
             case 4:
-                face = BlockPlaceEvent.BlockFace.WEST;
+                face = MaterialInteractionEvent.BlockFace.WEST;
                 x -= 1;
                 break;
             case 5:
-                face = BlockPlaceEvent.BlockFace.EAST;
+                face = MaterialInteractionEvent.BlockFace.EAST;
                 x += 1;
                 break;
             default:
-                return null;
+                face = null;
         }
-        if (y < 0)
-            return null;
-        return new BlockPlaceEvent(p, pp, new Location(p.getWorld(), x, y, z), mat, face, new WrappedPacket8(packet, WrappedPacket.PacketType.BLOCK_PLACE));
+
+        Location placedLocation = interactionType != MaterialInteractionEvent.InteractionType.USE_ITEM ? new Location(p.getWorld(), x, y, z) : null;
+        return new MaterialInteractionEvent(p, pp, placedLocation, mat, face, interactionType, new WrappedPacket8(packet, WrappedPacket.PacketType.BLOCK_PLACE));
     }
 
     private static ArmSwingEvent packetToArmSwingEvent(PacketPlayInArmAnimation packet, Player p, HawkPlayer pp) {
         return new ArmSwingEvent(p, pp, 0, new WrappedPacket8(packet, WrappedPacket.PacketType.ARM_ANIMATION));
+    }
+
+    private static ItemSwitchEvent packetToItemSwitchEvent(PacketPlayInHeldItemSlot packet, Player p, HawkPlayer pp) {
+        return new ItemSwitchEvent(p, pp, packet.a(), new WrappedPacket8(packet, WrappedPacket.PacketType.HELD_ITEM_SLOT));
     }
 }

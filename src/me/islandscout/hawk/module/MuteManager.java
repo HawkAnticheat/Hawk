@@ -18,26 +18,24 @@
 package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.util.Debug;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class MuteManager implements Listener {
 
     private final Hawk hawk;
-    private final List<MuteEntry> mutes; //Perhaps store cached data into a HashSet? Faster than binary search?
+    private final Map<UUID, MuteEntry> mutes;
     private final File dataFile;
 
     public MuteManager(Hawk hawk) {
         this.hawk = hawk;
-        mutes = new ArrayList<>();
+        mutes = new HashMap<>();
         dataFile = new File(hawk.getDataFolder().getAbsolutePath() + File.separator + "muted_players.txt");
         Bukkit.getPluginManager().registerEvents(this, hawk);
     }
@@ -69,7 +67,7 @@ public class MuteManager implements Listener {
             String[] parts = line.split(" ", 3);
             long expireTime = Long.parseLong(parts[1]);
             if (expireTime > System.currentTimeMillis()) {
-                mutes.add(new MuteEntry(UUID.fromString(parts[0]), expireTime, parts[2]));
+                mutes.put(UUID.fromString(parts[0]), new MuteEntry(expireTime, parts[2]));
             }
             line = readLine(buf);
         }
@@ -81,8 +79,6 @@ public class MuteManager implements Listener {
             hawk.getLogger().severe("Failed to read muted_players.txt");
             e.printStackTrace();
         }
-
-        Collections.sort(mutes); //binary search???
     }
 
 
@@ -98,31 +94,16 @@ public class MuteManager implements Listener {
     }
 
     public MuteEntry getMuteInfo(UUID uuid) {
-        MuteEntry dummy = new MuteEntry(uuid, 0, "");
-        int index = Collections.binarySearch(mutes, dummy);
-        if (index < 0)
-            return null;
-        return mutes.get(index);
+        return mutes.get(uuid);
     }
 
     public void mute(UUID uuid, long expireTime, String reason) {
-        MuteEntry muteEntry = new MuteEntry(uuid, expireTime, reason);
-        int index = Collections.binarySearch(mutes, muteEntry);
-        boolean alreadyBanned = index >= 0;
-        if (!alreadyBanned) {
-            index = -index - 1;
-            mutes.add(index, muteEntry);
-        } else {
-            mutes.set(index, muteEntry);
-        }
+        MuteEntry muteEntry = new MuteEntry(expireTime, reason);
+        mutes.put(uuid, muteEntry);
     }
 
     public void pardon(UUID uuid) {
-        MuteEntry muteEntry = new MuteEntry(uuid, 0, "");
-        int index = Collections.binarySearch(mutes, muteEntry);
-        if (index >= 0) {
-            mutes.remove(index);
-        }
+        mutes.remove(uuid);
     }
 
     public void purgeBans() {
@@ -134,8 +115,9 @@ public class MuteManager implements Listener {
         try (FileWriter fw = new FileWriter(dataFile, false);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
-            for (MuteEntry entry : mutes) {
-                out.println(entry.uuid + " " + entry.expireTime + " " + entry.reason);
+            for (Map.Entry<UUID, MuteEntry> entry : mutes.entrySet()) {
+                MuteEntry muteEntry = entry.getValue();
+                out.println(entry.getKey() + " " + muteEntry.expireTime + " " + muteEntry.reason);
             }
         } catch (IOException e) {
             hawk.getLogger().severe("Failed to write to muted_players.txt");
@@ -153,23 +135,17 @@ public class MuteManager implements Listener {
             return;
         }
         e.setCancelled(true);
-        //Debug.sendToPlayer(e.getPlayer(), "You're not supposed to chat.");
+        Debug.sendToPlayer(e.getPlayer(), "You're not supposed to chat.");
     }
 
-    public class MuteEntry implements Comparable<MuteEntry> {
+    public class MuteEntry {
 
-        private final UUID uuid;
         private final long expireTime;
         private final String reason;
 
-        private MuteEntry(UUID uuid, long expireTime, String reason) {
-            this.uuid = uuid;
+        private MuteEntry(long expireTime, String reason) {
             this.expireTime = expireTime;
             this.reason = reason;
-        }
-
-        public UUID getUuid() {
-            return uuid;
         }
 
         public long getExpireTime() {
@@ -179,14 +155,9 @@ public class MuteManager implements Listener {
         public String getReason() {
             return reason;
         }
-
-        @Override
-        public int compareTo(MuteEntry other) {
-            return this.uuid.compareTo(other.uuid);
-        }
     }
 
-    public List<MuteEntry> getMutes() {
+    public Map<UUID, MuteEntry> getMutes() {
         return mutes;
     }
 }

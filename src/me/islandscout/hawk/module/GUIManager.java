@@ -22,7 +22,6 @@ import me.islandscout.hawk.gui.Element;
 import me.islandscout.hawk.gui.MainMenuWindow;
 import me.islandscout.hawk.gui.Window;
 import me.islandscout.hawk.util.ConfigHelper;
-import me.islandscout.hawk.util.Debug;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -55,7 +54,7 @@ public class GUIManager implements Listener {
         p.openInventory(window.getInventory());
     }
 
-    public void sendMenuWindow(Player p) {
+    public void sendMainMenuWindow(Player p) {
         if (!enabled) return;
         Window window = new MainMenuWindow(hawk, p);
         sendWindow(p, window);
@@ -78,8 +77,11 @@ public class GUIManager implements Listener {
         }
         Window window = activeWindows.get(p.getUniqueId());
         int clickedLoc = e.getRawSlot();
-        for (Element element : window.getElements()) {
-            if (element.getLocation() == clickedLoc) {
+        for (int i = 0; i < window.getElements().length; i++) {
+            if (i == clickedLoc) {
+                Element element = window.getElements()[i];
+                if(element == null)
+                    break;
                 element.doAction(p, hawk);
                 break;
             }

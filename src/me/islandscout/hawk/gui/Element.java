@@ -25,28 +25,35 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public abstract class Element {
 
-    private final int location;
-    private final ItemStack itemStack;
+    protected ItemStack itemStack;
+    protected String name;
 
-    Element(int location, Material mat, String name) {
-        this.location = location;
+    Element(Material mat, String name) {
+        this.name = name;
         this.itemStack = new ItemStack(mat);
         ItemMeta checksName = itemStack.getItemMeta();
         checksName.setDisplayName(name);
         itemStack.setItemMeta(checksName);
     }
 
-    Element(int location, ItemStack itemStack) {
-        this.location = location;
+    Element(ItemStack itemStack) {
         this.itemStack = itemStack;
-    }
-
-    public int getLocation() {
-        return location;
     }
 
     public ItemStack getItemStack() {
         return itemStack;
+    }
+
+    public void setItemStack(ItemStack itemStack) {
+        this.itemStack = itemStack;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public abstract void doAction(Player p, Hawk hawk);

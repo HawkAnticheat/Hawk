@@ -60,7 +60,7 @@ public class SpeedRewrite extends MovementCheck {
         }
 
         if (speedSquared > GROUND_DEFAULT) {
-            //punishAndTryRubberband(pp, event, p.getLocation());
+            //punishAndTryRubberband(pp, event, p.getPlacedBlockLocation());
         }
     }
 }

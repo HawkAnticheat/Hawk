@@ -19,7 +19,7 @@ package me.islandscout.hawk.check;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.event.BlockPlaceEvent;
+import me.islandscout.hawk.event.MaterialInteractionEvent;
 import me.islandscout.hawk.util.Placeholder;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.util.block.BlockNMS7;
@@ -28,26 +28,26 @@ import org.bukkit.block.Block;
 
 import java.util.List;
 
-public abstract class BlockPlacementCheck extends Check<BlockPlaceEvent> {
+public abstract class BlockInteractionCheck extends Check<MaterialInteractionEvent> {
 
-    protected BlockPlacementCheck(String name, boolean enabled, int cancelThreshold, int flagThreshold, double vlPassMultiplier, long flagCooldown, String flag, List<String> punishCommands) {
+    protected BlockInteractionCheck(String name, boolean enabled, int cancelThreshold, int flagThreshold, double vlPassMultiplier, long flagCooldown, String flag, List<String> punishCommands) {
         super(name, enabled, cancelThreshold, flagThreshold, vlPassMultiplier, flagCooldown, flag, punishCommands);
-        hawk.getCheckManager().getBlockPlacementChecks().add(this);
+        hawk.getCheckManager().getBlockInteractionChecks().add(this);
     }
 
-    protected BlockPlacementCheck(String name, String flag) {
+    protected BlockInteractionCheck(String name, String flag) {
         this(name, true, 0, 5, 0.9, 5000, flag, null);
     }
 
-    protected void punishAndTryCancelAndBlockRespawn(HawkPlayer offender, BlockPlaceEvent event, Placeholder... placeholders) {
+    protected void punishAndTryCancelAndBlockRespawn(HawkPlayer offender, MaterialInteractionEvent event, Placeholder... placeholders) {
         punish(offender, true, event, placeholders);
         if (offender.getVL(this) < cancelThreshold)
             return;
         blockRespawn(offender, event);
     }
 
-    protected void blockRespawn(HawkPlayer offender, BlockPlaceEvent event) {
-        Block b = ServerUtils.getBlockAsync(event.getLocation());
+    protected void blockRespawn(HawkPlayer offender, MaterialInteractionEvent event) {
+        Block b = ServerUtils.getBlockAsync(event.getPlacedBlockLocation());
         if(b == null)
             return;
         if (Hawk.getServerVersion() == 7) {

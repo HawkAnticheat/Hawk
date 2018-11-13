@@ -18,15 +18,15 @@
 package me.islandscout.hawk.check.interaction;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.check.BlockPlacementCheck;
-import me.islandscout.hawk.event.BlockPlaceEvent;
+import me.islandscout.hawk.check.BlockInteractionCheck;
+import me.islandscout.hawk.event.MaterialInteractionEvent;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class BlockInteractSpeed extends BlockPlacementCheck {
+public class BlockInteractSpeed extends BlockInteractionCheck {
 
     private final Map<UUID, Long> lastPlaceTick;
 
@@ -36,7 +36,7 @@ public class BlockInteractSpeed extends BlockPlacementCheck {
     }
 
     @Override
-    protected void check(BlockPlaceEvent e) {
+    protected void check(MaterialInteractionEvent e) {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
         if (pp.getCurrentTick() == lastPlaceTick.getOrDefault(p.getUniqueId(), 0L))

@@ -23,6 +23,7 @@ import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.util.Debug;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -44,6 +45,8 @@ public class FightAimbot extends CustomCheck implements Cancelless {
     private final Map<UUID, Vector> lastMouseMoves;
     private final boolean CHECK_ACCEL;
     private final double ACCEL_THRES;
+    private final boolean DEBUG_SPEED;
+    private final boolean DEBUG_ACCELERATION;
 
     public FightAimbot() {
         super("fightaimbot", true, -1, 5, 0.97, 5000, "%player% may be using aimbot. VL %vl%", null);
@@ -52,6 +55,8 @@ public class FightAimbot extends CustomCheck implements Cancelless {
         lastMouseMoves = new HashMap<>();
         CHECK_ACCEL = (boolean)customSetting("enabled", "checkMouseAccel", false);
         ACCEL_THRES = (double)customSetting("threshold", "checkMouseAccel", 50D);
+        DEBUG_SPEED = (boolean)customSetting("speed", "debug", false);
+        DEBUG_ACCELERATION = (boolean)customSetting("acceleration", "debug", false);
     }
 
     public void check(Event e) {
@@ -70,6 +75,11 @@ public class FightAimbot extends CustomCheck implements Cancelless {
         Vector lastMouseMove = lastMouseMoves.getOrDefault(uuid, new Vector(0, 0, 0));
         double mouseSpeed = mouseMove.length();
         double mouseAccel = lastMouseMove.subtract(mouseMove).length();
+
+        if(DEBUG_SPEED)
+            p.sendMessage("Mouse speed: " + mouseSpeed);
+        if(DEBUG_ACCELERATION)
+            p.sendMessage("Mouse acceleration: " + mouseAccel);
 
         if(pp.getCurrentTick() - lastAttackTick.getOrDefault(uuid, 0L) <= 2) {
             //check for incredible mouse acceleration OR quick frequent pauses in mouse movement

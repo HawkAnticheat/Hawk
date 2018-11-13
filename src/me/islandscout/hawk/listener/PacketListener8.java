@@ -19,6 +19,9 @@ package me.islandscout.hawk.listener;
 
 import io.netty.channel.*;
 import me.islandscout.hawk.module.PacketCore;
+import me.islandscout.hawk.util.Debug;
+import net.minecraft.server.v1_8_R3.PacketPlayOutCombatEvent;
+import net.minecraft.server.v1_8_R3.PacketPlayOutUpdateHealth;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -66,10 +69,12 @@ public class PacketListener8 {
     public void stop() {
         for (Player p : Bukkit.getOnlinePlayers()) {
             Channel channel = ((CraftPlayer) p).getHandle().playerConnection.networkManager.channel;
-            //this is probably a bad idea
+
             ChannelPipeline pipeline = channel.pipeline();
-            pipeline.remove("hawk" + p.getName());
-            //old
+            String handlerName = "hawk" + p.getName();
+            if (pipeline.get(handlerName) != null)
+                pipeline.remove(handlerName);
+            //old. Should probably use this since it might have to do with concurrency safety
             /*channel.eventLoop().submit(() -> {
                 channel.pipeline().remove("hawk" + p.getName());
                 return null;

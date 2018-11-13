@@ -18,8 +18,8 @@
 package me.islandscout.hawk.check.interaction;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.check.BlockPlacementCheck;
-import me.islandscout.hawk.event.BlockPlaceEvent;
+import me.islandscout.hawk.check.BlockInteractionCheck;
+import me.islandscout.hawk.event.MaterialInteractionEvent;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.block.BlockNMS;
 import org.bukkit.Location;
@@ -29,7 +29,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
 
-public class BlockInteractHitbox extends BlockPlacementCheck {
+public class BlockInteractHitbox extends BlockInteractionCheck {
 
     private final boolean DEBUG_HITBOX;
     private final boolean DEBUG_RAY;
@@ -47,7 +47,7 @@ public class BlockInteractHitbox extends BlockPlacementCheck {
     }
 
     @Override
-    protected void check(BlockPlaceEvent e) {
+    protected void check(MaterialInteractionEvent e) {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
         Location eyeLoc = pp.getLocation().clone();

@@ -24,26 +24,49 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-public class BlockPlaceEvent extends Event {
+public class MaterialInteractionEvent extends Event {
 
-    //WARNING: Also gets called when interacting with blocks.
+    //The name for this class will probably change often, since I find it difficult to come up with an appropriate name
+    //for the event corresponding with the PacketPlayInBlockPlace packet
 
     private final Location location;
     private final Material material;
     private final BlockFace blockFace;
+    private final InteractionType interactionType;
 
-    public BlockPlaceEvent(Player p, HawkPlayer pp, Location location, Material material, BlockFace blockFace, WrappedPacket packet) {
+    public MaterialInteractionEvent(Player p, HawkPlayer pp, Location location, Material material, BlockFace blockFace, InteractionType interactionType, WrappedPacket packet) {
         super(p, pp, packet);
         this.location = location;
         this.material = material;
         this.blockFace = blockFace;
+        this.interactionType = interactionType;
     }
 
-    public Location getLocation() {
+    public InteractionType getInteractionType() {
+        return interactionType;
+    }
+
+    public Location getPlacedBlockLocation() {
+        if(interactionType == InteractionType.USE_ITEM)
+            return null;
         return location;
     }
 
+    public Material getPlacedBlockMaterial() {
+        if(interactionType == InteractionType.USE_ITEM)
+            return null;
+        return material;
+    }
+
+    public BlockFace getTargetedBlockFace() {
+        if(interactionType == InteractionType.USE_ITEM)
+            return null;
+        return blockFace;
+    }
+
     public Location getTargetedBlockLocation() {
+        if(interactionType == InteractionType.USE_ITEM)
+            return null;
         switch (blockFace) {
             case TOP:
                 return new Location(location.getWorld(), location.getX(), location.getY() - 1, location.getZ());
@@ -61,11 +84,9 @@ public class BlockPlaceEvent extends Event {
         return null;
     }
 
-    public Material getMaterial() {
-        return material;
-    }
-
     public Vector getTargetedBlockFaceNormal() {
+        if(interactionType == InteractionType.USE_ITEM)
+            return null;
         switch (blockFace) {
             case TOP:
                 return new Vector(0, 1, 0);
@@ -84,11 +105,11 @@ public class BlockPlaceEvent extends Event {
         }
     }
 
-    public BlockFace getTargetedBlockFace() {
-        return blockFace;
-    }
-
     public enum BlockFace {
         NORTH, SOUTH, EAST, WEST, TOP, BOTTOM
+    }
+
+    public enum InteractionType {
+        USE_ITEM, PLACE_BLOCK, INTERACT_BLOCK
     }
 }

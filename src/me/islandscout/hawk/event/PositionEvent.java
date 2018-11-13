@@ -17,12 +17,10 @@
 
 package me.islandscout.hawk.event;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.AABB;
 import me.islandscout.hawk.util.AdjacentBlocks;
 import me.islandscout.hawk.util.ClientBlock;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.WrappedPacket;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

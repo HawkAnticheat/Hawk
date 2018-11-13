@@ -17,9 +17,20 @@
 
 package me.islandscout.hawk.event;
 
-public enum DigAction {
+import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.util.packet.WrappedPacket;
+import org.bukkit.entity.Player;
 
-    START,
-    CANCEL,
-    COMPLETE
+public class ItemSwitchEvent extends Event {
+
+    private int slotIndex;
+
+    public ItemSwitchEvent(Player p, HawkPlayer pp, int slotIndex, WrappedPacket wPacket) {
+        super(p, pp, wPacket);
+        this.slotIndex = slotIndex;
+    }
+
+    public int getSlotIndex() {
+        return slotIndex;
+    }
 }

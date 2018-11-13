@@ -18,22 +18,22 @@
 package me.islandscout.hawk.check.interaction;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.check.BlockPlacementCheck;
-import me.islandscout.hawk.event.BlockPlaceEvent;
+import me.islandscout.hawk.check.BlockInteractionCheck;
+import me.islandscout.hawk.event.MaterialInteractionEvent;
 
 /** This check prevents players from interacting on
  * unavailable locations on blocks. Players must be
  * looking at the face of the block they want to interact
  * with.
  */
-public class WrongBlockFace extends BlockPlacementCheck {
+public class WrongBlockFace extends BlockInteractionCheck {
 
     public WrongBlockFace() {
         super("wrongblockface", true, 0, 10, 0.99, 5000, "%player% failed wrongblockface; interacted on invalid block face, VL: %vl%", null);
     }
 
     @Override
-    protected void check(BlockPlaceEvent e) {
+    protected void check(MaterialInteractionEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
         if(e.getTargetedBlockFaceNormal().dot(pp.getLocation().getDirection()) >= 0) {
             punishAndTryCancelAndBlockRespawn(pp, e);

@@ -18,7 +18,6 @@
 package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.HawkPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
@@ -26,10 +25,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class BanManager implements Listener {
 
@@ -37,12 +33,12 @@ public class BanManager implements Listener {
     //you would like to think of this as one, then by all means, go ahead.
 
     private final Hawk hawk;
-    private final List<BanEntry> bans; //Perhaps store cached data into a HashSet? Faster than binary search?
+    private final Map<UUID, BanEntry> bans;
     private final File dataFile;
 
     public BanManager(Hawk hawk) {
         this.hawk = hawk;
-        bans = new ArrayList<>();
+        bans = new HashMap<>();
         dataFile = new File(hawk.getDataFolder().getAbsolutePath() + File.separator + "banned_players.txt");
         Bukkit.getPluginManager().registerEvents(this, hawk);
     }
@@ -74,7 +70,7 @@ public class BanManager implements Listener {
             String[] parts = line.split(" ", 3);
             long expireTime = Long.parseLong(parts[1]);
             if (expireTime > System.currentTimeMillis()) {
-                bans.add(new BanEntry(UUID.fromString(parts[0]), expireTime, parts[2]));
+                bans.put(UUID.fromString(parts[0]), new BanEntry(expireTime, parts[2]));
             }
             line = readLine(buf);
         }
@@ -86,8 +82,6 @@ public class BanManager implements Listener {
             hawk.getLogger().severe("Failed to read banned_players.txt");
             e.printStackTrace();
         }
-
-        Collections.sort(bans); //binary search???
     }
 
 
@@ -103,31 +97,16 @@ public class BanManager implements Listener {
     }
 
     public BanEntry getBanInfo(UUID uuid) {
-        BanEntry dummy = new BanEntry(uuid, 0, "");
-        int index = Collections.binarySearch(bans, dummy);
-        if (index < 0)
-            return null;
-        return bans.get(index);
+        return bans.get(uuid);
     }
 
     public void ban(UUID uuid, long expireTime, String reason) {
-        BanEntry banEntry = new BanEntry(uuid, expireTime, reason);
-        int index = Collections.binarySearch(bans, banEntry);
-        boolean alreadyBanned = index >= 0;
-        if (!alreadyBanned) {
-            index = -index - 1;
-            bans.add(index, banEntry);
-        } else {
-            bans.set(index, banEntry);
-        }
+        BanEntry banEntry = new BanEntry(expireTime, reason);
+        bans.put(uuid, banEntry);
     }
 
     public void pardon(UUID uuid) {
-        BanEntry banEntry = new BanEntry(uuid, 0, "");
-        int index = Collections.binarySearch(bans, banEntry);
-        if (index >= 0) {
-            bans.remove(index);
-        }
+        bans.remove(uuid);
     }
 
     public void purgeBans() {
@@ -139,8 +118,9 @@ public class BanManager implements Listener {
         try (FileWriter fw = new FileWriter(dataFile, false);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
-            for (BanEntry entry : bans) {
-                out.println(entry.uuid + " " + entry.expireTime + " " + entry.reason);
+            for (Map.Entry<UUID, BanEntry> entry : bans.entrySet()) {
+                BanEntry banEntry = entry.getValue();
+                out.println(entry.getKey() + " " + banEntry.expireTime + " " + banEntry.reason);
             }
         } catch (IOException e) {
             hawk.getLogger().severe("Failed to write to banned_players.txt");
@@ -158,26 +138,16 @@ public class BanManager implements Listener {
             return;
         }
         e.disallow(PlayerLoginEvent.Result.KICK_BANNED, ChatColor.translateAlternateColorCodes('&', entry.reason));
-        for (HawkPlayer pp : hawk.getHawkPlayers()) {
-            //if(pp.canReceiveNotifications())
-            //Debug.sendToPlayer(pp.getPlayer(), e.getPlayer() + " tried to join, but is banned!");
-        }
     }
 
-    public class BanEntry implements Comparable<BanEntry> {
+    public class BanEntry {
 
-        private final UUID uuid;
         private final long expireTime;
         private final String reason;
 
-        private BanEntry(UUID uuid, long expireTime, String reason) {
-            this.uuid = uuid;
+        private BanEntry(long expireTime, String reason) {
             this.expireTime = expireTime;
             this.reason = reason;
-        }
-
-        public UUID getUuid() {
-            return uuid;
         }
 
         public long getExpireTime() {
@@ -187,14 +157,9 @@ public class BanManager implements Listener {
         public String getReason() {
             return reason;
         }
-
-        @Override
-        public int compareTo(BanEntry other) {
-            return this.uuid.compareTo(other.uuid);
-        }
     }
 
-    public List<BanEntry> getBans() {
+    public Map<UUID, BanEntry> getBans() {
         return bans;
     }
 }

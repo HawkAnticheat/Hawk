@@ -20,7 +20,6 @@ package me.islandscout.hawk.check.interaction;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockDigCheck;
 import me.islandscout.hawk.event.BlockDigEvent;
-import me.islandscout.hawk.event.DigAction;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Placeholder;
 import me.islandscout.hawk.util.block.BlockNMS;
@@ -61,11 +60,11 @@ public class BlockBreakSpeed extends BlockDigCheck {
     public void check(BlockDigEvent e) {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
-        if (e.getDigAction() == DigAction.START && p.getGameMode() != GameMode.CREATIVE) {
+        if (e.getDigAction() == BlockDigEvent.DigAction.START && p.getGameMode() != GameMode.CREATIVE) {
             interactTick.put(p.getUniqueId(), pp.getCurrentTick());
             return;
         }
-        if (e.getDigAction() == DigAction.COMPLETE || p.getGameMode() == GameMode.CREATIVE) {
+        if (e.getDigAction() == BlockDigEvent.DigAction.COMPLETE || p.getGameMode() == GameMode.CREATIVE) {
             Block b = e.getBlock();
             float hardness = BlockNMS.getBlockNMS(b).getStrength();
 
@@ -82,7 +81,7 @@ public class BlockBreakSpeed extends BlockDigCheck {
                 else if (name.contains("IRON")) expectedTime *= 1D / (6 + enchant);
                 else if (name.contains("DIAMOND")) expectedTime *= 1D / (8 + enchant);
                 else if (name.contains("GOLD")) expectedTime *= 1D / (12 + enchant);
-            } else expectedTime *= 1 / (enchant > 0 ? enchant : 1);
+            } else expectedTime *= 1D / (enchant > 0 ? enchant : 1);
 
             expectedTime = potionEffect(expectedTime, p);
 

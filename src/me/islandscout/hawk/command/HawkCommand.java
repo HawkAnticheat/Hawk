@@ -102,7 +102,7 @@ public class HawkCommand implements CommandExecutor {
         } else {
             sendUsage(sender, 0);
             if (sender instanceof Player) {
-                hawk.getGuiManager().sendMenuWindow((Player) sender);
+                hawk.getGuiManager().sendMainMenuWindow((Player) sender);
             }
         }
         return true;
@@ -119,9 +119,7 @@ public class HawkCommand implements CommandExecutor {
             Argument argument = arguments.get(i);
             sender.sendMessage(ChatColor.GOLD + "/hawk " + argument.getUsage() + ": " + ChatColor.GRAY + argument.getDescription());
         }
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m----------------------&r &8[ &ePage " + (pageNumber + 1) + " of " + (maxPage + 1) + " &8] &7&m----------------------"));
-        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GOLD + "WARNING: " + ChatColor.RESET + "This product is still not ready for release. You will most likely encounter issues.");
-        sender.sendMessage("Please report any issues you find on the Discord server @ https://discord.gg/rQGb5DV");
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m------------------&r &8[ &ePage " + (pageNumber + 1) + " of " + (maxPage + 1) + " &8] &7&m--------------------"));
         sender.sendMessage(ChatColor.GRAY + "Build " + Hawk.BUILD_NAME);
     }
 }

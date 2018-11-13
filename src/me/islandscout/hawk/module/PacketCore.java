@@ -20,13 +20,12 @@ package me.islandscout.hawk.module;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.AbilitiesEvent;
-import me.islandscout.hawk.event.BlockPlaceEvent;
+import me.islandscout.hawk.event.MaterialInteractionEvent;
 import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.listener.PacketListener7;
 import me.islandscout.hawk.listener.PacketListener8;
 import me.islandscout.hawk.util.ClientBlock;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
 import org.bukkit.Bukkit;
@@ -125,10 +124,10 @@ public class PacketCore implements Listener {
         hawk.getCheckManager().dispatchEvent(event);
 
         //handle block placing
-        if (event instanceof BlockPlaceEvent) {
-            BlockPlaceEvent bPlaceEvent = (BlockPlaceEvent) event;
+        if (event instanceof MaterialInteractionEvent && ((MaterialInteractionEvent) event).getInteractionType() == MaterialInteractionEvent.InteractionType.PLACE_BLOCK) {
+            MaterialInteractionEvent bPlaceEvent = (MaterialInteractionEvent) event;
             if (!bPlaceEvent.isCancelled()) {
-                ClientBlock clientBlock = new ClientBlock(bPlaceEvent.getLocation(), pp.getCurrentTick(), bPlaceEvent.getMaterial());
+                ClientBlock clientBlock = new ClientBlock(bPlaceEvent.getPlacedBlockLocation(), pp.getCurrentTick(), bPlaceEvent.getPlacedBlockMaterial());
                 pp.addClientBlock(clientBlock);
             }
         }
