@@ -238,6 +238,10 @@ public class Hawk extends JavaPlugin {
         return muteManager;
     }
 
+    public PacketCore getPacketCore() {
+        return packetCore;
+    }
+
     public boolean canCallBukkitEvents() {
         return callBukkitEvents;
     }

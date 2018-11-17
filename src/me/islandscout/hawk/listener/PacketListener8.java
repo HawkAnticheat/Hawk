@@ -19,19 +19,17 @@ package me.islandscout.hawk.listener;
 
 import io.netty.channel.*;
 import me.islandscout.hawk.module.PacketCore;
-import me.islandscout.hawk.util.Debug;
-import net.minecraft.server.v1_8_R3.PacketPlayOutCombatEvent;
-import net.minecraft.server.v1_8_R3.PacketPlayOutUpdateHealth;
+import me.islandscout.hawk.util.packet.PacketAdapter;
+import net.minecraft.server.v1_7_R4.PacketPlayOutChat;
+import net.minecraft.server.v1_7_R4.PacketPlayOutEntityMetadata;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
-public class PacketListener8 {
-
-    private final PacketCore packetCore;
+public class PacketListener8 extends PacketListener {
 
     public PacketListener8(PacketCore packetCore) {
-        this.packetCore = packetCore;
+        super(packetCore);
     }
 
     public void start(Player p) {
@@ -47,11 +45,19 @@ public class PacketListener8 {
                     e.printStackTrace();
                 }
 
+                for(PacketAdapter adapter : adaptersInbound) {
+                    adapter.run(packet, p);
+                }
+
                 super.channelRead(context, packet);
             }
 
             @Override
             public void write(ChannelHandlerContext context, Object packet, ChannelPromise promise) throws Exception {
+
+                for(PacketAdapter adapter : adaptersOutbound) {
+                    adapter.run(packet, p);
+                }
 
                 super.write(context, packet, promise);
             }

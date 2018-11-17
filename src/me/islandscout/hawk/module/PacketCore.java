@@ -23,9 +23,11 @@ import me.islandscout.hawk.event.AbilitiesEvent;
 import me.islandscout.hawk.event.MaterialInteractionEvent;
 import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.listener.PacketListener;
 import me.islandscout.hawk.listener.PacketListener7;
 import me.islandscout.hawk.listener.PacketListener8;
 import me.islandscout.hawk.util.ClientBlock;
+import me.islandscout.hawk.util.packet.PacketAdapter;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
 import org.bukkit.Bukkit;
@@ -47,18 +49,17 @@ public class PacketCore implements Listener {
 
     private final int serverVersion;
     private final Hawk hawk;
-    private PacketListener7 packetListener7;
-    private PacketListener8 packetListener8;
+    private PacketListener packetListener;
 
     public PacketCore(int serverVersion, Hawk hawk) {
         this.serverVersion = serverVersion;
         this.hawk = hawk;
         try {
             if (serverVersion == 7) {
-                packetListener7 = new PacketListener7(this);
+                packetListener = new PacketListener7(this);
                 hawk.getLogger().info("Using NMS 1.7_R4 NIO for packet interception.");
             } else if (serverVersion == 8) {
-                packetListener8 = new PacketListener8(this);
+                packetListener = new PacketListener8(this);
                 hawk.getLogger().info("Using NMS 1.8_R3 NIO for packet interception.");
             } else warnConsole(hawk);
         } catch (NoClassDefFoundError e) {
@@ -159,11 +160,7 @@ public class PacketCore implements Listener {
     }
 
     public void killListener() {
-        if (serverVersion == 8) {
-            packetListener8.stop();
-        } else if (serverVersion == 7) {
-            packetListener7.stop();
-        }
+        packetListener.stop();
     }
 
     public void setupListenerForOnlinePlayers() {
@@ -174,15 +171,27 @@ public class PacketCore implements Listener {
     }
 
     private void setupListenerForPlayer(Player p) {
-        if (serverVersion == 8) {
-            packetListener8.start(p);
-        } else if (serverVersion == 7) {
-            packetListener7.start(p);
-        }
+        packetListener.start(p);
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         setupListenerForPlayer(e.getPlayer());
+    }
+
+    public void addAdapterInbound(PacketAdapter runnable) {
+        packetListener.addAdapterInbound(runnable);
+    }
+
+    public void removeAdapterInbound(PacketAdapter runnable) {
+        packetListener.removeAdapterInbound(runnable);
+    }
+
+    public void addAdapterOutbound(PacketAdapter runnable) {
+        packetListener.addAdapterOutbound(runnable);
+    }
+
+    public void removeAdapterOutbound(PacketAdapter runnable) {
+        packetListener.removeAdapterOutbound(runnable);
     }
 }

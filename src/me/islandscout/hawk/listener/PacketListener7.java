@@ -18,6 +18,7 @@
 package me.islandscout.hawk.listener;
 
 import me.islandscout.hawk.module.PacketCore;
+import me.islandscout.hawk.util.packet.PacketAdapter;
 import net.minecraft.util.io.netty.channel.ChannelDuplexHandler;
 import net.minecraft.util.io.netty.channel.ChannelHandlerContext;
 import net.minecraft.util.io.netty.channel.ChannelPromise;
@@ -26,12 +27,10 @@ import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
 
-public class PacketListener7 {
+public class PacketListener7 extends PacketListener {
 
-    private final PacketCore core;
-
-    public PacketListener7(PacketCore core) {
-        this.core = core;
+    public PacketListener7(PacketCore packetCore) {
+        super(packetCore);
     }
 
     public void start(Player p) {
@@ -41,10 +40,14 @@ public class PacketListener7 {
 
                 //TODO: Get rid of this try/catch when you're done debugging
                 try {
-                    if (!core.process(packet, p))
+                    if (!packetCore.process(packet, p))
                         return; //prevent packet from getting processed by Bukkit if a check fails
                 } catch (Exception e) {
                     e.printStackTrace();
+                }
+
+                for(PacketAdapter adapter : adaptersInbound) {
+                    adapter.run(packet, p);
                 }
 
                 super.channelRead(context, packet);
@@ -53,6 +56,9 @@ public class PacketListener7 {
             @Override
             public void write(ChannelHandlerContext context, Object packet, ChannelPromise promise) throws Exception {
 
+                for(PacketAdapter adapter : adaptersOutbound) {
+                    adapter.run(packet, p);
+                }
 
                 super.write(context, packet, promise);
             }

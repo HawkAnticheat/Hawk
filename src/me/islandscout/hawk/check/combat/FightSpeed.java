@@ -36,6 +36,7 @@ public class FightSpeed extends EntityInteractionCheck {
     private static final double RECORD_SENSITIVITY = 4; //don't log click if it took longer than these ticks
     private static final int SAMPLES = 10;
     private final boolean CANCEL_SAME_TICK;
+    private final double MAX_CPS;
 
 
     public FightSpeed() {
@@ -43,6 +44,7 @@ public class FightSpeed extends EntityInteractionCheck {
         lastClickTime = new HashMap<>();
         deltaTimes = new HashMap<>();
         CANCEL_SAME_TICK = true;
+        MAX_CPS = (double)customSetting("maxCps", "", 15D);
     }
 
     @Override
@@ -66,7 +68,7 @@ public class FightSpeed extends EntityInteractionCheck {
                     double divisor = (avgCps / SAMPLES / 20);
                     avgCps = 1 / (divisor == 0 ? Double.NaN : divisor);
                     //if someone manages to get a NaN, they're dumb af
-                    if (avgCps > 15 || Double.isNaN(avgCps)) {
+                    if (avgCps > MAX_CPS || Double.isNaN(avgCps)) {
                         punish(pp, true, e, new Placeholder("cps", (Double.isNaN(avgCps) ? "INVALID" : MathPlus.round(avgCps, 2) + "")));
                     } else {
                         reward(pp);
