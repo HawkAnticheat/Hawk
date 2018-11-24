@@ -146,6 +146,8 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
         }
 
         //determine how far the opponent has moved horizontally on local coordinates and compute required mouse precision
+        if(!att.getPlayer().getWorld().equals(victim.getPlayer().getWorld()))
+            return;
         Vector victimVelocity = victim.getVelocity().clone().setY(0);
         Vector attackerDirection = att.getPlayer().getLocation().getDirection().clone().setY(0);
         double localMovement = Math.sin(victimVelocity.angle(attackerDirection)) * victimVelocity.length();

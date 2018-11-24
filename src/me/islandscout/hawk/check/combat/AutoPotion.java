@@ -32,7 +32,7 @@ public class AutoPotion extends CustomCheck implements Cancelless {
     private Set<UUID> usedSomething;
 
     public AutoPotion() {
-        super("autopotion", "%player% failed auto-potion, VL: %vl%");
+        super("autopotion", true, -1, 5, 0.99, 5000, "%player% may be using auto-potion, VL: %vl%", null);
         lastSwitchTicks = new HashMap<>();
         usedSomething = new HashSet<>();
     }

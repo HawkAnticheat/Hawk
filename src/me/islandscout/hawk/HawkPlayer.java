@@ -61,6 +61,7 @@ public class HawkPlayer {
     private long lastMoveTime;
     private long currentTick;
     private double maxY;
+    private double jumpedHeight;
     private long flyPendingTime;
     private final Set<ClientBlock> clientBlocks;
 
@@ -74,7 +75,6 @@ public class HawkPlayer {
         this.onGround = ((Entity) p).isOnGround();
         this.hawk = hawk;
         this.ping = ServerUtils.getPing(p);
-        this.pingJitter = 0;
         clientBlocks = new HashSet<>();
     }
 
@@ -233,6 +233,21 @@ public class HawkPlayer {
         else
             maxY = Math.max(loc.getY(), maxY);
 
+    }
+
+    public double getTotalAscensionSinceGround() {
+        return jumpedHeight;
+    }
+
+    //call this before updating whether on ground or not
+    public void updateTotalAscensionSinceGround(double y1, double y2) {
+        if (onGround) {
+            jumpedHeight = 0;
+            return;
+        }
+        double deltaY = y2 - y1;
+        if(deltaY > 0)
+            jumpedHeight += deltaY;
     }
 
     public boolean hasFlyPending() {

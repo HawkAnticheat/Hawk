@@ -22,13 +22,12 @@ import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractAction;
 import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 
 public class FightCriticals extends EntityInteractionCheck {
-
-    //TODO: Perhaps get jump height rather than fall distance? Might eliminate false pos when jumping on blocks and attacking.
 
     public FightCriticals() {
         super("fightcriticals", "%player% failed fight criticals. VL: %vl%");
@@ -44,8 +43,9 @@ public class FightCriticals extends EntityInteractionCheck {
             Block above = ServerUtils.getBlockAsync(loc.add(0, 2.3, 0));
             if (below == null || above == null)
                 return;
+            //TODO: false flag when jumping onto block. Check that jump height isn't 0.0?
             if (AdjacentBlocks.onGroundReally(att.getLocation(), -1, true) && !att.isOnGround() ||
-                    (att.getFallDistance() < 0.3 && att.getFallDistance() != 0 && below.getType().isSolid() && !above.getType().isSolid())) {
+                    (att.getFallDistance() != 0 && att.getTotalAscensionSinceGround() < 0.3 && att.getFallDistance() < 0.3 && below.getType().isSolid() && !above.getType().isSolid())) {
                 punish(att, true, e);
                 return;
             }

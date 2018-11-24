@@ -27,6 +27,7 @@ import me.islandscout.hawk.listener.PacketListener;
 import me.islandscout.hawk.listener.PacketListener7;
 import me.islandscout.hawk.listener.PacketListener8;
 import me.islandscout.hawk.util.ClientBlock;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
@@ -148,6 +149,7 @@ public class PacketCore implements Listener {
                 pp.setDeltaPitch(to.getPitch() - from.getPitch());
                 pp.setLocation(to);
                 pp.updateFallDistance(to);
+                pp.updateTotalAscensionSinceGround(from.getY(), to.getY());
                 pp.setOnGround(((PositionEvent) event).isOnGround());
             }
 
