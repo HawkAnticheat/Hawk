@@ -19,7 +19,6 @@ package me.islandscout.hawk;
 
 import me.islandscout.hawk.command.HawkCommand;
 import me.islandscout.hawk.event.PositionEvent;
-import me.islandscout.hawk.event.external.HawkViolationEvent;
 import me.islandscout.hawk.module.*;
 import me.islandscout.hawk.util.ConfigHelper;
 import org.bukkit.Bukkit;
@@ -119,7 +118,6 @@ public class Hawk extends JavaPlugin {
         plugin.packetCore.killListener();
         plugin.getCommand("hawk").setExecutor(null);
         HandlerList.unregisterAll(this);
-        HawkViolationEvent.getHandlerList().unregister(plugin);
         guiManager.stop();
         guiManager = null;
         lagCompensator = null;

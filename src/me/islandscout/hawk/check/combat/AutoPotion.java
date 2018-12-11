@@ -30,11 +30,13 @@ public class AutoPotion extends CustomCheck implements Cancelless {
 
     private Map<UUID, Long> lastSwitchTicks;
     private Set<UUID> usedSomething;
+    private int MIN_SWITCH_TICKS;
 
     public AutoPotion() {
         super("autopotion", true, -1, 5, 0.99, 5000, "%player% may be using auto-potion, VL: %vl%", null);
         lastSwitchTicks = new HashMap<>();
         usedSomething = new HashSet<>();
+        MIN_SWITCH_TICKS = (int)customSetting("minSwitchTicks", "", 2);
     }
 
     @Override
@@ -52,7 +54,7 @@ public class AutoPotion extends CustomCheck implements Cancelless {
 
         if(usedSomething.contains(uuid)) {
             long lastSwitchTick = lastSwitchTicks.getOrDefault(uuid, 0L);
-            if(pp.getCurrentTick() - lastSwitchTick < 2) {
+            if(pp.getCurrentTick() - lastSwitchTick < MIN_SWITCH_TICKS) {
                 punish(pp, false, event);
             }
             else {

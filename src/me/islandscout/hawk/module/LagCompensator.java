@@ -40,11 +40,12 @@ public class LagCompensator implements Listener {
     //https://www.youtube.com/watch?v=6EwaW2iz4iA
     //http://www.gabrielgambetta.com/lag-compensation.html
     //http://www.gabrielgambetta.com/client-side-prediction-live-demo.html
+    //https://en.wikipedia.org/wiki/Lag#Rewind_time
 
     private final Map<UUID, List<Pair<Location, Long>>> locationTimes;
     private final int historySize;
     private final int pingOffset;
-    private static final int RESOLUTION = 40;
+    private static final int TIME_RESOLUTION = 40; //in milliseconds
 
     public LagCompensator(Hawk hawk) {
         this.locationTimes = new HashMap<>();
@@ -82,7 +83,7 @@ public class LagCompensator implements Listener {
     private void processPosition(Location loc, Player p) {
         List<Pair<Location, Long>> times = locationTimes.getOrDefault(p.getUniqueId(), new ArrayList<>());
         long currTime = System.currentTimeMillis();
-        if (times.size() > 0 && currTime - times.get(times.size() - 1).getValue() < RESOLUTION)
+        if (times.size() > 0 && currTime - times.get(times.size() - 1).getValue() < TIME_RESOLUTION)
             return;
         times.add(new Pair<>(loc, currTime));
         if (times.size() > historySize) times.remove(0);

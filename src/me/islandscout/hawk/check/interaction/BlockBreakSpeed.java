@@ -54,7 +54,7 @@ public class BlockBreakSpeed extends BlockDigCheck {
     public BlockBreakSpeed() {
         super("blockbreakspeed", "%player% failed block break speed. Block: %block%, Time: %time%, VL: %vl%");
         interactTick = new HashMap<>();
-        PREVENT_SAME_TICK = true;
+        PREVENT_SAME_TICK = (boolean)customSetting("flagSameTick", "", true);
     }
 
     public void check(BlockDigEvent e) {

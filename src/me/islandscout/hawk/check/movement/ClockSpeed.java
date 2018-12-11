@@ -56,7 +56,7 @@ public class ClockSpeed extends MovementCheck implements Listener {
         CALIBRATE_FASTER = 1 - ConfigHelper.getOrSetDefault(0.03, hawk.getConfig(), "checks.clockspeed.calibrateFaster");
         RUBBERBAND = (boolean)customSetting("rubberbandOnFail", "", true);
         RESET_DRIFT_ON_FAIL = (boolean)customSetting("resetDriftOnFail", "", false);
-        DENY_ACTIONS = (boolean)customSetting("denyActionsOnFail", "", true);
+        DENY_ACTIONS = (boolean)customSetting("denyClientActionsOnFail", "", true);
     }
 
     @Override

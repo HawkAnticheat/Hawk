@@ -19,7 +19,6 @@ package me.islandscout.hawk.gui;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.util.Debug;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

@@ -19,15 +19,12 @@ package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.event.AbilitiesEvent;
-import me.islandscout.hawk.event.MaterialInteractionEvent;
-import me.islandscout.hawk.event.Event;
-import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.*;
+import me.islandscout.hawk.event.bukkit.HawkPlayerVelocityChangeEvent;
 import me.islandscout.hawk.listener.PacketListener;
 import me.islandscout.hawk.listener.PacketListener7;
 import me.islandscout.hawk.listener.PacketListener8;
 import me.islandscout.hawk.util.ClientBlock;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
@@ -40,6 +37,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 /**
  * This class is mainly used to process packets that are intercepted from the Netty channels.
  * Remember, caution is advised when accessing the Bukkit API from the Netty thread.
@@ -51,6 +51,7 @@ public class PacketCore implements Listener {
     private final int serverVersion;
     private final Hawk hawk;
     private PacketListener packetListener;
+    private List<HawkEventListener> hawkEventListeners;
 
     public PacketCore(int serverVersion, Hawk hawk) {
         this.serverVersion = serverVersion;
@@ -67,6 +68,7 @@ public class PacketCore implements Listener {
             e.printStackTrace();
             warnConsole(hawk);
         }
+        hawkEventListeners = new CopyOnWriteArrayList<>();
         Bukkit.getPluginManager().registerEvents(this, hawk);
     }
 
@@ -78,8 +80,9 @@ public class PacketCore implements Listener {
         Bukkit.getPluginManager().disablePlugin(hawk);
     }
 
+    //These packets will be converted into Hawk Events for verification by checks
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean process(Object packet, Player p) {
+    public boolean processIn(Object packet, Player p) {
         HawkPlayer pp = hawk.getHawkPlayer(p);
 
         //ignore packets while player is no longer registered in Hawk
@@ -88,9 +91,9 @@ public class PacketCore implements Listener {
 
         Event event;
         if (serverVersion == 8)
-            event = PacketConverter8.packetToEvent(packet, p, pp);
+            event = PacketConverter8.packetInboundToEvent(packet, p, pp);
         else if (serverVersion == 7)
-            event = PacketConverter7.packetToEvent(packet, p, pp);
+            event = PacketConverter7.packetInboundToEvent(packet, p, pp);
         else
             return true;
         if (event == null)
@@ -124,6 +127,9 @@ public class PacketCore implements Listener {
         }
 
         hawk.getCheckManager().dispatchEvent(event);
+
+        for(HawkEventListener eventListener : hawkEventListeners)
+            eventListener.onEvent(event);
 
         //handle block placing
         if (event instanceof MaterialInteractionEvent && ((MaterialInteractionEvent) event).getInteractionType() == MaterialInteractionEvent.InteractionType.PLACE_BLOCK) {
@@ -161,6 +167,27 @@ public class PacketCore implements Listener {
         return !event.isCancelled();
     }
 
+    //These packets will be converted into Bukkit Events and will be broadcasted on the main thread
+    public void processOut(Object packet, Player p) {
+
+        org.bukkit.event.Event event;
+        if (serverVersion == 8)
+            event = PacketConverter8.packetOutboundToEvent(packet, p);
+        else if (serverVersion == 7)
+            event = PacketConverter7.packetOutboundToEvent(packet, p);
+        else
+            return;
+        if (event == null)
+            return;
+
+        Bukkit.getScheduler().runTask(hawk, new Runnable() {
+            @Override
+            public void run() {
+                Bukkit.getServer().getPluginManager().callEvent(event);
+            }
+        });
+    }
+
     public void killListener() {
         packetListener.stop();
     }
@@ -181,19 +208,27 @@ public class PacketCore implements Listener {
         setupListenerForPlayer(e.getPlayer());
     }
 
-    public void addAdapterInbound(PacketAdapter runnable) {
-        packetListener.addAdapterInbound(runnable);
+    public void addPacketAdapterInbound(PacketAdapter adapter) {
+        packetListener.addAdapterInbound(adapter);
     }
 
-    public void removeAdapterInbound(PacketAdapter runnable) {
-        packetListener.removeAdapterInbound(runnable);
+    public void removePacketAdapterInbound(PacketAdapter adapter) {
+        packetListener.removeAdapterInbound(adapter);
     }
 
-    public void addAdapterOutbound(PacketAdapter runnable) {
-        packetListener.addAdapterOutbound(runnable);
+    public void addPacketAdapterOutbound(PacketAdapter adapter) {
+        packetListener.addAdapterOutbound(adapter);
     }
 
-    public void removeAdapterOutbound(PacketAdapter runnable) {
-        packetListener.removeAdapterOutbound(runnable);
+    public void removePacketAdapterOutbound(PacketAdapter adapter) {
+        packetListener.removeAdapterOutbound(adapter);
+    }
+
+    public void addHawkEventListener(HawkEventListener listener) {
+        hawkEventListeners.add(listener);
+    }
+
+    public void removeHawkEventListener(HawkEventListener listener) {
+        hawkEventListeners.remove(listener);
     }
 }

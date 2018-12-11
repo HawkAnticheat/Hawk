@@ -15,29 +15,32 @@
  * along with Hawk Anticheat.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.util;
+package me.islandscout.hawk.event.bukkit;
 
-public final class MathPlus {
+import me.islandscout.hawk.util.Violation;
+import org.bukkit.event.Event;
+import org.bukkit.event.HandlerList;
 
-    private MathPlus() {
+public class HawkViolationEvent extends Event {
+
+    private static final HandlerList handlers = new HandlerList();
+    private final Violation violation;
+
+    public HawkViolationEvent(Violation violation) {
+        super();
+        this.violation = violation;
     }
 
-    public static double round(double number, int decimals) {
-        number *= Math.pow(10, decimals);
-        number = Math.round(number);
-        return number / Math.pow(10, decimals);
+    public Violation getViolation() {
+        return violation;
     }
 
-    public static float clampDegrees360(float angleDegrees) {
-        angleDegrees %= 360;
-        if (angleDegrees < 0)
-            angleDegrees = 360 + angleDegrees;
-        return angleDegrees;
+    public HandlerList getHandlers() {
+        return handlers;
     }
 
-    public static double distance2d(double x, double y) {
-        return Math.sqrt(x*x + y*y);
+    public static HandlerList getHandlerList() {
+        return handlers;
     }
 
-    //Perhaps make an angle method that compares two vectors and uses a lookup table for arccos values? Will eat up 256kiB of memory, though.
 }

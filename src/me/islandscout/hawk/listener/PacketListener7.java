@@ -40,7 +40,7 @@ public class PacketListener7 extends PacketListener {
 
                 //TODO: Get rid of this try/catch when you're done debugging
                 try {
-                    if (!packetCore.process(packet, p))
+                    if (!packetCore.processIn(packet, p))
                         return; //prevent packet from getting processed by Bukkit if a check fails
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -55,6 +55,8 @@ public class PacketListener7 extends PacketListener {
 
             @Override
             public void write(ChannelHandlerContext context, Object packet, ChannelPromise promise) throws Exception {
+
+                packetCore.processOut(packet, p);
 
                 for(PacketAdapter adapter : adaptersOutbound) {
                     adapter.run(packet, p);

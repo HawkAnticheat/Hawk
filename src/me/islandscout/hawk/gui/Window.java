@@ -22,9 +22,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public abstract class Window {
 
     protected final Inventory inventory;

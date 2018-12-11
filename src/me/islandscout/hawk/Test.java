@@ -17,9 +17,11 @@
 
 package me.islandscout.hawk;
 
+import me.islandscout.hawk.event.bukkit.HawkPlayerVelocityChangeEvent;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import net.minecraft.server.v1_7_R4.*;
 import net.minecraft.util.io.netty.buffer.Unpooled;
+import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -73,7 +75,7 @@ public class Test {
             }
         };
 
-        hawk.getPacketCore().addAdapterOutbound(adapter);
+        hawk.getPacketCore().addPacketAdapterOutbound(adapter);
     }
 
     public void skid() {
@@ -81,7 +83,22 @@ public class Test {
             @Override
             public void run(Object packet, Player player) {
                 if(packet instanceof PacketPlayOutExplosion) {
+                    PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
+                    ((PacketPlayOutExplosion) packet).b(serializer);
+                    serializer.readerIndex(serializer.writerIndex() - 12);
+                    float x = serializer.readFloat();
+                    float y = serializer.readFloat();
+                    float z = serializer.readFloat();
+                    Vector velocity = new Vector(x, y, z);
+                    if(velocity.lengthSquared() == 0)
+                        return;
 
+                    Bukkit.getScheduler().runTask(hawk, new Runnable() {
+                        @Override
+                        public void run() {
+                            Bukkit.getServer().getPluginManager().callEvent(new HawkPlayerVelocityChangeEvent(velocity, player, true));
+                        }
+                    });
                 }
                 if(packet instanceof PacketPlayOutEntityVelocity) {
 
@@ -97,14 +114,16 @@ public class Test {
                     double z = serializer.readShort() / 8000D;
                     Vector velocity = new Vector(x, y, z);
 
-                    //Debug.broadcastMessage(ChatColor.GREEN + velocity.toString());
-
-                    Vector expected = velocity.clone().add(hawk.getHawkPlayer(player).getVelocity().clone().multiply(0.1));
-                    //Debug.broadcastMessage(ChatColor.YELLOW + expected.toString());
+                    Bukkit.getScheduler().runTask(hawk, new Runnable() {
+                        @Override
+                        public void run() {
+                            Bukkit.getServer().getPluginManager().callEvent(new HawkPlayerVelocityChangeEvent(velocity, player, false));
+                        }
+                    });
                 }
             }
         };
 
-        hawk.getPacketCore().addAdapterOutbound(adapter);
+        hawk.getPacketCore().addPacketAdapterOutbound(adapter);
     }
 }

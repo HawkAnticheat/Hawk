@@ -34,7 +34,7 @@ public class FightSpeed extends EntityInteractionCheck {
     private final Map<UUID, Long> lastClickTime; //in client ticks
     private final Map<UUID, List<Long>> deltaTimes;
     private static final double RECORD_SENSITIVITY = 4; //don't log click if it took longer than these ticks
-    private static final int SAMPLES = 10;
+    private static int SAMPLES;
     private final boolean CANCEL_SAME_TICK;
     private final double MAX_CPS;
 
@@ -43,7 +43,8 @@ public class FightSpeed extends EntityInteractionCheck {
         super("fightspeed", "%player% failed attack speed. CPS: %cps%, VL: %vl%");
         lastClickTime = new HashMap<>();
         deltaTimes = new HashMap<>();
-        CANCEL_SAME_TICK = true;
+        SAMPLES = (int)customSetting("sampleSize", "", 10);
+        CANCEL_SAME_TICK = (boolean)customSetting("cancelSameTick", "", true);
         MAX_CPS = (double)customSetting("maxCps", "", 15D);
     }
 

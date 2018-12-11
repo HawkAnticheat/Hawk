@@ -168,7 +168,7 @@ public class AdjacentBlocks {
         Block prevBlock = null;
         for (int i = blocks.size() - 1; i >= 0; i--) {
             Block currBlock = blocks.get(i);
-            if (prevBlock != null && currBlock.equals(prevBlock)) {
+            if (currBlock.equals(prevBlock)) {
                 blocks.remove(i);
             }
             prevBlock = currBlock;

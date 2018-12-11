@@ -20,8 +20,6 @@ package me.islandscout.hawk.listener;
 import io.netty.channel.*;
 import me.islandscout.hawk.module.PacketCore;
 import me.islandscout.hawk.util.packet.PacketAdapter;
-import net.minecraft.server.v1_7_R4.PacketPlayOutChat;
-import net.minecraft.server.v1_7_R4.PacketPlayOutEntityMetadata;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -39,7 +37,7 @@ public class PacketListener8 extends PacketListener {
 
                 //TODO: Get rid of this try/catch when you're done debugging
                 try {
-                    if (!packetCore.process(packet, p))
+                    if (!packetCore.processIn(packet, p))
                         return; //prevent packet from getting processed by Bukkit if a check fails
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -54,6 +52,8 @@ public class PacketListener8 extends PacketListener {
 
             @Override
             public void write(ChannelHandlerContext context, Object packet, ChannelPromise promise) throws Exception {
+
+                packetCore.processOut(packet, p);
 
                 for(PacketAdapter adapter : adaptersOutbound) {
                     adapter.run(packet, p);

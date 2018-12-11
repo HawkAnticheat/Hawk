@@ -20,7 +20,7 @@ package me.islandscout.hawk.check;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.Event;
-import me.islandscout.hawk.event.external.HawkViolationEvent;
+import me.islandscout.hawk.event.bukkit.HawkViolationEvent;
 import me.islandscout.hawk.module.CommandExecutor;
 import me.islandscout.hawk.util.*;
 import org.bukkit.Bukkit;
@@ -151,7 +151,12 @@ public abstract class Check<E extends Event> {
         if (hawk.getSql().isRunning())
             hawk.getSql().addToBuffer(violation);
         if (hawk.canCallBukkitEvents())
-            Bukkit.getServer().getPluginManager().callEvent(new HawkViolationEvent(violation));
+            Bukkit.getScheduler().runTask(hawk, new Runnable() {
+                @Override
+                public void run() {
+                    Bukkit.getServer().getPluginManager().callEvent(new HawkViolationEvent(violation));
+                }
+            });
     }
 
     private void broadcastMessage(String message, Violation violation) {

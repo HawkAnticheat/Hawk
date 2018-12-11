@@ -19,11 +19,13 @@ package me.islandscout.hawk.util.packet;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
-import me.islandscout.hawk.util.Debug;
+import me.islandscout.hawk.event.bukkit.HawkPlayerVelocityChangeEvent;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.util.block.BlockNMS;
 import me.islandscout.hawk.util.block.BlockNMS7;
 import net.minecraft.server.v1_7_R4.*;
+import net.minecraft.util.io.netty.buffer.Unpooled;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
@@ -35,7 +37,7 @@ public final class PacketConverter7 {
     private PacketConverter7() {
     }
 
-    public static Event packetToEvent(Object packet, Player p, HawkPlayer pp) {
+    public static Event packetInboundToEvent(Object packet, Player p, HawkPlayer pp) {
         if (packet instanceof PacketPlayInFlying) return packetToPosEvent((PacketPlayInFlying) packet, p, pp);
         if (packet instanceof PacketPlayInUseEntity) return packetToInterEvent((PacketPlayInUseEntity) packet, p, pp);
         if (packet instanceof PacketPlayInBlockDig) return packetToDigEvent((PacketPlayInBlockDig) packet, p, pp);
@@ -49,6 +51,42 @@ public final class PacketConverter7 {
             return packetToArmSwingEvent((PacketPlayInArmAnimation) packet, p, pp);
         if (packet instanceof PacketPlayInHeldItemSlot)
             return packetToItemSwitchEvent((PacketPlayInHeldItemSlot) packet, p, pp);
+        return null;
+    }
+
+    public static org.bukkit.event.Event packetOutboundToEvent(Object packet, Player p) {
+        if(packet instanceof PacketPlayOutEntityVelocity || packet instanceof PacketPlayOutExplosion)
+            return packetToVelocityEvent((Packet)packet, p);
+        return null;
+    }
+
+    public static HawkPlayerVelocityChangeEvent packetToVelocityEvent(Packet packet, Player p) {
+        if(packet instanceof PacketPlayOutExplosion) {
+            PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
+            ((PacketPlayOutExplosion) packet).b(serializer);
+            serializer.readerIndex(serializer.writerIndex() - 12);
+            float x = serializer.readFloat();
+            float y = serializer.readFloat();
+            float z = serializer.readFloat();
+            Vector velocity = new Vector(x, y, z);
+            if(velocity.lengthSquared() == 0)
+                return null;
+            return new HawkPlayerVelocityChangeEvent(velocity, p, true);
+        }
+        else if(packet instanceof PacketPlayOutEntityVelocity) {
+            PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
+            ((PacketPlayOutEntityVelocity) packet).b(serializer);
+            int id = serializer.readInt();
+            if(id != p.getEntityId()) {
+                return null;
+            }
+            double x = serializer.readShort() / 8000D;
+            double y = serializer.readShort() / 8000D;
+            double z = serializer.readShort() / 8000D;
+            Vector velocity = new Vector(x, y, z);
+
+            return new HawkPlayerVelocityChangeEvent(velocity, p, false);
+        }
         return null;
     }
 

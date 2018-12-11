@@ -22,7 +22,6 @@ import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractAction;
 import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;

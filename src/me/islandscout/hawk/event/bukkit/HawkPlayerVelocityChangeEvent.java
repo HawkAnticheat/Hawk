@@ -15,26 +15,28 @@
  * along with Hawk Anticheat.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.event.external;
+package me.islandscout.hawk.event.bukkit;
 
-import me.islandscout.hawk.util.Violation;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.util.Vector;
 
-public final class HawkViolationEvent extends Event {
+public class HawkPlayerVelocityChangeEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
-    private final Violation violation;
+    private Vector velocity;
+    private Player player;
+    private boolean additive;
 
-    public HawkViolationEvent(Violation violation) {
-        super(true); //TODO: make sure to check if the thread is async or not!
-        this.violation = violation;
+    public HawkPlayerVelocityChangeEvent(Vector velocity, Player player, boolean additive) {
+        super();
+        this.velocity = velocity;
+        this.player = player;
+        this.additive = additive;
     }
 
-    public Violation getViolation() {
-        return violation;
-    }
-
+    @Override
     public HandlerList getHandlers() {
         return handlers;
     }
@@ -43,4 +45,15 @@ public final class HawkViolationEvent extends Event {
         return handlers;
     }
 
+    public Vector getVelocity() {
+        return velocity;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public boolean isAdditive() {
+        return additive;
+    }
 }
