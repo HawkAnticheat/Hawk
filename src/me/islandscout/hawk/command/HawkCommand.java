@@ -18,6 +18,7 @@
 package me.islandscout.hawk.command;
 
 import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.module.MouseRecorder;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -55,6 +56,7 @@ public class HawkCommand implements CommandExecutor {
         arguments.add(new MuteArgument());
         arguments.add(new UnbanArgument());
         arguments.add(new UnmuteArgument());
+        arguments.add(new MouseRecArgument());
 
         Collections.sort(arguments);
 
