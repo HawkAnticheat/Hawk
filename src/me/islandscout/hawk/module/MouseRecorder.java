@@ -18,10 +18,8 @@
 package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.event.*;
 import me.islandscout.hawk.event.Event;
-import me.islandscout.hawk.event.HawkEventListener;
-import me.islandscout.hawk.event.InteractEntityEvent;
-import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Pair;
 import org.bukkit.Bukkit;
@@ -95,6 +93,7 @@ public class MouseRecorder {
         });
     }
 
+    //TODO: I suggest drawing the starting position w/ a blue dot
     private void renderClicks(Graphics2D g) {
         g.setColor(new Color(0F, 1F, 0F, 0.4F));
         Pair<Float, Float> currCoord = new Pair<>(origin);
@@ -181,7 +180,7 @@ public class MouseRecorder {
                         render(admin, target);
                     }
                 }
-                else if(e instanceof InteractEntityEvent) {
+                else if(e instanceof InteractEntityEvent && ((InteractEntityEvent) e).getInteractAction() == InteractAction.ATTACK) {
                     clicks.add(vectors.size());
                 }
             }

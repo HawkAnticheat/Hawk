@@ -106,15 +106,15 @@ public class ClockSpeed extends MovementCheck implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onConsume(PlayerItemConsumeEvent e) {
         Player p = e.getPlayer();
-        if(!p.hasPermission(permission) && clockDrift.get(p.getUniqueId()) * 1E-6 < THRESHOLD && DENY_ACTIONS)
+        if(enabled && !p.hasPermission(permission) && clockDrift.getOrDefault(p.getUniqueId(), 0L) * 1E-6 < THRESHOLD && DENY_ACTIONS)
             e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onShoot(EntityShootBowEvent e) {
-        if(e instanceof Player) {
+        if(enabled && e instanceof Player) {
             Player p = (Player) e.getEntity();
-            if (!p.hasPermission(permission) && clockDrift.get(p.getUniqueId()) * 1E-6 < THRESHOLD && DENY_ACTIONS)
+            if (!p.hasPermission(permission) && clockDrift.getOrDefault(p.getUniqueId(), 0L) * 1E-6 < THRESHOLD && DENY_ACTIONS)
                 e.setCancelled(true);
         }
     }
