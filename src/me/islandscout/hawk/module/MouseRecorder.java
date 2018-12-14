@@ -37,7 +37,7 @@ import java.util.List;
 public class MouseRecorder {
 
     private Hawk hawk;
-    private static int moves;
+    private int moves;
     private Pair<Float, Float> origin;
     private List<Pair<Float, Float>> vectors;
     private List<Integer> clicks;
@@ -46,9 +46,9 @@ public class MouseRecorder {
     private final int HEIGHT;
     private final float CLICK_DOT_RADIUS = 0.7F;
 
-    public MouseRecorder(Hawk hawk) {
+    public MouseRecorder(Hawk hawk, int moves) {
         this.hawk = hawk;
-        moves = 200;
+        this.moves = moves;
         vectors = new ArrayList<>();
         clicks = new ArrayList<>();
         WIDTH = (int)(360 * RESOLUTION);
@@ -121,6 +121,8 @@ public class MouseRecorder {
     }
 
     private void renderMovement(Graphics2D g) {
+        g.setColor(new Color(0F, 0F, 1F, 0.8F)); //starting marker color
+        g.fillOval((int)((origin.getKey() - CLICK_DOT_RADIUS) * RESOLUTION), (int)((origin.getValue() - CLICK_DOT_RADIUS) * RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION));
         Pair<Float, Float> currCoord = new Pair<>(origin);
         for(Pair<Float, Float> vector : vectors) {
             float distance = (float)MathPlus.distance2d(vector.getKey(), vector.getValue());

@@ -20,7 +20,6 @@ package me.islandscout.hawk.module;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
-import me.islandscout.hawk.event.bukkit.HawkPlayerVelocityChangeEvent;
 import me.islandscout.hawk.listener.PacketListener;
 import me.islandscout.hawk.listener.PacketListener7;
 import me.islandscout.hawk.listener.PacketListener8;
@@ -180,12 +179,8 @@ public class PacketCore implements Listener {
         if (event == null)
             return;
 
-        Bukkit.getScheduler().runTask(hawk, new Runnable() {
-            @Override
-            public void run() {
-                Bukkit.getServer().getPluginManager().callEvent(event);
-            }
-        });
+        Bukkit.getServer().getPluginManager().callEvent(event);
+
     }
 
     public void killListener() {

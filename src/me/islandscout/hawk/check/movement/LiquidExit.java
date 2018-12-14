@@ -17,8 +17,8 @@
 
 package me.islandscout.hawk.check.movement;
 
+import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
 import me.islandscout.hawk.util.Pair;
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
@@ -30,7 +30,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -76,16 +75,10 @@ public class LiquidExit extends MovementCheck implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onVelocity(PlayerVelocityEvent e) {
-        Vector vector = null;
-        if (Hawk.getServerVersion() == 7) {
-            vector = e.getVelocity();
-        } else if (Hawk.getServerVersion() == 8) {
-            //lmao Bukkit is broken. event velocity is broken when attacked by a player (NMS.EntityHuman.java, attack(Entity))
-            vector = e.getPlayer().getVelocity();
-        }
-        if (vector == null)
+    public void onVelocity(HawkPlayerAsyncVelocityChangeEvent e) {
+        if(e.isAdditive())
             return;
+        Vector vector = e.getVelocity();
         kbTime.put(e.getPlayer().getUniqueId(), new Pair<>(vector.getY(), System.currentTimeMillis() + ServerUtils.getPing(e.getPlayer())));
     }
 

@@ -22,15 +22,15 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.util.Vector;
 
-public class HawkPlayerVelocityChangeEvent extends Event {
+public class HawkPlayerAsyncVelocityChangeEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
     private Vector velocity;
     private Player player;
     private boolean additive;
 
-    public HawkPlayerVelocityChangeEvent(Vector velocity, Player player, boolean additive) {
-        super();
+    public HawkPlayerAsyncVelocityChangeEvent(Vector velocity, Player player, boolean additive) {
+        super(true);
         this.velocity = velocity;
         this.player = player;
         this.additive = additive;

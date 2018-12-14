@@ -27,7 +27,7 @@ import org.bukkit.entity.Player;
 public class MouseRecArgument extends Argument {
 
     public MouseRecArgument() {
-        super("mouserec", "<player>", "Record a player's mouse movements.");
+        super("mouserec", "<player> [seconds]", "Record a player's mouse movements.");
     }
 
     @Override
@@ -40,7 +40,18 @@ public class MouseRecArgument extends Argument {
             return true;
         }
 
-        MouseRecorder recorder = new MouseRecorder(hawk);
+        int moves = 200;
+        if(args.length == 3) {
+            try {
+                moves = (int)(Double.parseDouble(args[2]) * 20);
+            } catch (NumberFormatException e) {
+                sender.sendMessage(ChatColor.RED + "Third argument must be a non-negative real number.");
+            }
+            if(moves < 0)
+                sender.sendMessage(ChatColor.RED + "Third argument must be a non-negative real number.");
+        }
+
+        MouseRecorder recorder = new MouseRecorder(hawk, moves);
         recorder.start(sender, target);
         return true;
     }

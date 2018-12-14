@@ -17,8 +17,8 @@
 
 package me.islandscout.hawk.check.movement;
 
+import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
 import me.islandscout.hawk.util.Pair;
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.check.Cancelless;
@@ -28,7 +28,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -81,17 +80,11 @@ public class AntiVelocity extends MovementCheck implements Listener, Cancelless 
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onVelocity(PlayerVelocityEvent e) {
-        UUID uuid = e.getPlayer().getUniqueId();
-        Vector vector = null;
-        if (Hawk.getServerVersion() == 7) {
-            vector = e.getVelocity();
-        } else if (Hawk.getServerVersion() == 8) {
-            //lmao Bukkit is broken. event velocity is broken when attacked by a player (NMS.EntityHuman.java, attack(Entity))
-            vector = e.getPlayer().getVelocity();
-        }
-        if (vector == null)
+    public void onVelocity(HawkPlayerAsyncVelocityChangeEvent e) {
+        if(e.isAdditive())
             return;
+        UUID uuid = e.getPlayer().getUniqueId();
+        Vector vector = e.getVelocity();
 
         List<Pair<Vector, Long>> kbs = velocities.getOrDefault(uuid, new ArrayList<>());
         kbs.add(new Pair<>(vector, System.currentTimeMillis()));

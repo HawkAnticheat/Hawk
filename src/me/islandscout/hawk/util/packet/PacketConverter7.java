@@ -19,13 +19,12 @@ package me.islandscout.hawk.util.packet;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
-import me.islandscout.hawk.event.bukkit.HawkPlayerVelocityChangeEvent;
+import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.util.block.BlockNMS;
 import me.islandscout.hawk.util.block.BlockNMS7;
 import net.minecraft.server.v1_7_R4.*;
 import net.minecraft.util.io.netty.buffer.Unpooled;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
@@ -60,7 +59,7 @@ public final class PacketConverter7 {
         return null;
     }
 
-    public static HawkPlayerVelocityChangeEvent packetToVelocityEvent(Packet packet, Player p) {
+    public static HawkPlayerAsyncVelocityChangeEvent packetToVelocityEvent(Packet packet, Player p) {
         if(packet instanceof PacketPlayOutExplosion) {
             PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
             ((PacketPlayOutExplosion) packet).b(serializer);
@@ -71,7 +70,7 @@ public final class PacketConverter7 {
             Vector velocity = new Vector(x, y, z);
             if(velocity.lengthSquared() == 0)
                 return null;
-            return new HawkPlayerVelocityChangeEvent(velocity, p, true);
+            return new HawkPlayerAsyncVelocityChangeEvent(velocity, p, true);
         }
         else if(packet instanceof PacketPlayOutEntityVelocity) {
             PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
@@ -85,7 +84,7 @@ public final class PacketConverter7 {
             double z = serializer.readShort() / 8000D;
             Vector velocity = new Vector(x, y, z);
 
-            return new HawkPlayerVelocityChangeEvent(velocity, p, false);
+            return new HawkPlayerAsyncVelocityChangeEvent(velocity, p, false);
         }
         return null;
     }
