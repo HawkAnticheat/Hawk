@@ -68,7 +68,6 @@ public class CheckManager {
         new BlockBreakSpeed();
         new ClockSpeed();
         new Speed();
-        new FightSynchronized();
         new Inertia();
         new BlockBreakHitbox();
         new WrongBlock();
