@@ -20,6 +20,7 @@ package me.islandscout.hawk;
 import me.islandscout.hawk.check.Check;
 import me.islandscout.hawk.util.ClientBlock;
 import me.islandscout.hawk.util.ServerUtils;
+import net.minecraft.server.v1_7_R4.PacketPlayInEntityAction;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -60,6 +61,8 @@ public class HawkPlayer {
     private short pingJitter;
     private long lastMoveTime;
     private long currentTick;
+    private boolean sneaking;
+    private boolean sprinting;
     private double maxY;
     private double jumpedHeight;
     private long flyPendingTime;
@@ -220,6 +223,22 @@ public class HawkPlayer {
     public void incrementCurrentTick() {
         this.currentTick++;
         manageClientBlocks();
+    }
+
+    public boolean isSneaking() {
+        return sneaking;
+    }
+
+    public void setSneaking(boolean sneaking) {
+        this.sneaking = sneaking;
+    }
+
+    public boolean isSprinting() {
+        return sprinting;
+    }
+
+    public void setSprinting(boolean sprinting) {
+        this.sprinting = sprinting;
     }
 
     public double getFallDistance() {

@@ -50,6 +50,8 @@ public final class PacketConverter7 {
             return packetToArmSwingEvent((PacketPlayInArmAnimation) packet, p, pp);
         if (packet instanceof PacketPlayInHeldItemSlot)
             return packetToItemSwitchEvent((PacketPlayInHeldItemSlot) packet, p, pp);
+        if (packet instanceof PacketPlayInEntityAction)
+            return packetToPlayerActionEvent((PacketPlayInEntityAction) packet, p, pp);
         return null;
     }
 
@@ -239,5 +241,33 @@ public final class PacketConverter7 {
 
     private static ItemSwitchEvent packetToItemSwitchEvent(PacketPlayInHeldItemSlot packet, Player p, HawkPlayer pp) {
         return new ItemSwitchEvent(p, pp, packet.c(), new WrappedPacket7(packet, WrappedPacket.PacketType.HELD_ITEM_SLOT));
+    }
+
+    private static PlayerActionEvent packetToPlayerActionEvent(PacketPlayInEntityAction packet, Player p, HawkPlayer pp) {
+        int id = packet.d();
+        PlayerActionEvent.PlayerAction action;
+        switch (id) {
+            case 1:
+                action = PlayerActionEvent.PlayerAction.SNEAK_START;
+                break;
+            case 2:
+                action = PlayerActionEvent.PlayerAction.SNEAK_STOP;
+                break;
+            case 3:
+                action = PlayerActionEvent.PlayerAction.BED_LEAVE;
+                break;
+            case 4:
+                action = PlayerActionEvent.PlayerAction.SPRINT_START;
+                break;
+            case 5:
+                action = PlayerActionEvent.PlayerAction.SPRINT_STOP;
+                break;
+            case 6:
+                action = PlayerActionEvent.PlayerAction.HORSE_JUMP;
+                break;
+            default:
+                action = PlayerActionEvent.PlayerAction.UNKNOWN;
+        }
+        return new PlayerActionEvent(p, pp, new WrappedPacket7(packet, WrappedPacket.PacketType.ENTITY_ACTION), action);
     }
 }

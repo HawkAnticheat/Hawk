@@ -51,6 +51,8 @@ public final class PacketConverter8 {
             return packetToArmSwingEvent((PacketPlayInArmAnimation) packet, p, pp);
         if (packet instanceof PacketPlayInHeldItemSlot)
             return packetToItemSwitchEvent((PacketPlayInHeldItemSlot) packet, p, pp);
+        if (packet instanceof PacketPlayInEntityAction)
+            return packetToPlayerActionEvent((PacketPlayInEntityAction) packet, p, pp);
         return null;
     }
 
@@ -255,5 +257,36 @@ public final class PacketConverter8 {
 
     private static ItemSwitchEvent packetToItemSwitchEvent(PacketPlayInHeldItemSlot packet, Player p, HawkPlayer pp) {
         return new ItemSwitchEvent(p, pp, packet.a(), new WrappedPacket8(packet, WrappedPacket.PacketType.HELD_ITEM_SLOT));
+    }
+
+    private static PlayerActionEvent packetToPlayerActionEvent(PacketPlayInEntityAction packet, Player p, HawkPlayer pp) {
+        PacketPlayInEntityAction.EnumPlayerAction nmsAction = packet.b();
+        PlayerActionEvent.PlayerAction action;
+        switch (nmsAction) {
+            case START_SNEAKING:
+                action = PlayerActionEvent.PlayerAction.SNEAK_START;
+                break;
+            case STOP_SNEAKING:
+                action = PlayerActionEvent.PlayerAction.SNEAK_STOP;
+                break;
+            case STOP_SLEEPING:
+                action = PlayerActionEvent.PlayerAction.BED_LEAVE;
+                break;
+            case START_SPRINTING:
+                action = PlayerActionEvent.PlayerAction.SPRINT_START;
+                break;
+            case STOP_SPRINTING:
+                action = PlayerActionEvent.PlayerAction.SPRINT_STOP;
+                break;
+            case RIDING_JUMP:
+                action = PlayerActionEvent.PlayerAction.HORSE_JUMP;
+                break;
+            case OPEN_INVENTORY:
+                action = PlayerActionEvent.PlayerAction.INVENTORY_OPEN;
+                break;
+            default:
+                action = PlayerActionEvent.PlayerAction.UNKNOWN;
+        }
+        return new PlayerActionEvent(p, pp, new WrappedPacket8(packet, WrappedPacket.PacketType.ENTITY_ACTION), action);
     }
 }

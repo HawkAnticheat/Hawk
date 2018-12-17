@@ -55,6 +55,7 @@ public abstract class WrappedPacket {
         BLOCK_PLACE,
         ARM_ANIMATION,
         HELD_ITEM_SLOT,
-        ENTITY_META_DATA
+        ENTITY_META_DATA,
+        ENTITY_ACTION
     }
 }

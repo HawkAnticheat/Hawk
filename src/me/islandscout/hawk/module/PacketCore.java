@@ -162,6 +162,23 @@ public class PacketCore implements Listener {
         if (event instanceof AbilitiesEvent && !event.isCancelled() && ((AbilitiesEvent) event).isFlying()) {
             pp.setFlyPendingTime(System.currentTimeMillis());
         }
+        if (event instanceof PlayerActionEvent && !event.isCancelled()) {
+            PlayerActionEvent.PlayerAction action = ((PlayerActionEvent) event).getAction();
+            switch (action) {
+                case SNEAK_START:
+                    pp.setSneaking(true);
+                    break;
+                case SNEAK_STOP:
+                    pp.setSneaking(false);
+                    break;
+                case SPRINT_START:
+                    pp.setSprinting(true);
+                    break;
+                case SPRINT_STOP:
+                    pp.setSprinting(false);
+                    break;
+            }
+        }
 
         return !event.isCancelled();
     }

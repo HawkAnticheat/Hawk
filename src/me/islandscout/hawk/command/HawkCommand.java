@@ -18,7 +18,6 @@
 package me.islandscout.hawk.command;
 
 import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.module.MouseRecorder;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
