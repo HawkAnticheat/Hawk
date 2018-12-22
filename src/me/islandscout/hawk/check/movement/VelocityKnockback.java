@@ -18,11 +18,13 @@
 package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.util.PhysicsUtils;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -32,13 +34,11 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class AntiVelocity extends MovementCheck implements Listener, Cancelless {
-
-    //this is such a pain
+public class VelocityKnockback extends MovementCheck implements Listener, Cancelless {
 
     private final Map<UUID, List<Pair<Vector, Long>>> velocities; //launch velocities
 
-    public AntiVelocity() {
+    public VelocityKnockback() {
         super("antivelocity", false, -1, 5, 0.95, 5000, "%player% may be using antivelocity. VL: %vl%", null);
         velocities = new HashMap<>();
     }
@@ -60,13 +60,19 @@ public class AntiVelocity extends MovementCheck implements Listener, Cancelless 
                 //then work down the list until we find something
                 int kbIndex;
                 for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
-                    Pair<Vector, Long> kb = kbs.get(kbIndex);
-                    if (currTime - kb.getValue() <= ping + 200) {
-                        if (currVelocity.angle(kb.getKey()) < 0.26 && currVelocity.clone().subtract(kb.getKey()).length() < 0.14) {
+                    Pair<Vector, Long> kbPair = kbs.get(kbIndex);
+                    long timeSinceKb = currTime - kbPair.getValue();
+                    if (timeSinceKb <= ping + 200 && timeSinceKb > ping - 100) {
+                        Vector kb = kbPair.getKey();
+                        Vector diff = kb.clone().subtract(currVelocity);
+                        Debug.broadcastMessage("DIFF: " + diff.length() + "");
+                        Debug.broadcastMessage(kb.length() + " " + (kb.length() + sprintGroundMapping(-kb.length())) + "");
+
+                        /*if (currVelocity.angle(kbPair.getKey()) < 0.26 && currVelocity.clone().subtract(kbPair.getKey()).length() < 0.14) {
                             reward(pp);
                             kbs = kbs.subList(kbIndex + 1, kbs.size());
                             break;
-                        }
+                        }*/
                     } else if (kbIndex == kbs.size() - 1){
                         //We've waited too long. Flag the player.
                         kbs.clear();
@@ -94,5 +100,14 @@ public class AntiVelocity extends MovementCheck implements Listener, Cancelless 
     @Override
     public void removeData(Player p) {
         velocities.remove(p.getUniqueId());
+    }
+
+    private double sprintGroundMapping(double lastSpeed) {
+        //Debug.broadcastMessage("chking walk-ground");
+        return 0.546001 * lastSpeed + 0.130001;
+    }
+
+    private double sprintAirMapping(double lastSpeed) {
+            return 0.910001 * lastSpeed + 0.026001;
     }
 }

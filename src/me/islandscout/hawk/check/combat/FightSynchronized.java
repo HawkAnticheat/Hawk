@@ -37,7 +37,7 @@ import java.util.UUID;
  */
 public class FightSynchronized extends EntityInteractionCheck implements Cancelless {
 
-    //TODO: False positives after HUGE lag spikes. This can falsely ban players. Have a VL cooldown for lag catchup?
+    //This check is deprecated since it flags incorrectly more than it flags correctly.
 
     private final Map<UUID, Long> attackTimes;
     private final Map<UUID, Integer> samples;

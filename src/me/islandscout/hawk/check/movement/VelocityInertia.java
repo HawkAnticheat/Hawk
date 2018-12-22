@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class Inertia extends MovementCheck {
+public class VelocityInertia extends MovementCheck {
 
     //"Inertia is a property of matter... Bill, Bill, Bill..."
 
@@ -36,7 +36,7 @@ public class Inertia extends MovementCheck {
 
     private final Map<UUID, Vector> vec;
 
-    public Inertia() {
+    public VelocityInertia() {
         super("inertia", true, -1, 3, 0.995, 5000, "%player% failed inertia. VL: %vl%", null);
         vec = new HashMap<>();
     }

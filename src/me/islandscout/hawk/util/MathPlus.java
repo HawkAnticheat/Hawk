@@ -17,6 +17,8 @@
 
 package me.islandscout.hawk.util;
 
+import me.islandscout.hawk.Hawk;
+
 public final class MathPlus {
 
     private MathPlus() {
@@ -37,6 +39,25 @@ public final class MathPlus {
 
     public static double distance2d(double x, double y) {
         return Math.sqrt(x*x + y*y);
+    }
+
+    /**
+     * Faster implementations of the trigonometric functions
+     */
+    public static float sin(float radians) {
+        if (Hawk.getServerVersion() == 8)
+            return net.minecraft.server.v1_8_R3.MathHelper.sin(radians);
+        if (Hawk.getServerVersion() == 7)
+            return net.minecraft.server.v1_7_R4.MathHelper.sin(radians);
+        return (float)Math.sin(radians);
+    }
+
+    public static float cos(float radians) {
+        if (Hawk.getServerVersion() == 8)
+            return net.minecraft.server.v1_8_R3.MathHelper.cos(radians);
+        if (Hawk.getServerVersion() == 7)
+            return net.minecraft.server.v1_7_R4.MathHelper.cos(radians);
+        return (float)Math.cos(radians);
     }
 
     //Perhaps make an angle method that compares two vectors and uses a lookup table for arccos values? Will eat up 256kiB of memory, though.

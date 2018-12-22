@@ -150,7 +150,7 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
             return;
         Vector victimVelocity = victim.getVelocity().clone().setY(0);
         Vector attackerDirection = att.getPlayer().getLocation().getDirection().clone().setY(0);
-        double localMovement = Math.sin(victimVelocity.angle(attackerDirection)) * victimVelocity.length();
+        double localMovement = MathPlus.sin(victimVelocity.angle(attackerDirection)) * victimVelocity.length();
         if(Double.isNaN(localMovement))
             localMovement = 0D;
         double requiredPrecision = localMovement * att.getLocation().distance(victim.getLocation());

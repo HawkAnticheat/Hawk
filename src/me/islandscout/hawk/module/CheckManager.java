@@ -68,7 +68,7 @@ public class CheckManager {
         new BlockBreakSpeed();
         new ClockSpeed();
         new Speed();
-        new Inertia();
+        new VelocityInertia();
         new BlockBreakHitbox();
         new WrongBlock();
         new LiquidExit();
@@ -77,7 +77,7 @@ public class CheckManager {
         new FightAccuracy();
         new FightAimbot();
         new FightNoSwing();
-        new AntiVelocity();
+        //new VelocityKnockback();
         new InvalidPitch();
         new FightReachApprox();
         new FightDirectionApprox();

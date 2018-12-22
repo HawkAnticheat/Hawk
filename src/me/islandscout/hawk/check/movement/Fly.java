@@ -23,7 +23,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.util.entity.EntityNMS;
-import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -72,7 +71,7 @@ public class Fly extends MovementCheck implements Listener {
     //Don't change how you determine if on ground, even though that's what caused this. Instead, check when landing when deltaY > 0
     //perhaps check if player's jump height is great enough?
 
-    //TODO: false flag when jumping on recently placed block
+    //TO DO: false flag when jumping on recently placed block
     //To fix this... You'll need to work on PhantomBlocks/ClientBlocks (more in HawkPlayer)
     //Fly check will keep track of positions ON phantom blocks in a List. If a phantom block passes, the fly check
     //will remove it from the List. If a phantom block fails, the fly check will rubberband the player to the location

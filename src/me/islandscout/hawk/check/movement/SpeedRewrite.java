@@ -17,11 +17,13 @@
 
 package me.islandscout.hawk.check.movement;
 
-import com.sun.crypto.provider.DHKeyPairGenerator;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.util.Debug;
+import me.islandscout.hawk.util.PhysicsUtils;
+import net.minecraft.server.v1_8_R3.MathHelper;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -29,14 +31,11 @@ import java.util.*;
 
 public class SpeedRewrite extends MovementCheck {
 
+    //TODO: Rename to VelocityMagnitude
+
     //IMPORTANT: Must use previous move to determine current material being stood on for friction calculation.
 
     //Basically, this check is doing, "if your previous speed was X then your current speed must not exceed f(X)"
-
-    //Problem: As soon as the client lands, the client will update its position immediately in attempt to update
-    //  the onGround status. Now, chances are, this move has very little change in position. Therefore, the next
-    //  move needs to make up for that. I suggest finding the distance between the move prior to landing and the
-    //  move succeeding the landing move, then dividing that by 2.
 
     private final double GROUND_DEFAULT;
     private final double GROUND_ICE;
@@ -66,6 +65,7 @@ public class SpeedRewrite extends MovementCheck {
     boolean wasOnGroundLocal = true;
     double prevSpeedLocal = 0;
 
+
     @Override
     protected void check(PositionEvent event) {
         if (!event.hasDeltaPos())
@@ -93,7 +93,10 @@ public class SpeedRewrite extends MovementCheck {
             failed = SpeedType.SPRINT;
         } else if(pp.isSprinting() && !isOnGround && wasOnGround && speed > sprintJumpMapping(lastSpeed)) {
             failed = SpeedType.SPRINT_JUMP;
-        } else if(!wasOnGround && speed > airMapping(lastSpeed)) {
+        } else if(((pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying()) && speed > flyMapping(lastSpeed)) {
+            failed = SpeedType.FLYING;
+        }
+        else if(!((pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying()) && !wasOnGround && speed > sprintAirMapping(lastSpeed)) {
             failed = SpeedType.AIR;
         }
 
@@ -102,9 +105,6 @@ public class SpeedRewrite extends MovementCheck {
             //tryRubberband(event, p.getLocation());
             Debug.broadcastMessage(failed + " (" + lastSpeed + ", " + speed + ")");
         }
-
-
-
 
 
 
@@ -133,7 +133,7 @@ public class SpeedRewrite extends MovementCheck {
             readyLocal = true;
         if (readyLocal) {
 
-            if(!isOnGround && wasOnGround) {
+            if(speed > lastSpeed) {
                 //use this to generate mappings
                 //Debug.broadcastMessage("(" + Math.sqrt(prevSpeedLocal) + ", " + Math.sqrt(speedSquared) + ")");
             }
@@ -144,7 +144,6 @@ public class SpeedRewrite extends MovementCheck {
         wasOnGroundLocal = isOnGround;
         prevSpeedLocal = speedSquared;
     }
-
 
     //these functions must be extremely accurate to support high level speed potions
     //added epsilon of 0.000001 and truncated if necessary
@@ -169,6 +168,13 @@ public class SpeedRewrite extends MovementCheck {
             return 0.546001 * lastSpeed + 0.100001;
         else
             return 0.16;
+    }
+
+    private double sneakGroundMapping(double lastSpeed) {
+        if(lastSpeed >= 0.1)
+            return 0.546001 * lastSpeed + 0.041561;
+        else
+            return 0.096161;
     }
 
     private double walkJumpMapping(double lastSpeed) {
@@ -199,8 +205,18 @@ public class SpeedRewrite extends MovementCheck {
     }
 
     //speed potions do not affect air movement
-    private double airMapping(double lastSpeed) {
-        return 0.910001 * lastSpeed + 0.026001;
+    private double sprintAirMapping(double lastSpeed) {
+        if(lastSpeed >= 0.1)
+            return 0.910001 * lastSpeed + 0.026001;
+        else
+            return 0.16;
+    }
+
+    private double sneakAirMapping(double lastSpeed) {
+        if(lastSpeed >= 0.1)
+            return 0.910001 * lastSpeed + 0.008317;
+        else
+            return 0.099317;
     }
 
     private double sprintLandingMapping(double lastSpeed) {
@@ -211,11 +227,16 @@ public class SpeedRewrite extends MovementCheck {
         return 0.910001 * lastSpeed + 0.100001;
     }
 
+    private double flyMapping(double lastSpeed) {
+        return 0.910001 * lastSpeed + 0.050001;
+    }
+
     private enum SpeedType {
         WALK,
         SPRINT,
         SPRINT_JUMP,
         AIR,
-        LANDING
+        LANDING,
+        FLYING
     }
 }

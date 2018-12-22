@@ -40,7 +40,7 @@ public class MouseRecArgument extends Argument {
             return true;
         }
 
-        int moves = 200;
+        int moves = 0;
         if(args.length == 3) {
             try {
                 moves = (int)(Double.parseDouble(args[2]) * 20);

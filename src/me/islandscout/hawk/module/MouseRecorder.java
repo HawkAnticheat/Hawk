@@ -20,6 +20,7 @@ package me.islandscout.hawk.module;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.event.*;
 import me.islandscout.hawk.event.Event;
+import me.islandscout.hawk.util.ConfigHelper;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Pair;
 import org.bukkit.Bukkit;
@@ -41,7 +42,8 @@ public class MouseRecorder {
     private Pair<Float, Float> origin;
     private List<Pair<Float, Float>> vectors;
     private List<Integer> clicks;
-    private final float RESOLUTION = 3F;
+    private final float RESOLUTION;
+    private final float DEFAULT_TIME;
     private final int WIDTH;
     private final int HEIGHT;
     private final float CLICK_DOT_RADIUS = 0.7F;
@@ -51,6 +53,10 @@ public class MouseRecorder {
         this.moves = moves;
         vectors = new ArrayList<>();
         clicks = new ArrayList<>();
+        RESOLUTION = (float) ConfigHelper.getOrSetDefault(3D, hawk.getConfig(), "mouseRecorder.resolution");
+        DEFAULT_TIME = (float) ConfigHelper.getOrSetDefault(10D, hawk.getConfig(), "mouseRecorder.defaultRecordingTime");
+        if(moves < 1)
+            this.moves = (int)(DEFAULT_TIME * 20);
         WIDTH = (int)(360 * RESOLUTION);
         HEIGHT = (int)(180 * RESOLUTION);
     }
