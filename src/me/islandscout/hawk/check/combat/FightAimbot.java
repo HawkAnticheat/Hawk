@@ -31,9 +31,11 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 /**
- * FightAimbot exploits a flaw in aim-bot cheats by
+ * FightAimbot exploits flaws in aim-bot cheats by
  * analyzing mouse movement patterns during combat. Although
  * easily bypassed, it catches a significant number of cheaters.
+ * Aim accuracy should also be accounted for since this check
+ * may false flag during certain circumstances.
  */
 public class FightAimbot extends CustomCheck implements Cancelless {
 
@@ -106,7 +108,7 @@ public class FightAimbot extends CustomCheck implements Cancelless {
     }
 
     private boolean analyze(MouseSample sample) {
-        return analyzeStutter(sample) && analyzeTwitch(sample);
+        return analyzeStutter(sample) && analyzeTwitch(sample) && analyzeJump(sample);
     }
 
     private boolean analyzeStutter(MouseSample sample) {
@@ -126,7 +128,7 @@ public class FightAimbot extends CustomCheck implements Cancelless {
         }
         if(Double.isNaN(maxAngle))
             maxAngle = 0D;
-        return !(maxSpeed - minSpeed > 4 && minSpeed < 0.01 && maxAngle < 0.1 && lastSpeed > 1); //perhaps make these configurable constants?
+        return !(maxSpeed - minSpeed > 4 && minSpeed < 0.01 && maxAngle < 0.1 /*&& lastSpeed > 1*/); //this lastSpeed check eliminates a false positive
     }
 
     private boolean analyzeTwitch(MouseSample sample) {
@@ -139,6 +141,18 @@ public class FightAimbot extends CustomCheck implements Cancelless {
                 return false;
             }
             prevVector = vector;
+            prevSpeed = speed;
+        }
+        return true;
+    }
+
+    private boolean analyzeJump(MouseSample sample) {
+        double prevSpeed = 0;
+        for(Vector vector : sample.moves) {
+            double speed = vector.length();
+            double decceleration = prevSpeed - speed;
+            if(decceleration > 30) //TODO: & angle must be greater than X
+                return false;
             prevSpeed = speed;
         }
         return true;

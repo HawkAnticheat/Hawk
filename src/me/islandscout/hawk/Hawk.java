@@ -54,6 +54,7 @@ public class Hawk extends JavaPlugin {
     private LagCompensator lagCompensator;
     private BanManager banManager;
     private MuteManager muteManager;
+    private MouseRecorder mouseRecorder;
     private Map<UUID, HawkPlayer> profiles;
     private static int SERVER_VERSION;
     public static String FLAG_PREFIX;
@@ -110,6 +111,7 @@ public class Hawk extends JavaPlugin {
         scheduler.startSchedulers();
         packetCore = new PacketCore(SERVER_VERSION, this);
         packetCore.setupListenerForOnlinePlayers();
+        mouseRecorder = new MouseRecorder(this);
         registerCommand();
     }
 
@@ -238,6 +240,10 @@ public class Hawk extends JavaPlugin {
 
     public PacketCore getPacketCore() {
         return packetCore;
+    }
+
+    public MouseRecorder getMouseRecorder() {
+        return mouseRecorder;
     }
 
     public boolean canCallBukkitEvents() {

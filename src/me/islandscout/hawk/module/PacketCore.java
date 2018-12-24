@@ -125,10 +125,10 @@ public class PacketCore implements Listener {
             }
         }
 
-        hawk.getCheckManager().dispatchEvent(event);
-
         for(HawkEventListener eventListener : hawkEventListeners)
             eventListener.onEvent(event);
+
+        hawk.getCheckManager().dispatchEvent(event);
 
         //handle block placing
         if (event instanceof MaterialInteractionEvent && ((MaterialInteractionEvent) event).getInteractionType() == MaterialInteractionEvent.InteractionType.PLACE_BLOCK) {

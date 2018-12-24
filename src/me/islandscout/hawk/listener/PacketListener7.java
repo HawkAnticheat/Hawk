@@ -38,16 +38,16 @@ public class PacketListener7 extends PacketListener {
             @Override
             public void channelRead(ChannelHandlerContext context, Object packet) throws Exception {
 
+                for(PacketAdapter adapter : adaptersInbound) {
+                    adapter.run(packet, p);
+                }
+
                 //TODO: Get rid of this try/catch when you're done debugging
                 try {
                     if (!packetCore.processIn(packet, p))
                         return; //prevent packet from getting processed by Bukkit if a check fails
                 } catch (Exception e) {
                     e.printStackTrace();
-                }
-
-                for(PacketAdapter adapter : adaptersInbound) {
-                    adapter.run(packet, p);
                 }
 
                 super.channelRead(context, packet);

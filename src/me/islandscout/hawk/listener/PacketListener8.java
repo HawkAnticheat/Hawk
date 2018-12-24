@@ -35,6 +35,10 @@ public class PacketListener8 extends PacketListener {
             @Override
             public void channelRead(ChannelHandlerContext context, Object packet) throws Exception {
 
+                for(PacketAdapter adapter : adaptersInbound) {
+                    adapter.run(packet, p);
+                }
+
                 //TODO: Get rid of this try/catch when you're done debugging
                 try {
                     if (!packetCore.processIn(packet, p))
@@ -43,21 +47,17 @@ public class PacketListener8 extends PacketListener {
                     e.printStackTrace();
                 }
 
-                for(PacketAdapter adapter : adaptersInbound) {
-                    adapter.run(packet, p);
-                }
-
                 super.channelRead(context, packet);
             }
 
             @Override
             public void write(ChannelHandlerContext context, Object packet, ChannelPromise promise) throws Exception {
 
-                packetCore.processOut(packet, p);
-
                 for(PacketAdapter adapter : adaptersOutbound) {
                     adapter.run(packet, p);
                 }
+
+                packetCore.processOut(packet, p);
 
                 super.write(context, packet, promise);
             }

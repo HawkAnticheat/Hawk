@@ -40,19 +40,19 @@ public class MouseRecArgument extends Argument {
             return true;
         }
 
-        int moves = 0;
+        float time = 0;
         if(args.length == 3) {
             try {
-                moves = (int)(Double.parseDouble(args[2]) * 20);
+                time = Float.parseFloat(args[2]);
             } catch (NumberFormatException e) {
                 sender.sendMessage(ChatColor.RED + "Third argument must be a non-negative real number.");
             }
-            if(moves < 0)
+            if(time < 0)
                 sender.sendMessage(ChatColor.RED + "Third argument must be a non-negative real number.");
         }
 
-        MouseRecorder recorder = new MouseRecorder(hawk, moves);
-        recorder.start(sender, target);
+        hawk.getMouseRecorder().start(sender, target, time);
+
         return true;
     }
 }

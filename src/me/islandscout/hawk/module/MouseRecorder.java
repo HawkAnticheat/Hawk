@@ -23,6 +23,7 @@ import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.util.ConfigHelper;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Pair;
+import net.minecraft.server.v1_8_R3.MathHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -38,78 +39,71 @@ import java.util.List;
 public class MouseRecorder {
 
     private Hawk hawk;
-    private int moves;
-    private Pair<Float, Float> origin;
-    private List<Pair<Float, Float>> vectors;
-    private List<Integer> clicks;
     private final float RESOLUTION;
     private final float DEFAULT_TIME;
     private final int WIDTH;
     private final int HEIGHT;
     private final float CLICK_DOT_RADIUS = 0.7F;
 
-    public MouseRecorder(Hawk hawk, int moves) {
+    public MouseRecorder(Hawk hawk) {
         this.hawk = hawk;
-        this.moves = moves;
-        vectors = new ArrayList<>();
-        clicks = new ArrayList<>();
         RESOLUTION = (float) ConfigHelper.getOrSetDefault(3D, hawk.getConfig(), "mouseRecorder.resolution");
         DEFAULT_TIME = (float) ConfigHelper.getOrSetDefault(10D, hawk.getConfig(), "mouseRecorder.defaultRecordingTime");
-        if(moves < 1)
-            this.moves = (int)(DEFAULT_TIME * 20);
         WIDTH = (int)(360 * RESOLUTION);
         HEIGHT = (int)(180 * RESOLUTION);
     }
 
     //to be called from main thread
-    public void start(CommandSender admin, Player target) {
-        HawkEventListener listener = new MouseRecorderListener(admin, target);
+    public void start(CommandSender admin, Player target, float time) {
+        HawkEventListener listener = new MouseRecorderListener(admin, target, time);
         admin.sendMessage(ChatColor.GOLD + "Recording mouse movements and hits of " + target.getName() + "...");
         hawk.getPacketCore().addHawkEventListener(listener);
     }
 
-    private void render(CommandSender admin, Player target) {
+    private void render(MouseRecorderListener listener) {
         Bukkit.getScheduler().runTaskAsynchronously(hawk, () -> {
             BufferedImage img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
             Graphics2D g = img.createGraphics();
             g.setBackground(Color.BLACK);
 
-            origin.setKey(MathPlus.clampDegrees360(origin.getKey()));
-            origin.setValue(Math.min(Math.max(origin.getValue(), -90), 90) + 90);
+            listener.origin.setKey(MathPlus.clampDegrees360(listener.origin.getKey()));
+            listener.origin.setValue(Math.min(Math.max(listener.origin.getValue(), -90), 90) + 90);
 
             //how are we going to deal with spaghetti neckers or yaw spammers?
             //remember, we're dealing with raw client input; don't trust it.
             //have something in here to prevent this thread from crashing
 
-            renderClicks(g);
-            renderMovement(g);
+            renderClicks(g, listener);
+            renderMovement(g, listener);
 
+            File image = new File(hawk.getDataFolder().getAbsolutePath() + File.separator + "recordings" + File.separator + listener.target.getName() + "-" + System.currentTimeMillis() + ".png");
             try {
-                File image = new File(hawk.getDataFolder().getAbsolutePath() + File.separator + "recordings" + File.separator + target.getName() + "-" + System.currentTimeMillis() + ".png");
                 image.mkdirs();
                 if (!image.exists()) {
                     image.createNewFile();
                 }
                 ImageIO.write(img, "PNG", image);
-                admin.sendMessage(ChatColor.GOLD + "Complete! Saved image to " + image.getPath());
+                listener.admin.sendMessage(ChatColor.GOLD + "Complete! Saved image to " + image.getPath());
             }
             catch(Exception e) {
+                listener.admin.sendMessage(ChatColor.RED + "An exception occurred while saving the image to " + image.getPath());
+                listener.admin.sendMessage(ChatColor.RED + "Check the console for more information.");
                 e.printStackTrace();
             }
         });
     }
 
     //TODO: I suggest drawing the starting position w/ a blue dot
-    private void renderClicks(Graphics2D g) {
+    private void renderClicks(Graphics2D g, MouseRecorderListener listener) {
         g.setColor(new Color(0F, 1F, 0F, 0.4F));
-        Pair<Float, Float> currCoord = new Pair<>(origin);
-        for(int i = 0; i < vectors.size(); i++) {
+        Pair<Float, Float> currCoord = new Pair<>(listener.origin);
+        for(int i = 0; i < listener.vectors.size(); i++) {
             float x1 = currCoord.getKey();
             float y1 = currCoord.getValue();
-            float x2 = x1 + vectors.get(i).getKey();
-            float y2 = y1 + vectors.get(i).getValue();
+            float x2 = x1 + listener.vectors.get(i).getKey();
+            float y2 = y1 + listener.vectors.get(i).getValue();
 
-            if(clicks.contains(i)) {
+            if(listener.clicks.contains(i)) {
                 g.fillOval((int)((x1 - CLICK_DOT_RADIUS) * RESOLUTION), (int)((y1 - CLICK_DOT_RADIUS) * RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION));
             }
 
@@ -126,11 +120,11 @@ public class MouseRecorder {
         }
     }
 
-    private void renderMovement(Graphics2D g) {
+    private void renderMovement(Graphics2D g, MouseRecorderListener listener) {
         g.setColor(new Color(0F, 0F, 1F, 0.8F)); //starting marker color
-        g.fillOval((int)((origin.getKey() - CLICK_DOT_RADIUS) * RESOLUTION), (int)((origin.getValue() - CLICK_DOT_RADIUS) * RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION));
-        Pair<Float, Float> currCoord = new Pair<>(origin);
-        for(Pair<Float, Float> vector : vectors) {
+        g.fillOval((int)((listener.origin.getKey() - CLICK_DOT_RADIUS) * RESOLUTION), (int)((listener.origin.getValue() - CLICK_DOT_RADIUS) * RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION));
+        Pair<Float, Float> currCoord = new Pair<>(listener.origin);
+        for(Pair<Float, Float> vector : listener.vectors) {
             float distance = (float)MathPlus.distance2d(vector.getKey(), vector.getValue());
             g.setColor(new Color(1F, 1 / (0.3F * distance + 1), 1 / (0.3F * distance + 1), 1 / (0.2F * distance + 1)));
 
@@ -159,14 +153,21 @@ public class MouseRecorder {
         }
     }
 
-    public class MouseRecorderListener implements HawkEventListener {
+    private class MouseRecorderListener implements HawkEventListener {
 
         private Player target;
         private CommandSender admin;
+        private Pair<Float, Float> origin;
+        private List<Pair<Float, Float>> vectors;
+        private List<Integer> clicks;
+        private int moves;
 
-        MouseRecorderListener(CommandSender admin, Player target) {
+        MouseRecorderListener(CommandSender admin, Player target, float time) {
             this.target = target;
             this.admin = admin;
+            vectors = new ArrayList<>();
+            clicks = new ArrayList<>();
+            this.moves = (time == 0 ? (int)(DEFAULT_TIME * 20) : (int)(time * 20));
         }
 
         @Override
@@ -176,16 +177,20 @@ public class MouseRecorder {
                     PositionEvent posE = (PositionEvent)e;
                     float deltaYaw = posE.getTo().getYaw() - posE.getFrom().getYaw();
                     float deltaPitch = posE.getTo().getPitch() - posE.getFrom().getPitch();
-                    if(vectors.size() < moves) {
-                        if (vectors.size() == 0)
+                    int size = vectors.size();
+                    if(size < moves) {
+                        if (size == 0)
                             origin = new Pair<>(posE.getFrom().getYaw(), posE.getFrom().getPitch());
                         vectors.add(new Pair<>(deltaYaw, deltaPitch));
+                        if(size % 40 == 0) {
+                            admin.sendMessage(ChatColor.GOLD + "Recording progress for " + target.getName() + ": " + MathPlus.round((float)size / moves * 100, 2) + "%");
+                        }
                     }
                     else {
                         //TODO: Remove from listener list when player disconnects
                         admin.sendMessage(ChatColor.GOLD + "Finished recording. Rendering...");
                         hawk.getPacketCore().removeHawkEventListener(this);
-                        render(admin, target);
+                        render(this);
                     }
                 }
                 else if(e instanceof InteractEntityEvent && ((InteractEntityEvent) e).getInteractAction() == InteractAction.ATTACK) {
