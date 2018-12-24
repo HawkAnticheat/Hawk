@@ -67,7 +67,7 @@ public class CheckManager {
         new Fly();
         new BlockBreakSpeed();
         new ClockSpeed();
-        new Speed();
+        new VelocityMagnitude();
         new VelocityInertia();
         new BlockBreakHitbox();
         new WrongBlock();
@@ -86,6 +86,7 @@ public class CheckManager {
         new WrongBlockFace();
         new ImpossiblePlacement();
         new AutoPotion();
+        new ActionToggleSpeed();
         //new SpeedRewrite();
 
         hawk.saveConfigs();

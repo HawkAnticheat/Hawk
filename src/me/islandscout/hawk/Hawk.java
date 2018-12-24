@@ -61,7 +61,6 @@ public class Hawk extends JavaPlugin {
     public static final String BASE_PERMISSION = "hawk";
     public static String BUILD_NAME;
     public static String FLAG_CLICK_COMMAND;
-    private boolean callBukkitEvents;
     private boolean sendJSONMessages;
     private boolean playSoundOnFlag;
 
@@ -87,7 +86,6 @@ public class Hawk extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerManager(this), this);
         messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
         FLAG_PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cHAWK: &7", messages, "prefix"));
-        callBukkitEvents = ConfigHelper.getOrSetDefault(false, getConfig(), "callBukkitEvents");
         sendJSONMessages = ConfigHelper.getOrSetDefault(false, getConfig(), "sendJSONMessages");
         playSoundOnFlag = ConfigHelper.getOrSetDefault(false, getConfig(), "playSoundOnFlag");
         FLAG_CLICK_COMMAND = ConfigHelper.getOrSetDefault("tp %player%", getConfig(), "flagClickCommand");
@@ -244,10 +242,6 @@ public class Hawk extends JavaPlugin {
 
     public MouseRecorder getMouseRecorder() {
         return mouseRecorder;
-    }
-
-    public boolean canCallBukkitEvents() {
-        return callBukkitEvents;
     }
 
     public boolean canSendJSONMessages() {

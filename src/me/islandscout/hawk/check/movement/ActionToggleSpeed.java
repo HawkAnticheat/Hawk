@@ -17,21 +17,67 @@
 
 package me.islandscout.hawk.check.movement;
 
+import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.check.Cancelless;
+import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.check.MovementCheck;
+import me.islandscout.hawk.event.Event;
+import me.islandscout.hawk.event.PlayerActionEvent;
 import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.util.Debug;
+import org.bukkit.entity.Player;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * This check limits clients' sprint and sneak toggle rates to
- * prevent exploitation of the speed check.
+ * prevent exploitation of the speed check and combat mechanics.
  */
-public class ActionToggleSpeed extends MovementCheck {
+public class ActionToggleSpeed extends CustomCheck {
 
-    public ActionToggleSpeed(String name, String flag) {
-        super(name, flag);
+    private Map<UUID, Long> lastSneakToggle;
+    private Map<UUID, Long> lastSprintToggle;
+
+    public ActionToggleSpeed() {
+        super("actiontogglespeed", "%player% failed action toggle speed, VL: %vl%");
+        lastSneakToggle = new HashMap<>();
+        lastSprintToggle = new HashMap<>();
     }
 
     @Override
-    protected void check(PositionEvent positionEvent) {
+    protected void check(Event e) {
+        if(!(e instanceof PlayerActionEvent))
+            return;
+        PlayerActionEvent aE = (PlayerActionEvent)e;
+        PlayerActionEvent.PlayerAction action = aE.getAction();
+        HawkPlayer pp = e.getHawkPlayer();
+        UUID uuid = e.getPlayer().getUniqueId();
+        if(action == PlayerActionEvent.PlayerAction.SNEAK_START || action == PlayerActionEvent.PlayerAction.SNEAK_STOP) {
 
+            if(pp.getCurrentTick() - lastSneakToggle.getOrDefault(uuid, 0L) < 1) {
+                punish(pp, canCancel(), e);
+            } else {
+                reward(pp);
+            }
+
+            lastSneakToggle.put(uuid, pp.getCurrentTick());
+        } else if(action == PlayerActionEvent.PlayerAction.SPRINT_START || action == PlayerActionEvent.PlayerAction.SPRINT_STOP) {
+
+            if(pp.getCurrentTick() - lastSprintToggle.getOrDefault(uuid, 0L) < 1) {
+                punish(pp, canCancel(), e);
+            } else {
+                reward(pp);
+            }
+
+            lastSprintToggle.put(uuid, pp.getCurrentTick());
+        }
+    }
+
+    public void removeData(Player p) {
+        UUID uuid = p.getUniqueId();
+        lastSneakToggle.remove(uuid);
+        lastSprintToggle.remove(uuid);
     }
 }

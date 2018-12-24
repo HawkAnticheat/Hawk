@@ -21,12 +21,12 @@ import me.islandscout.hawk.util.Violation;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class HawkViolationEvent extends Event {
+public class HawkFlagEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
     private final Violation violation;
 
-    public HawkViolationEvent(Violation violation) {
+    public HawkFlagEvent(Violation violation) {
         super();
         this.violation = violation;
     }

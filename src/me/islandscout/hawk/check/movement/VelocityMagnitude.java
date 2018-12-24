@@ -40,7 +40,7 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 
-public class Speed extends MovementCheck implements Listener {
+public class VelocityMagnitude extends MovementCheck implements Listener {
 
     //This was moved from the old Hawk codebase.
     //I hate having to dig around this horror. But, hey, if this works, I'm leaving this alone.
@@ -74,7 +74,7 @@ public class Speed extends MovementCheck implements Listener {
     private final Map<UUID, List<Pair<Double, Long>>> velocities; //launch velocities
     private final Map<UUID, Double> launchVelocity;
 
-    public Speed() {
+    public VelocityMagnitude() {
         super("speed", true, 0, 10, 0.995, 5000, "%player% failed speed. VL: %vl%", null);
         sprintgracetimer = new HashMap<>();
         speedygrace = new HashMap<>();

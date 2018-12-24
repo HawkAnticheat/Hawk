@@ -46,8 +46,8 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
     private final Map<UUID, Map<UUID, FightData>> accuracy;
     private final Map<UUID, HawkPlayer> lastAttacked;
     private final Map<UUID, Long> swingTick; //The swing used to compare with corresponding hit. Special; do not replace!
-    private final Map<UUID, Double> activity; //Used to determine whether a player is active enough to check. Range: 0.0-1.0
-    private final double ACTIVITY_THRESHOLD;
+    private final Map<UUID, Double> effort; //Used to determine whether a player is active enough to check. Range: 0.0-1.0
+    private final double EFFORT_THRESHOLD;
     private final double ACCURACY_THRESHOLD;
     private final double SWINGS_UNTIL_CHECK;
     private final double MIN_PRECISION_THRESHOLD;
@@ -58,8 +58,8 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
         accuracy = new HashMap<>();
         lastAttacked = new HashMap<>();
         swingTick = new HashMap<>();
-        activity = new HashMap<>();
-        ACTIVITY_THRESHOLD = (double)customSetting("activityThreshold", "", 0.7D);
+        effort = new HashMap<>();
+        EFFORT_THRESHOLD = (double)customSetting("effortThreshold", "", 0.7D);
         ACCURACY_THRESHOLD = (double)customSetting("accuracyThreshold", "", 0.9D);
         SWINGS_UNTIL_CHECK = (int)customSetting("swingsUntilCheck", "", 20);
         MIN_PRECISION_THRESHOLD = (double)customSetting("minPrecisionThreshold", "", 0.3D);
@@ -100,12 +100,12 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
         if (fightData.swings >= SWINGS_UNTIL_CHECK) {
             if(DEBUG) {
                 att.getPlayer().sendMessage("Checking aim...");
-                att.getPlayer().sendMessage("Activity: " + activity.getOrDefault(uuid, 0D));
-                att.getPlayer().sendMessage("Activity threshold: " + ACTIVITY_THRESHOLD);
+                att.getPlayer().sendMessage("Effort: " + effort.getOrDefault(uuid, 0D));
+                att.getPlayer().sendMessage("Effort threshold: " + EFFORT_THRESHOLD);
                 att.getPlayer().sendMessage("Aim accuracy: " + fightData.getRatio() * 100 + "%");
                 att.getPlayer().sendMessage("Aim accuracy threshold: " + ACCURACY_THRESHOLD * 100 + "%");
             }
-            if(fightData.getRatio() > ACCURACY_THRESHOLD && activity.getOrDefault(uuid, 0D) >= ACTIVITY_THRESHOLD) {
+            if(fightData.getRatio() > ACCURACY_THRESHOLD && effort.getOrDefault(uuid, 0D) >= EFFORT_THRESHOLD) {
                 if(DEBUG) {
                     att.getPlayer().sendMessage(ChatColor.RED + "FAIL");
                 }
@@ -154,23 +154,23 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
         if(Double.isNaN(localMovement))
             localMovement = 0D;
         double requiredPrecision = localMovement * att.getLocation().distance(victim.getLocation());
-        double activity = this.activity.getOrDefault(uuid, 0D);
+        double effort = this.effort.getOrDefault(uuid, 0D);
 
         if(DEBUG) {
-            if(requiredPrecision >= MIN_PRECISION_THRESHOLD && activity < ACTIVITY_THRESHOLD && activity + 0.02 >= ACTIVITY_THRESHOLD) {
+            if(requiredPrecision >= MIN_PRECISION_THRESHOLD && effort < EFFORT_THRESHOLD && effort + 0.02 >= EFFORT_THRESHOLD) {
                 att.getPlayer().sendMessage(ChatColor.GREEN + "You are now eligible to be checked by fightaccuracy because your opponent is moving significantly.");
             }
-            else if(requiredPrecision < MIN_PRECISION_THRESHOLD && activity >= ACTIVITY_THRESHOLD && activity - 0.01 < ACTIVITY_THRESHOLD) {
+            else if(requiredPrecision < MIN_PRECISION_THRESHOLD && effort >= EFFORT_THRESHOLD && effort - 0.01 < EFFORT_THRESHOLD) {
                 att.getPlayer().sendMessage(ChatColor.RED + "You are no longer eligible to be checked by fightaccuracy because your opponent is not moving enough.");
             }
         }
 
         if (requiredPrecision >= MIN_PRECISION_THRESHOLD) {
-            //increase activity
-            this.activity.put(uuid, Math.min(activity + 0.02, 1));
+            //increase effort
+            this.effort.put(uuid, Math.min(effort + 0.02, 1));
         } else {
-            //decrease activity
-            this.activity.put(uuid, Math.max(activity - 0.01, 0));
+            //decrease effort
+            this.effort.put(uuid, Math.max(effort - 0.01, 0));
         }
     }
 
@@ -209,6 +209,6 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
         accuracy.remove(uuid);
         lastAttacked.remove(uuid);
         swingTick.remove(uuid);
-        activity.remove(uuid);
+        effort.remove(uuid);
     }
 }
