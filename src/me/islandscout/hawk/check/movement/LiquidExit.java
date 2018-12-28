@@ -64,6 +64,7 @@ public class LiquidExit extends MovementCheck implements Listener {
             return;
 
         //emerged upwards from liquid
+        //TODO: False positive: do proper AABB testing @ feet
         if (deltaY > 0 && atFrom.isLiquid() && !belowFrom.isLiquid() && !AdjacentBlocks.blockNearbyIsSolid(from)) {
             Pair<Double, Long> kb = kbTime.getOrDefault(p.getUniqueId(), new Pair<>(0D, 0L));
             long ticksSinceKb = System.currentTimeMillis() - kb.getValue();

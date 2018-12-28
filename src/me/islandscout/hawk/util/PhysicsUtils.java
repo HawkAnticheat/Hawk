@@ -74,37 +74,4 @@ public final class PhysicsUtils {
     public static double waterYVelFunc(double initVelocityY, long deltaTime) {
         return (0.1 + initVelocityY) * Math.pow(0.8, deltaTime) - 0.1;
     }
-
-    public static double horizontalSpeedRecursive(double speed, Surface surface, Medium medium, MovementMode mode, byte jumpStatus, byte landStatus) {
-        switch (mode) {
-            case FLY:
-
-            case WALK:
-            case SNEAK:
-            case SPRINT:
-            case FLY_SNEAK:
-        }
-        return 0;
-    }
-
-    public enum Surface {
-        AIR,
-        GROUND,
-        ICE
-    }
-
-    public enum Medium {
-        AIR,
-        WATER,
-        LAVA,
-        WEB
-    }
-
-    public enum MovementMode {
-        WALK, //Yes, I consider swimming in water walking
-        SPRINT,
-        SNEAK,
-        FLY,
-        FLY_SNEAK
-    }
 }

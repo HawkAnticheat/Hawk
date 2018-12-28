@@ -24,11 +24,15 @@ import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.util.ConfigHelper;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Pair;
+import net.minecraft.server.v1_7_R4.PlayerDistanceComparator;
 import net.minecraft.server.v1_8_R3.MathHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -38,6 +42,8 @@ import java.util.*;
 import java.util.List;
 
 public class MouseRecorder {
+
+    //TODO: Handle teleportation!!!
 
     private Hawk hawk;
     private final float RESOLUTION;
@@ -62,6 +68,8 @@ public class MouseRecorder {
     }
 
     private void render(MouseRecorderListener listener) {
+        if(listener.admin != null)
+            listener.admin.sendMessage(ChatColor.GOLD + "Rendering...");
         Bukkit.getScheduler().runTaskAsynchronously(hawk, () -> {
             BufferedImage img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
             Graphics2D g = img.createGraphics();
@@ -84,17 +92,19 @@ public class MouseRecorder {
                     image.createNewFile();
                 }
                 ImageIO.write(img, "PNG", image);
-                listener.admin.sendMessage(ChatColor.GOLD + "Complete! Saved image to " + image.getPath());
+                if(listener.admin != null)
+                    listener.admin.sendMessage(ChatColor.GOLD + "Complete! Saved image to " + image.getPath());
             }
             catch(Exception e) {
-                listener.admin.sendMessage(ChatColor.RED + "An exception occurred while saving the image to " + image.getPath());
-                listener.admin.sendMessage(ChatColor.RED + "Check the console for more information.");
+                if(listener.admin != null) {
+                    listener.admin.sendMessage(ChatColor.RED + "An exception occurred while saving the image to " + image.getPath());
+                    listener.admin.sendMessage(ChatColor.RED + "Check the console for more information.");
+                }
                 e.printStackTrace();
             }
         });
     }
 
-    //TODO: I suggest drawing the starting position w/ a blue dot
     private void renderClicks(Graphics2D g, MouseRecorderListener listener) {
         g.setColor(new Color(0F, 1F, 0F, 0.4F));
         Pair<Float, Float> currCoord = new Pair<>(listener.origin);
@@ -154,7 +164,12 @@ public class MouseRecorder {
         }
     }
 
-    private class MouseRecorderListener implements HawkEventListener {
+    //This is a good example of one of the things I don't like about my coding style.
+    //This listener registers itself into the Bukkit and Hawk event system,
+    //unregisters itself from the Hawk event system, and can pass itself through
+    //MouseRecorder's render method. It's compact, but confusing.
+    //Hey, at least it is not like static abuse.
+    private class MouseRecorderListener implements HawkEventListener, Listener {
 
         private Player target;
         private CommandSender admin;
@@ -169,6 +184,7 @@ public class MouseRecorder {
             vectors = new ArrayList<>();
             clicks = new ArrayList<>();
             this.moves = (time == 0 ? (int)(DEFAULT_TIME * 20) : (int)(time * 20));
+            Bukkit.getPluginManager().registerEvents(this, hawk);
         }
 
         @Override
@@ -183,13 +199,13 @@ public class MouseRecorder {
                         if (size == 0)
                             origin = new Pair<>(posE.getFrom().getYaw(), posE.getFrom().getPitch());
                         vectors.add(new Pair<>(deltaYaw, deltaPitch));
-                        if(size % 40 == 0) {
+                        if(size % 40 == 0 && admin != null) {
                             admin.sendMessage(ChatColor.GOLD + "Recording progress for " + target.getName() + ": " + MathPlus.round((float)size / moves * 100, 2) + "%");
                         }
                     }
                     else {
-                        //TODO: Remove from listener list when player disconnects
-                        admin.sendMessage(ChatColor.GOLD + "Finished recording. Rendering...");
+                        if(admin != null)
+                            admin.sendMessage(ChatColor.GOLD + "Finished recording.");
                         hawk.getPacketCore().removeHawkEventListener(this);
                         render(this);
                     }
@@ -198,6 +214,18 @@ public class MouseRecorder {
                     clicks.add(vectors.size());
                 }
             }
+        }
+
+        @EventHandler
+        public void onQuit(PlayerQuitEvent e) {
+            if(e.getPlayer().equals(target)) {
+                if(admin != null) {
+                    admin.sendMessage(ChatColor.GOLD + "Recording progress for " + target.getName() + " interrupted because of disconnection.");
+                }
+                hawk.getPacketCore().removeHawkEventListener(this);
+                render(this);
+            }
+
         }
     }
 }
