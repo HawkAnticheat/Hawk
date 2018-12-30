@@ -123,5 +123,7 @@ public class HawkCommand implements CommandExecutor {
         }
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m------------------&r &8[ &ePage " + (pageNumber + 1) + " of " + (maxPage + 1) + " &8] &7&m--------------------"));
         sender.sendMessage(ChatColor.GRAY + "Build " + Hawk.BUILD_NAME);
+        sender.sendMessage(ChatColor.GOLD + "WARNING: This is a DEVELOPMENT build. You are likely to run into issues. Please report issues on the discord server @ https://discord.gg/rQGb5DV");
+        sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "DO NOT USE THIS ON A PRODUCTION SERVER.");
     }
 }

@@ -18,10 +18,12 @@
 
 package me.islandscout.hawk.check.movement;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.util.Debug;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -31,13 +33,10 @@ import java.util.*;
 public class SpeedRewrite extends MovementCheck {
 
     //TODO: Rename to VelocityMagnitude
-    //Suggestion: A good false-positive filter is to accumulate the total discrepancy between client & server
-    //and if it exceeds a threshold after some time, then rubberband/flag. DON'T decrease it if the player
-    //is standing slow or is moving slower than expected, because it is too confusing. The question is: where
-    //do we rubberband to?
+    //Suggestion: A good false-positive filter is to accumulate the total discrepancies between client & server
+    //and if it exceeds a threshold after some time, then rubberband/flag.
     //In the config, have it like this:
-    //  discrepancyThreshold: 1.0
-    //  tolerance: 0.01 (after each move, multiply total discrepancy by (1 - tolerance))
+    //  discrepancyThreshold: 0.1
     //  debug: false (show current discrepancy (color coded: green is under or equal thres, red is above thres))
 
     //Basically, this check is doing, "if your previous speed was X then your current speed must not exceed f(X)"
@@ -48,7 +47,7 @@ public class SpeedRewrite extends MovementCheck {
     private final Map<UUID, Double> prevSpeed;
     private final Map<UUID, Long> landingTick;
     private final Map<UUID, Long> sprintingJumpTick;
-    private final Map<UUID, Double> discrepancy;
+    private final Map<UUID, Double> discrepancies;
 
     public SpeedRewrite() {
         super("speed", "%player% failed movement speed, VL: %vl%");
@@ -56,7 +55,7 @@ public class SpeedRewrite extends MovementCheck {
         prevSpeed = new HashMap<>();
         landingTick = new HashMap<>();
         sprintingJumpTick = new HashMap<>();
-        discrepancy = new HashMap<>();
+        discrepancies = new HashMap<>();
     }
 
     @Override
@@ -84,66 +83,124 @@ public class SpeedRewrite extends MovementCheck {
         //TODO: support liquids, cobwebs, soulsand, etc...
 
         SpeedType failed = null;
+        Discrepancy discrepancy = new Discrepancy(0, 0);
         //LAND (instantaneous)
         if(isOnGround && ticksSinceLanding == 1) {
-            if(pp.isSprinting() && speed > sprintLandingMapping(lastSpeed, multiplier)) {
-                failed = SpeedType.LANDING_SPRINT;
+            if(pp.isSprinting()) {
+                discrepancy = sprintLandingMapping(lastSpeed, speed, multiplier);
+                if(discrepancy.value > 0)
+                    failed = SpeedType.LANDING_SPRINT;
             }
-            else if(!pp.isSprinting() && speed > walkLandingMapping(lastSpeed, multiplier)) {
-                failed = SpeedType.LANDING_WALK;
+            else if(!pp.isSprinting()) {
+                discrepancy = walkLandingMapping(lastSpeed, speed, multiplier);
+                if(discrepancy.value > 0)
+                    failed = SpeedType.LANDING_WALK;
             }
         }
         //GROUND
         else if(isOnGround && wasOnGround && ticksSinceLanding > 1) {
-            if(pp.isSneaking() && speed > sneakGroundMapping(lastSpeed, multiplier)) {
-                failed = SpeedType.SNEAK;
+            if(pp.isSneaking()) {
+                discrepancy = sneakGroundMapping(lastSpeed, speed, multiplier);
+                if(discrepancy.value > 0)
+                    failed = SpeedType.SNEAK;
             }
-            else if(!pp.isSprinting() && speed > walkGroundMapping(lastSpeed, multiplier)) {
-                failed = SpeedType.WALK;
+            else if(!pp.isSprinting()) {
+                discrepancy = walkGroundMapping(lastSpeed, speed, multiplier);
+                if(discrepancy.value > 0)
+                    failed = SpeedType.WALK;
             }
-            else if(pp.isSprinting() && speed > sprintGroundMapping(lastSpeed, multiplier)) {
-                failed = SpeedType.SPRINT;
+            else if(pp.isSprinting()) {
+                discrepancy = sprintGroundMapping(lastSpeed, speed, multiplier);
+                if(discrepancy.value > 0)
+                    failed = SpeedType.SPRINT;
             }
 
         }
-        //SPRINT-JUMP (instantaneous)
-        else if(pp.isSprinting() && wasOnGround && !isOnGround && up) {
-            //SPRINT-JUMP_CONTINUE
-            if(ticksSinceLanding == 1 && speed > sprintJumpContinueMapping(lastSpeed, multiplier)) {
-                failed = SpeedType.SPRINT_JUMPING_CONTINUE;
+        //JUMP (instantaneous)
+        else if(wasOnGround && !isOnGround && up) {
+            //CONTINUE
+            if(ticksSinceLanding == 1) {
+                //SNEAK
+                if (pp.isSneaking()) {
+                    discrepancy = sneakJumpContinueMapping(lastSpeed, speed, multiplier);
+                    if(discrepancy.value > 0)
+                        failed = SpeedType.SNEAK_JUMPING_CONTINUE;
+                }
+                //WALK
+                else if (!pp.isSprinting()) {
+                    discrepancy = walkJumpContinueMapping(lastSpeed, speed, multiplier);
+                    if(discrepancy.value > 0)
+                        failed = SpeedType.WALK_JUMPING_CONTINUE;
+                }
+                //SPRINT
+                else if (pp.isSprinting()) {
+                    discrepancy = sprintJumpContinueMapping(lastSpeed, speed, multiplier);
+                    if(discrepancy.value > 0)
+                        failed = SpeedType.SPRINT_JUMPING_CONTINUE;
+                    sprintingJumpTick.put(p.getUniqueId(), pp.getCurrentTick());
+                }
             }
-            //SPRINT-JUMP_START
-            else if(ticksSinceLanding != 1 && speed > sprintJumpStartMapping(lastSpeed, multiplier)) {
-                failed = SpeedType.SPRINT_JUMPING_START;
+            //START
+            else {
+                //SNEAK
+                if (pp.isSneaking()) {
+                    discrepancy = sneakJumpStartMapping(lastSpeed, speed, multiplier);
+                    if(discrepancy.value > 0)
+                        failed = SpeedType.SNEAK_JUMPING_START;
+                }
+                //WALK
+                else if (!pp.isSprinting()) {
+                    discrepancy = walkJumpStartMapping(lastSpeed, speed, multiplier);
+                    if(discrepancy.value > 0)
+                        failed = SpeedType.WALK_JUMPING_START;
+                }
+                //SPRINT
+                else if (pp.isSprinting()) {
+                    discrepancy = sprintJumpStartMapping(lastSpeed, speed, multiplier);
+                    if(discrepancy.value > 0)
+                        failed = SpeedType.SPRINT_JUMPING_START;
+                    sprintingJumpTick.put(p.getUniqueId(), pp.getCurrentTick());
+                }
             }
-            sprintingJumpTick.put(p.getUniqueId(), pp.getCurrentTick());
         }
-        //POST_JUMP (instantaneous)
-        else if(!wasOnGround && !isOnGround && ticksSinceSprintJumping == 1 && speed > jumpPostMapping(lastSpeed)) {
-            failed = SpeedType.SPRINT_JUMP_POST;
+        //SPRINT_JUMP_POST (instantaneous)
+        else if(!wasOnGround && !isOnGround && ticksSinceSprintJumping == 1) {
+            discrepancy = jumpPostMapping(lastSpeed, speed);
+            if(discrepancy.value > 0)
+                failed = SpeedType.SPRINT_JUMP_POST;
         }
         //FLYING
-        else if(((pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying()) && speed > flyMapping(lastSpeed)) {
-            failed = SpeedType.FLYING;
+        else if((pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying()) {
+            discrepancy = flyMapping(lastSpeed, speed);
+            if(discrepancy.value > 0)
+                failed = SpeedType.FLYING;
         }
         //AIR
-        else if(!((pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying()) && !wasOnGround) {
-            if(pp.isSneaking() && speed > sneakAirMapping(lastSpeed)) {
-                failed = SpeedType.AIR_SNEAK;
+        else if((!((pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying()) && !wasOnGround) || (!up && !isOnGround)) {
+            if(pp.isSneaking()) {
+                discrepancy = sneakAirMapping(lastSpeed, speed);
+                if(discrepancy.value > 0)
+                    failed = SpeedType.AIR_SNEAK;
             }
-            else if(pp.isSprinting() && speed > sprintAirMapping(lastSpeed)) {
-                failed = SpeedType.AIR_SPRINT;
+            else if(pp.isSprinting()) {
+                discrepancy = sprintAirMapping(lastSpeed, speed);
+                if(discrepancy.value > 0)
+                    failed = SpeedType.AIR_SPRINT;
             }
-            else if(!pp.isSprinting() && speed > walkAirMapping(lastSpeed)) {
-                failed = SpeedType.AIR_WALK;
+            else if(!pp.isSprinting()) {
+                discrepancy = walkAirMapping(lastSpeed, speed);
+                if(discrepancy.value > 0)
+                    failed = SpeedType.AIR_WALK;
             }
         }
+        else {
+            Debug.broadcastMessage(ChatColor.RED + "ERROR: Severe issue occurred in new speed check. Please report to discord server. Build: " + Hawk.BUILD_NAME);
+        }
+        discrepancies.put(p.getUniqueId(), Math.max(discrepancies.getOrDefault(p.getUniqueId(), 0D) + discrepancy.value, 0));
+        double totalDiscrepancy = discrepancies.get(p.getUniqueId());
 
-
-        if(failed != null) {
-            //punish(pp, false, event);
-            //tryRubberband(event, p.getLocation());
-            Debug.broadcastMessage(failed + " (" + lastSpeed + ", " + speed + ")");
+        if(failed != null && totalDiscrepancy > 0.1) {
+            punishAndTryRubberband(pp, event, p.getLocation());
         }
 
 
@@ -172,91 +229,142 @@ public class SpeedRewrite extends MovementCheck {
 
     //these functions must be extremely accurate to support high level speed potions
     //added epsilon of 0.000001 and truncated if necessary
-    private double walkAirMapping(double lastSpeed) {
-        return 0.910001 * lastSpeed + 0.020001;
+    private Discrepancy walkAirMapping(double lastSpeed, double currentSpeed) {
+        double expected = 0.910001 * lastSpeed + 0.020001;
+        return new Discrepancy(expected, currentSpeed);
     }
 
-    private double jumpPostMapping(double lastSpeed) {
-        return 0.546001 * lastSpeed + 0.026001;
+    private Discrepancy jumpPostMapping(double lastSpeed, double currentSpeed) {
+        double expected = 0.546001 * lastSpeed + 0.026001;
+        return new Discrepancy(expected, currentSpeed);
     }
 
-    private double sprintJumpStartMapping(double lastSpeed, double speedMultiplier) {
-        return 0.546001 * lastSpeed + (0.3274 * (1 + ((speedMultiplier - 1) * 0.389127))); //Don't question it.
+    private Discrepancy sprintJumpStartMapping(double lastSpeed, double currentSpeed, double speedMultiplier) {
+        double expected = 0.546001 * lastSpeed + (0.3274 * (1 + ((speedMultiplier - 1) * 0.389127))); //Don't question it.
+        return new Discrepancy(expected, currentSpeed);
     }
 
-    private double sprintJumpContinueMapping(double lastSpeed, double speedMultiplier) {
-        return 0.910001 * lastSpeed + (0.3274 * (1 + ((speedMultiplier - 1) * 0.389127))); //Don't question it.
+    private Discrepancy sneakJumpStartMapping(double lastSpeed, double currentSpeed, double multiplier) {
+        double expected = 0.546 * lastSpeed + (0.041578 + ((multiplier - 1) * 0.041578)) + EPSILON;
+        return new Discrepancy(expected, currentSpeed);
     }
 
-    private double sprintGroundMapping(double lastSpeed, double speedMultiplier) {
+    private Discrepancy walkJumpStartMapping(double lastSpeed, double currentSpeed, double multiplier) {
+        double expected = 0.546 * lastSpeed + (0.1 + ((multiplier - 1) * 0.1)) + EPSILON;
+        return new Discrepancy(expected, currentSpeed);
+    }
+
+    private Discrepancy sprintJumpContinueMapping(double lastSpeed, double currentSpeed, double speedMultiplier) {
+        double expected = 0.910001 * lastSpeed + (0.3274 * (1 + ((speedMultiplier - 1) * 0.389127))); //Don't question it.
+        return new Discrepancy(expected, currentSpeed);
+    }
+
+    private Discrepancy sneakJumpContinueMapping(double lastSpeed, double currentSpeed, double multiplier) {
+        double expected = 0.91 * lastSpeed + (0.041578 + ((multiplier - 1) * 0.041578)) + EPSILON;
+        return new Discrepancy(expected, currentSpeed);
+    }
+
+    private Discrepancy walkJumpContinueMapping(double lastSpeed, double currentSpeed, double multiplier) {
+        double expected = 0.91 * lastSpeed + (0.1 + ((multiplier - 1) * 0.1)) + EPSILON;
+        return new Discrepancy(expected, currentSpeed);
+    }
+
+    private Discrepancy sprintGroundMapping(double lastSpeed, double currentSpeed, double speedMultiplier) {
         double initSpeed = 0.13 * speedMultiplier + EPSILON;
+        double expected;
         if(lastSpeed >= 0.13)
-            return 0.546001 * lastSpeed + initSpeed;
+            expected = 0.546001 * lastSpeed + initSpeed;
         else
-            return 0.2;
+            expected = 0.2;
+        return new Discrepancy(expected, currentSpeed);
     }
 
-    private double walkGroundMapping(double lastSpeed, double speedMultiplier) {
+    private Discrepancy walkGroundMapping(double lastSpeed, double currentSpeed, double speedMultiplier) {
         double initSpeed = 0.1 * speedMultiplier + EPSILON;
+        double expected;
         if(lastSpeed >= 0.1)
-            return 0.546001 * lastSpeed + initSpeed;
+            expected = 0.546001 * lastSpeed + initSpeed;
         else
-            return 0.16;
+            expected = 0.16;
+        return new Discrepancy(expected, currentSpeed);
     }
 
     //TODO: fix speed multiplier
-    private double sneakGroundMapping(double lastSpeed, double speedMultiplier) {
+    private Discrepancy sneakGroundMapping(double lastSpeed, double currentSpeed, double speedMultiplier) {
         double initSpeed = 0.041560 * speedMultiplier + EPSILON;
+        double expected;
         if(lastSpeed >= 0.1)
-            return 0.546001 * lastSpeed + initSpeed;
+            expected = 0.546001 * lastSpeed + initSpeed;
         else
-            return 0.096161;
+            expected = 0.096161;
+        return new Discrepancy(expected, currentSpeed);
     }
 
     //speed potions do not affect swimming
-    private double waterMapping(double lastSpeed) {
-        return 0.800001 * lastSpeed + 0.020001;
+    private Discrepancy waterMapping(double lastSpeed, double currentSpeed) {
+        double expected = 0.800001 * lastSpeed + 0.020001;
+        return new Discrepancy(expected, currentSpeed);
     }
 
-    private double lavaMapping(double lastSpeed) {
-        return 0;
+    private Discrepancy lavaMapping(double lastSpeed, double currentSpeed) {
+        double expected = 0;
+        return new Discrepancy(expected, currentSpeed);
     }
 
-    private double groundWaterMapping(double lastSpeed) {
-        return 0;
+    private Discrepancy groundWaterMapping(double lastSpeed, double currentSpeed) {
+        double expected = 0;
+        return new Discrepancy(expected, currentSpeed);
     }
 
-    private double groundLavaMapping(double lastSpeed) {
-        return 0;
+    private Discrepancy groundLavaMapping(double lastSpeed, double currentSpeed) {
+        double expected = 0;
+        return new Discrepancy(expected, currentSpeed);
     }
 
     //speed potions do not affect air movement
-    private double sprintAirMapping(double lastSpeed) {
+    private Discrepancy sprintAirMapping(double lastSpeed, double currentSpeed) {
+        double expected;
         if(lastSpeed >= 0.1)
-            return 0.910001 * lastSpeed + 0.026001;
+            expected = 0.910001 * lastSpeed + 0.026001;
         else
-            return 0.16;
+            expected = 0.16;
+        return new Discrepancy(expected, currentSpeed);
     }
 
-    private double sneakAirMapping(double lastSpeed) {
+    private Discrepancy sneakAirMapping(double lastSpeed, double currentSpeed) {
+        double expected;
         if(lastSpeed >= 0.1)
-            return 0.910001 * lastSpeed + 0.008317;
+            expected = 0.910001 * lastSpeed + 0.008317;
         else
-            return 0.099317;
+            expected = 0.099317;
+        return new Discrepancy(expected, currentSpeed);
     }
 
-    private double sprintLandingMapping(double lastSpeed, double speedMultiplier) {
+    private Discrepancy sprintLandingMapping(double lastSpeed, double currentSpeed, double speedMultiplier) {
         double initSpeed = 0.13 * speedMultiplier + EPSILON;
-        return 0.910001 * lastSpeed + initSpeed;
+        double expected = 0.910001 * lastSpeed + initSpeed;
+        return new Discrepancy(expected, currentSpeed);
     }
 
-    private double walkLandingMapping(double lastSpeed, double speedMultiplier) {
+    private Discrepancy walkLandingMapping(double lastSpeed, double currentSpeed, double speedMultiplier) {
         double initSpeed = 0.1 * speedMultiplier + EPSILON;
-        return 0.910001 * lastSpeed + initSpeed;
+        double expected = 0.910001 * lastSpeed + initSpeed;
+        return new Discrepancy(expected, currentSpeed);
     }
 
-    private double flyMapping(double lastSpeed) {
-        return 0.910001 * lastSpeed + 0.050001;
+    private Discrepancy flyMapping(double lastSpeed, double currentSpeed) {
+        double expected = 0.910001 * lastSpeed + 0.050001;
+        return new Discrepancy(expected, currentSpeed);
+    }
+
+    private class Discrepancy {
+
+        double value;
+
+        Discrepancy(double expectedSpeed, double currentSpeed) {
+            value = currentSpeed - expectedSpeed;
+        }
+
     }
 
     private enum SpeedType {
@@ -264,6 +372,10 @@ public class SpeedRewrite extends MovementCheck {
         SPRINT,
         SPRINT_JUMPING_CONTINUE,
         SPRINT_JUMPING_START,
+        SNEAK_JUMPING_CONTINUE,
+        SNEAK_JUMPING_START,
+        WALK_JUMPING_CONTINUE,
+        WALK_JUMPING_START,
         SPRINT_JUMP_POST,
         AIR_WALK,
         AIR_SNEAK,
