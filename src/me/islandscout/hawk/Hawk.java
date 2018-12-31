@@ -62,6 +62,7 @@ public class Hawk extends JavaPlugin {
     public static final String BASE_PERMISSION = "hawk";
     public static String BUILD_NAME;
     public static String FLAG_CLICK_COMMAND;
+    public static final String NO_PERMISSION = ChatColor.RED + "You do not have permission %p to perform this action.";
     private boolean sendJSONMessages;
     private boolean playSoundOnFlag;
 

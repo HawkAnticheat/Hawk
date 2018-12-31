@@ -45,6 +45,7 @@ public class ClockSpeed extends MovementCheck implements Listener {
     private final boolean RUBBERBAND;
     private final boolean RESET_DRIFT_ON_FAIL;
     private final boolean DENY_ACTIONS;
+    private final int WARM_UP;
 
     public ClockSpeed() {
         super("clockspeed", true, 10, 10, 0.995, 10000, "%player% failed clockspeed. VL: %vl%, ping: %ping%, TPS: %tps%", null);
@@ -58,13 +59,14 @@ public class ClockSpeed extends MovementCheck implements Listener {
         RUBBERBAND = (boolean)customSetting("rubberbandOnFail", "", true);
         RESET_DRIFT_ON_FAIL = (boolean)customSetting("resetDriftOnFail", "", false);
         DENY_ACTIONS = (boolean)customSetting("denyClientActionsOnFail", "", true);
+        WARM_UP = (int)customSetting("wait", "", 150) - 1;
     }
 
     @Override
     protected void check(PositionEvent event) {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
-        if (event.hasTeleported())
+        if (event.hasTeleported() || pp.getCurrentTick() < WARM_UP)
             return;
         long time = System.nanoTime();
         if (!prevNanoTime.containsKey(p.getUniqueId())) {

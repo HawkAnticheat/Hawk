@@ -71,8 +71,9 @@ public class GUIManager implements Listener {
         if (!activeWindows.get(p.getUniqueId()).getInventory().equals(e.getClickedInventory()))
             return;
         e.setCancelled(true);
-        if (!p.hasPermission(Hawk.BASE_PERMISSION + ".gui")) {
-            p.sendMessage(ChatColor.RED + "You do not have permission to perform this action.");
+        String perm = Hawk.BASE_PERMISSION + ".gui";
+        if (!p.hasPermission(perm)) {
+            p.sendMessage(Hawk.NO_PERMISSION.replaceAll("%p", "\"" + perm + "\""));
             p.closeInventory();
             return;
         }
@@ -97,5 +98,9 @@ public class GUIManager implements Listener {
             p.closeInventory();
         }
         enabled = false;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 }

@@ -22,16 +22,24 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
 import me.islandscout.hawk.util.Debug;
+import me.islandscout.hawk.util.Pair;
+import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class SpeedRewrite extends MovementCheck {
+public class SpeedRewrite extends MovementCheck implements Listener {
 
+    //TODO: Shrink this code
     //TODO: Rename to VelocityMagnitude
     //Suggestion: A good false-positive filter is to accumulate the total discrepancies between client & server
     //and if it exceeds a threshold after some time, then rubberband/flag.
@@ -48,6 +56,7 @@ public class SpeedRewrite extends MovementCheck {
     private final Map<UUID, Long> landingTick;
     private final Map<UUID, Long> sprintingJumpTick;
     private final Map<UUID, Double> discrepancies;
+    private final Map<UUID, List<Pair<Double, Long>>> velocities; //launch velocities
 
     public SpeedRewrite() {
         super("speed", "%player% failed movement speed, VL: %vl%");
@@ -56,6 +65,7 @@ public class SpeedRewrite extends MovementCheck {
         landingTick = new HashMap<>();
         sprintingJumpTick = new HashMap<>();
         discrepancies = new HashMap<>();
+        velocities = new HashMap<>();
     }
 
     @Override
@@ -81,6 +91,29 @@ public class SpeedRewrite extends MovementCheck {
         double multiplier = 5 * p.getWalkSpeed() * speedEffectMultiplier(p); //TODO: account for latency
         //TODO: support fly speeds
         //TODO: support liquids, cobwebs, soulsand, etc...
+
+        //handle any pending knockbacks
+        if (velocities.containsKey(p.getUniqueId()) && velocities.get(p.getUniqueId()).size() > 0) {
+            List<Pair<Double, Long>> kbs = velocities.get(p.getUniqueId());
+            //pending knockbacks must be in order; get the first entry in the list.
+            //if the first entry doesn't work (probably because they were fired on the same tick),
+            //then work down the list until we find something
+            int kbIndex;
+            long currTime = System.currentTimeMillis();
+            for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
+                Pair<Double, Long> kb = kbs.get(kbIndex);
+                if (currTime - kb.getValue() <= ServerUtils.getPing(p) + 200) {
+                    //I'd suggest changing this epsilon based on the graph you showed on Discord
+                    //Also, if you get knocked to a wall with great velocity, you'll flag
+                    if (Math.abs(kb.getKey() - speed) < 0.15) {
+                        kbs = kbs.subList(kbIndex + 1, kbs.size());
+                        velocities.put(p.getUniqueId(), kbs);
+                        prepareNextMove(wasOnGround, isOnGround, event, p.getUniqueId(), pp.getCurrentTick(), speed);
+                        return;
+                    }
+                }
+            }
+        }
 
         SpeedType failed = null;
         Discrepancy discrepancy = new Discrepancy(0, 0);
@@ -199,20 +232,28 @@ public class SpeedRewrite extends MovementCheck {
         discrepancies.put(p.getUniqueId(), Math.max(discrepancies.getOrDefault(p.getUniqueId(), 0D) + discrepancy.value, 0));
         double totalDiscrepancy = discrepancies.get(p.getUniqueId());
 
-        if(failed != null && totalDiscrepancy > 0.1) {
-            punishAndTryRubberband(pp, event, p.getLocation());
+        if(failed != null) {
+            if(totalDiscrepancy > 0.1)
+                punishAndTryRubberband(pp, event, p.getLocation());
+        }
+        else {
+            reward(pp);
         }
 
 
+        prepareNextMove(wasOnGround, isOnGround, event, p.getUniqueId(), pp.getCurrentTick(), speed);
+    }
+
+    private void prepareNextMove(boolean wasOnGround, boolean isOnGround, PositionEvent event, UUID uuid, long currentTick, double currentSpeed) {
         if(isOnGround)
-            prevMoveWasOnGround.add(p.getUniqueId());
+            prevMoveWasOnGround.add(uuid);
         else
-            prevMoveWasOnGround.remove(p.getUniqueId());
-        prevSpeed.put(p.getUniqueId(), speed);
+            prevMoveWasOnGround.remove(uuid);
+        prevSpeed.put(uuid, currentSpeed);
 
         //player touched the ground
         if(!wasOnGround && event.isOnGround()) {
-            landingTick.put(p.getUniqueId(), pp.getCurrentTick());
+            landingTick.put(uuid, currentTick);
         }
     }
 
@@ -225,6 +266,30 @@ public class SpeedRewrite extends MovementCheck {
             return level;
         }
         return 1;
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVelocity(HawkPlayerAsyncVelocityChangeEvent e) {
+        if(e.isAdditive())
+            return;
+        UUID uuid = e.getPlayer().getUniqueId();
+        Vector vector = e.getVelocity();
+
+        Vector horizVelocity = new Vector(vector.getX(), 0, vector.getZ());
+        double magnitude = horizVelocity.length() + 0.018; //add epsilon for precision errors
+        List<Pair<Double, Long>> kbs = velocities.getOrDefault(uuid, new ArrayList<>());
+        kbs.add(new Pair<>(magnitude, System.currentTimeMillis()));
+        velocities.put(uuid, kbs);
+    }
+
+    public void removeData(Player p) {
+        UUID uuid = p.getUniqueId();
+        prevMoveWasOnGround.remove(uuid);
+        prevSpeed.remove(uuid);
+        landingTick.remove(uuid);
+        sprintingJumpTick.remove(uuid);
+        discrepancies.remove(uuid);
+        velocities.remove(uuid);
     }
 
     //these functions must be extremely accurate to support high level speed potions

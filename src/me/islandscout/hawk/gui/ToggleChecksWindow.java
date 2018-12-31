@@ -31,6 +31,8 @@ import java.util.List;
 
 public class ToggleChecksWindow extends Window {
 
+    //TODO: Place a "back" option in this window
+
     public ToggleChecksWindow(Hawk hawk, Player p) {
         super(hawk, p, ((hawk.getCheckManager().getChecks().size() - 1) / 9) + 1, ChatColor.GOLD + "Toggle checks");
         List<Check> list = hawk.getCheckManager().getChecks();

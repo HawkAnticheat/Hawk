@@ -19,6 +19,7 @@
 package me.islandscout.hawk.command;
 
 import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.module.GUIManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -34,7 +35,6 @@ public class HawkCommand implements CommandExecutor {
     private final List<Argument> arguments;
 
     private final Hawk hawk;
-    private static final String NO_PERMISSION = ChatColor.RED + "You do not have permission to perform this action.";
     static final String PLAYER_ONLY = ChatColor.RED + "Only players can perform this action.";
     private static final int ENTRIES_PER_PAGE = 5;
 
@@ -70,8 +70,9 @@ public class HawkCommand implements CommandExecutor {
             for (Argument arg : arguments) {
                 String argName = arg.getName();
                 if (argName.equalsIgnoreCase(args[0])) {
-                    if (!sender.hasPermission(Hawk.BASE_PERMISSION + ".cmd." + argName)) {
-                        sender.sendMessage(NO_PERMISSION);
+                    String perm = Hawk.BASE_PERMISSION + ".cmd." + argName;
+                    if (!sender.hasPermission(perm)) {
+                        sender.sendMessage(Hawk.NO_PERMISSION.replaceAll("%p", "\"" + perm + "\""));
                         return true;
                     } else {
                         if (!arg.process(sender, cmd, label, args)) {
@@ -102,9 +103,12 @@ public class HawkCommand implements CommandExecutor {
                 sender.sendMessage(ChatColor.RED + "Unknown argument.");
             }
         } else {
-            sendUsage(sender, 0);
-            if (sender instanceof Player) {
-                hawk.getGuiManager().sendMainMenuWindow((Player) sender);
+            GUIManager guiManager = hawk.getGuiManager();
+            if (sender instanceof Player && guiManager.isEnabled()) {
+                guiManager.sendMainMenuWindow((Player) sender);
+            }
+            else {
+                sendUsage(sender, 0);
             }
         }
         return true;
