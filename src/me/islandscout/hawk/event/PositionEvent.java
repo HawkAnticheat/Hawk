@@ -22,7 +22,9 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.AABB;
 import me.islandscout.hawk.util.AdjacentBlocks;
 import me.islandscout.hawk.util.ClientBlock;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.WrappedPacket;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -43,16 +45,22 @@ public class PositionEvent extends Event {
     //TODO: Have an onGroundReally boolean for the getFrom position. Should make things faster since checks don't have to compute it all the time.
     private boolean teleported;
     private Location cancelLocation;
+    private boolean updatePos;
+    private boolean updateRot;
+    private Vector deltaPos;
 
     private static final Map<UUID, Location> last = new HashMap<>();
     private static final Map<UUID, Location> current = new HashMap<>();
 
-    public PositionEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet) {
+    public PositionEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet, boolean updatePos, boolean updateRot) {
         super(p, pp, packet);
         last.put(p.getUniqueId(), current.getOrDefault(p.getUniqueId(), pp.getLocation()));
         current.put(p.getUniqueId(), update);
+        deltaPos = new Vector(update.getX() - getFrom().getX(), update.getY() - getFrom().getY(), update.getZ() - getFrom().getZ());
+        onGroundReally = AdjacentBlocks.onGroundReally(update, deltaPos.getY(), true);
+        this.updatePos = updatePos;
+        this.updateRot = updateRot;
         this.onGround = onGround;
-        onGroundReally = AdjacentBlocks.onGroundReally(update, update.getY() - last.getOrDefault(p.getUniqueId(), pp.getLocation()).getY(), true);
     }
 
     public Player getPlayer() {
@@ -115,6 +123,20 @@ public class PositionEvent extends Event {
 
     public boolean hasDeltaRot() {
         return getTo().getYaw() != getFrom().getYaw() || getTo().getPitch() != getFrom().getPitch();
+    }
+
+    //Remember: even though these methods indicate whether this move has an updated pos/rot, that
+    //doesn't mean the pos/rot actually changed.
+    public boolean isUpdatePos() {
+        return updatePos;
+    }
+
+    public boolean isUpdateRot() {
+        return updateRot;
+    }
+
+    public Vector getDeltaPos() {
+        return deltaPos;
     }
 
     public void cancelAndSetBack(Location setback) {

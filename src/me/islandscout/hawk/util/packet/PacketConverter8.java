@@ -114,14 +114,18 @@ public final class PacketConverter8 {
         WrappedPacket.PacketType pType = WrappedPacket.PacketType.FLYING;
 
         //update if has look
+        boolean updateRot = false;
         if (packet.h()) {
+            updateRot = true;
             pType = WrappedPacket.PacketType.LOOK;
             loc.setYaw(packet.d());
             loc.setPitch(packet.e());
         }
 
         //update if has position
+        boolean updatePos = false;
         if (packet.g()) {
+            updatePos = true;
             if (packet.h())
                 pType = WrappedPacket.PacketType.POSITION_LOOK;
             else
@@ -131,7 +135,7 @@ public final class PacketConverter8 {
             loc.setZ(packet.c());
         }
 
-        return new PositionEvent(p, loc, packet.f(), pp, new WrappedPacket8(packet, pType));
+        return new PositionEvent(p, loc, packet.f(), pp, new WrappedPacket8(packet, pType), updatePos, updateRot);
     }
 
     private static InteractEntityEvent packetToInterEvent(PacketPlayInUseEntity packet, Player p, HawkPlayer pp) {

@@ -20,6 +20,12 @@ package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.util.AdjacentBlocks;
+import me.islandscout.hawk.util.Debug;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+
+import java.util.*;
 
 /**
  * This check is used to flag clients whose jumps are too
@@ -29,12 +35,35 @@ import me.islandscout.hawk.event.PositionEvent;
  */
 public class SmallHop extends MovementCheck {
 
+    private Set<UUID> wasOnGroundSet;
+    private Map<UUID, Double> prevDeltaY;
+
     public SmallHop() {
         super("smallhop", "%player% failed small-hop, VL: %vl%");
+        wasOnGroundSet = new HashSet<>();
+        prevDeltaY = new HashMap<>();
     }
 
     @Override
     protected void check(PositionEvent e) {
+        UUID uuid = e.getPlayer().getUniqueId();
+        double deltaY = e.getDeltaPos().getY();
+        boolean wasOnGround = wasOnGroundSet.contains(uuid);
+        Location checkPos = e.getTo().clone().add(0, 1, 0);
 
+        if(wasOnGround && deltaY > 0 && deltaY < 0.4 && prevDeltaY.getOrDefault(uuid, 0D) <= 0 &&
+                !AdjacentBlocks.blockAdjacentIsSolid(checkPos) && !AdjacentBlocks.blockAdjacentIsSolid(checkPos.add(0, 1, 0))
+                /*TODO: check that they aren't walking on something (such as a repeater), accurately!!!*/) {
+            Debug.broadcastMessage(ChatColor.RED + "" + deltaY);
+        }
+
+        if(e.isOnGroundReally()) {
+            wasOnGroundSet.add(uuid);
+        }
+        else {
+            wasOnGroundSet.remove(uuid);
+        }
+
+        prevDeltaY.put(uuid, deltaY);
     }
 }

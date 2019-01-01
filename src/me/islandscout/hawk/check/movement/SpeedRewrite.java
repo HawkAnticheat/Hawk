@@ -24,6 +24,7 @@ import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
 import me.islandscout.hawk.util.Debug;
+import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.ChatColor;
@@ -38,6 +39,8 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 public class SpeedRewrite extends MovementCheck implements Listener {
+
+    //I legit hate this game's movement
 
     //TODO: Shrink this code
     //TODO: Rename to VelocityMagnitude
@@ -79,10 +82,10 @@ public class SpeedRewrite extends MovementCheck implements Listener {
             return;
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
-        double speed = Math.sqrt(Math.pow(event.getTo().getX() - event.getFrom().getX(), 2) + Math.pow(event.getTo().getZ() - event.getFrom().getZ(), 2));
+        double speed = MathPlus.distance2d(event.getTo().getX() - event.getFrom().getX(), event.getTo().getZ() - event.getFrom().getZ());
         double lastSpeed = prevSpeed.getOrDefault(p.getUniqueId(), 0D);
         boolean wasOnGround = prevMoveWasOnGround.contains(p.getUniqueId());
-        //In theory, YES, you can abuse the on ground flag. However, the GroundSpoof check has the job of taking care of you.
+        //In theory, YES, you can abuse the on ground flag. However, the GroundSpoof & SmallHop checks have the job of taking care of you.
         //This is one of the very few times I'll actually trust the client. What's worse: an insignificant bypass, or intolerable false flagging?
         boolean isOnGround = event.isOnGround();
         long ticksSinceLanding = pp.getCurrentTick() - landingTick.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);

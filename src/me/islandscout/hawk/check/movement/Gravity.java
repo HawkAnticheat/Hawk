@@ -42,9 +42,9 @@ import java.util.*;
 
 /**
  * In vanilla Minecraft, a free-falling player must fall a
- * specific distance for every succeeding move. Hawk's flight
+ * specific distance for every succeeding move. Hawk's gravity
  * check attempts to enforce this vanilla mechanic to prevent
- * players from using fly modifications.
+ * players from using gravity modifications.
  * <p>
  * For every succeeding move a free-falling player is in the
  * air, the player's vertical velocity is:
@@ -61,7 +61,7 @@ import java.util.*;
  * <p>
  * p(x) = -3.92(x+1) - 0.98^(x+1) * 50(3.92 + v_i) + 50(3.92 + v_i) + p_i
  */
-public class Fly extends MovementCheck implements Listener {
+public class Gravity extends MovementCheck implements Listener {
 
     //TODO: false flag with pistons
     //TODO: false flag on slime blocks
@@ -94,8 +94,8 @@ public class Fly extends MovementCheck implements Listener {
     private final Set<UUID> failedSoDontUpdateRubberband; //Update rubberband loc until someone fails. In this case, do not update until they touch the ground.
     private static final int STUPID_MOVES = 1; //Apparently you can jump in midair right as you fall off the edge of a block. You need to time it right.
 
-    public Fly() {
-        super("fly", true, 0, 10, 0.995, 5000, "%player% failed fly. VL: %vl%", null);
+    public Gravity() {
+        super("gravity", true, 0, 10, 0.995, 5000, "%player% failed gravity. VL: %vl%", null);
         lastDeltaY = new HashMap<>();
         inAir = new HashSet<>();
         legitLoc = new HashMap<>();
