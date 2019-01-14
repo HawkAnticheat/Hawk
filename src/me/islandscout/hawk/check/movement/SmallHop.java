@@ -56,9 +56,10 @@ public class SmallHop extends MovementCheck {
         boolean wasOnGround = wasOnGroundSet.contains(uuid);
         Location checkPos = e.getFrom().clone().add(0, 1, 0);
 
+
         if(!e.getPlayer().isFlying() && !e.hasAcceptedKnockback() && wasOnGround && deltaY > 0 && deltaY < 0.4 && prevDeltaY.getOrDefault(uuid, 0D) <= 0 &&
-                !AdjacentBlocks.blockAdjacentIsSolid(checkPos) && !AdjacentBlocks.blockAdjacentIsSolid(checkPos.add(0, 1, 0)) &&
-                !AdjacentBlocks.onGroundReally(e.getTo(), -1, false, 0.001)) {
+                !AdjacentBlocks.blockAdjacentIsSolid(checkPos) && !AdjacentBlocks.blockAdjacentIsSolid(checkPos.add(0, 1, 0)) && !AdjacentBlocks.blockAdjacentIsLiquid(checkPos.add(0, -1, 0)) &&
+                !AdjacentBlocks.blockAdjacentIsLiquid(checkPos.add(0, -1, 0)) && !AdjacentBlocks.onGroundReally(e.getTo(), -1, false, 0.001)) {
             punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
             prevDeltaY.put(uuid, 0D);
         }

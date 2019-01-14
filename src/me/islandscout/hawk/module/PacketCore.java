@@ -25,6 +25,7 @@ import me.islandscout.hawk.listener.PacketListener;
 import me.islandscout.hawk.listener.PacketListener7;
 import me.islandscout.hawk.listener.PacketListener8;
 import me.islandscout.hawk.util.ClientBlock;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
@@ -118,9 +119,8 @@ public class PacketCore implements Listener {
                     return false;
                 }
             }
-            //handle illegal move
+            //handle illegal move or discrepancy
             else if (posEvent.getFrom().getWorld().equals(posEvent.getTo().getWorld()) && posEvent.getTo().distanceSquared(posEvent.getFrom()) > 64) {
-                hawk.getLogger().warning(p.getName() + " may have tried to crash the server by moving too far! Distance: " + (posEvent.getTo().distance(posEvent.getFrom())));
                 posEvent.cancelAndSetBack(p.getLocation());
                 return false;
             }
@@ -143,10 +143,20 @@ public class PacketCore implements Listener {
         //update HawkPlayer
         if (event instanceof PositionEvent) {
             pp.setLastMoveTime(System.currentTimeMillis());
-            if (event.isCancelled() && ((PositionEvent) event).getCancelLocation() != null) {
-                ((PositionEvent) event).setTo(((PositionEvent) event).getCancelLocation());
-                pp.setTeleporting(true);
-                pp.teleportPlayer(((PositionEvent) event).getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+            if(event.isCancelled()) {
+                //handle rubberband if applicable
+                if(((PositionEvent) event).getCancelLocation() != null) {
+                    ((PositionEvent) event).setTo(((PositionEvent) event).getCancelLocation());
+                    pp.setTeleporting(true);
+                    pp.teleportPlayer(((PositionEvent) event).getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+                } else {
+                    //If cancelled but no rubberband,
+                    //are you sure you want to modify the next move's getFrom?
+                    //As long as you're rubberbanding the player back to this loc
+                    //when there's a discrepancy, (which you are, look about 35 lines up)
+                    //you should be OK
+                    ((PositionEvent) event).setTo(((PositionEvent) event).getFrom());
+                }
             } else {
                 Location to = ((PositionEvent) event).getTo();
                 Location from = ((PositionEvent) event).getFrom();

@@ -49,7 +49,6 @@ public class TickRate extends MovementCheck implements Listener {
     private final double CALIBRATE_FASTER;
     private final boolean RUBBERBAND;
     private final boolean RESET_DRIFT_ON_FAIL;
-    private final boolean DENY_ACTIONS;
     private final int WARM_UP;
 
     public TickRate() {
@@ -62,9 +61,8 @@ public class TickRate extends MovementCheck implements Listener {
         DEBUG = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.clockspeed.debug");
         CALIBRATE_SLOWER = 1 - ConfigHelper.getOrSetDefault(0.003, hawk.getConfig(), "checks.clockspeed.calibrateSlower");
         CALIBRATE_FASTER = 1 - ConfigHelper.getOrSetDefault(0.03, hawk.getConfig(), "checks.clockspeed.calibrateFaster");
-        RUBBERBAND = (boolean)customSetting("rubberbandOnFail", "", true);
+        RUBBERBAND = (boolean)customSetting("rubberbandOnFail", "", false);
         RESET_DRIFT_ON_FAIL = (boolean)customSetting("resetDriftOnFail", "", false);
-        DENY_ACTIONS = (boolean)customSetting("denyClientActionsOnFail", "", true);
         WARM_UP = (int)customSetting("ignoreTicksAfterLongTeleport", "", 150) - 1;
     }
 
@@ -111,22 +109,6 @@ public class TickRate extends MovementCheck implements Listener {
         prevNanoTime.remove(p.getUniqueId());
         clockDrift.remove(p.getUniqueId());
         lastBigTeleportTime.remove(p.getUniqueId());
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onConsume(PlayerItemConsumeEvent e) {
-        Player p = e.getPlayer();
-        if(enabled && !p.hasPermission(permission) && clockDrift.getOrDefault(p.getUniqueId(), 0L) * 1E-6 < THRESHOLD && DENY_ACTIONS)
-            e.setCancelled(true);
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onShoot(EntityShootBowEvent e) {
-        if(enabled && e instanceof Player) {
-            Player p = (Player) e.getEntity();
-            if (!p.hasPermission(permission) && clockDrift.getOrDefault(p.getUniqueId(), 0L) * 1E-6 < THRESHOLD && DENY_ACTIONS)
-                e.setCancelled(true);
-        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
