@@ -188,11 +188,19 @@ public class PositionEvent extends Event {
     }
 
     public void cancelAndSetBack(Location setback) {
-        if (!isCancelled()) {
+        if (cancelLocation == null) {
             cancelLocation = setback;
             setCancelled(true);
             pp.setTeleporting(true);
             pp.setTeleportLoc(setback);
+        }
+    }
+
+    @Override
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+        if(!cancelled) {
+            cancelLocation = null;
         }
     }
 
