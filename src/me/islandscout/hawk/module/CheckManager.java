@@ -65,11 +65,11 @@ public class CheckManager {
         new FightHitbox();
         new FightCriticals();
         new Phase();
-        new Gravity();
+        new Fly();
         new BlockBreakSpeed();
-        new ClockSpeed();
+        new TickRate();
         //new VelocityMagnitude();
-        new VelocityInertia();
+        new Inertia();
         new BlockBreakHitbox();
         new WrongBlock();
         new LiquidExit();
@@ -88,7 +88,7 @@ public class CheckManager {
         new ImpossiblePlacement();
         new AutoPotion();
         new ActionToggleSpeed();
-        new SpeedRewrite();
+        new Speed();
         new SmallHop();
 
         hawk.saveConfigs();

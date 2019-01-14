@@ -18,6 +18,7 @@
 
 package me.islandscout.hawk.check.movement;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
@@ -35,35 +36,43 @@ import java.util.*;
  */
 public class SmallHop extends MovementCheck {
 
+    //TODO: False flag in liquids and cobwebs
+    //TODO kb
+
     private Set<UUID> wasOnGroundSet;
     private Map<UUID, Double> prevDeltaY;
 
     public SmallHop() {
-        super("smallhop", "%player% failed small-hop, VL: %vl%");
+        super("smallhop", true, 0, 5, 0.99, 5000, "%player% failed small-hop, VL: %vl%", null);
         wasOnGroundSet = new HashSet<>();
         prevDeltaY = new HashMap<>();
     }
 
     @Override
     protected void check(PositionEvent e) {
+        HawkPlayer pp = e.getHawkPlayer();
         UUID uuid = e.getPlayer().getUniqueId();
-        double deltaY = e.getDeltaPos().getY();
+        double deltaY = e.hasTeleported() ? 0D : e.getTo().getY() - e.getFrom().getY();
         boolean wasOnGround = wasOnGroundSet.contains(uuid);
-        Location checkPos = e.getTo().clone().add(0, 1, 0);
+        Location checkPos = e.getFrom().clone().add(0, 1, 0);
 
-        if(wasOnGround && deltaY > 0 && deltaY < 0.4 && prevDeltaY.getOrDefault(uuid, 0D) <= 0 &&
-                !AdjacentBlocks.blockAdjacentIsSolid(checkPos) && !AdjacentBlocks.blockAdjacentIsSolid(checkPos.add(0, 1, 0))
-                /*TODO: check that they aren't walking on something (such as a repeater), accurately!!!*/) {
-            Debug.broadcastMessage(ChatColor.RED + "" + deltaY);
-        }
-
-        if(e.isOnGroundReally()) {
-            wasOnGroundSet.add(uuid);
+        if(!e.getPlayer().isFlying() && !e.hasAcceptedKnockback() && wasOnGround && deltaY > 0 && deltaY < 0.4 && prevDeltaY.getOrDefault(uuid, 0D) <= 0 &&
+                !AdjacentBlocks.blockAdjacentIsSolid(checkPos) && !AdjacentBlocks.blockAdjacentIsSolid(checkPos.add(0, 1, 0)) &&
+                !AdjacentBlocks.onGroundReally(e.getTo(), -1, false, 0.001)) {
+            punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+            prevDeltaY.put(uuid, 0D);
         }
         else {
-            wasOnGroundSet.remove(uuid);
-        }
+            reward(pp);
 
-        prevDeltaY.put(uuid, deltaY);
+            if(e.isOnGroundReally()) {
+                wasOnGroundSet.add(uuid);
+            }
+            else {
+                wasOnGroundSet.remove(uuid);
+            }
+
+            prevDeltaY.put(uuid, deltaY);
+        }
     }
 }

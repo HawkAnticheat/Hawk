@@ -44,7 +44,7 @@ public class FightCriticals extends EntityInteractionCheck {
             if (below == null || above == null)
                 return;
             //TODO: false flag when jumping onto block. Check that jump height isn't 0.0?
-            if (AdjacentBlocks.onGroundReally(att.getLocation(), -1, true) && !att.isOnGround() ||
+            if (AdjacentBlocks.onGroundReally(att.getLocation(), -1, true, 0.02) && !att.isOnGround() ||
                     (att.getFallDistance() != 0 && att.getTotalAscensionSinceGround() < 0.3 && att.getFallDistance() < 0.3 && below.getType().isSolid() && !above.getType().isSolid())) {
                 punish(att, true, e);
                 return;

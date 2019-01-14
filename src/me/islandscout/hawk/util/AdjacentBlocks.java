@@ -153,14 +153,14 @@ public class AdjacentBlocks {
      * @param loc            Test location
      * @param yVelocity      Y-velocity
      * @param ignoreInGround return false if location is inside something
+     * @param feetDepth Don't set this too low. The client doesn't like to send moves unless they are significant enough.
      * @return boolean
      */
     //if not sure what your velocity is, just put -1 for velocity
     //if you just want to check for location, just put -1 for velocity
-    public static boolean onGroundReally(Location loc, double yVelocity, boolean ignoreInGround) {
+    public static boolean onGroundReally(Location loc, double yVelocity, boolean ignoreInGround, double feetDepth) {
         if (yVelocity > 0.5625) //allows stepping up short blocks, but not full blocks
             return false;
-        double feetDepth = 0.02; //Don't set this too low. The client doesn't like to send moves unless they are significant enough.
         //If too low, this might set off fly false flags when jumping on edge of blocks.
         Location check = loc.clone();
         List<Block> blocks = new ArrayList<>();

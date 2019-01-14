@@ -18,8 +18,10 @@
 
 package me.islandscout.hawk;
 
+import com.google.common.base.Verify;
 import me.islandscout.hawk.check.Check;
 import me.islandscout.hawk.util.ClientBlock;
+import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
 import net.minecraft.server.v1_7_R4.PacketPlayInEntityAction;
 import org.bukkit.Bukkit;
@@ -29,10 +31,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -68,6 +67,7 @@ public class HawkPlayer {
     private double jumpedHeight;
     private long flyPendingTime;
     private final Set<ClientBlock> clientBlocks;
+    private final List<Pair<Vector, Long>> pendingVelocities;
 
     HawkPlayer(Player p, Hawk hawk) {
         this.uuid = p.getUniqueId();
@@ -80,6 +80,7 @@ public class HawkPlayer {
         this.hawk = hawk;
         this.ping = ServerUtils.getPing(p);
         clientBlocks = new HashSet<>();
+        pendingVelocities = new ArrayList<>();
     }
 
     public int getVL(Check check) {
@@ -335,13 +336,8 @@ public class HawkPlayer {
         return loc;
     }
 
-    /*
-    public PlayerCheckData getCheckData(Check check) {
-        return playerCheckData[check.getId()];
+    public List<Pair<Vector, Long>> getPendingVelocities() {
+        return pendingVelocities;
     }
 
-    public void setCheckData(Check check, PlayerCheckData data) {
-        playerCheckData[check.getId()] = data;
-    }
-    */
 }

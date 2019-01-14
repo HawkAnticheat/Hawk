@@ -21,6 +21,7 @@ package me.islandscout.hawk.module;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.Debug;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -136,7 +137,7 @@ public class MuteManager implements Listener {
             return;
         }
         e.setCancelled(true);
-        Debug.sendToPlayer(e.getPlayer(), "You're not supposed to chat.");
+        e.getPlayer().sendMessage(ChatColor.RED + "You have been muted.");
     }
 
     public class MuteEntry {

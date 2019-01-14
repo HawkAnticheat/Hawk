@@ -19,10 +19,7 @@
 package me.islandscout.hawk.event;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.util.AABB;
-import me.islandscout.hawk.util.AdjacentBlocks;
-import me.islandscout.hawk.util.ClientBlock;
-import me.islandscout.hawk.util.Debug;
+import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.packet.WrappedPacket;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -30,6 +27,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -47,7 +45,8 @@ public class PositionEvent extends Event {
     private Location cancelLocation;
     private boolean updatePos;
     private boolean updateRot;
-    private Vector deltaPos;
+    private boolean acceptedKnockback;
+    //No, don't compute a delta vector during instantiation since teleports will affect it.
 
     private static final Map<UUID, Location> last = new HashMap<>();
     private static final Map<UUID, Location> current = new HashMap<>();
@@ -56,11 +55,60 @@ public class PositionEvent extends Event {
         super(p, pp, packet);
         last.put(p.getUniqueId(), current.getOrDefault(p.getUniqueId(), pp.getLocation()));
         current.put(p.getUniqueId(), update);
-        deltaPos = new Vector(update.getX() - getFrom().getX(), update.getY() - getFrom().getY(), update.getZ() - getFrom().getZ());
-        onGroundReally = AdjacentBlocks.onGroundReally(update, deltaPos.getY(), true);
+        onGroundReally = AdjacentBlocks.onGroundReally(update, update.getY() - getFrom().getY(), true, 0.02);
         this.updatePos = updatePos;
         this.updateRot = updateRot;
         this.onGround = onGround;
+        this.acceptedKnockback = handlePendingVelocities();
+    }
+
+    private boolean handlePendingVelocities() {
+        List<Pair<Vector, Long>> kbs = pp.getPendingVelocities();
+        if (kbs.size() > 0) {
+            //pending knockbacks must be in order; get the first entry in the list.
+            //if the first entry doesn't work (probably because they were fired on the same tick),
+            //then work down the list until we find something
+            int kbIndex;
+            long currTime = System.currentTimeMillis();
+            Vector currVelocity = new Vector(getTo().getX() - getFrom().getX(), getTo().getY() - getFrom().getY(), getTo().getZ() - getFrom().getZ());
+            for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
+                Pair<Vector, Long> kb = kbs.get(kbIndex);
+                if (currTime - kb.getValue() <= ServerUtils.getPing(p) + 200) {
+                    Vector kbVelocity = kb.getKey();
+                    //check Y component
+                    //TODO: air, web, and liquid friction. get rid of >= 0 and support -0.0784
+                    if (kbVelocity.getY() >= 0 && Math.abs(kbVelocity.getY() - currVelocity.getY()) > 0.01) {
+                        continue;
+                    }
+
+                    boolean flying          = p.isFlying();
+                    double sprintMultiplier = flying ? 1 : (p.isSprinting() ? 1.3 : 1); //TODO: flying sprint multiplier for 1.8
+                    double weirdConstant    = (p.isOnGround() ? 0.098 : (flying ? 0.049 : 0.0196));
+                    double baseMultiplier   = flying ? (10 * p.getFlySpeed()) : (5 * p.getWalkSpeed());
+                    double total            = weirdConstant * baseMultiplier * sprintMultiplier;
+
+                    double epsilon = 0.002;
+                    double minThresX = kbVelocity.getX() - total - epsilon;
+                    double maxThresX = kbVelocity.getX() + total + epsilon;
+                    double minThresZ = kbVelocity.getZ() - total - epsilon;
+                    double maxThresZ = kbVelocity.getZ() + total + epsilon;
+
+                    //check X component
+                    //Debug.broadcastMessage("minX: " + minThresX + " " + currVelocity.getX() + " " + "maxX: " + maxThresX);
+                    if (!(currVelocity.getX() <= maxThresX && currVelocity.getX() >= minThresX)) {
+                        continue;
+                    }
+                    //check Z component
+                    //Debug.broadcastMessage("minZ: " + minThresZ + " " + currVelocity.getZ() + " " + "maxZ: " + maxThresZ);
+                    if (!(currVelocity.getZ() <= maxThresZ && currVelocity.getZ() >= minThresZ)) {
+                        continue;
+                    }
+                    kbs.subList(0, kbIndex + 1).clear();
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public Player getPlayer() {
@@ -135,8 +183,8 @@ public class PositionEvent extends Event {
         return updateRot;
     }
 
-    public Vector getDeltaPos() {
-        return deltaPos;
+    public boolean hasAcceptedKnockback() {
+        return acceptedKnockback;
     }
 
     public void cancelAndSetBack(Location setback) {

@@ -35,11 +35,11 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class VelocityKnockback extends MovementCheck implements Listener, Cancelless {
+public class AntiVelocity extends MovementCheck implements Listener, Cancelless {
 
     private final Map<UUID, List<Pair<Vector, Long>>> velocities; //launch velocities
 
-    public VelocityKnockback() {
+    public AntiVelocity() {
         super("antivelocity", false, -1, 5, 0.95, 5000, "%player% may be using antivelocity. VL: %vl%", null);
         velocities = new HashMap<>();
     }

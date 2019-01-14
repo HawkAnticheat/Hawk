@@ -49,7 +49,7 @@ public class GroundSpoof extends MovementCheck {
                 //Unfortunately, this issue is caused by how movement works in Minecraft, and cannot be fixed easily.
                 Location checkLoc = event.getFrom().clone();
                 checkLoc.setY(event.getTo().getY());
-                if(!STRICT && AdjacentBlocks.onGroundReally(checkLoc, -1, false))
+                if(!STRICT && AdjacentBlocks.onGroundReally(checkLoc, -1, false, 0.02))
                     return;
 
                 if (event.isOnClientBlock() == null) {

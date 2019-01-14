@@ -19,7 +19,6 @@
 package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
@@ -28,7 +27,6 @@ import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -43,13 +41,13 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 
-public class VelocityMagnitude extends MovementCheck implements Listener {
+public class SpeedOld extends MovementCheck implements Listener {
 
     //This was moved from the old Hawk codebase.
     //I hate having to dig around this horror. But, hey, if this works, I'm leaving this alone.
     //I'm gonna bet that a bypass will pop up. In that case, I'll have to redo this entire thing.
 
-    //THIS IS BEING REWRITTEN
+    //THIS HAS BEEN REWRITTEN
 
     private static final int WATER_TREAD_GRACE = 12;
     private static final int WATER_UNDER_GRACE = 16;
@@ -77,7 +75,7 @@ public class VelocityMagnitude extends MovementCheck implements Listener {
     private final Map<UUID, List<Pair<Double, Long>>> velocities; //launch velocities
     private final Map<UUID, Double> launchVelocity;
 
-    public VelocityMagnitude() {
+    public SpeedOld() {
         super("speed", true, 0, 10, 0.995, 5000, "%player% failed speed. VL: %vl%", null);
         sprintgracetimer = new HashMap<>();
         speedygrace = new HashMap<>();
@@ -273,7 +271,7 @@ public class VelocityMagnitude extends MovementCheck implements Listener {
                 speedThresHard = Math.max(speedThresSoft, speedThresHard);
                 //applying horizontal friction
                 //on ground
-                if (AdjacentBlocks.onGroundReally(event.getFrom(), -1, false)) {
+                if (AdjacentBlocks.onGroundReally(event.getFrom(), -1, false, 0.02)) {
                     launchVelocity.put(player.getUniqueId(), launchVelocity.get(player.getUniqueId()) * FRICTION_GROUND);
                 }
                 //in air

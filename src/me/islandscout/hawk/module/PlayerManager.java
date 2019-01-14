@@ -20,11 +20,20 @@ package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
+import me.islandscout.hawk.util.Debug;
+import me.islandscout.hawk.util.Pair;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
+import org.bukkit.util.Vector;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class PlayerManager implements Listener {
 
@@ -75,4 +84,14 @@ public class PlayerManager implements Listener {
         pp.setTeleportLoc(e.getRespawnLocation());
     }
 
+    @EventHandler
+    public void onVelocity(HawkPlayerAsyncVelocityChangeEvent e) {
+        if(e.isAdditive())
+            return;
+        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
+        Vector vector = e.getVelocity();
+
+        List<Pair<Vector, Long>> pendingVelocities = pp.getPendingVelocities();
+        pendingVelocities.add(new Pair<>(vector, System.currentTimeMillis()));
+    }
 }

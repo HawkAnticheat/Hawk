@@ -22,21 +22,26 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.util.ConfigHelper;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.MathPlus;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.*;
 
-public class ClockSpeed extends MovementCheck implements Listener {
+public class TickRate extends MovementCheck implements Listener {
 
     private final Map<UUID, Long> prevNanoTime;
     private final Map<UUID, Long> clockDrift;
+    private final Map<UUID, Long> lastBigTeleportTime;
     private final boolean DEBUG;
     private final double THRESHOLD;
     private final long MAX_CATCHUP_TIME;
@@ -47,26 +52,27 @@ public class ClockSpeed extends MovementCheck implements Listener {
     private final boolean DENY_ACTIONS;
     private final int WARM_UP;
 
-    public ClockSpeed() {
-        super("clockspeed", true, 10, 10, 0.995, 10000, "%player% failed clockspeed. VL: %vl%, ping: %ping%, TPS: %tps%", null);
+    public TickRate() {
+        super("tickrate", true, 10, 10, 0.995, 10000, "%player% failed tickrate. VL: %vl%, ping: %ping%, TPS: %tps%", null);
         prevNanoTime = new HashMap<>();
         clockDrift = new HashMap<>();
-        THRESHOLD = -ConfigHelper.getOrSetDefault(30, hawk.getConfig(), "checks.clockspeed.clockDriftThreshold");
-        MAX_CATCHUP_TIME = 1000000 * ConfigHelper.getOrSetDefault(500, hawk.getConfig(), "checks.clockspeed.maxCatchupTime");
+        lastBigTeleportTime = new HashMap<>();
+        THRESHOLD = -ConfigHelper.getOrSetDefault(30, hawk.getConfig(), "checks.clockspeed.clockDriftThresholdMillis");
+        MAX_CATCHUP_TIME = 1000000 * ConfigHelper.getOrSetDefault(500, hawk.getConfig(), "checks.clockspeed.maxCatchupTimeMillis");
         DEBUG = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.clockspeed.debug");
         CALIBRATE_SLOWER = 1 - ConfigHelper.getOrSetDefault(0.003, hawk.getConfig(), "checks.clockspeed.calibrateSlower");
         CALIBRATE_FASTER = 1 - ConfigHelper.getOrSetDefault(0.03, hawk.getConfig(), "checks.clockspeed.calibrateFaster");
         RUBBERBAND = (boolean)customSetting("rubberbandOnFail", "", true);
         RESET_DRIFT_ON_FAIL = (boolean)customSetting("resetDriftOnFail", "", false);
         DENY_ACTIONS = (boolean)customSetting("denyClientActionsOnFail", "", true);
-        WARM_UP = (int)customSetting("wait", "", 150) - 1;
+        WARM_UP = (int)customSetting("ignoreTicksAfterLongTeleport", "", 150) - 1;
     }
 
     @Override
     protected void check(PositionEvent event) {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
-        if (event.hasTeleported() || pp.getCurrentTick() < WARM_UP)
+        if (event.hasTeleported() || pp.getCurrentTick() - lastBigTeleportTime.getOrDefault(p.getUniqueId(), 0L) < WARM_UP)
             return;
         long time = System.nanoTime();
         if (!prevNanoTime.containsKey(p.getUniqueId())) {
@@ -104,6 +110,7 @@ public class ClockSpeed extends MovementCheck implements Listener {
     public void removeData(Player p) {
         prevNanoTime.remove(p.getUniqueId());
         clockDrift.remove(p.getUniqueId());
+        lastBigTeleportTime.remove(p.getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -119,6 +126,19 @@ public class ClockSpeed extends MovementCheck implements Listener {
             Player p = (Player) e.getEntity();
             if (!p.hasPermission(permission) && clockDrift.getOrDefault(p.getUniqueId(), 0L) * 1E-6 < THRESHOLD && DENY_ACTIONS)
                 e.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onWorldChange(PlayerChangedWorldEvent e) {
+        lastBigTeleportTime.put(e.getPlayer().getUniqueId(), hawk.getHawkPlayer(e.getPlayer()).getCurrentTick());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onTeleport(PlayerTeleportEvent e) {
+        Location loc = e.getTo();
+        if(!loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
+            lastBigTeleportTime.put(e.getPlayer().getUniqueId(), hawk.getHawkPlayer(e.getPlayer()).getCurrentTick());
         }
     }
 }

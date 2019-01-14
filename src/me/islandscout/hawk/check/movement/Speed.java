@@ -28,6 +28,8 @@ import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -38,30 +40,29 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class SpeedRewrite extends MovementCheck implements Listener {
+public class Speed extends MovementCheck implements Listener {
 
     //I legit hate this game's movement
 
-    //TODO: Shrink this code
-    //TODO: Rename to VelocityMagnitude
-    //Suggestion: A good false-positive filter is to accumulate the total discrepancies between client & server
-    //and if it exceeds a threshold after some time, then rubberband/flag.
-    //In the config, have it like this:
-    //  discrepancyThreshold: 0.1
-    //  debug: false (show current discrepancy (color coded: green is under or equal thres, red is above thres))
+    //TODO Shrink this code
+    //TODO False flag when sprint jumping on ice
+    //TODO False flag with pistons
 
     //Basically, this check is doing, "if your previous speed was X then your current speed must not exceed f(X)"
 
     private static final double EPSILON = 0.000001;
+    private final double DISCREPANCY_THRESHOLD;
+    private final boolean DEBUG;
 
     private final Set<UUID> prevMoveWasOnGround;
     private final Map<UUID, Double> prevSpeed;
     private final Map<UUID, Long> landingTick;
     private final Map<UUID, Long> sprintingJumpTick;
     private final Map<UUID, Double> discrepancies;
+    private final Map<UUID, Long> lastTickOnGround;
     private final Map<UUID, List<Pair<Double, Long>>> velocities; //launch velocities
 
-    public SpeedRewrite() {
+    public Speed() {
         super("speed", "%player% failed movement speed, VL: %vl%");
         prevMoveWasOnGround = new HashSet<>();
         prevSpeed = new HashMap<>();
@@ -69,15 +70,18 @@ public class SpeedRewrite extends MovementCheck implements Listener {
         sprintingJumpTick = new HashMap<>();
         discrepancies = new HashMap<>();
         velocities = new HashMap<>();
+        lastTickOnGround = new HashMap<>();
+        DISCREPANCY_THRESHOLD = (double) customSetting("discrepancyThreshold", "", 0.1D);
+        DEBUG = (boolean) customSetting("debug", "", false);
     }
 
     @Override
     protected void check(PositionEvent event) {
         //Suggestion: Now what you could do is predict how far a player could have travelled
-        //if the move doesn't have a deltaPos due to insignificance. It might make the check
-        //more accurate, but more vulnerable to abuse since players can send a bunch of non-
-        //deltaPos moves, and then send one with a great deltaPos. To other players, this
-        //may look like teleportation.
+        //if the move doesn't have a deltaPos due to insignificance. It might reduce false-
+        //positives, but it might make the check more vulnerable to abuse since players can
+        //send a bunch of non-deltaPos moves, and then send one with a great deltaPos. To
+        //other players, this may look like teleportation or some sort of lag switch.
         if (!event.hasDeltaPos())
             return;
         Player p = event.getPlayer();
@@ -85,13 +89,15 @@ public class SpeedRewrite extends MovementCheck implements Listener {
         double speed = MathPlus.distance2d(event.getTo().getX() - event.getFrom().getX(), event.getTo().getZ() - event.getFrom().getZ());
         double lastSpeed = prevSpeed.getOrDefault(p.getUniqueId(), 0D);
         boolean wasOnGround = prevMoveWasOnGround.contains(p.getUniqueId());
-        //In theory, YES, you can abuse the on ground flag. However, the GroundSpoof & SmallHop checks have the job of taking care of you.
+        //In theory, YES, you can abuse the on ground flag. However, that won't get you far.
+        //FastFall and SmallHop should patch some NCP bypasses
         //This is one of the very few times I'll actually trust the client. What's worse: an insignificant bypass, or intolerable false flagging?
         boolean isOnGround = event.isOnGround();
         long ticksSinceLanding = pp.getCurrentTick() - landingTick.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
         long ticksSinceSprintJumping = pp.getCurrentTick() - sprintingJumpTick.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
+        long ticksSinceOnGround = pp.getCurrentTick() - lastTickOnGround.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
         boolean up = event.getTo().getY() > event.getFrom().getY();
-        double multiplier = 5 * p.getWalkSpeed() * speedEffectMultiplier(p); //TODO: account for latency
+        double walkMultiplier = 5 * p.getWalkSpeed() * speedEffectMultiplier(p); //TODO: account for latency
         //TODO: support fly speeds
         //TODO: support liquids, cobwebs, soulsand, etc...
 
@@ -120,33 +126,34 @@ public class SpeedRewrite extends MovementCheck implements Listener {
 
         SpeedType failed = null;
         Discrepancy discrepancy = new Discrepancy(0, 0);
+        boolean checked = true;
         //LAND (instantaneous)
-        if(isOnGround && ticksSinceLanding == 1) {
+        if((isOnGround && ticksSinceLanding == 1) || (ticksSinceOnGround == 1 && ticksSinceLanding == 1 && !up)) {
             if(pp.isSprinting()) {
-                discrepancy = sprintLandingMapping(lastSpeed, speed, multiplier);
+                discrepancy = sprintLandingMapping(lastSpeed, speed, walkMultiplier);
                 if(discrepancy.value > 0)
                     failed = SpeedType.LANDING_SPRINT;
             }
             else if(!pp.isSprinting()) {
-                discrepancy = walkLandingMapping(lastSpeed, speed, multiplier);
+                discrepancy = walkLandingMapping(lastSpeed, speed, walkMultiplier);
                 if(discrepancy.value > 0)
                     failed = SpeedType.LANDING_WALK;
             }
         }
         //GROUND
-        else if(isOnGround && wasOnGround && ticksSinceLanding > 1) {
+        else if((isOnGround && wasOnGround && ticksSinceLanding > 1) || (ticksSinceOnGround == 1 && !up && !isOnGround)) {
             if(pp.isSneaking()) {
-                discrepancy = sneakGroundMapping(lastSpeed, speed, multiplier);
+                discrepancy = sneakGroundMapping(lastSpeed, speed, walkMultiplier);
                 if(discrepancy.value > 0)
                     failed = SpeedType.SNEAK;
             }
             else if(!pp.isSprinting()) {
-                discrepancy = walkGroundMapping(lastSpeed, speed, multiplier);
+                discrepancy = walkGroundMapping(lastSpeed, speed, walkMultiplier);
                 if(discrepancy.value > 0)
                     failed = SpeedType.WALK;
             }
             else if(pp.isSprinting()) {
-                discrepancy = sprintGroundMapping(lastSpeed, speed, multiplier);
+                discrepancy = sprintGroundMapping(lastSpeed, speed, walkMultiplier);
                 if(discrepancy.value > 0)
                     failed = SpeedType.SPRINT;
             }
@@ -158,19 +165,19 @@ public class SpeedRewrite extends MovementCheck implements Listener {
             if(ticksSinceLanding == 1) {
                 //SNEAK
                 if (pp.isSneaking()) {
-                    discrepancy = sneakJumpContinueMapping(lastSpeed, speed, multiplier);
+                    discrepancy = sneakJumpContinueMapping(lastSpeed, speed, walkMultiplier);
                     if(discrepancy.value > 0)
                         failed = SpeedType.SNEAK_JUMPING_CONTINUE;
                 }
                 //WALK
                 else if (!pp.isSprinting()) {
-                    discrepancy = walkJumpContinueMapping(lastSpeed, speed, multiplier);
+                    discrepancy = walkJumpContinueMapping(lastSpeed, speed, walkMultiplier);
                     if(discrepancy.value > 0)
                         failed = SpeedType.WALK_JUMPING_CONTINUE;
                 }
                 //SPRINT
                 else if (pp.isSprinting()) {
-                    discrepancy = sprintJumpContinueMapping(lastSpeed, speed, multiplier);
+                    discrepancy = sprintJumpContinueMapping(lastSpeed, speed, walkMultiplier);
                     if(discrepancy.value > 0)
                         failed = SpeedType.SPRINT_JUMPING_CONTINUE;
                     sprintingJumpTick.put(p.getUniqueId(), pp.getCurrentTick());
@@ -180,19 +187,19 @@ public class SpeedRewrite extends MovementCheck implements Listener {
             else {
                 //SNEAK
                 if (pp.isSneaking()) {
-                    discrepancy = sneakJumpStartMapping(lastSpeed, speed, multiplier);
+                    discrepancy = sneakJumpStartMapping(lastSpeed, speed, walkMultiplier);
                     if(discrepancy.value > 0)
                         failed = SpeedType.SNEAK_JUMPING_START;
                 }
                 //WALK
                 else if (!pp.isSprinting()) {
-                    discrepancy = walkJumpStartMapping(lastSpeed, speed, multiplier);
+                    discrepancy = walkJumpStartMapping(lastSpeed, speed, walkMultiplier);
                     if(discrepancy.value > 0)
                         failed = SpeedType.WALK_JUMPING_START;
                 }
                 //SPRINT
                 else if (pp.isSprinting()) {
-                    discrepancy = sprintJumpStartMapping(lastSpeed, speed, multiplier);
+                    discrepancy = sprintJumpStartMapping(lastSpeed, speed, walkMultiplier);
                     if(discrepancy.value > 0)
                         failed = SpeedType.SPRINT_JUMPING_START;
                     sprintingJumpTick.put(p.getUniqueId(), pp.getCurrentTick());
@@ -201,7 +208,13 @@ public class SpeedRewrite extends MovementCheck implements Listener {
         }
         //SPRINT_JUMP_POST (instantaneous)
         else if(!wasOnGround && !isOnGround && ticksSinceSprintJumping == 1) {
-            discrepancy = jumpPostMapping(lastSpeed, speed);
+            Block b = ServerUtils.getBlockAsync(event.getFrom().clone().add(0, -1, 0));
+            if(b != null && (b.getType() == Material.ICE || b.getType() == Material.PACKED_ICE)) {
+                discrepancy = jumpPostIceMapping(lastSpeed, speed);
+            }
+            else {
+                discrepancy = jumpPostMapping(lastSpeed, speed);
+            }
             if(discrepancy.value > 0)
                 failed = SpeedType.SPRINT_JUMP_POST;
         }
@@ -230,19 +243,24 @@ public class SpeedRewrite extends MovementCheck implements Listener {
             }
         }
         else {
-            Debug.broadcastMessage(ChatColor.RED + "ERROR: Severe issue occurred in new speed check. Please report to discord server. Build: " + Hawk.BUILD_NAME);
+            checked = false;
         }
         discrepancies.put(p.getUniqueId(), Math.max(discrepancies.getOrDefault(p.getUniqueId(), 0D) + discrepancy.value, 0));
         double totalDiscrepancy = discrepancies.get(p.getUniqueId());
 
+        if(DEBUG) {
+            if(!checked)
+                p.sendMessage(ChatColor.RED + "ERROR: A move was not processed by the speed check. Please report this issue to the Discord server! Build: " + Hawk.BUILD_NAME);
+            p.sendMessage((totalDiscrepancy > DISCREPANCY_THRESHOLD ? ChatColor.RED : ChatColor.GREEN) + "" + totalDiscrepancy);
+        }
+
         if(failed != null) {
-            if(totalDiscrepancy > 0.1)
+            if(totalDiscrepancy > DISCREPANCY_THRESHOLD)
                 punishAndTryRubberband(pp, event, p.getLocation());
         }
         else {
             reward(pp);
         }
-
 
         prepareNextMove(wasOnGround, isOnGround, event, p.getUniqueId(), pp.getCurrentTick(), speed);
     }
@@ -258,6 +276,9 @@ public class SpeedRewrite extends MovementCheck implements Listener {
         if(!wasOnGround && event.isOnGround()) {
             landingTick.put(uuid, currentTick);
         }
+
+        if(isOnGround)
+            lastTickOnGround.put(uuid, currentTick);
     }
 
     private double speedEffectMultiplier(Player player) {
@@ -304,6 +325,11 @@ public class SpeedRewrite extends MovementCheck implements Listener {
 
     private Discrepancy jumpPostMapping(double lastSpeed, double currentSpeed) {
         double expected = 0.546001 * lastSpeed + 0.026001;
+        return new Discrepancy(expected, currentSpeed);
+    }
+
+    private Discrepancy jumpPostIceMapping(double lastSpeed, double currentSpeed) {
+        double expected = 0.891941 * lastSpeed + 0.025401;
         return new Discrepancy(expected, currentSpeed);
     }
 
@@ -375,16 +401,6 @@ public class SpeedRewrite extends MovementCheck implements Listener {
     }
 
     private Discrepancy lavaMapping(double lastSpeed, double currentSpeed) {
-        double expected = 0;
-        return new Discrepancy(expected, currentSpeed);
-    }
-
-    private Discrepancy groundWaterMapping(double lastSpeed, double currentSpeed) {
-        double expected = 0;
-        return new Discrepancy(expected, currentSpeed);
-    }
-
-    private Discrepancy groundLavaMapping(double lastSpeed, double currentSpeed) {
         double expected = 0;
         return new Discrepancy(expected, currentSpeed);
     }

@@ -61,7 +61,7 @@ import java.util.*;
  * <p>
  * p(x) = -3.92(x+1) - 0.98^(x+1) * 50(3.92 + v_i) + 50(3.92 + v_i) + p_i
  */
-public class Gravity extends MovementCheck implements Listener {
+public class Fly extends MovementCheck implements Listener {
 
     //TODO: false flag with pistons
     //TODO: false flag on slime blocks
@@ -94,8 +94,8 @@ public class Gravity extends MovementCheck implements Listener {
     private final Set<UUID> failedSoDontUpdateRubberband; //Update rubberband loc until someone fails. In this case, do not update until they touch the ground.
     private static final int STUPID_MOVES = 1; //Apparently you can jump in midair right as you fall off the edge of a block. You need to time it right.
 
-    public Gravity() {
-        super("gravity", true, 0, 10, 0.995, 5000, "%player% failed gravity. VL: %vl%", null);
+    public Fly() {
+        super("fly", true, 0, 10, 0.995, 5000, "%player% failed gravity. VL: %vl%", null);
         lastDeltaY = new HashMap<>();
         inAir = new HashSet<>();
         legitLoc = new HashMap<>();
@@ -146,7 +146,7 @@ public class Gravity extends MovementCheck implements Listener {
             if (AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WEB)) {
                 lastDeltaY.put(p.getUniqueId(), -0.007);
                 epsilon = 0.000001;
-                if (AdjacentBlocks.onGroundReally(event.getTo().clone().add(0, -0.03, 0), -1, false))
+                if (AdjacentBlocks.onGroundReally(event.getTo().clone().add(0, -0.03, 0), -1, false, 0.02))
                     return;
             } else
                 lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) - 0.08) * 0.98);
@@ -165,7 +165,7 @@ public class Gravity extends MovementCheck implements Listener {
                 if (deltaY < 0) {
                     Location checkLoc = event.getFrom().clone();
                     checkLoc.setY(event.getTo().getY());
-                    if (AdjacentBlocks.onGroundReally(checkLoc, deltaY, false)) {
+                    if (AdjacentBlocks.onGroundReally(checkLoc, deltaY, false, 0.02)) {
                         onGroundStuff(p);
                         return;
                     }
@@ -173,13 +173,12 @@ public class Gravity extends MovementCheck implements Listener {
                     checkLoc.setY(event.getFrom().getY());
                     checkLoc.setX(checkLoc.getX() - (event.getTo().getX() - event.getFrom().getX()));
                     checkLoc.setZ(checkLoc.getZ() - (event.getTo().getZ() - event.getFrom().getZ()));
-                    if (AdjacentBlocks.onGroundReally(checkLoc, deltaY, false)) {
+                    if (AdjacentBlocks.onGroundReally(checkLoc, deltaY, false, 0.02)) {
                         onGroundStuff(p);
                         return;
                     }
                 }
 
-                //TODO: improve this
                 if(event.isOnClientBlock() != null) {
                     onGroundStuff(p);
                     return;
@@ -201,7 +200,7 @@ public class Gravity extends MovementCheck implements Listener {
                 stupidMoves.put(p.getUniqueId(), 0);
 
             //handle stupid moves, because the client tends to want to jump a little late if you jump off the edge of a block
-            if (stupidMoves.getOrDefault(p.getUniqueId(), 0) >= STUPID_MOVES || (deltaY > 0 && AdjacentBlocks.onGroundReally(event.getFrom(), -1, true)))
+            if (stupidMoves.getOrDefault(p.getUniqueId(), 0) >= STUPID_MOVES || (deltaY > 0 && AdjacentBlocks.onGroundReally(event.getFrom(), -1, true, 0.02)))
                 //falling now
                 inAir.add(p.getUniqueId());
             stupidMoves.put(p.getUniqueId(), stupidMoves.getOrDefault(p.getUniqueId(), 0) + 1);

@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class VelocityInertia extends MovementCheck {
+public class Inertia extends MovementCheck {
 
     //"Inertia is a property of matter... Bill, Bill, Bill..."
 
@@ -37,7 +37,7 @@ public class VelocityInertia extends MovementCheck {
 
     private final Map<UUID, Vector> vec;
 
-    public VelocityInertia() {
+    public Inertia() {
         super("inertia", true, -1, 3, 0.995, 5000, "%player% failed inertia. VL: %vl%", null);
         vec = new HashMap<>();
     }
@@ -51,7 +51,7 @@ public class VelocityInertia extends MovementCheck {
         if (horizSpeedSquared > 0.05) {
             double deltaAngle = moveVector.angle(vec.getOrDefault(p.getUniqueId(), new Vector(0, 0, 0)));
             if (!AdjacentBlocks.blockNearbyIsSolid(e.getTo()) && !AdjacentBlocks.blockAdjacentIsSolid(e.getFrom().clone().add(0, -0.3, 0)) &&
-                    !AdjacentBlocks.blockNearbyIsSolid(e.getTo().clone().add(0, 1, 0)) && !p.isFlying() && !p.isInsideVehicle()) {
+                    !AdjacentBlocks.blockNearbyIsSolid(e.getTo().clone().add(0, 1, 0)) && !p.isFlying() && !p.isInsideVehicle() && !e.isOnGroundReally()) {
                 if (vec.containsKey(p.getUniqueId()) && deltaAngle > 0.2) {
 
                     punishAndTryRubberband(pp, e, e.getFrom());
