@@ -103,7 +103,7 @@ public class BlockNMS7 extends BlockNMS {
 
     private boolean isReallySolid(Block b) {
         boolean reallySolid = b.getType().isSolid();
-        if (b.getType() == Material.CARPET) {
+        if (b.getType() == Material.CARPET || b.getType() == Material.WATER_LILY) {
             reallySolid = true;
         }
         return reallySolid;

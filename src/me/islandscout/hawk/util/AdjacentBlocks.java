@@ -202,7 +202,7 @@ public class AdjacentBlocks {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public static boolean blockNearbyIsSolid(Location loc) {
+    public static boolean blockNearbyIsSolid(Location loc, boolean hawkDefinition) {
         Location check = loc.clone();
         Set<Block> sample = new HashSet<>();
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 1)));
@@ -214,7 +214,13 @@ public class AdjacentBlocks {
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 1)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 1)));
         for (Block b : sample) {
-            if (b != null && b.getType().isSolid())
+            if(b == null)
+                continue;
+            if(hawkDefinition) {
+                if(BlockNMS.getBlockNMS(b).isSolid())
+                    return true;
+            }
+            else if(b.getType().isSolid())
                 return true;
         }
         return false;

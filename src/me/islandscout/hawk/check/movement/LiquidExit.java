@@ -19,12 +19,9 @@
 package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
-import me.islandscout.hawk.util.Pair;
+import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
-import me.islandscout.hawk.util.AdjacentBlocks;
-import me.islandscout.hawk.util.PhysicsUtils;
-import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -56,16 +53,14 @@ public class LiquidExit extends MovementCheck implements Listener {
             return;
 
         Location from = e.getFrom();
-        double deltaY = e.getTo().getY() - from.getY();
-
-        Block atFrom = ServerUtils.getBlockAsync(from);
-        Block belowFrom = ServerUtils.getBlockAsync(from.clone().add(0, deltaY, 0));
-        if (atFrom == null || belowFrom == null)
-            return;
+        Location to = e.getTo();
+        Location fromModdedY = from.clone(); //use this location to stop a false flag when swimming out of a waterfall
+        fromModdedY.setY(to.getY());
+        double deltaY = to.getY() - from.getY();
 
         //emerged upwards from liquid
-        //TODO: False positive: do proper AABB testing @ feet
-        if (deltaY > 0 && atFrom.isLiquid() && !belowFrom.isLiquid() && !AdjacentBlocks.blockNearbyIsSolid(from)) {
+        if (deltaY > 0 && AdjacentBlocks.blockAdjacentIsLiquid(from) && !AdjacentBlocks.blockAdjacentIsLiquid(to) &&
+                !AdjacentBlocks.blockAdjacentIsLiquid(fromModdedY) && !(AdjacentBlocks.blockNearbyIsSolid(from, true) || AdjacentBlocks.blockNearbyIsSolid(to, true))) {
             Pair<Double, Long> kb = kbTime.getOrDefault(p.getUniqueId(), new Pair<>(0D, 0L));
             long ticksSinceKb = System.currentTimeMillis() - kb.getValue();
             ticksSinceKb /= 50;
