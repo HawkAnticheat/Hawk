@@ -20,7 +20,7 @@ package me.islandscout.hawk.check.interaction;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockInteractionCheck;
-import me.islandscout.hawk.event.MaterialInteractionEvent;
+import me.islandscout.hawk.event.InteractWorldAndItemEvent;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -32,7 +32,7 @@ public class ImpossiblePlacement extends BlockInteractionCheck {
     }
 
     @Override
-    protected void check(MaterialInteractionEvent e) {
+    protected void check(InteractWorldAndItemEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
         Block targetedBlock = ServerUtils.getBlockAsync(e.getTargetedBlockLocation());
         if(targetedBlock == null)

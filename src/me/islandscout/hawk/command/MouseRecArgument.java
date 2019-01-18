@@ -28,28 +28,50 @@ import org.bukkit.entity.Player;
 public class MouseRecArgument extends Argument {
 
     public MouseRecArgument() {
-        super("mouserec", "<player> [seconds]", "Record a player's mouse movements.");
+        super("mouserec", "<\"start\"|\"stop\"> <player> [seconds]", "Record a player's mouse movements.");
     }
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        if(args.length < 2)
+        if(args.length < 3)
             return false;
-        Player target = Bukkit.getPlayer(args[1]);
+
+        boolean start;
+        String status = args[1].toLowerCase();
+        switch (status) {
+            case "start":
+                start = true;
+                break;
+            case "stop":
+                start = false;
+                break;
+            default:
+                return false;
+        }
+
+        Player target = Bukkit.getPlayer(args[2]);
         if(target == null) {
-            sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[1] + "\"");
+            sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[2] + "\"");
+            return true;
+        }
+
+        if(!start) {
+            hawk.getMouseRecorder().stop(sender, target);
             return true;
         }
 
         float time = 0;
-        if(args.length == 3) {
+        if(args.length == 4) {
             try {
-                time = Float.parseFloat(args[2]);
+                time = Float.parseFloat(args[3]);
             } catch (NumberFormatException e) {
                 sender.sendMessage(ChatColor.RED + "Third argument must be a non-negative real number.");
+                return true;
             }
-            if(time < 0)
+            if(time < 0) {
                 sender.sendMessage(ChatColor.RED + "Third argument must be a non-negative real number.");
+                return true;
+            }
         }
 
         hawk.getMouseRecorder().start(sender, target, time);

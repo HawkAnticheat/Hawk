@@ -161,4 +161,15 @@ public class AABB implements Cloneable {
     public Vector getMin() {
         return min;
     }
+
+    public Vector[] getVertices() {
+        return new Vector[]{new Vector(min.getX(), min.getY(), min.getZ()),
+                            new Vector(min.getX(), min.getY(), max.getZ()),
+                            new Vector(min.getX(), max.getY(), min.getZ()),
+                            new Vector(min.getX(), max.getY(), max.getZ()),
+                            new Vector(max.getX(), min.getY(), min.getZ()),
+                            new Vector(max.getX(), min.getY(), max.getZ()),
+                            new Vector(max.getX(), max.getY(), min.getZ()),
+                            new Vector(max.getX(), max.getY(), max.getZ())};
+    }
 }

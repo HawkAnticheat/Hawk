@@ -20,7 +20,7 @@ package me.islandscout.hawk.check;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.event.MaterialInteractionEvent;
+import me.islandscout.hawk.event.InteractWorldAndItemEvent;
 import me.islandscout.hawk.util.Placeholder;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.util.block.BlockNMS7;
@@ -29,7 +29,7 @@ import org.bukkit.block.Block;
 
 import java.util.List;
 
-public abstract class BlockInteractionCheck extends Check<MaterialInteractionEvent> {
+public abstract class BlockInteractionCheck extends Check<InteractWorldAndItemEvent> {
 
     protected BlockInteractionCheck(String name, boolean enabled, int cancelThreshold, int flagThreshold, double vlPassMultiplier, long flagCooldown, String flag, List<String> punishCommands) {
         super(name, enabled, cancelThreshold, flagThreshold, vlPassMultiplier, flagCooldown, flag, punishCommands);
@@ -40,14 +40,14 @@ public abstract class BlockInteractionCheck extends Check<MaterialInteractionEve
         this(name, true, 0, 5, 0.9, 5000, flag, null);
     }
 
-    protected void punishAndTryCancelAndBlockRespawn(HawkPlayer offender, MaterialInteractionEvent event, Placeholder... placeholders) {
+    protected void punishAndTryCancelAndBlockRespawn(HawkPlayer offender, InteractWorldAndItemEvent event, Placeholder... placeholders) {
         punish(offender, true, event, placeholders);
         if (offender.getVL(this) < cancelThreshold)
             return;
         blockRespawn(offender, event);
     }
 
-    protected void blockRespawn(HawkPlayer offender, MaterialInteractionEvent event) {
+    protected void blockRespawn(HawkPlayer offender, InteractWorldAndItemEvent event) {
         Block b = ServerUtils.getBlockAsync(event.getPlacedBlockLocation());
         if(b == null)
             return;

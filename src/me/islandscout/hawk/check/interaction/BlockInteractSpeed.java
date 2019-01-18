@@ -20,7 +20,7 @@ package me.islandscout.hawk.check.interaction;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockInteractionCheck;
-import me.islandscout.hawk.event.MaterialInteractionEvent;
+import me.islandscout.hawk.event.InteractWorldAndItemEvent;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -37,7 +37,7 @@ public class BlockInteractSpeed extends BlockInteractionCheck {
     }
 
     @Override
-    protected void check(MaterialInteractionEvent e) {
+    protected void check(InteractWorldAndItemEvent e) {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
         if (pp.getCurrentTick() == lastPlaceTick.getOrDefault(p.getUniqueId(), 0L))

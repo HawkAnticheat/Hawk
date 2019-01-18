@@ -46,7 +46,7 @@ public class FightSpeed extends EntityInteractionCheck {
         deltaTimes = new HashMap<>();
         SAMPLES = (int)customSetting("sampleSize", "", 10);
         CANCEL_SAME_TICK = (boolean)customSetting("cancelSameTick", "", true);
-        MAX_CPS = (double)customSetting("maxCps", "", 15D);
+        MAX_CPS = (double)customSetting("maxCps", "", 16D);
     }
 
     @Override

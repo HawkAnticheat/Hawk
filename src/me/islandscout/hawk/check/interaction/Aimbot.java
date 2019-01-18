@@ -16,29 +16,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.check.combat;
+package me.islandscout.hawk.check.interaction;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.check.Cancelless;
-import me.islandscout.hawk.event.Event;
-import me.islandscout.hawk.event.InteractEntityEvent;
-import me.islandscout.hawk.event.PositionEvent;
-import me.islandscout.hawk.util.Debug;
-import org.bukkit.ChatColor;
+import me.islandscout.hawk.event.*;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.*;
 
 /**
- * FightAimbot exploits flaws in aim-bot cheats by
- * analyzing mouse movement patterns during combat. Although
+ * Aimbot exploits flaws in aim-bot cheats by
+ * analyzing mouse movement patterns during interaction. Although
  * easily bypassed, it catches a significant number of cheaters.
- * Aim accuracy should also be accounted for since this check
- * may false flag during certain circumstances.
+ * Caution is advised since this check may false flag during
+ * certain circumstances. This check should only be used as a
+ * hint that the player might be cheating.
  */
-public class FightAimbot extends CustomCheck implements Cancelless {
+public class Aimbot extends CustomCheck implements Cancelless {
 
     //TODO: Optimize
 
@@ -48,8 +45,8 @@ public class FightAimbot extends CustomCheck implements Cancelless {
     private static final int MOVES_PER_SAMPLE = 3; //must be 2 or more
     private final int MOVES_BEFORE_HIT;
 
-    public FightAimbot() {
-        super("fightaimbot", true, -1, 5, 0.93, 5000, "%player% may be using aimbot. VL %vl%", null);
+    public Aimbot() {
+        super("aimbot", true, -1, 5, 0.93, 5000, "&8%player% may be using aimbot. VL %vl%", null);
         lastMouseMovess = new HashMap<>();
         mouseSampless = new HashMap<>();
         MOVES_BEFORE_HIT = MOVES_PER_SAMPLE / 2;
@@ -58,8 +55,8 @@ public class FightAimbot extends CustomCheck implements Cancelless {
     public void check(Event e) {
         if (e instanceof PositionEvent) {
             processMove((PositionEvent) e);
-        } else if (e instanceof InteractEntityEvent) {
-            processHit((InteractEntityEvent) e);
+        } else if (e instanceof InteractEntityEvent || e instanceof InteractWorldAndItemEvent) {
+            processClick(e);
         }
     }
 
@@ -99,7 +96,7 @@ public class FightAimbot extends CustomCheck implements Cancelless {
         mouseSampless.put(uuid, mouseSamples);
     }
 
-    private void processHit(InteractEntityEvent e) {
+    private void processClick(Event e) {
         UUID uuid = e.getPlayer().getUniqueId();
         List<Vector> lastMoves = lastMouseMovess.getOrDefault(uuid, new ArrayList<>());
         MouseSample sample = new MouseSample(lastMoves);
@@ -122,7 +119,7 @@ public class FightAimbot extends CustomCheck implements Cancelless {
             double speed = vector.length();
             maxSpeed = Math.max(speed, maxSpeed);
             minSpeed = Math.min(speed, minSpeed);
-            if(prevVector != null && prevVector.lengthSquared() != 0 && vector.lengthSquared() != 0)
+            if(prevVector != null && lastSpeed != 0 && lastSpeed != 0)
                 maxAngle =  Math.max(maxAngle, prevVector.angle(vector));
             prevVector = vector;
             lastSpeed = speed;

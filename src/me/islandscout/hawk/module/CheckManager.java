@@ -76,7 +76,7 @@ public class CheckManager {
         new GroundSpoof();
         new FightSpeed();
         new FightAccuracy();
-        new FightAimbot();
+        new Aimbot();
         new FightNoSwing();
         //new VelocityKnockback();
         new InvalidPitch();
@@ -117,9 +117,9 @@ public class CheckManager {
         } else if (e instanceof BlockDigEvent) {
             for (BlockDigCheck check : blockDigChecks)
                 check.checkEvent((BlockDigEvent) e);
-        } else if (e instanceof MaterialInteractionEvent && ((MaterialInteractionEvent) e).getInteractionType() != MaterialInteractionEvent.InteractionType.USE_ITEM) {
+        } else if (e instanceof InteractWorldAndItemEvent && ((InteractWorldAndItemEvent) e).getInteractionType() != InteractWorldAndItemEvent.InteractionType.USE_ITEM) {
             for (BlockInteractionCheck check : blockInteractionChecks)
-                check.checkEvent((MaterialInteractionEvent) e);
+                check.checkEvent((InteractWorldAndItemEvent) e);
         }
     }
 

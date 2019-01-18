@@ -42,9 +42,9 @@ import java.util.*;
 
 /**
  * In vanilla Minecraft, a free-falling player must fall a
- * specific distance for every succeeding move. Hawk's gravity
+ * specific distance for every succeeding move. Hawk's flight
  * check attempts to enforce this vanilla mechanic to prevent
- * players from using gravity modifications.
+ * players from using flight modifications.
  * <p>
  * For every succeeding move a free-falling player is in the
  * air, the player's vertical velocity is:
@@ -95,7 +95,7 @@ public class Fly extends MovementCheck implements Listener {
     private static final int STUPID_MOVES = 1; //Apparently you can jump in midair right as you fall off the edge of a block. You need to time it right.
 
     public Fly() {
-        super("fly", true, 0, 10, 0.995, 5000, "%player% failed gravity. VL: %vl%", null);
+        super("fly", true, 0, 10, 0.995, 5000, "%player% failed fly. VL: %vl%", null);
         lastDeltaY = new HashMap<>();
         inAir = new HashSet<>();
         legitLoc = new HashMap<>();

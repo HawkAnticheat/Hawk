@@ -20,7 +20,7 @@ package me.islandscout.hawk.check.interaction;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockInteractionCheck;
-import me.islandscout.hawk.event.MaterialInteractionEvent;
+import me.islandscout.hawk.event.InteractWorldAndItemEvent;
 
 /** This check prevents players from interacting on
  * unavailable locations on blocks. Players must be
@@ -34,7 +34,7 @@ public class WrongBlockFace extends BlockInteractionCheck {
     }
 
     @Override
-    protected void check(MaterialInteractionEvent e) {
+    protected void check(InteractWorldAndItemEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
         if(e.getTargetedBlockFaceNormal().dot(pp.getLocation().getDirection()) >= 0) {
             punishAndTryCancelAndBlockRespawn(pp, e);

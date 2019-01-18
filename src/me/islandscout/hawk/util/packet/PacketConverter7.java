@@ -175,7 +175,7 @@ public final class PacketConverter7 {
         return new AbilitiesEvent(p, pp, packet.isFlying() && p.getAllowFlight(), new WrappedPacket7(packet, WrappedPacket.PacketType.ABILITIES));
     }
 
-    private static MaterialInteractionEvent packetToUseEvent(PacketPlayInBlockPlace packet, Player p, HawkPlayer pp) {
+    private static InteractWorldAndItemEvent packetToUseEvent(PacketPlayInBlockPlace packet, Player p, HawkPlayer pp) {
         Material mat;
         if (packet.getItemStack() != null && packet.getItemStack().getItem() != null) {
             Block block = Block.a(packet.getItemStack().getItem());
@@ -189,56 +189,56 @@ public final class PacketConverter7 {
         int y = packet.d();
         int z = packet.e();
         Vector targetedPosition = new Vector(x, y, z);
-        MaterialInteractionEvent.BlockFace face;
+        InteractWorldAndItemEvent.BlockFace face;
         //Debug.broadcastMessage("FACE: " + packet.getFace());
         //Debug.broadcastMessage(x + " " + y + " " + z);
         //Debug.broadcastMessage(mat + "");
 
-        MaterialInteractionEvent.InteractionType interactionType;
+        InteractWorldAndItemEvent.InteractionType interactionType;
         //first vector is for 1.8 clients, second is for 1.7
         if(!targetedPosition.equals(new Vector(-1, -1, -1)) && !targetedPosition.equals(new Vector(-1, 255, -1))) {
             if(mat != null && mat != Material.AIR) {
-                interactionType = MaterialInteractionEvent.InteractionType.PLACE_BLOCK;
+                interactionType = InteractWorldAndItemEvent.InteractionType.PLACE_BLOCK;
             }
             else {
-                interactionType = MaterialInteractionEvent.InteractionType.INTERACT_BLOCK;
+                interactionType = InteractWorldAndItemEvent.InteractionType.INTERACT_BLOCK;
             }
         }
         else {
-            interactionType = MaterialInteractionEvent.InteractionType.USE_ITEM;
+            interactionType = InteractWorldAndItemEvent.InteractionType.USE_ITEM;
         }
 
         switch (packet.getFace()) {
             case 0:
-                face = MaterialInteractionEvent.BlockFace.BOTTOM;
+                face = InteractWorldAndItemEvent.BlockFace.BOTTOM;
                 y -= 1;
                 break;
             case 1:
-                face = MaterialInteractionEvent.BlockFace.TOP;
+                face = InteractWorldAndItemEvent.BlockFace.TOP;
                 y += 1;
                 break;
             case 2:
-                face = MaterialInteractionEvent.BlockFace.NORTH;
+                face = InteractWorldAndItemEvent.BlockFace.NORTH;
                 z -= 1;
                 break;
             case 3:
-                face = MaterialInteractionEvent.BlockFace.SOUTH;
+                face = InteractWorldAndItemEvent.BlockFace.SOUTH;
                 z += 1;
                 break;
             case 4:
-                face = MaterialInteractionEvent.BlockFace.WEST;
+                face = InteractWorldAndItemEvent.BlockFace.WEST;
                 x -= 1;
                 break;
             case 5:
-                face = MaterialInteractionEvent.BlockFace.EAST;
+                face = InteractWorldAndItemEvent.BlockFace.EAST;
                 x += 1;
                 break;
             default:
                 face = null;
         }
 
-        Location placedLocation = interactionType != MaterialInteractionEvent.InteractionType.USE_ITEM ? new Location(p.getWorld(), x, y, z) : null;
-        return new MaterialInteractionEvent(p, pp, placedLocation, mat, face, interactionType, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_PLACE));
+        Location placedLocation = interactionType != InteractWorldAndItemEvent.InteractionType.USE_ITEM ? new Location(p.getWorld(), x, y, z) : null;
+        return new InteractWorldAndItemEvent(p, pp, placedLocation, mat, face, interactionType, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_PLACE));
     }
 
     private static ArmSwingEvent packetToArmSwingEvent(PacketPlayInArmAnimation packet, Player p, HawkPlayer pp) {

@@ -43,7 +43,7 @@ import java.util.List;
 
 public class MouseRecorder {
 
-    //TODO: Handle teleportation!!!
+    //TODO: Handle teleportation!!! so clamp value of lines to 1/255 so you can at least see a BIG flick and not confuse it as a teleport
 
     private Hawk hawk;
     private final float RESOLUTION;
@@ -62,9 +62,31 @@ public class MouseRecorder {
 
     //to be called from main thread
     public void start(CommandSender admin, Player target, float time) {
+        List<HawkEventListener> hawkListeners = hawk.getPacketCore().getHawkEventListeners();
+        for(HawkEventListener hawkListener : hawkListeners) {
+            if(hawkListener instanceof MouseRecorderListener && ((MouseRecorderListener) hawkListener).target.equals(target)) {
+                admin.sendMessage(ChatColor.RED + "" + target.getName() + " is already being recorded.");
+                return;
+            }
+        }
         HawkEventListener listener = new MouseRecorderListener(admin, target, time);
         admin.sendMessage(ChatColor.GOLD + "Recording mouse movements and hits of " + target.getName() + "...");
-        hawk.getPacketCore().addHawkEventListener(listener);
+
+        hawkListeners.add(listener);
+    }
+
+    //to be called from main thread
+    public void stop(CommandSender admin, Player target) {
+        List<HawkEventListener> hawkListeners = hawk.getPacketCore().getHawkEventListeners();
+        for(HawkEventListener hawkListener : hawkListeners) {
+            if(hawkListener instanceof MouseRecorderListener && ((MouseRecorderListener) hawkListener).target.equals(target)) {
+                hawkListeners.remove(hawkListener);
+                admin.sendMessage(ChatColor.GOLD + "Stopped recording " + target.getName());
+                render((MouseRecorderListener)hawkListener);
+                return;
+            }
+        }
+        admin.sendMessage(ChatColor.RED + "" + target.getName() + " is not being recorded.");
     }
 
     private void render(MouseRecorderListener listener) {
@@ -177,6 +199,7 @@ public class MouseRecorder {
         private List<Pair<Float, Float>> vectors;
         private List<Integer> clicks;
         private int moves;
+        private List<HawkEventListener> hawkListeners;
 
         MouseRecorderListener(CommandSender admin, Player target, float time) {
             this.target = target;
@@ -184,6 +207,7 @@ public class MouseRecorder {
             vectors = new ArrayList<>();
             clicks = new ArrayList<>();
             this.moves = (time == 0 ? (int)(DEFAULT_TIME * 20) : (int)(time * 20));
+            hawkListeners = hawk.getPacketCore().getHawkEventListeners();
             Bukkit.getPluginManager().registerEvents(this, hawk);
         }
 
@@ -206,7 +230,7 @@ public class MouseRecorder {
                     else {
                         if(admin != null)
                             admin.sendMessage(ChatColor.GOLD + "Finished recording.");
-                        hawk.getPacketCore().removeHawkEventListener(this);
+                        hawkListeners.remove(this);
                         render(this);
                     }
                 }
@@ -222,7 +246,7 @@ public class MouseRecorder {
                 if(admin != null) {
                     admin.sendMessage(ChatColor.GOLD + "Recording progress for " + target.getName() + " interrupted because of disconnection.");
                 }
-                hawk.getPacketCore().removeHawkEventListener(this);
+                hawkListeners.remove(this);
                 render(this);
             }
 

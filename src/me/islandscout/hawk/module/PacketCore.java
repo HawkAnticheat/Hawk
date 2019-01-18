@@ -25,7 +25,6 @@ import me.islandscout.hawk.listener.PacketListener;
 import me.islandscout.hawk.listener.PacketListener7;
 import me.islandscout.hawk.listener.PacketListener8;
 import me.islandscout.hawk.util.ClientBlock;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
@@ -132,8 +131,8 @@ public class PacketCore implements Listener {
         hawk.getCheckManager().dispatchEvent(event);
 
         //handle block placing
-        if (event instanceof MaterialInteractionEvent && ((MaterialInteractionEvent) event).getInteractionType() == MaterialInteractionEvent.InteractionType.PLACE_BLOCK) {
-            MaterialInteractionEvent bPlaceEvent = (MaterialInteractionEvent) event;
+        if (event instanceof InteractWorldAndItemEvent && ((InteractWorldAndItemEvent) event).getInteractionType() == InteractWorldAndItemEvent.InteractionType.PLACE_BLOCK) {
+            InteractWorldAndItemEvent bPlaceEvent = (InteractWorldAndItemEvent) event;
             if (!bPlaceEvent.isCancelled()) {
                 ClientBlock clientBlock = new ClientBlock(bPlaceEvent.getPlacedBlockLocation(), pp.getCurrentTick(), bPlaceEvent.getPlacedBlockMaterial());
                 pp.addClientBlock(clientBlock);
@@ -247,11 +246,7 @@ public class PacketCore implements Listener {
         packetListener.removeAdapterOutbound(adapter);
     }
 
-    public void addHawkEventListener(HawkEventListener listener) {
-        hawkEventListeners.add(listener);
-    }
-
-    public void removeHawkEventListener(HawkEventListener listener) {
-        hawkEventListeners.remove(listener);
+    public List<HawkEventListener> getHawkEventListeners() {
+        return hawkEventListeners;
     }
 }

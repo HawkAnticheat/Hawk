@@ -19,6 +19,8 @@
 package me.islandscout.hawk.util;
 
 import me.islandscout.hawk.Hawk;
+import org.bukkit.util.EulerAngle;
+import org.bukkit.util.Vector;
 
 public final class MathPlus {
 
@@ -59,6 +61,30 @@ public final class MathPlus {
         if (Hawk.getServerVersion() == 7)
             return net.minecraft.server.v1_7_R4.MathHelper.cos(radians);
         return (float)Math.cos(radians);
+    }
+
+    public static void rotateVectorsEulerXYZ(Vector[] vertices, float radX, float radY, float radZ) {
+        for(Vector vertex : vertices) {
+            double x, y, z;
+
+            //rotate around X axis (pitch)
+            z = vertex.getZ();
+            y = vertex.getY();
+            vertex.setZ(z * cos(radX) - y * sin(radX));
+            vertex.setY(z * sin(radX) + y * cos(radX));
+
+            //rotate around Y axis (yaw)
+            x = vertex.getX();
+            z = vertex.getZ();
+            vertex.setX(x * cos(radY) - z * sin(radY));
+            vertex.setZ(x * sin(radY) + z * cos(radY));
+
+            //rotate around Z axis (roll)
+            x = vertex.getX();
+            y = vertex.getY();
+            vertex.setX(x * cos(radZ) - y * sin(radZ));
+            vertex.setY(x * sin(radZ) + y * cos(radZ));
+        }
     }
 
     //Perhaps make an angle method that compares two vectors and uses a lookup table for arccos values? Will eat up 256kiB of memory, though.
