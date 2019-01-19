@@ -31,6 +31,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -80,9 +81,11 @@ public class MouseRecorder {
         List<HawkEventListener> hawkListeners = hawk.getPacketCore().getHawkEventListeners();
         for(HawkEventListener hawkListener : hawkListeners) {
             if(hawkListener instanceof MouseRecorderListener && ((MouseRecorderListener) hawkListener).target.equals(target)) {
-                hawkListeners.remove(hawkListener);
+                MouseRecorderListener mRecLis = (MouseRecorderListener)hawkListener;
+                hawkListeners.remove(mRecLis);
+                HandlerList.unregisterAll(mRecLis);
                 admin.sendMessage(ChatColor.GOLD + "Stopped recording " + target.getName());
-                render((MouseRecorderListener)hawkListener);
+                render(mRecLis);
                 return;
             }
         }
@@ -231,6 +234,7 @@ public class MouseRecorder {
                         if(admin != null)
                             admin.sendMessage(ChatColor.GOLD + "Finished recording.");
                         hawkListeners.remove(this);
+                        HandlerList.unregisterAll(this);
                         render(this);
                     }
                 }
@@ -247,6 +251,7 @@ public class MouseRecorder {
                     admin.sendMessage(ChatColor.GOLD + "Recording progress for " + target.getName() + " interrupted because of disconnection.");
                 }
                 hawkListeners.remove(this);
+                HandlerList.unregisterAll(this);
                 render(this);
             }
 

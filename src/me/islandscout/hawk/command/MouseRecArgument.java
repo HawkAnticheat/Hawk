@@ -65,11 +65,11 @@ public class MouseRecArgument extends Argument {
             try {
                 time = Float.parseFloat(args[3]);
             } catch (NumberFormatException e) {
-                sender.sendMessage(ChatColor.RED + "Third argument must be a non-negative real number.");
+                sender.sendMessage(ChatColor.RED + "Fourth argument must be a non-negative real number.");
                 return true;
             }
             if(time < 0) {
-                sender.sendMessage(ChatColor.RED + "Third argument must be a non-negative real number.");
+                sender.sendMessage(ChatColor.RED + "Fourth argument must be a non-negative real number.");
                 return true;
             }
         }

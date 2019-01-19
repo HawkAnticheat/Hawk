@@ -51,6 +51,13 @@ public class Speed extends MovementCheck implements Listener {
     //Basically, this check is doing, "if your previous speed was X then your current speed must not exceed f(X)"
 
     private static final double EPSILON = 0.000001;
+    //Now what we can do is predict how far a player could have travelled
+    //if the move doesn't have a deltaPos due to insignificance. It might reduce false-
+    //positives, but it might make the check more vulnerable to abuse since players can
+    //send a bunch of non-deltaPos moves, and then send one with a great deltaPos. To
+    //other players, this may look like teleportation or some sort of lag switch.
+    //Tolerance for client inconsistencies due to insignificance. Max no-update-pos ticks + 1
+    private static final long MAX_TICKS_SINCE_POS_UPDATE = 9;
     private final double DISCREPANCY_THRESHOLD;
     private final boolean DEBUG;
 
@@ -60,6 +67,9 @@ public class Speed extends MovementCheck implements Listener {
     private final Map<UUID, Long> sprintingJumpTick;
     private final Map<UUID, Double> discrepancies;
     private final Map<UUID, Long> lastTickOnGround;
+    private final Map<UUID, Long> lastTickPosUpdate;
+    private final Map<UUID, Double> lastNegativeDiscrepancies;
+    private final Map<UUID, Double> negativeDiscrepanciesCumulative;
     private final Map<UUID, List<Pair<Double, Long>>> velocities; //launch velocities
 
     public Speed() {
@@ -71,23 +81,27 @@ public class Speed extends MovementCheck implements Listener {
         discrepancies = new HashMap<>();
         velocities = new HashMap<>();
         lastTickOnGround = new HashMap<>();
+        lastTickPosUpdate = new HashMap<>();
+        lastNegativeDiscrepancies = new HashMap<>();
+        negativeDiscrepanciesCumulative = new HashMap<>();
         DISCREPANCY_THRESHOLD = (double) customSetting("discrepancyThreshold", "", 0.1D);
         DEBUG = (boolean) customSetting("debug", "", false);
     }
 
     @Override
     protected void check(PositionEvent event) {
-        //Suggestion: Now what you could do is predict how far a player could have travelled
-        //if the move doesn't have a deltaPos due to insignificance. It might reduce false-
-        //positives, but it might make the check more vulnerable to abuse since players can
-        //send a bunch of non-deltaPos moves, and then send one with a great deltaPos. To
-        //other players, this may look like teleportation or some sort of lag switch.
-        if (!event.hasDeltaPos())
-            return;
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
-        double speed = MathPlus.distance2d(event.getTo().getX() - event.getFrom().getX(), event.getTo().getZ() - event.getFrom().getZ());
-        double lastSpeed = prevSpeed.getOrDefault(p.getUniqueId(), 0D);
+        long ticksSinceUpdatePos = pp.getCurrentTick() - lastTickPosUpdate.getOrDefault(p.getUniqueId(), pp.getCurrentTick() - 1); //will always be >= 1
+        double lastSpeed;
+        double speed;
+        if(event.isUpdatePos()) {
+            lastSpeed = prevSpeed.getOrDefault(p.getUniqueId(), 0D);
+            speed = MathPlus.distance2d(event.getTo().getX() - event.getFrom().getX(), event.getTo().getZ() - event.getFrom().getZ());
+        } else {
+            speed = prevSpeed.getOrDefault(p.getUniqueId(), 0D) - (lastNegativeDiscrepancies.getOrDefault(p.getUniqueId(), 0D) + 0.000001);
+            lastSpeed = speed;
+        }
         boolean wasOnGround = prevMoveWasOnGround.contains(p.getUniqueId());
         //In theory, YES, you can abuse the on ground flag. However, that won't get you far.
         //FastFall and SmallHop should patch some NCP bypasses
@@ -96,6 +110,7 @@ public class Speed extends MovementCheck implements Listener {
         long ticksSinceLanding = pp.getCurrentTick() - landingTick.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
         long ticksSinceSprintJumping = pp.getCurrentTick() - sprintingJumpTick.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
         long ticksSinceOnGround = pp.getCurrentTick() - lastTickOnGround.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
+
         boolean up = event.getTo().getY() > event.getFrom().getY();
         double walkMultiplier = 5 * p.getWalkSpeed() * speedEffectMultiplier(p); //TODO: account for latency
         //TODO: support fly speeds
@@ -143,12 +158,12 @@ public class Speed extends MovementCheck implements Listener {
         //GROUND
         else if((isOnGround && wasOnGround && ticksSinceLanding > 1) || (ticksSinceOnGround == 1 && !up && !isOnGround)) {
             if(pp.isSneaking()) {
-                discrepancy = sneakGroundMapping(lastSpeed, speed, walkMultiplier);
+                discrepancy = sneakGroundMapping(lastSpeed, speed, walkMultiplier, p.isBlocking());
                 if(discrepancy.value > 0)
                     failed = SpeedType.SNEAK;
             }
-            else if(!pp.isSprinting()) {
-                discrepancy = walkGroundMapping(lastSpeed, speed, walkMultiplier);
+            else if(!pp.isSprinting() || p.isBlocking()) {
+                discrepancy = walkGroundMapping(lastSpeed, speed, walkMultiplier, p.isBlocking());
                 if(discrepancy.value > 0)
                     failed = SpeedType.WALK;
             }
@@ -245,29 +260,50 @@ public class Speed extends MovementCheck implements Listener {
         else {
             checked = false;
         }
-        discrepancies.put(p.getUniqueId(), Math.max(discrepancies.getOrDefault(p.getUniqueId(), 0D) + discrepancy.value, 0));
-        double totalDiscrepancy = discrepancies.get(p.getUniqueId());
 
-        if(DEBUG) {
-            if(!checked)
-                p.sendMessage(ChatColor.RED + "ERROR: A move was not processed by the speed check. Please report this issue to the Discord server! Build: " + Hawk.BUILD_NAME);
-            p.sendMessage((totalDiscrepancy > DISCREPANCY_THRESHOLD ? ChatColor.RED : ChatColor.GREEN) + "" + totalDiscrepancy);
-        }
+        //Client told server that it updated its position
+        if (event.isUpdatePos()) {
+            double haltDistanceExpected = negativeDiscrepanciesCumulative.getOrDefault(p.getUniqueId(), 0D);
+            lastNegativeDiscrepancies.put(p.getUniqueId(), 0D);
+            discrepancies.put(p.getUniqueId(), Math.max(discrepancies.getOrDefault(p.getUniqueId(), 0D) + discrepancy.value, 0));
+            double totalDiscrepancy = discrepancies.get(p.getUniqueId());
 
-        if(failed != null) {
-            if(totalDiscrepancy > DISCREPANCY_THRESHOLD)
-                punishAndTryRubberband(pp, event, p.getLocation());
+            if(DEBUG) {
+                if(!checked)
+                    p.sendMessage(ChatColor.RED + "ERROR: A move was not processed by the speed check. Please report this issue to the Discord server! Build: " + Hawk.BUILD_NAME);
+                p.sendMessage((totalDiscrepancy > DISCREPANCY_THRESHOLD ? ChatColor.RED : ChatColor.GREEN) + "" + totalDiscrepancy);
+            }
+
+            if(failed != null) {
+                if(totalDiscrepancy > DISCREPANCY_THRESHOLD && speed > haltDistanceExpected) {
+                    punishAndTryRubberband(pp, event, p.getLocation());
+                }
+
+            }
+            else {
+                reward(pp);
+            }
+
+            lastNegativeDiscrepancies.put(p.getUniqueId(), 0D);
+            negativeDiscrepanciesCumulative.put(p.getUniqueId(), 0D);
         }
-        else {
-            reward(pp);
+        //Client sent a flying packet, but didn't update position.
+        //The move might have not been significant enough, so we need
+        //to prepare for when the client decides it's time to update
+        //position.
+        else if(ticksSinceUpdatePos <= MAX_TICKS_SINCE_POS_UPDATE){
+            lastNegativeDiscrepancies.put(p.getUniqueId(), discrepancy.value);
+            negativeDiscrepanciesCumulative.put(p.getUniqueId(), negativeDiscrepanciesCumulative.getOrDefault(p.getUniqueId(), 0D) + speed);
         }
 
         prepareNextMove(wasOnGround, isOnGround, event, p.getUniqueId(), pp.getCurrentTick(), speed);
     }
 
     private void prepareNextMove(boolean wasOnGround, boolean isOnGround, PositionEvent event, UUID uuid, long currentTick, double currentSpeed) {
-        if(isOnGround)
+        if(isOnGround) {
             prevMoveWasOnGround.add(uuid);
+            lastTickOnGround.put(uuid, currentTick);
+        }
         else
             prevMoveWasOnGround.remove(uuid);
         prevSpeed.put(uuid, currentSpeed);
@@ -277,8 +313,8 @@ public class Speed extends MovementCheck implements Listener {
             landingTick.put(uuid, currentTick);
         }
 
-        if(isOnGround)
-            lastTickOnGround.put(uuid, currentTick);
+        if(event.isUpdatePos())
+            lastTickPosUpdate.put(uuid, currentTick);
     }
 
     private double speedEffectMultiplier(Player player) {
@@ -365,32 +401,20 @@ public class Speed extends MovementCheck implements Listener {
 
     private Discrepancy sprintGroundMapping(double lastSpeed, double currentSpeed, double speedMultiplier) {
         double initSpeed = 0.13 * speedMultiplier + EPSILON;
-        double expected;
-        if(lastSpeed >= 0.13)
-            expected = 0.546001 * lastSpeed + initSpeed;
-        else
-            expected = 0.2;
+        double expected = 0.546001 * lastSpeed + initSpeed;
         return new Discrepancy(expected, currentSpeed);
     }
 
-    private Discrepancy walkGroundMapping(double lastSpeed, double currentSpeed, double speedMultiplier) {
-        double initSpeed = 0.1 * speedMultiplier + EPSILON;
-        double expected;
-        if(lastSpeed >= 0.1)
-            expected = 0.546001 * lastSpeed + initSpeed;
-        else
-            expected = 0.16;
+    private Discrepancy walkGroundMapping(double lastSpeed, double currentSpeed, double speedMultiplier, boolean blocking) {
+        double initSpeed = (blocking ? 0.0277185883 : 0.1) * speedMultiplier + EPSILON;
+        double expected = 0.546001 * lastSpeed + initSpeed;
         return new Discrepancy(expected, currentSpeed);
     }
 
     //TODO: fix speed multiplier
-    private Discrepancy sneakGroundMapping(double lastSpeed, double currentSpeed, double speedMultiplier) {
-        double initSpeed = 0.041560 * speedMultiplier + EPSILON;
-        double expected;
-        if(lastSpeed >= 0.1)
-            expected = 0.546001 * lastSpeed + initSpeed;
-        else
-            expected = 0.096161;
+    private Discrepancy sneakGroundMapping(double lastSpeed, double currentSpeed, double speedMultiplier, boolean blocking) {
+        double initSpeed = (blocking ? 0.00588 : 0.041560) * speedMultiplier + EPSILON;
+        double expected = 0.546001 * lastSpeed + initSpeed;
         return new Discrepancy(expected, currentSpeed);
     }
 
@@ -407,20 +431,12 @@ public class Speed extends MovementCheck implements Listener {
 
     //speed potions do not affect air movement
     private Discrepancy sprintAirMapping(double lastSpeed, double currentSpeed) {
-        double expected;
-        if(lastSpeed >= 0.1)
-            expected = 0.910001 * lastSpeed + 0.026001;
-        else
-            expected = 0.16;
+        double expected = 0.910001 * lastSpeed + 0.026001;
         return new Discrepancy(expected, currentSpeed);
     }
 
     private Discrepancy sneakAirMapping(double lastSpeed, double currentSpeed) {
-        double expected;
-        if(lastSpeed >= 0.1)
-            expected = 0.910001 * lastSpeed + 0.008317;
-        else
-            expected = 0.099317;
+        double expected = 0.910001 * lastSpeed + 0.008317;
         return new Discrepancy(expected, currentSpeed);
     }
 
