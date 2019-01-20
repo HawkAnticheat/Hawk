@@ -25,7 +25,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-public class InteractWorldAndItemEvent extends Event {
+public class InteractWorldEvent extends Event {
 
     //Represents a PacketPlayInBlockPlace packet. Pretty much interacting with blocks and held items.
 
@@ -34,7 +34,7 @@ public class InteractWorldAndItemEvent extends Event {
     private final BlockFace blockFace;
     private final InteractionType interactionType;
 
-    public InteractWorldAndItemEvent(Player p, HawkPlayer pp, Location location, Material material, BlockFace blockFace, InteractionType interactionType, WrappedPacket packet) {
+    public InteractWorldEvent(Player p, HawkPlayer pp, Location location, Material material, BlockFace blockFace, InteractionType interactionType, WrappedPacket packet) {
         super(p, pp, packet);
         this.location = location;
         this.material = material;

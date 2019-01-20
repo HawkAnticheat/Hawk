@@ -25,16 +25,21 @@ import me.islandscout.hawk.listener.PacketListener;
 import me.islandscout.hawk.listener.PacketListener7;
 import me.islandscout.hawk.listener.PacketListener8;
 import me.islandscout.hawk.util.ClientBlock;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.potion.Potion;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -130,16 +135,48 @@ public class PacketCore implements Listener {
 
         hawk.getCheckManager().dispatchEvent(event);
 
-        //handle block placing
-        if (event instanceof InteractWorldAndItemEvent && ((InteractWorldAndItemEvent) event).getInteractionType() == InteractWorldAndItemEvent.InteractionType.PLACE_BLOCK) {
-            InteractWorldAndItemEvent bPlaceEvent = (InteractWorldAndItemEvent) event;
+        //update HawkPlayer
+        if (event instanceof InteractItemEvent) {
+            InteractItemEvent itemEvent = (InteractItemEvent) event;
+            Material mat = itemEvent.getItemStack().getType();
+            if(itemEvent.getType() == InteractItemEvent.Type.START_USE_ITEM) {
+                if((mat.isEdible() && p.getFoodLevel() < 20 && p.getGameMode() != GameMode.CREATIVE) ||
+                        (mat == Material.POTION && !Potion.fromItemStack(itemEvent.getItemStack()).isSplash())) {
+                    pp.setConsumingItem(true);
+                }
+                if(EnchantmentTarget.WEAPON.includes(mat)) {
+                    pp.setBlocking(true);
+                }
+                if(mat == Material.BOW && (p.getInventory().contains(Material.ARROW) || p.getGameMode() == GameMode.CREATIVE)) {
+                    pp.setPullingBow(true);
+                }
+            }
+            else if(itemEvent.getType() == InteractItemEvent.Type.RELEASE_USE_ITEM) {
+                if((mat.isEdible() && p.getFoodLevel() < 20 && p.getGameMode() != GameMode.CREATIVE) ||
+                        (mat == Material.POTION && !Potion.fromItemStack(itemEvent.getItemStack()).isSplash())) {
+                    pp.setConsumingItem(false);
+                }
+                if(EnchantmentTarget.WEAPON.includes(mat)) {
+                    pp.setBlocking(false);
+                }
+                if(mat == Material.BOW && (p.getInventory().contains(Material.ARROW) || p.getGameMode() == GameMode.CREATIVE)) {
+                    pp.setPullingBow(false);
+                }
+            }
+        }
+        if (event instanceof ItemSwitchEvent && !event.isCancelled()) {
+            pp.setHeldItemSlot(((ItemSwitchEvent) event).getSlotIndex());
+            pp.setConsumingItem(false);
+            pp.setBlocking(false);
+            pp.setPullingBow(false);
+        }
+        if (event instanceof InteractWorldEvent && ((InteractWorldEvent) event).getInteractionType() == InteractWorldEvent.InteractionType.PLACE_BLOCK) {
+            InteractWorldEvent bPlaceEvent = (InteractWorldEvent) event;
             if (!bPlaceEvent.isCancelled()) {
                 ClientBlock clientBlock = new ClientBlock(bPlaceEvent.getPlacedBlockLocation(), pp.getCurrentTick(), bPlaceEvent.getPlacedBlockMaterial());
                 pp.addClientBlock(clientBlock);
             }
         }
-
-        //update HawkPlayer
         if (event instanceof PositionEvent) {
             pp.setLastMoveTime(System.currentTimeMillis());
             if(event.isCancelled()) {
@@ -157,6 +194,11 @@ public class PacketCore implements Listener {
                     ((PositionEvent) event).setTo(((PositionEvent) event).getFrom());
                 }
             } else {
+                //handle item consumption
+                if(pp.getCurrentTick() - pp.getItemUseTick() > 31 && pp.isConsumingItem()) {
+                    pp.setConsumingItem(false);
+                }
+
                 Location to = ((PositionEvent) event).getTo();
                 Location from = ((PositionEvent) event).getFrom();
                 pp.setVelocity(new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ()));

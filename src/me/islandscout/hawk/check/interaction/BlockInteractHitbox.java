@@ -20,7 +20,7 @@ package me.islandscout.hawk.check.interaction;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockInteractionCheck;
-import me.islandscout.hawk.event.InteractWorldAndItemEvent;
+import me.islandscout.hawk.event.InteractWorldEvent;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.block.BlockNMS;
 import org.bukkit.Location;
@@ -48,7 +48,7 @@ public class BlockInteractHitbox extends BlockInteractionCheck {
     }
 
     @Override
-    protected void check(InteractWorldAndItemEvent e) {
+    protected void check(InteractWorldEvent e) {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
         Location eyeLoc = pp.getLocation().clone();

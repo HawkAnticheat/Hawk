@@ -19,32 +19,34 @@
 package me.islandscout.hawk.event;
 
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.WrappedPacket;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
-public class BlockDigEvent extends Event {
+public class InteractItemEvent extends Event {
 
-    private final DigAction digAction;
-    private final Block block;
+    private final InteractItemEvent.Type type;
+    private final ItemStack itemStack;
 
-    public BlockDigEvent(Player p, HawkPlayer pp, DigAction action, Block block, WrappedPacket packet) {
-        super(p, pp, packet);
-        digAction = action;
-        this.block = block;
+    public InteractItemEvent(Player p, HawkPlayer pp, ItemStack itemStack, InteractItemEvent.Type type, WrappedPacket wPacket) {
+        super(p, pp, wPacket);
+        this.type = type;
+        this.itemStack = itemStack;
     }
 
-    public DigAction getDigAction() {
-        return digAction;
+    public Type getType() {
+        return type;
     }
 
-    public Block getBlock() {
-        return block;
+    public ItemStack getItemStack() {
+        return itemStack;
     }
 
-    public enum DigAction {
-        START,
-        CANCEL,
-        COMPLETE
+    public enum Type {
+        START_USE_ITEM,
+        RELEASE_USE_ITEM,
+        DROP_HELD_ITEM_STACK,
+        DROP_HELD_ITEM
     }
 }

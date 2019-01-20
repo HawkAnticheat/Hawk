@@ -23,7 +23,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.PositionEvent;
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
@@ -110,10 +109,11 @@ public class Speed extends MovementCheck implements Listener {
         long ticksSinceLanding = pp.getCurrentTick() - landingTick.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
         long ticksSinceSprintJumping = pp.getCurrentTick() - sprintingJumpTick.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
         long ticksSinceOnGround = pp.getCurrentTick() - lastTickOnGround.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
-
         boolean up = event.getTo().getY() > event.getFrom().getY();
+        boolean usingSomething = pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow();
+        boolean sprinting = pp.isSprinting() && !pp.isSneaking() && !usingSomething;
         double walkMultiplier = 5 * p.getWalkSpeed() * speedEffectMultiplier(p); //TODO: account for latency
-        //TODO: support fly speeds
+        double flyMultiplier = 10 * p.getFlySpeed();
         //TODO: support liquids, cobwebs, soulsand, etc...
 
         //handle any pending knockbacks
@@ -144,13 +144,13 @@ public class Speed extends MovementCheck implements Listener {
         boolean checked = true;
         //LAND (instantaneous)
         if((isOnGround && ticksSinceLanding == 1) || (ticksSinceOnGround == 1 && ticksSinceLanding == 1 && !up)) {
-            if(pp.isSprinting()) {
+            if(sprinting) {
                 discrepancy = sprintLandingMapping(lastSpeed, speed, walkMultiplier);
                 if(discrepancy.value > 0)
                     failed = SpeedType.LANDING_SPRINT;
             }
-            else if(!pp.isSprinting()) {
-                discrepancy = walkLandingMapping(lastSpeed, speed, walkMultiplier);
+            else if(!sprinting) {
+                discrepancy = walkLandingMapping(lastSpeed, speed, walkMultiplier, usingSomething);
                 if(discrepancy.value > 0)
                     failed = SpeedType.LANDING_WALK;
             }
@@ -158,16 +158,16 @@ public class Speed extends MovementCheck implements Listener {
         //GROUND
         else if((isOnGround && wasOnGround && ticksSinceLanding > 1) || (ticksSinceOnGround == 1 && !up && !isOnGround)) {
             if(pp.isSneaking()) {
-                discrepancy = sneakGroundMapping(lastSpeed, speed, walkMultiplier, p.isBlocking());
+                discrepancy = sneakGroundMapping(lastSpeed, speed, walkMultiplier, usingSomething);
                 if(discrepancy.value > 0)
                     failed = SpeedType.SNEAK;
             }
-            else if(!pp.isSprinting() || p.isBlocking()) {
-                discrepancy = walkGroundMapping(lastSpeed, speed, walkMultiplier, p.isBlocking());
+            else if(!sprinting) {
+                discrepancy = walkGroundMapping(lastSpeed, speed, walkMultiplier, usingSomething);
                 if(discrepancy.value > 0)
                     failed = SpeedType.WALK;
             }
-            else if(pp.isSprinting()) {
+            else if(sprinting) {
                 discrepancy = sprintGroundMapping(lastSpeed, speed, walkMultiplier);
                 if(discrepancy.value > 0)
                     failed = SpeedType.SPRINT;
@@ -180,18 +180,18 @@ public class Speed extends MovementCheck implements Listener {
             if(ticksSinceLanding == 1) {
                 //SNEAK
                 if (pp.isSneaking()) {
-                    discrepancy = sneakJumpContinueMapping(lastSpeed, speed, walkMultiplier);
+                    discrepancy = sneakJumpContinueMapping(lastSpeed, speed, walkMultiplier, usingSomething);
                     if(discrepancy.value > 0)
                         failed = SpeedType.SNEAK_JUMPING_CONTINUE;
                 }
                 //WALK
-                else if (!pp.isSprinting()) {
-                    discrepancy = walkJumpContinueMapping(lastSpeed, speed, walkMultiplier);
+                else if (!sprinting) {
+                    discrepancy = walkJumpContinueMapping(lastSpeed, speed, walkMultiplier, usingSomething);
                     if(discrepancy.value > 0)
                         failed = SpeedType.WALK_JUMPING_CONTINUE;
                 }
                 //SPRINT
-                else if (pp.isSprinting()) {
+                else if (sprinting) {
                     discrepancy = sprintJumpContinueMapping(lastSpeed, speed, walkMultiplier);
                     if(discrepancy.value > 0)
                         failed = SpeedType.SPRINT_JUMPING_CONTINUE;
@@ -202,18 +202,18 @@ public class Speed extends MovementCheck implements Listener {
             else {
                 //SNEAK
                 if (pp.isSneaking()) {
-                    discrepancy = sneakJumpStartMapping(lastSpeed, speed, walkMultiplier);
+                    discrepancy = sneakJumpStartMapping(lastSpeed, speed, walkMultiplier, usingSomething);
                     if(discrepancy.value > 0)
                         failed = SpeedType.SNEAK_JUMPING_START;
                 }
                 //WALK
-                else if (!pp.isSprinting()) {
-                    discrepancy = walkJumpStartMapping(lastSpeed, speed, walkMultiplier);
+                else if (!sprinting) {
+                    discrepancy = walkJumpStartMapping(lastSpeed, speed, walkMultiplier, usingSomething);
                     if(discrepancy.value > 0)
                         failed = SpeedType.WALK_JUMPING_START;
                 }
                 //SPRINT
-                else if (pp.isSprinting()) {
+                else if (sprinting) {
                     discrepancy = sprintJumpStartMapping(lastSpeed, speed, walkMultiplier);
                     if(discrepancy.value > 0)
                         failed = SpeedType.SPRINT_JUMPING_START;
@@ -235,24 +235,24 @@ public class Speed extends MovementCheck implements Listener {
         }
         //FLYING
         else if((pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying()) {
-            discrepancy = flyMapping(lastSpeed, speed);
+            discrepancy = flyMapping(lastSpeed, speed, pp.isSneaking(), sprinting, flyMultiplier, usingSomething);
             if(discrepancy.value > 0)
                 failed = SpeedType.FLYING;
         }
         //AIR
         else if((!((pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying()) && !wasOnGround) || (!up && !isOnGround)) {
             if(pp.isSneaking()) {
-                discrepancy = sneakAirMapping(lastSpeed, speed);
+                discrepancy = sneakAirMapping(lastSpeed, speed, usingSomething);
                 if(discrepancy.value > 0)
                     failed = SpeedType.AIR_SNEAK;
             }
-            else if(pp.isSprinting()) {
+            else if(sprinting) {
                 discrepancy = sprintAirMapping(lastSpeed, speed);
                 if(discrepancy.value > 0)
                     failed = SpeedType.AIR_SPRINT;
             }
-            else if(!pp.isSprinting()) {
-                discrepancy = walkAirMapping(lastSpeed, speed);
+            else if(!sprinting) {
+                discrepancy = walkAirMapping(lastSpeed, speed, usingSomething);
                 if(discrepancy.value > 0)
                     failed = SpeedType.AIR_WALK;
             }
@@ -354,8 +354,9 @@ public class Speed extends MovementCheck implements Listener {
 
     //these functions must be extremely accurate to support high level speed potions
     //added epsilon of 0.000001 and truncated if necessary
-    private Discrepancy walkAirMapping(double lastSpeed, double currentSpeed) {
-        double expected = 0.910001 * lastSpeed + 0.020001;
+    private Discrepancy walkAirMapping(double lastSpeed, double currentSpeed, boolean usingSomething) {
+        double initSpeed = (usingSomething ? 0.02 / 3.607687 : 0.02) + EPSILON;
+        double expected = 0.910001 * lastSpeed + initSpeed;
         return new Discrepancy(expected, currentSpeed);
     }
 
@@ -374,13 +375,15 @@ public class Speed extends MovementCheck implements Listener {
         return new Discrepancy(expected, currentSpeed);
     }
 
-    private Discrepancy sneakJumpStartMapping(double lastSpeed, double currentSpeed, double multiplier) {
-        double expected = 0.546 * lastSpeed + (0.041578 + ((multiplier - 1) * 0.041578)) + EPSILON;
+    private Discrepancy sneakJumpStartMapping(double lastSpeed, double currentSpeed, double multiplier, boolean usingSomething) {
+        double initSpeed = (usingSomething ? 0.041578 / 5 : 0.041578);
+        double expected = 0.546 * lastSpeed + (initSpeed + ((multiplier - 1) * initSpeed)) + EPSILON;
         return new Discrepancy(expected, currentSpeed);
     }
 
-    private Discrepancy walkJumpStartMapping(double lastSpeed, double currentSpeed, double multiplier) {
-        double expected = 0.546 * lastSpeed + (0.1 + ((multiplier - 1) * 0.1)) + EPSILON;
+    private Discrepancy walkJumpStartMapping(double lastSpeed, double currentSpeed, double multiplier, boolean usingSomething) {
+        double initSpeed = (usingSomething ? 0.1 / 3.607687 : 0.1);
+        double expected = 0.546 * lastSpeed + (initSpeed + ((multiplier - 1) * initSpeed)) + EPSILON;
         return new Discrepancy(expected, currentSpeed);
     }
 
@@ -389,13 +392,15 @@ public class Speed extends MovementCheck implements Listener {
         return new Discrepancy(expected, currentSpeed);
     }
 
-    private Discrepancy sneakJumpContinueMapping(double lastSpeed, double currentSpeed, double multiplier) {
-        double expected = 0.91 * lastSpeed + (0.041578 + ((multiplier - 1) * 0.041578)) + EPSILON;
+    private Discrepancy sneakJumpContinueMapping(double lastSpeed, double currentSpeed, double multiplier, boolean usingSomething) {
+        double initSpeed = (usingSomething ? 0.041578 / 5 : 0.041578);
+        double expected = 0.91 * lastSpeed + (initSpeed + ((multiplier - 1) * initSpeed)) + EPSILON;
         return new Discrepancy(expected, currentSpeed);
     }
 
-    private Discrepancy walkJumpContinueMapping(double lastSpeed, double currentSpeed, double multiplier) {
-        double expected = 0.91 * lastSpeed + (0.1 + ((multiplier - 1) * 0.1)) + EPSILON;
+    private Discrepancy walkJumpContinueMapping(double lastSpeed, double currentSpeed, double multiplier, boolean usingSomething) {
+        double initSpeed = (usingSomething ? 0.1 / 3.607687 : 0.1);
+        double expected = 0.91 * lastSpeed + (initSpeed + ((multiplier - 1) * initSpeed)) + EPSILON;
         return new Discrepancy(expected, currentSpeed);
     }
 
@@ -406,7 +411,7 @@ public class Speed extends MovementCheck implements Listener {
     }
 
     private Discrepancy walkGroundMapping(double lastSpeed, double currentSpeed, double speedMultiplier, boolean blocking) {
-        double initSpeed = (blocking ? 0.0277185883 : 0.1) * speedMultiplier + EPSILON;
+        double initSpeed = (blocking ? 0.1 / 3.607687 : 0.1) * speedMultiplier + EPSILON;
         double expected = 0.546001 * lastSpeed + initSpeed;
         return new Discrepancy(expected, currentSpeed);
     }
@@ -435,8 +440,9 @@ public class Speed extends MovementCheck implements Listener {
         return new Discrepancy(expected, currentSpeed);
     }
 
-    private Discrepancy sneakAirMapping(double lastSpeed, double currentSpeed) {
-        double expected = 0.910001 * lastSpeed + 0.008317;
+    private Discrepancy sneakAirMapping(double lastSpeed, double currentSpeed, boolean usingSomething) {
+        double initSpeed = (usingSomething ? 0.008317 / 5 : 0.008317) + EPSILON;
+        double expected = 0.910001 * lastSpeed + initSpeed;
         return new Discrepancy(expected, currentSpeed);
     }
 
@@ -446,14 +452,18 @@ public class Speed extends MovementCheck implements Listener {
         return new Discrepancy(expected, currentSpeed);
     }
 
-    private Discrepancy walkLandingMapping(double lastSpeed, double currentSpeed, double speedMultiplier) {
-        double initSpeed = 0.1 * speedMultiplier + EPSILON;
+    private Discrepancy walkLandingMapping(double lastSpeed, double currentSpeed, double speedMultiplier, boolean usingSomething) {
+        double initSpeed = (usingSomething ? 0.1 / 3.607687 : 0.1) * speedMultiplier + EPSILON;
         double expected = 0.910001 * lastSpeed + initSpeed;
         return new Discrepancy(expected, currentSpeed);
     }
 
-    private Discrepancy flyMapping(double lastSpeed, double currentSpeed) {
-        double expected = 0.910001 * lastSpeed + 0.050001;
+    private Discrepancy flyMapping(double lastSpeed, double currentSpeed, boolean sneaking, boolean sprinting, double speedMultiplier, boolean usingSomething) {
+        //I really don't like this because these sneaking and sprinting variables depend on the definitions in the check() method.
+        //If you change those, this may break.
+        double baseSpeed = (sneaking ? 0.02078894935 : (sprinting ? 0.1 : 0.05));
+        double initSpeed = (usingSomething ? baseSpeed / 3.607687 : baseSpeed) * speedMultiplier + EPSILON;
+        double expected = 0.910001 * lastSpeed + initSpeed;
         return new Discrepancy(expected, currentSpeed);
     }
 

@@ -20,7 +20,7 @@ package me.islandscout.hawk.check.combat;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.check.CustomCheck;
-import me.islandscout.hawk.event.InteractWorldAndItemEvent;
+import me.islandscout.hawk.event.InteractWorldEvent;
 import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.ItemSwitchEvent;
 
@@ -41,7 +41,7 @@ public class AutoPotion extends CustomCheck implements Cancelless {
 
     @Override
     protected void check(Event event) {
-        if(event instanceof InteractWorldAndItemEvent) {
+        if(event instanceof InteractWorldEvent) {
             usedSomething.add(event.getPlayer().getUniqueId());
             return;
         }

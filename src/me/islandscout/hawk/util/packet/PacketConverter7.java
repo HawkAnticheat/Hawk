@@ -21,6 +21,7 @@ package me.islandscout.hawk.util.packet;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.util.block.BlockNMS;
 import me.islandscout.hawk.util.block.BlockNMS7;
@@ -30,6 +31,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 public final class PacketConverter7 {
@@ -140,31 +142,44 @@ public final class PacketConverter7 {
         return new InteractEntityEvent(p, pp, action, entity, new WrappedPacket7(packet, WrappedPacket.PacketType.USE_ENTITY));
     }
 
-    private static BlockDigEvent packetToDigEvent(PacketPlayInBlockDig packet, Player p, HawkPlayer pp) {
-        Location loc = new Location(p.getWorld(), packet.c(), packet.d(), packet.e());
-
-        org.bukkit.block.Block b = ServerUtils.getBlockAsync(loc);
-        if (b == null || packet.f() == 255 || (packet.f() == 0 && loc.getBlockY() == 0))
-            return null;
-        BlockNMS block = new BlockNMS7(b);
-
+    private static Event packetToDigEvent(PacketPlayInBlockDig packet, Player p, HawkPlayer pp) {
         int status = packet.g();
-        BlockDigEvent.DigAction action;
+        BlockDigEvent.DigAction digAction = null;
+        InteractItemEvent.Type interactAction = null;
         switch (status) {
             case 0:
-                action = BlockDigEvent.DigAction.START;
+                digAction = BlockDigEvent.DigAction.START;
                 break;
             case 1:
-                action = BlockDigEvent.DigAction.CANCEL;
+                digAction = BlockDigEvent.DigAction.CANCEL;
                 break;
             case 2:
-                action = BlockDigEvent.DigAction.COMPLETE;
+                digAction = BlockDigEvent.DigAction.COMPLETE;
+                break;
+            case 3:
+                interactAction = InteractItemEvent.Type.DROP_HELD_ITEM_STACK;
+                break;
+            case 4:
+                interactAction = InteractItemEvent.Type.DROP_HELD_ITEM;
+                break;
+            case 5:
+                interactAction = InteractItemEvent.Type.RELEASE_USE_ITEM;
                 break;
             default:
-                action = BlockDigEvent.DigAction.COMPLETE;
+                return null;
         }
-        pp.setDigging(action == BlockDigEvent.DigAction.START && block.getStrength() != 0);
-        return new BlockDigEvent(p, pp, action, b, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_DIG));
+        if(interactAction == null) {
+            Location loc = new Location(p.getWorld(), packet.c(), packet.d(), packet.e());
+
+            org.bukkit.block.Block b = ServerUtils.getBlockAsync(loc);
+            BlockNMS block = new BlockNMS7(b);
+
+            pp.setDigging(digAction == BlockDigEvent.DigAction.START && block.getStrength() != 0);
+            return new BlockDigEvent(p, pp, digAction, b, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_DIG));
+        }
+        ItemStack item = p.getInventory().getItem(pp.getHeldItemSlot());
+        return new InteractItemEvent(p, pp, item, interactAction, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_DIG));
+
     }
 
     private static CustomPayLoadEvent packetToPayloadEvent(PacketPlayInCustomPayload packet, Player p, HawkPlayer pp) {
@@ -175,7 +190,7 @@ public final class PacketConverter7 {
         return new AbilitiesEvent(p, pp, packet.isFlying() && p.getAllowFlight(), new WrappedPacket7(packet, WrappedPacket.PacketType.ABILITIES));
     }
 
-    private static InteractWorldAndItemEvent packetToUseEvent(PacketPlayInBlockPlace packet, Player p, HawkPlayer pp) {
+    private static Event packetToUseEvent(PacketPlayInBlockPlace packet, Player p, HawkPlayer pp) {
         Material mat;
         if (packet.getItemStack() != null && packet.getItemStack().getItem() != null) {
             Block block = Block.a(packet.getItemStack().getItem());
@@ -189,56 +204,57 @@ public final class PacketConverter7 {
         int y = packet.d();
         int z = packet.e();
         Vector targetedPosition = new Vector(x, y, z);
-        InteractWorldAndItemEvent.BlockFace face;
+        InteractWorldEvent.BlockFace face;
         //Debug.broadcastMessage("FACE: " + packet.getFace());
         //Debug.broadcastMessage(x + " " + y + " " + z);
         //Debug.broadcastMessage(mat + "");
 
-        InteractWorldAndItemEvent.InteractionType interactionType;
+        InteractWorldEvent.InteractionType interactionType;
         //first vector is for 1.8 clients, second is for 1.7
         if(!targetedPosition.equals(new Vector(-1, -1, -1)) && !targetedPosition.equals(new Vector(-1, 255, -1))) {
             if(mat != null && mat != Material.AIR) {
-                interactionType = InteractWorldAndItemEvent.InteractionType.PLACE_BLOCK;
+                interactionType = InteractWorldEvent.InteractionType.PLACE_BLOCK;
             }
             else {
-                interactionType = InteractWorldAndItemEvent.InteractionType.INTERACT_BLOCK;
+                interactionType = InteractWorldEvent.InteractionType.INTERACT_BLOCK;
             }
         }
         else {
-            interactionType = InteractWorldAndItemEvent.InteractionType.USE_ITEM;
+            ItemStack item = p.getInventory().getItem(pp.getHeldItemSlot());
+            return new InteractItemEvent(p, pp, item, InteractItemEvent.Type.START_USE_ITEM, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_PLACE));
         }
 
         switch (packet.getFace()) {
             case 0:
-                face = InteractWorldAndItemEvent.BlockFace.BOTTOM;
+                face = InteractWorldEvent.BlockFace.BOTTOM;
                 y -= 1;
                 break;
             case 1:
-                face = InteractWorldAndItemEvent.BlockFace.TOP;
+                face = InteractWorldEvent.BlockFace.TOP;
                 y += 1;
                 break;
             case 2:
-                face = InteractWorldAndItemEvent.BlockFace.NORTH;
+                face = InteractWorldEvent.BlockFace.NORTH;
                 z -= 1;
                 break;
             case 3:
-                face = InteractWorldAndItemEvent.BlockFace.SOUTH;
+                face = InteractWorldEvent.BlockFace.SOUTH;
                 z += 1;
                 break;
             case 4:
-                face = InteractWorldAndItemEvent.BlockFace.WEST;
+                face = InteractWorldEvent.BlockFace.WEST;
                 x -= 1;
                 break;
             case 5:
-                face = InteractWorldAndItemEvent.BlockFace.EAST;
+                face = InteractWorldEvent.BlockFace.EAST;
                 x += 1;
                 break;
             default:
                 face = null;
         }
 
-        Location placedLocation = interactionType != InteractWorldAndItemEvent.InteractionType.USE_ITEM ? new Location(p.getWorld(), x, y, z) : null;
-        return new InteractWorldAndItemEvent(p, pp, placedLocation, mat, face, interactionType, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_PLACE));
+        Location placedLocation = new Location(p.getWorld(), x, y, z);
+        return new InteractWorldEvent(p, pp, placedLocation, mat, face, interactionType, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_PLACE));
     }
 
     private static ArmSwingEvent packetToArmSwingEvent(PacketPlayInArmAnimation packet, Player p, HawkPlayer pp) {

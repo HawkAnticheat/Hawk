@@ -55,7 +55,7 @@ public class Aimbot extends CustomCheck implements Cancelless {
     public void check(Event e) {
         if (e instanceof PositionEvent) {
             processMove((PositionEvent) e);
-        } else if (e instanceof InteractEntityEvent || e instanceof InteractWorldAndItemEvent) {
+        } else if (e instanceof InteractEntityEvent || e instanceof InteractWorldEvent) {
             processClick(e);
         }
     }

@@ -18,12 +18,10 @@
 
 package me.islandscout.hawk;
 
-import com.google.common.base.Verify;
 import me.islandscout.hawk.check.Check;
 import me.islandscout.hawk.util.ClientBlock;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
-import net.minecraft.server.v1_7_R4.PacketPlayInEntityAction;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -63,9 +61,14 @@ public class HawkPlayer {
     private long currentTick;
     private boolean sneaking;
     private boolean sprinting;
+    private boolean blocking;
+    private boolean pullingBow;
+    private boolean consumingItem;
+    private long itemUseTick;
     private double maxY;
     private double jumpedHeight;
     private long flyPendingTime;
+    private int heldItemSlot;
     private final Set<ClientBlock> clientBlocks;
     private final List<Pair<Vector, Long>> pendingVelocities;
 
@@ -243,8 +246,46 @@ public class HawkPlayer {
         this.sprinting = sprinting;
     }
 
+    public boolean isBlocking() {
+        return blocking;
+    }
+
+    public void setBlocking(boolean blocking) {
+        this.blocking = blocking;
+    }
+
+    public boolean isPullingBow() {
+        return pullingBow;
+    }
+
+    public void setPullingBow(boolean pullingBow) {
+        this.pullingBow = pullingBow;
+    }
+
     public double getFallDistance() {
         return maxY - location.getY();
+    }
+
+    public int getHeldItemSlot() {
+        return heldItemSlot;
+    }
+
+    public void setHeldItemSlot(int heldItemSlot) {
+        this.heldItemSlot = heldItemSlot;
+    }
+
+    public boolean isConsumingItem() {
+        return consumingItem;
+    }
+
+    public void setConsumingItem(boolean consumingItem) {
+        this.consumingItem = consumingItem;
+        if(consumingItem)
+            itemUseTick = currentTick;
+    }
+
+    public long getItemUseTick() {
+        return itemUseTick;
     }
 
     //call this before updating whether on ground or not

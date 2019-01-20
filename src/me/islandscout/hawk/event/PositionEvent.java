@@ -82,7 +82,7 @@ public class PositionEvent extends Event {
                     }
 
                     boolean flying          = p.isFlying();
-                    double sprintMultiplier = flying ? 1 : (p.isSprinting() ? 1.3 : 1); //TODO: flying sprint multiplier for 1.8
+                    double sprintMultiplier = flying ? (p.isSprinting() ? 2 : 1) : (p.isSprinting() ? 1.3 : 1);
                     double weirdConstant    = (p.isOnGround() ? 0.098 : (flying ? 0.049 : 0.0196));
                     double baseMultiplier   = flying ? (10 * p.getFlySpeed()) : (5 * p.getWalkSpeed());
                     double total            = weirdConstant * baseMultiplier * sprintMultiplier;
