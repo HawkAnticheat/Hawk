@@ -250,7 +250,8 @@ public final class PacketConverter7 {
                 x += 1;
                 break;
             default:
-                face = null;
+                face = InteractWorldEvent.BlockFace.INVALID;
+                break;
         }
 
         Location placedLocation = new Location(p.getWorld(), x, y, z);

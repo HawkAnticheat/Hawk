@@ -117,7 +117,7 @@ public class CheckManager {
         } else if (e instanceof BlockDigEvent) {
             for (BlockDigCheck check : blockDigChecks)
                 check.checkEvent((BlockDigEvent) e);
-        } else if (e instanceof InteractWorldEvent && ((InteractWorldEvent) e).getInteractionType() != InteractWorldEvent.InteractionType.USE_ITEM) {
+        } else if (e instanceof InteractWorldEvent) {
             for (BlockInteractionCheck check : blockInteractionChecks)
                 check.checkEvent((InteractWorldEvent) e);
         }

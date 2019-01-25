@@ -47,26 +47,18 @@ public class InteractWorldEvent extends Event {
     }
 
     public Location getPlacedBlockLocation() {
-        if(interactionType == InteractionType.USE_ITEM)
-            return null;
         return location;
     }
 
     public Material getPlacedBlockMaterial() {
-        if(interactionType == InteractionType.USE_ITEM)
-            return null;
         return material;
     }
 
     public BlockFace getTargetedBlockFace() {
-        if(interactionType == InteractionType.USE_ITEM)
-            return null;
         return blockFace;
     }
 
     public Location getTargetedBlockLocation() {
-        if(interactionType == InteractionType.USE_ITEM)
-            return null;
         switch (blockFace) {
             case TOP:
                 return new Location(location.getWorld(), location.getX(), location.getY() - 1, location.getZ());
@@ -80,13 +72,13 @@ public class InteractWorldEvent extends Event {
                 return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ() - 1);
             case BOTTOM:
                 return new Location(location.getWorld(), location.getX(), location.getY() + 1, location.getZ());
+            case INVALID:
+                return location;
         }
         return null;
     }
 
     public Vector getTargetedBlockFaceNormal() {
-        if(interactionType == InteractionType.USE_ITEM)
-            return null;
         switch (blockFace) {
             case TOP:
                 return new Vector(0, 1, 0);
@@ -100,16 +92,17 @@ public class InteractWorldEvent extends Event {
                 return new Vector(-1, 0, 0);
             case EAST:
                 return new Vector(1, 0, 0);
-            default:
-                return null;
+            case INVALID:
+                return new Vector(0, 1, 0);
         }
+        return null;
     }
 
     public enum BlockFace {
-        NORTH, SOUTH, EAST, WEST, TOP, BOTTOM
+        NORTH, SOUTH, EAST, WEST, TOP, BOTTOM, INVALID
     }
 
     public enum InteractionType {
-        USE_ITEM, PLACE_BLOCK, INTERACT_BLOCK
+        PLACE_BLOCK, INTERACT_BLOCK
     }
 }

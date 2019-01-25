@@ -135,6 +135,10 @@ public class PacketCore implements Listener {
 
         hawk.getCheckManager().dispatchEvent(event);
 
+        //ignore packets if player is no longer registered in Hawk
+        if (!pp.isOnline())
+            return false;
+
         //update HawkPlayer
         if (event instanceof InteractItemEvent) {
             InteractItemEvent itemEvent = (InteractItemEvent) event;

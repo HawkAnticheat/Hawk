@@ -36,7 +36,8 @@ public class WrongBlockFace extends BlockInteractionCheck {
     @Override
     protected void check(InteractWorldEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
-        if(e.getTargetedBlockFaceNormal().dot(pp.getLocation().getDirection()) >= 0) {
+        if(e.getTargetedBlockFace() == InteractWorldEvent.BlockFace.INVALID ||
+                e.getTargetedBlockFaceNormal().dot(pp.getLocation().getDirection()) >= 0) {
             punishAndTryCancelAndBlockRespawn(pp, e);
         }
     }
