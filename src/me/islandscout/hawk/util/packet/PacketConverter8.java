@@ -22,6 +22,7 @@ import io.netty.buffer.Unpooled;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.util.block.BlockNMS;
 import me.islandscout.hawk.util.block.BlockNMS8;
@@ -90,7 +91,7 @@ public final class PacketConverter8 {
             catch (IOException e) {
                 e.printStackTrace();
             }
-            int id = serializer.readInt();
+            int id = serializer.e();
             if(id != p.getEntityId()) {
                 return null;
             }

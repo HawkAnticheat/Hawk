@@ -93,5 +93,7 @@ public class PlayerManager implements Listener {
 
         List<Pair<Vector, Long>> pendingVelocities = pp.getPendingVelocities();
         pendingVelocities.add(new Pair<>(vector, System.currentTimeMillis()));
+        if(pendingVelocities.size() > 20)
+            pendingVelocities.remove(0);
     }
 }

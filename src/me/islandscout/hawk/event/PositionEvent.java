@@ -69,6 +69,7 @@ public class PositionEvent extends Event {
             //if the first entry doesn't work (probably because they were fired on the same tick),
             //then work down the list until we find something
             int kbIndex;
+            int expiredKbs = 0;
             long currTime = System.currentTimeMillis();
             Vector currVelocity = new Vector(getTo().getX() - getFrom().getX(), getTo().getY() - getFrom().getY(), getTo().getZ() - getFrom().getZ());
             for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
@@ -106,7 +107,11 @@ public class PositionEvent extends Event {
                     kbs.subList(0, kbIndex + 1).clear();
                     return true;
                 }
+                else {
+                    expiredKbs++;
+                }
             }
+            kbs.subList(0, expiredKbs).clear();
         }
         return false;
     }
