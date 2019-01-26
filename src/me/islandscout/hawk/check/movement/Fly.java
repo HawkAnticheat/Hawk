@@ -22,7 +22,7 @@ import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
-import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.entity.EntityNMS;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -106,7 +106,7 @@ public class Fly extends MovementCheck implements Listener {
     }
 
     @Override
-    protected void check(PositionEvent event) {
+    protected void check(MoveEvent event) {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
         double deltaY = event.getTo().getY() - event.getFrom().getY();

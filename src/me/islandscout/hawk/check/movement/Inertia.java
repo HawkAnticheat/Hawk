@@ -20,7 +20,7 @@ package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
-import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -43,7 +43,7 @@ public class Inertia extends MovementCheck {
     }
 
     @Override
-    public void check(PositionEvent e) {
+    public void check(MoveEvent e) {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
         Vector moveVector = new Vector(e.getTo().getX() - e.getFrom().getX(), 0, e.getTo().getZ() - e.getFrom().getZ());

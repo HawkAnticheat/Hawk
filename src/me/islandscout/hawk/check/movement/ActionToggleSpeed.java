@@ -19,13 +19,9 @@
 package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.check.CustomCheck;
-import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.PlayerActionEvent;
-import me.islandscout.hawk.event.PositionEvent;
-import me.islandscout.hawk.util.Debug;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;

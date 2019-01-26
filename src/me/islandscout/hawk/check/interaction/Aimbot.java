@@ -53,14 +53,14 @@ public class Aimbot extends CustomCheck implements Cancelless {
     }
 
     public void check(Event e) {
-        if (e instanceof PositionEvent) {
-            processMove((PositionEvent) e);
+        if (e instanceof MoveEvent) {
+            processMove((MoveEvent) e);
         } else if (e instanceof InteractEntityEvent || e instanceof InteractWorldEvent) {
             processClick(e);
         }
     }
 
-    private void processMove(PositionEvent e) {
+    private void processMove(MoveEvent e) {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
         UUID uuid = p.getUniqueId();

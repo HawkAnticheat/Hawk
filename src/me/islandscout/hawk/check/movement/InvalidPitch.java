@@ -19,7 +19,7 @@
 package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.check.MovementCheck;
-import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.MoveEvent;
 
 //Not really an important check. This just stops skids from thinking they're so cool.
 public class InvalidPitch extends MovementCheck {
@@ -31,7 +31,7 @@ public class InvalidPitch extends MovementCheck {
     }
 
     @Override
-    protected void check(PositionEvent event) {
+    protected void check(MoveEvent event) {
         if (!event.hasDeltaRot())
             return;
         if (event.getTo().getPitch() < -90 || event.getTo().getPitch() > 90)

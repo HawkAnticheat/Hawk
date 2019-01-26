@@ -25,7 +25,6 @@ import me.islandscout.hawk.listener.PacketListener;
 import me.islandscout.hawk.listener.PacketListener7;
 import me.islandscout.hawk.listener.PacketListener8;
 import me.islandscout.hawk.util.ClientBlock;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
@@ -104,8 +103,8 @@ public class PacketCore implements Listener {
         if (event == null)
             return true;
 
-        if (event instanceof PositionEvent) {
-            PositionEvent posEvent = (PositionEvent) event;
+        if (event instanceof MoveEvent) {
+            MoveEvent posEvent = (MoveEvent) event;
             posEvent.setTeleported(false);
             pp.incrementCurrentTick();
             //handle teleports
@@ -181,21 +180,21 @@ public class PacketCore implements Listener {
                 pp.addClientBlock(clientBlock);
             }
         }
-        if (event instanceof PositionEvent) {
+        if (event instanceof MoveEvent) {
             pp.setLastMoveTime(System.currentTimeMillis());
             if(event.isCancelled()) {
                 //handle rubberband if applicable
-                if(((PositionEvent) event).getCancelLocation() != null) {
-                    ((PositionEvent) event).setTo(((PositionEvent) event).getCancelLocation());
+                if(((MoveEvent) event).getCancelLocation() != null) {
+                    ((MoveEvent) event).setTo(((MoveEvent) event).getCancelLocation());
                     pp.setTeleporting(true);
-                    pp.teleportPlayer(((PositionEvent) event).getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+                    pp.teleportPlayer(((MoveEvent) event).getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
                 } else {
                     //If cancelled but no rubberband,
                     //are you sure you want to modify the next move's getFrom?
                     //As long as you're rubberbanding the player back to this loc
                     //when there's a discrepancy, (which you are, look about 35 lines up)
                     //you should be OK
-                    ((PositionEvent) event).setTo(((PositionEvent) event).getFrom());
+                    ((MoveEvent) event).setTo(((MoveEvent) event).getFrom());
                 }
             } else {
                 //handle item consumption
@@ -203,15 +202,15 @@ public class PacketCore implements Listener {
                     pp.setConsumingItem(false);
                 }
 
-                Location to = ((PositionEvent) event).getTo();
-                Location from = ((PositionEvent) event).getFrom();
+                Location to = ((MoveEvent) event).getTo();
+                Location from = ((MoveEvent) event).getFrom();
                 pp.setVelocity(new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ()));
                 pp.setDeltaYaw(to.getYaw() - from.getYaw());
                 pp.setDeltaPitch(to.getPitch() - from.getPitch());
                 pp.setLocation(to);
                 pp.updateFallDistance(to);
                 pp.updateTotalAscensionSinceGround(from.getY(), to.getY());
-                pp.setOnGround(((PositionEvent) event).isOnGround());
+                pp.setOnGround(((MoveEvent) event).isOnGround());
             }
 
         }

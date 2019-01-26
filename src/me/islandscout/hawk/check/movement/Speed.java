@@ -21,7 +21,7 @@ package me.islandscout.hawk.check.movement;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
-import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Pair;
@@ -88,7 +88,7 @@ public class Speed extends MovementCheck implements Listener {
     }
 
     @Override
-    protected void check(PositionEvent event) {
+    protected void check(MoveEvent event) {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
         long ticksSinceUpdatePos = pp.getCurrentTick() - lastTickPosUpdate.getOrDefault(p.getUniqueId(), pp.getCurrentTick() - 1); //will always be >= 1
@@ -299,7 +299,7 @@ public class Speed extends MovementCheck implements Listener {
         prepareNextMove(wasOnGround, isOnGround, event, p.getUniqueId(), pp.getCurrentTick(), speed);
     }
 
-    private void prepareNextMove(boolean wasOnGround, boolean isOnGround, PositionEvent event, UUID uuid, long currentTick, double currentSpeed) {
+    private void prepareNextMove(boolean wasOnGround, boolean isOnGround, MoveEvent event, UUID uuid, long currentTick, double currentSpeed) {
         if(isOnGround) {
             prevMoveWasOnGround.add(uuid);
             lastTickOnGround.put(uuid, currentTick);

@@ -24,8 +24,6 @@ import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.util.ConfigHelper;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Pair;
-import net.minecraft.server.v1_7_R4.PlayerDistanceComparator;
-import net.minecraft.server.v1_8_R3.MathHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -217,8 +215,8 @@ public class MouseRecorder {
         @Override
         public void onEvent(Event e) {
             if(e.getPlayer().equals(target)) {
-                if(e instanceof PositionEvent) {
-                    PositionEvent posE = (PositionEvent)e;
+                if(e instanceof MoveEvent) {
+                    MoveEvent posE = (MoveEvent)e;
                     float deltaYaw = posE.getTo().getYaw() - posE.getFrom().getYaw();
                     float deltaPitch = posE.getTo().getPitch() - posE.getFrom().getPitch();
                     int size = vectors.size();

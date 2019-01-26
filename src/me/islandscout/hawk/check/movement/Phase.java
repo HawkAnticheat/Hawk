@@ -20,7 +20,7 @@ package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
-import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.block.BlockNMS;
 import org.bukkit.GameMode;
@@ -65,7 +65,7 @@ public class Phase extends MovementCheck {
     }
 
     @Override
-    protected void check(PositionEvent event) {
+    protected void check(MoveEvent event) {
         Location locTo = event.getTo();
         Location locFrom = event.getFrom();
         Player p = event.getPlayer();

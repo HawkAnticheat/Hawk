@@ -19,7 +19,6 @@
 package me.islandscout.hawk.event;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.WrappedPacket;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;

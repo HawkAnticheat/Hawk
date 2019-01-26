@@ -19,7 +19,7 @@
 package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.check.MovementCheck;
-import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.Debug;
 
 public class Bouncy extends MovementCheck {
@@ -35,7 +35,7 @@ public class Bouncy extends MovementCheck {
     private boolean falling;
 
     @Override
-    protected void check(PositionEvent event) {
+    protected void check(MoveEvent event) {
         double deltaY = event.getTo().getY() - event.getFrom().getY();
         if (!event.isOnGround())
             velocityOnImpact = event.getTo().getY() - event.getFrom().getY();

@@ -21,9 +21,8 @@ package me.islandscout.hawk.check.movement;
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.check.MovementCheck;
-import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.MoveEvent;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -47,7 +46,7 @@ public class LiquidExit extends MovementCheck implements Listener {
     }
 
     @Override
-    protected void check(PositionEvent e) {
+    protected void check(MoveEvent e) {
         Player p = e.getPlayer();
         if (p.isFlying() || p.isInsideVehicle())
             return;

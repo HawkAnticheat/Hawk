@@ -19,21 +19,14 @@
 package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
-import me.islandscout.hawk.util.Debug;
-import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.check.Cancelless;
-import me.islandscout.hawk.event.PositionEvent;
-import me.islandscout.hawk.util.PhysicsUtils;
-import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.event.MoveEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.util.Vector;
-
-import java.util.*;
 
 public class AntiVelocity extends MovementCheck implements Listener, Cancelless {
 
@@ -42,7 +35,7 @@ public class AntiVelocity extends MovementCheck implements Listener, Cancelless 
     }
 
     @Override
-    protected void check(PositionEvent event) {
+    protected void check(MoveEvent event) {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
 

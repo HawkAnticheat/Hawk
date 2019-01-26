@@ -20,7 +20,7 @@ package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.check.MovementCheck;
-import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
 import me.islandscout.hawk.util.ConfigHelper;
 import me.islandscout.hawk.util.packet.WrappedPacket;
@@ -40,7 +40,7 @@ public class GroundSpoof extends MovementCheck {
     }
 
     @Override
-    protected void check(PositionEvent event) {
+    protected void check(MoveEvent event) {
         if (!event.isOnGroundReally()) {
             if (event.isOnGround()) {
 
@@ -65,7 +65,7 @@ public class GroundSpoof extends MovementCheck {
     }
 
     //TODO: hmm... perhaps do this after all checks??? (prevent any conflicts from happening)
-    private void setNotOnGround(PositionEvent e) {
+    private void setNotOnGround(MoveEvent e) {
         WrappedPacket packet = e.getWrappedPacket();
         if (Hawk.getServerVersion() == 7) {
             switch (packet.getType()) {

@@ -21,7 +21,6 @@ package me.islandscout.hawk.util.packet;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.util.block.BlockNMS;
 import me.islandscout.hawk.util.block.BlockNMS7;
@@ -94,9 +93,9 @@ public final class PacketConverter7 {
         return null;
     }
 
-    private static PositionEvent packetToPosEvent(PacketPlayInFlying packet, Player p, HawkPlayer pp) {
+    private static MoveEvent packetToPosEvent(PacketPlayInFlying packet, Player p, HawkPlayer pp) {
         //default position
-        Location loc = PositionEvent.getLastPosition(pp);
+        Location loc = MoveEvent.getLastPosition(pp);
 
         //There's an NPE here if someone teleports to another world using a dumb multi-world plugin (which sets the PlayerTeleportEvent#getTo() location to null)
         //I don't believe it is my responsibility to "fix" this. If there are enough complaints, I MIGHT consider looking into it.
@@ -127,7 +126,7 @@ public final class PacketConverter7 {
             loc.setZ(packet.e());
         }
 
-        return new PositionEvent(p, loc, packet.i(), pp, new WrappedPacket7(packet, pType), updatePos, updateRot);
+        return new MoveEvent(p, loc, packet.i(), pp, new WrappedPacket7(packet, pType), updatePos, updateRot);
     }
 
     private static InteractEntityEvent packetToInterEvent(PacketPlayInUseEntity packet, Player p, HawkPlayer pp) {
@@ -178,6 +177,8 @@ public final class PacketConverter7 {
             return new BlockDigEvent(p, pp, digAction, b, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_DIG));
         }
         ItemStack item = p.getInventory().getItem(pp.getHeldItemSlot());
+        if(item == null)
+            return null;
         return new InteractItemEvent(p, pp, item, interactAction, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_DIG));
 
     }
@@ -221,6 +222,8 @@ public final class PacketConverter7 {
         }
         else {
             ItemStack item = p.getInventory().getItem(pp.getHeldItemSlot());
+            if(item == null)
+                return null;
             return new InteractItemEvent(p, pp, item, InteractItemEvent.Type.START_USE_ITEM, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_PLACE));
         }
 

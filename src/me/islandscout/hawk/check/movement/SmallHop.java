@@ -20,10 +20,8 @@ package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
-import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
-import me.islandscout.hawk.util.Debug;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 
 import java.util.*;
@@ -49,7 +47,7 @@ public class SmallHop extends MovementCheck {
     }
 
     @Override
-    protected void check(PositionEvent e) {
+    protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
         UUID uuid = e.getPlayer().getUniqueId();
         double deltaY = e.hasTeleported() ? 0D : e.getTo().getY() - e.getFrom().getY();

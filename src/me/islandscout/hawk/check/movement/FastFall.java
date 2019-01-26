@@ -18,5 +18,36 @@
 
 package me.islandscout.hawk.check.movement;
 
-public class FastFall {
+import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.check.MovementCheck;
+import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.util.AdjacentBlocks;
+import org.bukkit.Location;
+
+/**
+ * Significantly limits y-port speed bypasses
+ */
+public class FastFall extends MovementCheck {
+
+    public FastFall() {
+        super("fastfall", "%player% failed fast-fall, VL: %vl%");
+    }
+
+    @Override
+    protected void check(MoveEvent e) {
+        HawkPlayer pp = e.getHawkPlayer();
+        if(AdjacentBlocks.onGroundReally(pp.getLocation(), -1, false, 0.001) ||
+                e.hasTeleported() || e.getPlayer().isFlying() || e.hasAcceptedKnockback())
+            return;
+        double deltaY = e.getTo().getY() - e.getFrom().getY();
+        double expected = (pp.getVelocity().getY() - 0.08F) * 0.98F;
+        Location chkPos = e.getFrom().clone().add(0, 2.5, 0);
+
+        //I HATE this game's movement.
+        if(deltaY + 0.02 < expected &&
+                !AdjacentBlocks.blockAdjacentIsSolid(chkPos) &&
+                !AdjacentBlocks.blockNearbyIsSolid(chkPos, false)) {
+            punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+        }
+    }
 }

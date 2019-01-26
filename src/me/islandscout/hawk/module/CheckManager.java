@@ -68,7 +68,6 @@ public class CheckManager {
         new Fly();
         new BlockBreakSpeed();
         new TickRate();
-        //new VelocityMagnitude();
         new Inertia();
         new BlockBreakHitbox();
         new WrongBlock();
@@ -90,6 +89,7 @@ public class CheckManager {
         new ActionToggleSpeed();
         new Speed();
         new SmallHop();
+        new FastFall();
 
         hawk.saveConfigs();
     }
@@ -108,9 +108,9 @@ public class CheckManager {
         for (CustomCheck check : customChecks) {
             check.checkEvent(e);
         }
-        if (e instanceof PositionEvent) {
+        if (e instanceof MoveEvent) {
             for (MovementCheck check : movementChecks)
-                check.checkEvent((PositionEvent) e);
+                check.checkEvent((MoveEvent) e);
         } else if (e instanceof InteractEntityEvent) {
             for (EntityInteractionCheck check : entityInteractionChecks)
                 check.checkEvent((InteractEntityEvent) e);

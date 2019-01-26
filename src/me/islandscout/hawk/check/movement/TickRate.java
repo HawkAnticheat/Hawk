@@ -20,9 +20,8 @@ package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
-import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.ConfigHelper;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.MathPlus;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -30,9 +29,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.*;
@@ -67,7 +64,7 @@ public class TickRate extends MovementCheck implements Listener {
     }
 
     @Override
-    protected void check(PositionEvent event) {
+    protected void check(MoveEvent event) {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
         if (event.hasTeleported() || pp.getCurrentTick() - lastBigTeleportTime.getOrDefault(p.getUniqueId(), 0L) < WARM_UP)

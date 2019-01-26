@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class PositionEvent extends Event {
+public class MoveEvent extends Event {
 
     //Remember that the client only updates position/rotation information if
     //it is significant enough. Use hasDeltaPos() hasDeltaRot() when necessary.
@@ -40,7 +40,6 @@ public class PositionEvent extends Event {
 
     private final boolean onGround;
     private final boolean onGroundReally;
-    //TODO: Have an onGroundReally boolean for the getFrom position. Should make things faster since checks don't have to compute it all the time.
     private boolean teleported;
     private Location cancelLocation;
     private boolean updatePos;
@@ -48,10 +47,11 @@ public class PositionEvent extends Event {
     private boolean acceptedKnockback;
     //No, don't compute a delta vector during instantiation since teleports will affect it.
 
+    //Not sure if these maps are necessary since you can determine the previous position using HawkPlayer#getLocation()
     private static final Map<UUID, Location> last = new HashMap<>();
     private static final Map<UUID, Location> current = new HashMap<>();
 
-    public PositionEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet, boolean updatePos, boolean updateRot) {
+    public MoveEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet, boolean updatePos, boolean updateRot) {
         super(p, pp, packet);
         last.put(p.getUniqueId(), current.getOrDefault(p.getUniqueId(), pp.getLocation()));
         current.put(p.getUniqueId(), update);

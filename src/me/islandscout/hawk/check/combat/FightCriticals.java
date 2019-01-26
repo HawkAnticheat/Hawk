@@ -35,7 +35,7 @@ public class FightCriticals extends EntityInteractionCheck {
 
     @Override
     protected void check(InteractEntityEvent e) {
-        if (e.getInteractAction() == InteractAction.ATTACK) {
+        if (e.getInteractAction() == InteractAction.ATTACK && !e.getPlayer().isFlying()) {
             HawkPlayer att = e.getHawkPlayer();
             Location loc = att.getLocation().clone();
 

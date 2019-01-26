@@ -19,7 +19,7 @@
 package me.islandscout.hawk;
 
 import me.islandscout.hawk.command.HawkCommand;
-import me.islandscout.hawk.event.PositionEvent;
+import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.module.*;
 import me.islandscout.hawk.util.ConfigHelper;
 import org.bukkit.Bukkit;
@@ -128,7 +128,7 @@ public class Hawk extends JavaPlugin {
         banManager = null;
         muteManager.saveMutedPlayers();
         muteManager = null;
-        PositionEvent.discardData();
+        MoveEvent.discardData();
         profiles = null;
         sql.closeConnection();
         sql = null;
