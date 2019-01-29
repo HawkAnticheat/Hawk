@@ -21,10 +21,7 @@ package me.islandscout.hawk.check.combat;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractEntityEvent;
-import me.islandscout.hawk.util.ConfigHelper;
-import me.islandscout.hawk.util.MathPlus;
-import me.islandscout.hawk.util.Placeholder;
-import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.util.*;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -40,7 +37,7 @@ public class FightReachApprox extends EntityInteractionCheck {
 
     public FightReachApprox() {
         super("fightreachapprox", "%player% failed fight reach (approximate). Reach: %distance%m VL: %vl%");
-        MAX_REACH = Math.pow(ConfigHelper.getOrSetDefault(4, hawk.getConfig(), "checks.fightreachapprox.maxReach"), 2);
+        MAX_REACH = Math.pow(ConfigHelper.getOrSetDefault(4.0, hawk.getConfig(), "checks.fightreachapprox.maxReach"), 2);
         MAX_REACH_CREATIVE = Math.pow(ConfigHelper.getOrSetDefault(5.8, hawk.getConfig(), "checks.fightreachapprox.maxReachCreative"), 2);
         PING_LIMIT = ConfigHelper.getOrSetDefault(-1, hawk.getConfig(), "checks.fightreachapprox.pingLimit");
         LAG_COMPENSATION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fightreachapprox.lagCompensation");

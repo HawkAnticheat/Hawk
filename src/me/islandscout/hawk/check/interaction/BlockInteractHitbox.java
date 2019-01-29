@@ -42,7 +42,7 @@ public class BlockInteractHitbox extends BlockInteractionCheck {
         super("blockinteracthitbox", true, 10, 10, 0.9, 5000, "%player% failed block interact hitbox. %type% VL: %vl%", null);
         DEBUG_HITBOX = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockinteracthitbox.debug.hitbox");
         DEBUG_RAY = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockinteracthitbox.debug.ray");
-        MAX_REACH = ConfigHelper.getOrSetDefault(6, hawk.getConfig(), "checks.blockinteracthitbox.maxReach");
+        MAX_REACH = ConfigHelper.getOrSetDefault(6.0, hawk.getConfig(), "checks.blockinteracthitbox.maxReach");
         CHECK_OCCLUSION = (boolean)customSetting("enabled", "checkOccluding", true);
         ALWAYS_CANCEL_OCCLUSION = (boolean)customSetting("alwaysCancel", "checkOccluding", true);
     }

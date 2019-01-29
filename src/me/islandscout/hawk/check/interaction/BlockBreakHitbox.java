@@ -47,7 +47,7 @@ public class BlockBreakHitbox extends BlockDigCheck {
         DEBUG_HITBOX = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.debug.hitbox");
         DEBUG_RAY = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.debug.ray");
         CHECK_DIG_START = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.checkDigStart");
-        MAX_REACH = ConfigHelper.getOrSetDefault(6, hawk.getConfig(), "checks.blockbreakhitbox.maxReach");
+        MAX_REACH = ConfigHelper.getOrSetDefault(6.0, hawk.getConfig(), "checks.blockbreakhitbox.maxReach");
         CHECK_OCCLUSION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.blockbreakhitbox.checkOccluding.enabled");
         ALWAYS_CANCEL_OCCLUSION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.blockbreakhitbox.checkOccluding.alwaysCancel");
     }
