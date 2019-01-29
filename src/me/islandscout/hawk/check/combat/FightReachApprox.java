@@ -33,6 +33,7 @@ import org.bukkit.entity.Player;
 public class FightReachApprox extends EntityInteractionCheck {
 
     private final double MAX_REACH;
+    private final double MAX_REACH_CREATIVE;
     private final int PING_LIMIT;
     private final boolean LAG_COMPENSATION;
     private final boolean CHECK_OTHER_ENTITIES;
@@ -40,6 +41,7 @@ public class FightReachApprox extends EntityInteractionCheck {
     public FightReachApprox() {
         super("fightreachapprox", "%player% failed fight reach (approximate). Reach: %distance%m VL: %vl%");
         MAX_REACH = Math.pow(ConfigHelper.getOrSetDefault(4, hawk.getConfig(), "checks.fightreachapprox.maxReach"), 2);
+        MAX_REACH_CREATIVE = Math.pow(ConfigHelper.getOrSetDefault(5.8, hawk.getConfig(), "checks.fightreachapprox.maxReachCreative"), 2);
         PING_LIMIT = ConfigHelper.getOrSetDefault(-1, hawk.getConfig(), "checks.fightreachapprox.pingLimit");
         LAG_COMPENSATION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fightreachapprox.lagCompensation");
         CHECK_OTHER_ENTITIES = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fightreachapprox.checkOtherEntities");
@@ -71,9 +73,7 @@ public class FightReachApprox extends EntityInteractionCheck {
         double feetFeetDistanceSquared = victimLocation.distanceSquared(attackerLocation);
         double eyeFeetDistanceSquared = victimLocation.distanceSquared(attackerLocation.clone().add(0, 1.62, 0));
         double chkDistanceSquared = Math.min(feetFeetDistanceSquared, eyeFeetDistanceSquared);
-        double maxReach = MAX_REACH;
-        if (e.getPlayer().getGameMode() == GameMode.CREATIVE)
-            maxReach += 17.64; //MC1.7: 1.8, MC1.8: 1.5
+        double maxReach = e.getPlayer().getGameMode() == GameMode.CREATIVE ? MAX_REACH_CREATIVE : MAX_REACH;
         if (chkDistanceSquared > maxReach) {
             punish(att, true, e, new Placeholder("distance", MathPlus.round(Math.sqrt(chkDistanceSquared), 2)));
         } else {
