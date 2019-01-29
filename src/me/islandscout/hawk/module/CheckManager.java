@@ -90,6 +90,7 @@ public class CheckManager {
         new Speed();
         new SmallHop();
         new FastFall();
+        new MultiAction();
 
         hawk.saveConfigs();
     }

@@ -70,11 +70,12 @@ public class FightReachApprox extends EntityInteractionCheck {
             victimLocation = victimEntity.getLocation();
         double feetFeetDistanceSquared = victimLocation.distanceSquared(attackerLocation);
         double eyeFeetDistanceSquared = victimLocation.distanceSquared(attackerLocation.clone().add(0, 1.62, 0));
+        double chkDistanceSquared = Math.min(feetFeetDistanceSquared, eyeFeetDistanceSquared);
         double maxReach = MAX_REACH;
         if (e.getPlayer().getGameMode() == GameMode.CREATIVE)
             maxReach += 17.64; //MC1.7: 1.8, MC1.8: 1.5
-        if (feetFeetDistanceSquared > maxReach && eyeFeetDistanceSquared > maxReach) {
-            punish(att, true, e, new Placeholder("distance", MathPlus.round(Math.sqrt(feetFeetDistanceSquared), 2)));
+        if (chkDistanceSquared > maxReach) {
+            punish(att, true, e, new Placeholder("distance", MathPlus.round(Math.sqrt(chkDistanceSquared), 2)));
         } else {
             reward(att);
         }

@@ -39,6 +39,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.potion.Potion;
+import org.bukkit.potion.PotionType;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -144,6 +145,7 @@ public class PacketCore implements Listener {
             Material mat = itemEvent.getItemStack().getType();
             if(itemEvent.getType() == InteractItemEvent.Type.START_USE_ITEM) {
                 if((mat.isEdible() && p.getFoodLevel() < 20 && p.getGameMode() != GameMode.CREATIVE) ||
+                        //TODO: Fix IllegalArgumentException when consuming water bottles
                         (mat == Material.POTION && !Potion.fromItemStack(itemEvent.getItemStack()).isSplash())) {
                     pp.setConsumingItem(true);
                 }
@@ -156,6 +158,7 @@ public class PacketCore implements Listener {
             }
             else if(itemEvent.getType() == InteractItemEvent.Type.RELEASE_USE_ITEM) {
                 if((mat.isEdible() && p.getFoodLevel() < 20 && p.getGameMode() != GameMode.CREATIVE) ||
+                        //TODO: Fix IllegalArgumentException when consuming water bottles
                         (mat == Material.POTION && !Potion.fromItemStack(itemEvent.getItemStack()).isSplash())) {
                     pp.setConsumingItem(false);
                 }

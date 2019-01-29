@@ -44,10 +44,14 @@ public class FastFall extends MovementCheck {
         Location chkPos = e.getFrom().clone().add(0, 2.5, 0);
 
         //I HATE this game's movement.
-        if(deltaY + 0.02 < expected &&
-                !AdjacentBlocks.blockAdjacentIsSolid(chkPos) &&
+        if(!AdjacentBlocks.blockAdjacentIsSolid(chkPos) &&
                 !AdjacentBlocks.blockNearbyIsSolid(chkPos, false)) {
-            punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+            if(deltaY + 0.02 < expected) {
+                punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+            }
+            else {
+                reward(pp);
+            }
         }
     }
 }
