@@ -8,4 +8,5 @@ Hawk is a Spigot server anticheat plugin designed to detect and prevent abuse of
 Unfortunately, because of CraftBukkit's DMCA takedown, this is not a Maven project. If you wish to compile this, you must have Spigot (or other derivatives) servers 1.7_R4 and 1.8_R3 as build dependencies.
 
 Download JAR here: https://www.spigotmc.org/resources/hawk-anticheat-mc-1-7-10-1-8-x.40343/
+
 Discord: https://discord.gg/rQGb5DV
