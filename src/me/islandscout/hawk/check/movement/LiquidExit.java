@@ -58,6 +58,7 @@ public class LiquidExit extends MovementCheck implements Listener {
         double deltaY = to.getY() - from.getY();
 
         //emerged upwards from liquid
+        //TODO: If a player does emerge from liquid, enforce correct Y velocity
         if (deltaY > 0 && AdjacentBlocks.blockAdjacentIsLiquid(from) && !AdjacentBlocks.blockAdjacentIsLiquid(to) &&
                 !AdjacentBlocks.blockAdjacentIsLiquid(fromModdedY) && !(AdjacentBlocks.blockNearbyIsSolid(from, true) || AdjacentBlocks.blockNearbyIsSolid(to, true))) {
             Pair<Double, Long> kb = kbTime.getOrDefault(p.getUniqueId(), new Pair<>(0D, 0L));

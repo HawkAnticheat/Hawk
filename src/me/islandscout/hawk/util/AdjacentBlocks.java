@@ -57,7 +57,7 @@ public class AdjacentBlocks {
         return blocks;
     }
 
-    public static boolean matIsAdjacent(Location loc, Material material) {
+    public static boolean matIsAdjacent(Location loc, Material... materials) {
         Location check = loc.clone();
         Set<Block> sample = new HashSet<>();
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
@@ -69,8 +69,12 @@ public class AdjacentBlocks {
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         for (Block b : sample) {
-            if (b != null && b.getType() == material)
-                return true;
+            if(b == null)
+                continue;
+            for(Material mat : materials) {
+                if(b.getType() == mat)
+                    return true;
+            }
         }
         return false;
     }

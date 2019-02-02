@@ -24,12 +24,11 @@ import me.islandscout.hawk.util.packet.WrappedPacket;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class MoveEvent extends Event {
 
@@ -65,43 +64,54 @@ public class MoveEvent extends Event {
     private boolean handlePendingVelocities() {
         List<Pair<Vector, Long>> kbs = pp.getPendingVelocities();
         if (kbs.size() > 0) {
-            //pending knockbacks must be in order; get the first entry in the list.
-            //if the first entry doesn't work (probably because they were fired on the same tick),
-            //then work down the list until we find something
+            double epsilon = 0.002;
             int kbIndex;
             int expiredKbs = 0;
             long currTime = System.currentTimeMillis();
             Vector currVelocity = new Vector(getTo().getX() - getFrom().getX(), getTo().getY() - getFrom().getY(), getTo().getZ() - getFrom().getZ());
+            Set<PhysicsUtils.Direction> touchingBlocks = PhysicsUtils.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.3, 0.000001, -0.3)), getTo().toVector().add(new Vector(0.3, 1.799999, 0.3))), getTo().getWorld());
+            double speedPotMultiplier = 1;
+            for (PotionEffect effect : p.getActivePotionEffects()) {
+                if (!effect.getType().equals(PotionEffectType.SPEED))
+                    continue;
+                speedPotMultiplier = 1 + (effect.getAmplifier() + 1 * 0.2);
+            }
+            boolean flying          = p.isFlying();
+            double sprintMultiplier = flying ? (p.isSprinting() ? 2 : 1) : (p.isSprinting() ? 1.3 : 1);
+            double weirdConstant    = (p.isOnGround() ? 0.098 : (flying ? 0.049 : 0.0196));
+            double baseMultiplier   = flying ? (10 * p.getFlySpeed()) : (5 * p.getWalkSpeed() * speedPotMultiplier);
+            double total            = weirdConstant * baseMultiplier * sprintMultiplier;
+
+            //pending knockbacks must be in order; get the first entry in the list.
+            //if the first entry doesn't work (probably because they were fired on the same tick),
+            //then work down the list until we find something
             for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
                 Pair<Vector, Long> kb = kbs.get(kbIndex);
                 if (currTime - kb.getValue() <= ServerUtils.getPing(p) + 200) {
+
                     Vector kbVelocity = kb.getKey();
+
                     //check Y component
-                    //TODO: air, web, and liquid friction. get rid of >= 0 and support -0.0784
-                    if (kbVelocity.getY() >= 0 && Math.abs(kbVelocity.getY() - currVelocity.getY()) > 0.01) {
+                    //TODO: air, web, and liquid friction.
+                    if (Math.abs((onGround ? 0 : kbVelocity.getY()) - currVelocity.getY()) > 0.01) {
                         continue;
                     }
 
-                    boolean flying          = p.isFlying();
-                    double sprintMultiplier = flying ? (p.isSprinting() ? 2 : 1) : (p.isSprinting() ? 1.3 : 1);
-                    double weirdConstant    = (p.isOnGround() ? 0.098 : (flying ? 0.049 : 0.0196));
-                    double baseMultiplier   = flying ? (10 * p.getFlySpeed()) : (5 * p.getWalkSpeed());
-                    double total            = weirdConstant * baseMultiplier * sprintMultiplier;
-
-                    double epsilon = 0.002;
                     double minThresX = kbVelocity.getX() - total - epsilon;
                     double maxThresX = kbVelocity.getX() + total + epsilon;
                     double minThresZ = kbVelocity.getZ() - total - epsilon;
                     double maxThresZ = kbVelocity.getZ() + total + epsilon;
 
                     //check X component
-                    //Debug.broadcastMessage("minX: " + minThresX + " " + currVelocity.getX() + " " + "maxX: " + maxThresX);
-                    if (!(currVelocity.getX() <= maxThresX && currVelocity.getX() >= minThresX)) {
+                    //only check if player is not pinned to a wall
+                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.EAST) && kbVelocity.getX() > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.WEST) && kbVelocity.getX() < 0)) &&
+                            !(currVelocity.getX() <= maxThresX && currVelocity.getX() >= minThresX)) {
                         continue;
                     }
                     //check Z component
-                    //Debug.broadcastMessage("minZ: " + minThresZ + " " + currVelocity.getZ() + " " + "maxZ: " + maxThresZ);
-                    if (!(currVelocity.getZ() <= maxThresZ && currVelocity.getZ() >= minThresZ)) {
+                    //only check if player is not pinned to a wall
+                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.SOUTH) && kbVelocity.getZ() > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.NORTH) && kbVelocity.getZ() < 0)) &&
+                            !(currVelocity.getZ() <= maxThresZ && currVelocity.getZ() >= minThresZ)) {
                         continue;
                     }
                     kbs.subList(0, kbIndex + 1).clear();

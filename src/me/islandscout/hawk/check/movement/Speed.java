@@ -23,10 +23,9 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
-import me.islandscout.hawk.util.MathPlus;
-import me.islandscout.hawk.util.Pair;
-import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.util.*;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -44,7 +43,7 @@ public class Speed extends MovementCheck implements Listener {
     //I legit hate this game's movement
 
     //TODO Shrink this code
-    //TODO False flag when sprint jumping on ice
+    //TODO False flag when landing on ice
     //TODO False flag with pistons
 
     //Basically, this check is doing, "if your previous speed was X then your current speed must not exceed f(X)"
@@ -109,6 +108,7 @@ public class Speed extends MovementCheck implements Listener {
         long ticksSinceLanding = pp.getCurrentTick() - landingTick.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
         long ticksSinceSprintJumping = pp.getCurrentTick() - sprintingJumpTick.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
         long ticksSinceOnGround = pp.getCurrentTick() - lastTickOnGround.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
+        boolean flying = (pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying();
         boolean up = event.getTo().getY() > event.getFrom().getY();
         boolean usingSomething = pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow();
         boolean sprinting = pp.isSprinting() && !pp.isSneaking() && !usingSomething;
@@ -142,6 +142,21 @@ public class Speed extends MovementCheck implements Listener {
         SpeedType failed = null;
         Discrepancy discrepancy = new Discrepancy(0, 0);
         boolean checked = true;
+        //LIQUID
+        /*
+        Location chkPos = event.getTo().clone();
+        if(!flying && (AdjacentBlocks.blockAdjacentIsLiquid(chkPos) || AdjacentBlocks.blockAdjacentIsLiquid(chkPos.add(0, 1.8, 0)))) {
+            //lava (goes first since it overrides water)
+            if(AdjacentBlocks.matIsAdjacent(chkPos, Material.STATIONARY_LAVA, Material.LAVA) || AdjacentBlocks.matIsAdjacent(chkPos.add(0, -1.8, 0), Material.STATIONARY_LAVA, Material.LAVA)) {
+                if(event.isUpdatePos()) {
+
+                }
+            }
+            //water
+            else {
+
+            }
+        }*/
         //LAND (instantaneous)
         if((isOnGround && ticksSinceLanding == 1) || (ticksSinceOnGround == 1 && ticksSinceLanding == 1 && !up)) {
             if(sprinting) {
@@ -277,6 +292,8 @@ public class Speed extends MovementCheck implements Listener {
             if(failed != null) {
                 if(totalDiscrepancy > DISCREPANCY_THRESHOLD && speed > haltDistanceExpected) {
                     punishAndTryRubberband(pp, event, p.getLocation());
+                    if(DEBUG)
+                        p.sendMessage(ChatColor.RED + failed.toString());
                 }
 
             }
@@ -430,7 +447,7 @@ public class Speed extends MovementCheck implements Listener {
     }
 
     private Discrepancy lavaMapping(double lastSpeed, double currentSpeed) {
-        double expected = 0;
+        double expected = 0.500001 * lastSpeed + 0.020001;
         return new Discrepancy(expected, currentSpeed);
     }
 

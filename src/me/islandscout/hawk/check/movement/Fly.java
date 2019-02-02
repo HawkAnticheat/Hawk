@@ -63,6 +63,8 @@ import java.util.*;
  */
 public class Fly extends MovementCheck implements Listener {
 
+    //TODO: I suggest getting rid of map lastDeltaY and instead use HawkPlayer#getVelocity(). Should keep things consistent, especially when moving from liquids to air.
+
     //TODO: false flag with pistons
     //TODO: false flag on slime blocks
     //TODO: false flag while jumping down stairs

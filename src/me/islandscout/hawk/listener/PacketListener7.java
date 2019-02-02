@@ -43,7 +43,6 @@ public class PacketListener7 extends PacketListener {
                     adapter.run(packet, p);
                 }
 
-                //TODO: Get rid of this try/catch when you're done debugging
                 try {
                     if (!packetCore.processIn(packet, p))
                         return; //prevent packet from getting processed by Bukkit if a check fails

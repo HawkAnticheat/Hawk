@@ -18,6 +18,17 @@
 
 package me.islandscout.hawk.util;
 
+import me.islandscout.hawk.util.block.BlockNMS;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.util.Vector;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
  * High accuracy Minecraft physics utility.
  */
@@ -35,18 +46,12 @@ public final class PhysicsUtils {
     //graphing the client's velocity on a velocity vs. time graph,
     //the velocity appears to exponentially decay towards one of
     //these specific values.
-    public static final double WALK_SPEED = 50D/227D;
+    public static final double WALK_TERMINAL_VELOCITY = 50D/227D;
+    public static final double WALK_ACCELERATION = 0.1;
     public static final double SPRINT_MULTIPLIER = 1.3;
     public static final double SNEAK_MULTIPLIER = 0.41561;
-    public static final double FLY_SPEED = 5D/9D;
+    public static final double FLY_TERMINAL_VELOCITY = 5D/9D;
     public static final double FLY_SPRINT_MULTIPLIER = 1.3;
-
-    //If moving slow enough, the client may buffer its moves and then send them when
-    //they're significant enough. I'm not sure if this is an attempt at network
-    //compression, but what I do know is that movements under this value are
-    //unpredictable.
-    public static final double MOVEMENT_RELIABILITY_THRESHOLD = 0.1;
-
 
     private PhysicsUtils() {
     }
@@ -73,5 +78,47 @@ public final class PhysicsUtils {
 
     public static double waterYVelFunc(double initVelocityY, long deltaTime) {
         return (0.1 + initVelocityY) * Math.pow(0.8, deltaTime) - 0.1;
+    }
+
+    public static Set<Direction> checkTouchingBlock(AABB boundingBox, World world) {
+        AABB bigBox = boundingBox.clone();
+        Vector min = bigBox.getMin().add(new Vector(-0.0001, -0.0001, -0.0001));
+        Vector max = bigBox.getMax().add(new Vector(0.0001, 0.0001, 0.0001));
+        Set<Direction> directions = new HashSet<>();
+        for(int x = (int)min.getX(); x < max.getX(); x++) {
+            for(int y = (int)min.getY(); y < max.getY(); y++) {
+                for(int z = (int)min.getZ(); z < max.getZ(); z++) {
+                    Block b = ServerUtils.getBlockAsync(new Location(world, x, y, z));
+                    if(b != null) {
+                        BlockNMS bNMS = BlockNMS.getBlockNMS(b);
+                        for(AABB blockBox : bNMS.getCollisionBoxes()) {
+                            if(blockBox.getMin().getX() > boundingBox.getMax().getX() && blockBox.getMin().getX() < bigBox.getMax().getX()) {
+                                directions.add(Direction.EAST);
+                            }
+                            if(blockBox.getMin().getY() > boundingBox.getMax().getY() && blockBox.getMin().getY() < bigBox.getMax().getY()) {
+                                directions.add(Direction.TOP);
+                            }
+                            if(blockBox.getMin().getZ() > boundingBox.getMax().getZ() && blockBox.getMin().getZ() < bigBox.getMax().getZ()) {
+                                directions.add(Direction.SOUTH);
+                            }
+                            if(blockBox.getMax().getX() > bigBox.getMin().getX() && blockBox.getMax().getX() < boundingBox.getMin().getX()) {
+                                directions.add(Direction.WEST);
+                            }
+                            if(blockBox.getMax().getY() > bigBox.getMin().getY() && blockBox.getMax().getY() < boundingBox.getMin().getY()) {
+                                directions.add(Direction.BOTTOM);
+                            }
+                            if(blockBox.getMax().getZ() > bigBox.getMin().getZ() && blockBox.getMax().getZ() < boundingBox.getMin().getZ()) {
+                                directions.add(Direction.NORTH);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return directions;
+    }
+
+    public enum Direction {
+        TOP, BOTTOM, NORTH, SOUTH, EAST, WEST
     }
 }
