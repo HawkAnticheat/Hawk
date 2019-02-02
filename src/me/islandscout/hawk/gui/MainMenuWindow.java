@@ -57,14 +57,14 @@ public class MainMenuWindow extends Window {
         };
 
         ItemStack notify = new ItemStack(Material.INK_SACK);
-        notify.setDurability((short) (pp.canReceiveNotifications() ? 10 : 8));
+        notify.setDurability((short) (pp.canReceiveAlerts() ? 10 : 8));
         ItemMeta notifyName = notify.getItemMeta();
-        notifyName.setDisplayName(pp.canReceiveNotifications() ? "Notifications: ON" : "Notifications: OFF");
+        notifyName.setDisplayName(pp.canReceiveAlerts() ? "Notifications: ON" : "Notifications: OFF");
         notify.setItemMeta(notifyName);
         elements[3] = new Element(notify) {
             @Override
             public void doAction(Player p, Hawk hawk) {
-                pp.setReceiveNotifications(!pp.canReceiveNotifications());
+                pp.setReceiveNotifications(!pp.canReceiveAlerts());
                 Window mainMenu = new MainMenuWindow(hawk, p);
                 hawk.getGuiManager().sendWindow(p, mainMenu);
             }

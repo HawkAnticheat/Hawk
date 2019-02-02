@@ -24,10 +24,10 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class NotifyArgument extends Argument {
+public class ToggleAlertsArgument extends Argument {
 
-    public NotifyArgument() {
-        super("notify", "", "Toggle violation notifications.");
+    public ToggleAlertsArgument() {
+        super("talerts", "", "Toggle alerts for yourself.");
     }
 
     @Override
@@ -37,8 +37,8 @@ public class NotifyArgument extends Argument {
             return true;
         }
         HawkPlayer pp = hawk.getHawkPlayer((Player) sender);
-        pp.setReceiveNotifications(!pp.canReceiveNotifications());
-        sender.sendMessage(ChatColor.GOLD + "In-game notifications toggled " + (pp.canReceiveNotifications() ? ChatColor.GREEN + "ON" : ChatColor.RED + "OFF"));
+        pp.setReceiveNotifications(!pp.canReceiveAlerts());
+        sender.sendMessage(ChatColor.GOLD + "In-game alerts toggled " + (pp.canReceiveAlerts() ? ChatColor.GREEN + "ON" : ChatColor.RED + "OFF"));
         return true;
     }
 }

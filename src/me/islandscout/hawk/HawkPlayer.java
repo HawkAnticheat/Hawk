@@ -115,8 +115,8 @@ public class HawkPlayer {
         this.digging = digging;
     }
 
-    public boolean canReceiveNotifications() {
-        return receiveNotifications && p.hasPermission(Hawk.BASE_PERMISSION + ".notify");
+    public boolean canReceiveAlerts() {
+        return receiveNotifications && p.hasPermission(Hawk.BASE_PERMISSION + ".alerts");
     }
 
     public void setReceiveNotifications(boolean status) {

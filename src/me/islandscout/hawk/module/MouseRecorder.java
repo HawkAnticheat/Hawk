@@ -42,7 +42,7 @@ import java.util.List;
 
 public class MouseRecorder {
 
-    //TODO: Handle teleportation!!! so clamp value of lines to 1/255 so you can at least see a BIG flick and not confuse it as a teleport
+    //TODO: Handle teleportation!!!
 
     private Hawk hawk;
     private final float RESOLUTION;
@@ -160,7 +160,7 @@ public class MouseRecorder {
         Pair<Float, Float> currCoord = new Pair<>(listener.origin);
         for(Pair<Float, Float> vector : listener.vectors) {
             float distance = (float)MathPlus.distance2d(vector.getKey(), vector.getValue());
-            g.setColor(new Color(1F, 1 / (0.3F * distance + 1), 1 / (0.3F * distance + 1), 1 / (0.2F * distance + 1)));
+            g.setColor(new Color(1F, 1 / (0.3F * distance + 1), 1 / (0.3F * distance + 1), (float)Math.max(1 / (0.2F * distance + 1), 0.004)));
 
             float x1 = currCoord.getKey();
             float y1 = currCoord.getValue();
@@ -199,6 +199,7 @@ public class MouseRecorder {
         private Pair<Float, Float> origin;
         private List<Pair<Float, Float>> vectors;
         private List<Integer> clicks;
+        private List<Integer> teleports;
         private int moves;
         private List<HawkEventListener> hawkListeners;
 
@@ -207,6 +208,7 @@ public class MouseRecorder {
             this.admin = admin;
             vectors = new ArrayList<>();
             clicks = new ArrayList<>();
+            teleports = new ArrayList<>();
             this.moves = (time == 0 ? (int)(DEFAULT_TIME * 20) : (int)(time * 20));
             hawkListeners = hawk.getPacketCore().getHawkEventListeners();
             Bukkit.getPluginManager().registerEvents(this, hawk);

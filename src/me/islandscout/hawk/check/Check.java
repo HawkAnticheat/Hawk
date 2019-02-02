@@ -163,7 +163,7 @@ public abstract class Check<E extends Event> {
             msg.setHoverMsg("Check: " + violation.getCheck() + "\nVL: " + violation.getVl() + "\nPing: " + violation.getPing() + "ms\nTPS: " + MathPlus.round(violation.getTps(), 2) + "\nPlayer: " + offenderName + commandPrompt);
             if (!commandPrompt.equals("")) msg.setClickCommand(command);
             for (HawkPlayer pp : hawk.getHawkPlayers()) {
-                if (pp.canReceiveNotifications()) {
+                if (pp.canReceiveAlerts()) {
                     if (hawk.canPlaySoundOnFlag())
                         pp.getPlayer().playSound(pp.getLocation(), Sound.NOTE_PIANO, 1, 1);
                     msg.sendMessage(pp.getPlayer());
@@ -171,7 +171,7 @@ public abstract class Check<E extends Event> {
             }
         } else {
             for (HawkPlayer pp : hawk.getHawkPlayers()) {
-                if (pp.canReceiveNotifications()) {
+                if (pp.canReceiveAlerts()) {
                     if (hawk.canPlaySoundOnFlag())
                         pp.getPlayer().playSound(pp.getLocation(), Sound.NOTE_PIANO, 1, 1);
                     pp.getPlayer().sendMessage(Hawk.FLAG_PREFIX + message);

@@ -71,7 +71,7 @@ public class Speed extends MovementCheck implements Listener {
     private final Map<UUID, List<Pair<Double, Long>>> velocities; //launch velocities
 
     public Speed() {
-        super("speed", "%player% failed movement speed, VL: %vl%");
+        super("speed", true, 0, 5, 0.99, 5000, "%player% failed movement speed, VL: %vl%", null);
         prevMoveWasOnGround = new HashSet<>();
         prevSpeed = new HashMap<>();
         landingTick = new HashMap<>();

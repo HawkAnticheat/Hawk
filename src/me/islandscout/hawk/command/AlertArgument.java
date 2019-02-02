@@ -18,5 +18,5 @@
 
 package me.islandscout.hawk.command;
 
-public class CpsArgument {
+public class AlertArgument {
 }
