@@ -58,6 +58,11 @@ public abstract class PacketListener {
 
     public void disable() {
         running = false;
+        if(async) {
+            synchronized (hawkAsyncCheckThread) {
+                hawkAsyncCheckThread.notify();
+            }
+        }
         removeAll();
     }
 
