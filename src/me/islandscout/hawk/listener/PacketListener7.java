@@ -19,6 +19,7 @@
 package me.islandscout.hawk.listener;
 
 import me.islandscout.hawk.module.PacketCore;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import net.minecraft.util.io.netty.channel.ChannelDuplexHandler;
 import net.minecraft.util.io.netty.channel.ChannelHandlerContext;
@@ -30,25 +31,17 @@ import java.lang.reflect.Field;
 
 public class PacketListener7 extends PacketListener {
 
-    public PacketListener7(PacketCore packetCore) {
-        super(packetCore);
+    public PacketListener7(PacketCore packetCore, boolean async) {
+        super(packetCore, async);
     }
 
-    public void start(Player p) {
+    public void add(Player p) {
         ChannelDuplexHandler channelDuplexHandler = new ChannelDuplexHandler() {
             @Override
             public void channelRead(ChannelHandlerContext context, Object packet) throws Exception {
 
-                for(PacketAdapter adapter : adaptersInbound) {
-                    adapter.run(packet, p);
-                }
-
-                try {
-                    if (!packetCore.processIn(packet, p))
-                        return; //prevent packet from getting processed by Bukkit if a check fails
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                if(!processIn(packet, p))
+                    return;
 
                 super.channelRead(context, packet);
             }
@@ -56,11 +49,7 @@ public class PacketListener7 extends PacketListener {
             @Override
             public void write(ChannelHandlerContext context, Object packet, ChannelPromise promise) throws Exception {
 
-                packetCore.processOut(packet, p);
-
-                for(PacketAdapter adapter : adaptersOutbound) {
-                    adapter.run(packet, p);
-                }
+                processOut(packet, p);
 
                 super.write(context, packet, promise);
             }
@@ -82,7 +71,7 @@ public class PacketListener7 extends PacketListener {
         }
     }
 
-    public void stop() {
+    public void removeAll() {
         for (Player p : Bukkit.getOnlinePlayers()) {
             try {
                 Field channelField = ((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer) p).getHandle().playerConnection.networkManager.getClass().getDeclaredField("m");

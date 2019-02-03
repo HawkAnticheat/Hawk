@@ -21,6 +21,7 @@ package me.islandscout.hawk.command;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -48,6 +49,8 @@ public class DevArgument extends Argument {
             nmsPackage = net.minecraft.server.v1_7_R4.MinecraftServer.class.getPackage().getName();
         sender.sendMessage("NMS ver.: " + nmsPackage.substring(nmsPackage.lastIndexOf(".") + 1));
         sender.sendMessage("Hawk ver.: " + Hawk.BUILD_NAME);
+        boolean async = hawk.getPacketCore().getPacketListener().isAsync();
+        sender.sendMessage("Async checking: " + (async ? ChatColor.RED + "" : "") + async);
         sender.sendMessage("Java info: " + System.getProperty("java.version") + "; " + System.getProperty("java.vm.vendor") + "; " + System.getProperty("java.vm.name"));
         if (sender instanceof Player) {
             int clientVer = ServerUtils.getClientVersion((Player) sender);

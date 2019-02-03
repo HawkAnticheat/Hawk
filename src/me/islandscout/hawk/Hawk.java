@@ -110,6 +110,7 @@ public class Hawk extends JavaPlugin {
         scheduler = new Scheduler(this);
         scheduler.startSchedulers();
         packetCore = new PacketCore(SERVER_VERSION, this);
+        packetCore.startListener();
         packetCore.setupListenerForOnlinePlayers();
         mouseRecorder = new MouseRecorder(this);
         registerCommand();

@@ -25,6 +25,7 @@ import me.islandscout.hawk.listener.PacketListener;
 import me.islandscout.hawk.listener.PacketListener7;
 import me.islandscout.hawk.listener.PacketListener8;
 import me.islandscout.hawk.util.ClientBlock;
+import me.islandscout.hawk.util.ConfigHelper;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
@@ -39,7 +40,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.potion.Potion;
-import org.bukkit.potion.PotionType;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -61,12 +61,21 @@ public class PacketCore implements Listener {
     public PacketCore(int serverVersion, Hawk hawk) {
         this.serverVersion = serverVersion;
         this.hawk = hawk;
+        boolean async = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "asyncChecking");
+        if(async) {
+            hawk.getLogger().warning("---");
+            hawk.getLogger().warning("It appears that you have enabled ASYNCHRONOUS packet checking.");
+            hawk.getLogger().warning("Although this will significantly improve network performance, it");
+            hawk.getLogger().warning("will not prevent cheating. You will not receive any support for");
+            hawk.getLogger().warning("any bypasses that you encounter. You have been warned.");
+            hawk.getLogger().warning("---");
+        }
         try {
             if (serverVersion == 7) {
-                packetListener = new PacketListener7(this);
+                packetListener = new PacketListener7(this, async);
                 hawk.getLogger().info("Using NMS 1.7_R4 NIO for packet interception.");
             } else if (serverVersion == 8) {
-                packetListener = new PacketListener8(this);
+                packetListener = new PacketListener8(this, async);
                 hawk.getLogger().info("Using NMS 1.8_R3 NIO for packet interception.");
             } else warnConsole(hawk);
         } catch (NoClassDefFoundError e) {
@@ -78,10 +87,10 @@ public class PacketCore implements Listener {
     }
 
     private void warnConsole(Hawk hawk) {
-        hawk.getLogger().warning("!!!!!!!!!!");
-        hawk.getLogger().warning("It appears that you are not running Hawk on a 1.7.10 or 1.8.8 server.");
-        hawk.getLogger().warning("Hawk will NOT work. Please run Hawk on a 1.7_R4 or 1.8_R3 server.");
-        hawk.getLogger().warning("!!!!!!!!!!");
+        hawk.getLogger().severe("!!!!!!!!!!");
+        hawk.getLogger().severe("It appears that you are not running Hawk on a 1.7.10 or 1.8.8 server.");
+        hawk.getLogger().severe("Hawk will NOT work. Please run Hawk on a 1.7_R4 or 1.8_R3 server.");
+        hawk.getLogger().severe("!!!!!!!!!!");
         Bukkit.getPluginManager().disablePlugin(hawk);
     }
 
@@ -258,8 +267,16 @@ public class PacketCore implements Listener {
 
     }
 
+    public PacketListener getPacketListener() {
+        return packetListener;
+    }
+
+    public void startListener() {
+        packetListener.enable();
+    }
+
     public void killListener() {
-        packetListener.stop();
+        packetListener.disable();
     }
 
     public void setupListenerForOnlinePlayers() {
@@ -270,7 +287,7 @@ public class PacketCore implements Listener {
     }
 
     private void setupListenerForPlayer(Player p) {
-        packetListener.start(p);
+        packetListener.addListener(p);
     }
 
     @EventHandler

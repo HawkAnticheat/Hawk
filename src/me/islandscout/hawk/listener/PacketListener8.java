@@ -27,25 +27,17 @@ import org.bukkit.entity.Player;
 
 public class PacketListener8 extends PacketListener {
 
-    public PacketListener8(PacketCore packetCore) {
-        super(packetCore);
+    public PacketListener8(PacketCore packetCore, boolean async) {
+        super(packetCore, async);
     }
 
-    public void start(Player p) {
+    public void add(Player p) {
         ChannelDuplexHandler channelDuplexHandler = new ChannelDuplexHandler() {
             @Override
             public void channelRead(ChannelHandlerContext context, Object packet) throws Exception {
 
-                for(PacketAdapter adapter : adaptersInbound) {
-                    adapter.run(packet, p);
-                }
-
-                try {
-                    if (!packetCore.processIn(packet, p))
-                        return; //prevent packet from getting processed by Bukkit if a check fails
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                if(!processIn(packet, p))
+                    return;
 
                 super.channelRead(context, packet);
             }
@@ -53,11 +45,7 @@ public class PacketListener8 extends PacketListener {
             @Override
             public void write(ChannelHandlerContext context, Object packet, ChannelPromise promise) throws Exception {
 
-                for(PacketAdapter adapter : adaptersOutbound) {
-                    adapter.run(packet, p);
-                }
-
-                packetCore.processOut(packet, p);
+                processOut(packet, p);
 
                 super.write(context, packet, promise);
             }
@@ -72,7 +60,7 @@ public class PacketListener8 extends PacketListener {
         pipeline.addBefore("packet_handler", handlerName, channelDuplexHandler);
     }
 
-    public void stop() {
+    public void removeAll() {
         for (Player p : Bukkit.getOnlinePlayers()) {
             Channel channel = ((CraftPlayer) p).getHandle().playerConnection.networkManager.channel;
 
