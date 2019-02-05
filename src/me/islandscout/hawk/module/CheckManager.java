@@ -30,9 +30,6 @@ import java.util.*;
 
 public class CheckManager {
 
-    //I thought about making a new thread to eliminate some load from the NIO thread, but I'd run into concurrency issues.
-    //I'd have to worry about cancelling, packet modding, and concurrent HawkPlayer data (race condition). It's not worth the trouble.
-
     private final Hawk hawk;
 
     private final Set<UUID> exemptedPlayers;

@@ -23,6 +23,7 @@ import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
 import org.bukkit.Location;
+import org.bukkit.Material;
 
 /**
  * Significantly limits y-port speed bypasses
@@ -45,7 +46,8 @@ public class FastFall extends MovementCheck {
 
         //I HATE this game's movement.
         if(!AdjacentBlocks.blockAdjacentIsSolid(chkPos) &&
-                !AdjacentBlocks.blockNearbyIsSolid(chkPos, false)) {
+                !AdjacentBlocks.blockNearbyIsSolid(chkPos, false) &&
+                !AdjacentBlocks.matIsAdjacent(e.getTo(), Material.LADDER, Material.VINE)) {
             if(deltaY + 0.02 < expected) {
                 punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
             }
