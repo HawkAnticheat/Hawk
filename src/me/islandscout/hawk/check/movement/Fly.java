@@ -25,6 +25,7 @@ import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.entity.EntityNMS;
 import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -228,8 +229,7 @@ public class Fly extends MovementCheck implements Listener {
         Chunk chunk = ServerUtils.getChunkAsync(loc);
         if (chunk == null)
             return false;
-        //TODO: Async issues
-        Entity[] entities = chunk.getEntities().clone(); //Thread safety (IOOB exception), so clone?
+        Entity[] entities = chunk.getEntities().clone(); //TODO: IOOB Exception here due to async issue
         for (Entity entity : entities) {
             if (entity instanceof Boat) {
                 AABB boatBB = EntityNMS.getEntityNMS(entity).getCollisionBox();

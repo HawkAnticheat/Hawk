@@ -25,7 +25,6 @@ import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
 import me.islandscout.hawk.util.*;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -117,26 +116,9 @@ public class Speed extends MovementCheck implements Listener {
         //TODO: support liquids, cobwebs, soulsand, etc...
 
         //handle any pending knockbacks
-        if (velocities.containsKey(p.getUniqueId()) && velocities.get(p.getUniqueId()).size() > 0) {
-            List<Pair<Double, Long>> kbs = velocities.get(p.getUniqueId());
-            //pending knockbacks must be in order; get the first entry in the list.
-            //if the first entry doesn't work (probably because they were fired on the same tick),
-            //then work down the list until we find something
-            int kbIndex;
-            long currTime = System.currentTimeMillis();
-            for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
-                Pair<Double, Long> kb = kbs.get(kbIndex);
-                if (currTime - kb.getValue() <= ServerUtils.getPing(p) + 200) {
-                    //I'd suggest changing this epsilon based on the graph you showed on Discord
-                    //Also, if you get knocked to a wall with great velocity, you'll flag
-                    if (Math.abs(kb.getKey() - speed) < 0.15) {
-                        kbs = kbs.subList(kbIndex + 1, kbs.size());
-                        velocities.put(p.getUniqueId(), kbs);
-                        prepareNextMove(wasOnGround, isOnGround, event, p.getUniqueId(), pp.getCurrentTick(), speed);
-                        return;
-                    }
-                }
-            }
+        if(event.hasAcceptedKnockback()) {
+            prepareNextMove(wasOnGround, isOnGround, event, p.getUniqueId(), pp.getCurrentTick(), speed);
+            return;
         }
 
         SpeedType failed = null;

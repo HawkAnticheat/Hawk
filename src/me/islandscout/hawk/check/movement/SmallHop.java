@@ -22,6 +22,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
+import me.islandscout.hawk.util.Debug;
 import org.bukkit.Location;
 import org.bukkit.Material;
 
@@ -35,45 +36,28 @@ import java.util.*;
  */
 public class SmallHop extends MovementCheck {
 
-    //TODO: False flag in liquids and cobwebs
-    //TODO kb
-
-    private Set<UUID> wasOnGroundSet;
-    private Map<UUID, Double> prevDeltaY;
+    //TODO: False flag in cobwebs
 
     public SmallHop() {
         super("smallhop", true, 0, 5, 0.99, 5000, "%player% failed small-hop, VL: %vl%", null);
-        wasOnGroundSet = new HashSet<>();
-        prevDeltaY = new HashMap<>();
     }
 
     @Override
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
-        UUID uuid = e.getPlayer().getUniqueId();
         double deltaY = e.hasTeleported() ? 0D : e.getTo().getY() - e.getFrom().getY();
-        boolean wasOnGround = wasOnGroundSet.contains(uuid);
+        double prevDeltaY = pp.getVelocity().getY();
+        boolean wasOnGround = pp.isOnGround();
         Location checkPos = e.getFrom().clone().add(0, 1, 0);
 
-
-        if(!e.getPlayer().isFlying() && !e.hasAcceptedKnockback() && wasOnGround && deltaY > 0 && deltaY < 0.4 && prevDeltaY.getOrDefault(uuid, 0D) <= 0 &&
+        if(!e.getPlayer().isFlying() && !e.hasAcceptedKnockback() && wasOnGround && deltaY > 0 && deltaY < 0.4 && prevDeltaY <= 0 &&
                 !AdjacentBlocks.blockAdjacentIsSolid(checkPos) && !AdjacentBlocks.blockAdjacentIsSolid(checkPos.add(0, 1, 0)) && !AdjacentBlocks.blockAdjacentIsLiquid(checkPos.add(0, -1, 0)) &&
                 !AdjacentBlocks.blockAdjacentIsLiquid(checkPos.add(0, -1, 0)) && !AdjacentBlocks.matIsAdjacent(e.getTo(), Material.LADDER, Material.VINE) &&
                 !AdjacentBlocks.onGroundReally(e.getTo(), -1, false, 0.001)) {
             punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
-            prevDeltaY.put(uuid, 0D);
         }
         else {
             reward(pp);
-
-            if(e.isOnGroundReally()) {
-                wasOnGroundSet.add(uuid);
-            }
-            else {
-                wasOnGroundSet.remove(uuid);
-            }
-
-            prevDeltaY.put(uuid, deltaY);
         }
     }
 }

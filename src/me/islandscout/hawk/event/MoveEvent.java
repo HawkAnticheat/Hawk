@@ -61,15 +61,16 @@ public class MoveEvent extends Event {
         this.acceptedKnockback = handlePendingVelocities();
     }
 
+    //This literally makes me want to punch a wall.
     private boolean handlePendingVelocities() {
         List<Pair<Vector, Long>> kbs = pp.getPendingVelocities();
         if (kbs.size() > 0) {
-            double epsilon = 0.002;
+            double epsilon = 0.003;
             int kbIndex;
             int expiredKbs = 0;
             long currTime = System.currentTimeMillis();
             Vector currVelocity = new Vector(getTo().getX() - getFrom().getX(), getTo().getY() - getFrom().getY(), getTo().getZ() - getFrom().getZ());
-            Set<PhysicsUtils.Direction> touchingBlocks = PhysicsUtils.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.3, 0.000001, -0.3)), getTo().toVector().add(new Vector(0.3, 1.799999, 0.3))), getTo().getWorld());
+            Set<PhysicsUtils.Direction> touchingBlocks = PhysicsUtils.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld());
             double speedPotMultiplier = 1;
             for (PotionEffect effect : p.getActivePotionEffects()) {
                 if (!effect.getType().equals(PotionEffectType.SPEED))
@@ -77,10 +78,10 @@ public class MoveEvent extends Event {
                 speedPotMultiplier = 1 + (effect.getAmplifier() + 1 * 0.2);
             }
             boolean flying          = p.isFlying();
-            double sprintMultiplier = flying ? (p.isSprinting() ? 2 : 1) : (p.isSprinting() ? 1.3 : 1);
-            double weirdConstant    = (p.isOnGround() ? 0.098 : (flying ? 0.049 : 0.0196));
+            double sprintMultiplier = flying ? (pp.isSprinting() ? 2 : 1) : (pp.isSprinting() ? 1.3 : 1);
+            double weirdConstant    = 0.098; //(pp.isOnGround() ? 0.098 : (flying ? 0.049 : 0.0196));
             double baseMultiplier   = flying ? (10 * p.getFlySpeed()) : (5 * p.getWalkSpeed() * speedPotMultiplier);
-            double total            = weirdConstant * baseMultiplier * sprintMultiplier;
+            double maxDiscrepancy   = weirdConstant * baseMultiplier * sprintMultiplier;
 
             //pending knockbacks must be in order; get the first entry in the list.
             //if the first entry doesn't work (probably because they were fired on the same tick),
@@ -93,14 +94,16 @@ public class MoveEvent extends Event {
 
                     //check Y component
                     //TODO: air, web, and liquid friction.
-                    if (Math.abs((onGround ? 0 : kbVelocity.getY()) - currVelocity.getY()) > 0.01) {
+                    //only check if player is not hitting head on roof or on ground
+                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.TOP) && kbVelocity.getX() > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.BOTTOM) && kbVelocity.getX() < 0)) &&
+                            Math.abs(kbVelocity.getY() - currVelocity.getY()) > 0.01) {
                         continue;
                     }
 
-                    double minThresX = kbVelocity.getX() - total - epsilon;
-                    double maxThresX = kbVelocity.getX() + total + epsilon;
-                    double minThresZ = kbVelocity.getZ() - total - epsilon;
-                    double maxThresZ = kbVelocity.getZ() + total + epsilon;
+                    double minThresX = kbVelocity.getX() - maxDiscrepancy - epsilon;
+                    double maxThresX = kbVelocity.getX() + maxDiscrepancy + epsilon;
+                    double minThresZ = kbVelocity.getZ() - maxDiscrepancy - epsilon;
+                    double maxThresZ = kbVelocity.getZ() + maxDiscrepancy + epsilon;
 
                     //check X component
                     //only check if player is not pinned to a wall
