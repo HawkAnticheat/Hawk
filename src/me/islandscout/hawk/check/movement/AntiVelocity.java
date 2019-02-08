@@ -18,36 +18,24 @@
 
 package me.islandscout.hawk.check.movement;
 
-import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.event.MoveEvent;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
 public class AntiVelocity extends MovementCheck implements Listener, Cancelless {
 
     public AntiVelocity() {
-        super("antivelocity", false, -1, 5, 0.95, 5000, "%player% may be using antivelocity. VL: %vl%", null);
+        super("antivelocity", false, -1, 5, 0.999, 5000, "%player% may be using anti-velocity. VL: %vl%", null);
     }
 
     @Override
     protected void check(MoveEvent event) {
-        Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
-
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onVelocity(HawkPlayerAsyncVelocityChangeEvent e) {
-
-    }
-
-    @Override
-    public void removeData(Player p) {
-
+        if(event.hasFailedKnockback())
+            punish(pp, false, event);
+        else
+            reward(pp);
     }
 }

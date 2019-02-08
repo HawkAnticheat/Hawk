@@ -1,5 +1,5 @@
 # Hawk
-Hawk Anticheat ver. BETA 1902.2
+Hawk Anticheat ver. BETA 1902.3
 
 > Although Hawk is moving out of its beta stage, there are still false-positives, bypasses, and performance issues to fix. This should NOT be used in production.
 

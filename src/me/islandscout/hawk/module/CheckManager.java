@@ -25,6 +25,7 @@ import me.islandscout.hawk.check.interaction.*;
 import me.islandscout.hawk.check.movement.*;
 import me.islandscout.hawk.event.*;
 import org.bukkit.entity.Player;
+import org.spigotmc.AntiXray;
 
 import java.util.*;
 
@@ -74,7 +75,7 @@ public class CheckManager {
         new FightAccuracy();
         new Aimbot();
         new FightNoSwing();
-        //new VelocityKnockback();
+        new AntiVelocity();
         new InvalidPitch();
         new FightReachApprox();
         new FightDirectionApprox();

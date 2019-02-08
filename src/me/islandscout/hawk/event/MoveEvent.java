@@ -44,6 +44,7 @@ public class MoveEvent extends Event {
     private boolean updatePos;
     private boolean updateRot;
     private boolean acceptedKnockback;
+    private boolean failedKnockback;
     //No, don't compute a delta vector during instantiation since teleports will affect it.
 
     //Not sure if these maps are necessary since you can determine the previous position using HawkPlayer#getLocation()
@@ -123,6 +124,7 @@ public class MoveEvent extends Event {
                     return true;
                 }
                 else {
+                    failedKnockback = true;
                     expiredKbs++;
                 }
             }
@@ -205,6 +207,10 @@ public class MoveEvent extends Event {
 
     public boolean hasAcceptedKnockback() {
         return acceptedKnockback;
+    }
+
+    public boolean hasFailedKnockback() {
+        return failedKnockback;
     }
 
     public void cancelAndSetBack(Location setback) {
