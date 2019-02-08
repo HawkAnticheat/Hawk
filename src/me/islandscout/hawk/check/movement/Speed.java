@@ -39,7 +39,9 @@ import java.util.*;
 
 public class Speed extends MovementCheck implements Listener {
 
-    //I legit hate this game's movement
+    //I legit hate this game's movement.
+    //Do you realize how much easier it would be if
+    //the server handled movement?
 
     //TODO Shrink this code
     //TODO False flag when landing on ice

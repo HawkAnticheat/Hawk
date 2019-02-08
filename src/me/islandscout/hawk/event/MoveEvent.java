@@ -71,6 +71,7 @@ public class MoveEvent extends Event {
             long currTime = System.currentTimeMillis();
             Vector currVelocity = new Vector(getTo().getX() - getFrom().getX(), getTo().getY() - getFrom().getY(), getTo().getZ() - getFrom().getZ());
             Set<PhysicsUtils.Direction> touchingBlocks = PhysicsUtils.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld());
+            boolean jump = pp.isOnGround() && Math.abs(0.42 - currVelocity.getY()) < 0.00001;
             double speedPotMultiplier = 1;
             for (PotionEffect effect : p.getActivePotionEffects()) {
                 if (!effect.getType().equals(PotionEffectType.SPEED))
@@ -79,9 +80,9 @@ public class MoveEvent extends Event {
             }
             boolean flying          = p.isFlying();
             double sprintMultiplier = flying ? (pp.isSprinting() ? 2 : 1) : (pp.isSprinting() ? 1.3 : 1);
-            double weirdConstant    = 0.098; //(pp.isOnGround() ? 0.098 : (flying ? 0.049 : 0.0196));
+            double weirdConstant    = jump && pp.isSprinting() ? 0.2518462 : 0.098; //(pp.isOnGround() ? 0.098 : (flying ? 0.049 : 0.0196));
             double baseMultiplier   = flying ? (10 * p.getFlySpeed()) : (5 * p.getWalkSpeed() * speedPotMultiplier);
-            double maxDiscrepancy   = weirdConstant * baseMultiplier * sprintMultiplier;
+            double maxDiscrepancy   = weirdConstant * baseMultiplier * sprintMultiplier + epsilon;
 
             //pending knockbacks must be in order; get the first entry in the list.
             //if the first entry doesn't work (probably because they were fired on the same tick),
@@ -94,16 +95,17 @@ public class MoveEvent extends Event {
 
                     //check Y component
                     //TODO: air, web, and liquid friction.
-                    //only check if player is not hitting head on roof or on ground
-                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.TOP) && kbVelocity.getX() > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.BOTTOM) && kbVelocity.getX() < 0)) &&
-                            Math.abs(kbVelocity.getY() - currVelocity.getY()) > 0.01) {
+                    //will skip Y check if...
+                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.TOP) && kbVelocity.getY() > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.BOTTOM) && kbVelocity.getY() < 0)) && /*...player isn't colliding...*/
+                            Math.abs(kbVelocity.getY() - currVelocity.getY()) > 0.01 && /*...and velocity is nowhere close to kb velocity...*/
+                            !jump /*...and did not jump*/) {
                         continue;
                     }
 
-                    double minThresX = kbVelocity.getX() - maxDiscrepancy - epsilon;
-                    double maxThresX = kbVelocity.getX() + maxDiscrepancy + epsilon;
-                    double minThresZ = kbVelocity.getZ() - maxDiscrepancy - epsilon;
-                    double maxThresZ = kbVelocity.getZ() + maxDiscrepancy + epsilon;
+                    double minThresX = kbVelocity.getX() - maxDiscrepancy;
+                    double maxThresX = kbVelocity.getX() + maxDiscrepancy;
+                    double minThresZ = kbVelocity.getZ() - maxDiscrepancy;
+                    double maxThresZ = kbVelocity.getZ() + maxDiscrepancy;
 
                     //check X component
                     //only check if player is not pinned to a wall
