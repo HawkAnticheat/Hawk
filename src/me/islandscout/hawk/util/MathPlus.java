@@ -44,6 +44,17 @@ public final class MathPlus {
         return Math.sqrt(x*x + y*y);
     }
 
+    public static Vector getDirection(float yaw, float pitch) {
+        Vector vector = new Vector();
+        float rotX = (float)Math.toRadians(yaw);
+        float rotY = (float)Math.toRadians(pitch);
+        vector.setY(-sin(rotY));
+        double xz = cos(rotY);
+        vector.setX(-xz * sin(rotX));
+        vector.setZ(xz * cos(rotX));
+        return vector;
+    }
+
     /**
      * Faster implementations of the trigonometric functions
      */

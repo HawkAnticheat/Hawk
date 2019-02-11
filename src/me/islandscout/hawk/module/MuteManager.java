@@ -65,10 +65,11 @@ public class MuteManager implements Listener {
 
         //PARSE FILE BEGIN
         String line = readLine(buf);
+        long currTime = System.currentTimeMillis();
         while (line != null) {
             String[] parts = line.split(" ", 3);
             long expireTime = Long.parseLong(parts[1]);
-            if (expireTime > System.currentTimeMillis()) {
+            if (expireTime > currTime) {
                 mutes.put(UUID.fromString(parts[0]), new MuteEntry(expireTime, parts[2]));
             }
             line = readLine(buf);

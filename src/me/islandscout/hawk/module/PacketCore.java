@@ -29,10 +29,7 @@ import me.islandscout.hawk.util.ConfigHelper;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -149,7 +146,7 @@ public class PacketCore implements Listener {
             return false;
 
         //update HawkPlayer
-        if (event instanceof InteractItemEvent) {
+        if (event instanceof InteractItemEvent && !event.isCancelled()) {
             InteractItemEvent itemEvent = (InteractItemEvent) event;
             Material mat = itemEvent.getItemStack().getType();
             if(itemEvent.getType() == InteractItemEvent.Type.START_USE_ITEM) {
@@ -204,8 +201,7 @@ public class PacketCore implements Listener {
                     //If cancelled but no rubberband,
                     //are you sure you want to modify the next move's getFrom?
                     //As long as you're rubberbanding the player back to this loc
-                    //when there's a discrepancy, (which you are, look about 35 lines up)
-                    //you should be OK
+                    //when there's a discrepancy, (which you are) you should be OK
                     ((MoveEvent) event).setTo(((MoveEvent) event).getFrom());
                 }
             } else {
@@ -244,6 +240,15 @@ public class PacketCore implements Listener {
                 case SPRINT_STOP:
                     pp.setSprinting(false);
                     break;
+            }
+        }
+        if(event instanceof InteractEntityEvent && !event.isCancelled()) {
+            InteractEntityEvent interactEvent = (InteractEntityEvent) event;
+            if(interactEvent.getInteractAction() == InteractAction.ATTACK) {
+                pp.updateItemUsedForAttack();
+                if(interactEvent.getEntity() instanceof Player) {
+                    pp.updateLastAttackedPlayerTick();
+                }
             }
         }
 

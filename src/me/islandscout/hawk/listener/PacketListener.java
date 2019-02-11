@@ -37,7 +37,7 @@ public abstract class PacketListener {
 
     private boolean async;
     private Thread hawkAsyncCheckThread;
-    private List<Pair<Pair<Object, Player>, Boolean>> asyncBufferedPackets; //<<packet, player>, inbound>
+    private List<Pair<Pair<Object, Player>, Boolean>> asyncQueuedPackets; //<<packet, player>, inbound>
 
     PacketListener(PacketCore packetCore, boolean async) {
         this.packetCore = packetCore;
@@ -98,7 +98,7 @@ public abstract class PacketListener {
     private void addToAsyncQueue(Object packet, Player p, boolean inbound) {
         Pair<Object, Player> playerAndPacket = new Pair<>(packet, p);
         Pair<Pair<Object, Player>, Boolean> pair = new Pair<>(playerAndPacket, inbound);
-        asyncBufferedPackets.add(pair);
+        asyncQueuedPackets.add(pair);
         synchronized (hawkAsyncCheckThread) {
             hawkAsyncCheckThread.notify();
         }
@@ -127,13 +127,13 @@ public abstract class PacketListener {
     }
 
     private void prepareAsync() {
-        asyncBufferedPackets = Collections.synchronizedList(new ArrayList<>());
+        asyncQueuedPackets = Collections.synchronizedList(new ArrayList<>());
         hawkAsyncCheckThread = new Thread(() -> {
             while(running) {
 
-                //copy contents from synchronized list for processing
-                List<Pair<Pair<Object, Player>, Boolean>> packetsSnapshot = new ArrayList<>(asyncBufferedPackets);
-                for (Pair<Pair<Object, Player>, Boolean> pair : packetsSnapshot) {
+                //copy contents from queue to batch for processing
+                List<Pair<Pair<Object, Player>, Boolean>> packetBatch = new ArrayList<>(asyncQueuedPackets);
+                for (Pair<Pair<Object, Player>, Boolean> pair : packetBatch) {
                     Pair<Object, Player> packetAndPlayer = pair.getKey();
 
                     Object packet = packetAndPlayer.getKey();
@@ -149,11 +149,14 @@ public abstract class PacketListener {
 
                 }
 
-                //clear contents already processed from synchronized list
-                synchronized (asyncBufferedPackets) {
-                    asyncBufferedPackets.subList(0, packetsSnapshot.size()).clear();
+                //Remove processed contents from queue.
+                //Continue loop if queue isn't empty.
+                //Otherwise, wait until notification from Netty thread.
+                synchronized (asyncQueuedPackets) {
+                    asyncQueuedPackets.subList(0, packetBatch.size()).clear();
+                    if(asyncQueuedPackets.size() > 0)
+                        continue;
                 }
-
                 try {
                     synchronized (hawkAsyncCheckThread) {
                         hawkAsyncCheckThread.wait();

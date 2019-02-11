@@ -23,7 +23,9 @@ import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.packet.WrappedPacket;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -45,6 +47,7 @@ public class MoveEvent extends Event {
     private boolean updateRot;
     private boolean acceptedKnockback;
     private boolean failedKnockback;
+    private boolean hitSlowdown; //Idk, it's weird. Sprinting or hitting with kb enchant will multiply horizontal speed by 0.6.
     //No, don't compute a delta vector during instantiation since teleports will affect it.
 
     //Not sure if these maps are necessary since you can determine the previous position using HawkPlayer#getLocation()
@@ -59,6 +62,8 @@ public class MoveEvent extends Event {
         this.updatePos = updatePos;
         this.updateRot = updateRot;
         this.onGround = onGround;
+        ItemStack heldItem = pp.getItemUsedForAttack();
+        this.hitSlowdown = pp.getLastAttackedPlayerTick() == pp.getCurrentTick() && (pp.isSprinting() || (heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0));
         this.acceptedKnockback = handlePendingVelocities();
     }
 
@@ -93,31 +98,34 @@ public class MoveEvent extends Event {
                 if (currTime - kb.getValue() <= ServerUtils.getPing(p) + 200) {
 
                     Vector kbVelocity = kb.getKey();
+                    double x = hitSlowdown ? 0.6 * kbVelocity.getX() : kbVelocity.getX();
+                    double y = kbVelocity.getY();
+                    double z = hitSlowdown ? 0.6 * kbVelocity.getZ() : kbVelocity.getZ();
 
                     //check Y component
                     //TODO: air, web, and liquid friction.
-                    //will skip Y check if...
-                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.TOP) && kbVelocity.getY() > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.BOTTOM) && kbVelocity.getY() < 0)) && /*...player isn't colliding...*/
-                            Math.abs(kbVelocity.getY() - currVelocity.getY()) > 0.01 && /*...and velocity is nowhere close to kb velocity...*/
+                    //skip to next kb if...
+                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.TOP) && y > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.BOTTOM) && y < 0)) && /*...player isn't colliding...*/
+                            Math.abs(y - currVelocity.getY()) > 0.01 && /*...and velocity is nowhere close to kb velocity...*/
                             !jump /*...and did not jump*/) {
                         continue;
                     }
 
-                    double minThresX = kbVelocity.getX() - maxDiscrepancy;
-                    double maxThresX = kbVelocity.getX() + maxDiscrepancy;
-                    double minThresZ = kbVelocity.getZ() - maxDiscrepancy;
-                    double maxThresZ = kbVelocity.getZ() + maxDiscrepancy;
+                    double minThresX = x - maxDiscrepancy;
+                    double maxThresX = x + maxDiscrepancy;
+                    double minThresZ = z - maxDiscrepancy;
+                    double maxThresZ = z + maxDiscrepancy;
 
                     //check X component
-                    //only check if player is not pinned to a wall
-                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.EAST) && kbVelocity.getX() > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.WEST) && kbVelocity.getX() < 0)) &&
-                            !(currVelocity.getX() <= maxThresX && currVelocity.getX() >= minThresX)) {
+                    //skip to next kb if...
+                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.EAST) && x > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.WEST) && x < 0)) && /*...player isn't colliding...*/
+                            !(currVelocity.getX() <= maxThresX && currVelocity.getX() >= minThresX)) { /*...and velocity is nowhere close to kb velocity...*/
                         continue;
                     }
                     //check Z component
-                    //only check if player is not pinned to a wall
-                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.SOUTH) && kbVelocity.getZ() > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.NORTH) && kbVelocity.getZ() < 0)) &&
-                            !(currVelocity.getZ() <= maxThresZ && currVelocity.getZ() >= minThresZ)) {
+                    //skip to next kb if...
+                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.SOUTH) && z > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.NORTH) && z < 0)) && /*...player isn't colliding...*/
+                            !(currVelocity.getZ() <= maxThresZ && currVelocity.getZ() >= minThresZ)) { /*...and velocity is nowhere close to kb velocity...*/
                         continue;
                     }
                     kbs.subList(0, kbIndex + 1).clear();
@@ -196,7 +204,7 @@ public class MoveEvent extends Event {
     }
 
     //Remember: even though these methods indicate whether this move has an updated pos/rot, that
-    //doesn't mean the pos/rot actually changed.
+    //doesn't mean that the pos/rot actually changed.
     public boolean isUpdatePos() {
         return updatePos;
     }
@@ -211,6 +219,10 @@ public class MoveEvent extends Event {
 
     public boolean hasFailedKnockback() {
         return failedKnockback;
+    }
+
+    public boolean hasHitSlowdown() {
+        return hitSlowdown;
     }
 
     public void cancelAndSetBack(Location setback) {

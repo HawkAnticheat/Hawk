@@ -69,7 +69,6 @@ public class Speed extends MovementCheck implements Listener {
     private final Map<UUID, Long> lastTickPosUpdate;
     private final Map<UUID, Double> lastNegativeDiscrepancies;
     private final Map<UUID, Double> negativeDiscrepanciesCumulative;
-    private final Map<UUID, List<Pair<Double, Long>>> velocities; //launch velocities
 
     public Speed() {
         super("speed", true, 0, 5, 0.99, 5000, "%player% failed movement speed, VL: %vl%", null);
@@ -78,7 +77,6 @@ public class Speed extends MovementCheck implements Listener {
         landingTick = new HashMap<>();
         sprintingJumpTick = new HashMap<>();
         discrepancies = new HashMap<>();
-        velocities = new HashMap<>();
         lastTickOnGround = new HashMap<>();
         lastTickPosUpdate = new HashMap<>();
         lastNegativeDiscrepancies = new HashMap<>();
@@ -101,6 +99,8 @@ public class Speed extends MovementCheck implements Listener {
             speed = prevSpeed.getOrDefault(p.getUniqueId(), 0D) - (lastNegativeDiscrepancies.getOrDefault(p.getUniqueId(), 0D) + 0.000001);
             lastSpeed = speed;
         }
+        if(event.hasHitSlowdown())
+            lastSpeed *= 0.6;
         boolean wasOnGround = prevMoveWasOnGround.contains(p.getUniqueId());
         //In theory, YES, you can abuse the on ground flag. However, that won't get you far.
         //FastFall and SmallHop should patch some NCP bypasses
@@ -329,20 +329,6 @@ public class Speed extends MovementCheck implements Listener {
         return 1;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onVelocity(HawkPlayerAsyncVelocityChangeEvent e) {
-        if(e.isAdditive())
-            return;
-        UUID uuid = e.getPlayer().getUniqueId();
-        Vector vector = e.getVelocity();
-
-        Vector horizVelocity = new Vector(vector.getX(), 0, vector.getZ());
-        double magnitude = horizVelocity.length() + 0.018; //add epsilon for precision errors
-        List<Pair<Double, Long>> kbs = velocities.getOrDefault(uuid, new ArrayList<>());
-        kbs.add(new Pair<>(magnitude, System.currentTimeMillis()));
-        velocities.put(uuid, kbs);
-    }
-
     public void removeData(Player p) {
         UUID uuid = p.getUniqueId();
         prevMoveWasOnGround.remove(uuid);
@@ -350,7 +336,6 @@ public class Speed extends MovementCheck implements Listener {
         landingTick.remove(uuid);
         sprintingJumpTick.remove(uuid);
         discrepancies.remove(uuid);
-        velocities.remove(uuid);
     }
 
     //these functions must be extremely accurate to support high level speed potions

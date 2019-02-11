@@ -27,6 +27,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -65,6 +66,8 @@ public class HawkPlayer {
     private boolean pullingBow;
     private boolean consumingItem;
     private long itemUseTick;
+    private long lastAttackedPlayerTick;
+    private ItemStack itemUsedForAttack;
     private double maxY;
     private double jumpedHeight;
     private long flyPendingTime;
@@ -286,6 +289,22 @@ public class HawkPlayer {
 
     public long getItemUseTick() {
         return itemUseTick;
+    }
+
+    public long getLastAttackedPlayerTick() {
+        return lastAttackedPlayerTick;
+    }
+
+    public void updateLastAttackedPlayerTick() {
+        this.lastAttackedPlayerTick = currentTick;
+    }
+
+    public ItemStack getItemUsedForAttack() {
+        return itemUsedForAttack;
+    }
+
+    public void updateItemUsedForAttack() {
+        this.itemUsedForAttack = p.getInventory().getItem(heldItemSlot);
     }
 
     //call this before updating whether on ground or not

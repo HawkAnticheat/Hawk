@@ -25,7 +25,6 @@ import me.islandscout.hawk.check.interaction.*;
 import me.islandscout.hawk.check.movement.*;
 import me.islandscout.hawk.event.*;
 import org.bukkit.entity.Player;
-import org.spigotmc.AntiXray;
 
 import java.util.*;
 
@@ -61,7 +60,6 @@ public class CheckManager {
         unloadChecks();
 
         new FightHitbox();
-        new FightCriticals();
         new Phase();
         new Fly();
         new BlockBreakSpeed();
@@ -89,6 +87,7 @@ public class CheckManager {
         new SmallHop();
         new FastFall();
         new MultiAction();
+        new SprintDirection();
 
         hawk.saveConfigs();
     }

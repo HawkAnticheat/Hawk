@@ -53,11 +53,11 @@ public class TickRate extends MovementCheck implements Listener {
         prevNanoTime = new HashMap<>();
         clockDrift = new HashMap<>();
         lastBigTeleportTime = new HashMap<>();
-        THRESHOLD = -ConfigHelper.getOrSetDefault(30, hawk.getConfig(), "checks.clockspeed.clockDriftThresholdMillis");
-        MAX_CATCHUP_TIME = 1000000 * ConfigHelper.getOrSetDefault(500, hawk.getConfig(), "checks.clockspeed.maxCatchupTimeMillis");
-        DEBUG = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.clockspeed.debug");
-        CALIBRATE_SLOWER = 1 - ConfigHelper.getOrSetDefault(0.003, hawk.getConfig(), "checks.clockspeed.calibrateSlower");
-        CALIBRATE_FASTER = 1 - ConfigHelper.getOrSetDefault(0.03, hawk.getConfig(), "checks.clockspeed.calibrateFaster");
+        THRESHOLD = -ConfigHelper.getOrSetDefault(30, hawk.getConfig(), "checks.tickrate.clockDriftThresholdMillis");
+        MAX_CATCHUP_TIME = 1000000 * ConfigHelper.getOrSetDefault(500, hawk.getConfig(), "checks.tickrate.maxCatchupTimeMillis");
+        DEBUG = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.tickrate.debug");
+        CALIBRATE_SLOWER = 1 - ConfigHelper.getOrSetDefault(0.003, hawk.getConfig(), "checks.tickrate.calibrateSlower");
+        CALIBRATE_FASTER = 1 - ConfigHelper.getOrSetDefault(0.03, hawk.getConfig(), "checks.tickrate.calibrateFaster");
         RUBBERBAND = (boolean)customSetting("rubberbandOnFail", "", false);
         RESET_DRIFT_ON_FAIL = (boolean)customSetting("resetDriftOnFail", "", false);
         WARM_UP = (int)customSetting("ignoreTicksAfterLongTeleport", "", 150) - 1;
