@@ -146,7 +146,7 @@ public class FightHitbox extends EntityInteractionCheck {
             Location intersect = new Location(attacker.getWorld(), intersectVec3d.getX(), intersectVec3d.getY(), intersectVec3d.getZ());
             double interDistance = intersect.distance(attackerEyeLocation);
             if (interDistance > maxReach) {
-                punish(att, true, e, new Placeholder("type", "Reach: " + MathPlus.round(interDistance, 2) + "m"));
+                punish(att, 1, true, e, new Placeholder("type", "Reach: " + MathPlus.round(interDistance, 2) + "m"));
                 return;
             }
             if (CHECK_OCCLUSION && interDistance > 1D) {
@@ -162,7 +162,7 @@ public class FightHitbox extends EntityInteractionCheck {
                     Vector intersection = checkIntersection.intersectsRay(new Ray(attackerEyeLocation.toVector(), attackerDirection), 0, Float.MAX_VALUE);
                     if (intersection != null) {
                         if (intersection.distance(eyePos) < interDistance) {
-                            punish(att, true, e, new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType()));
+                            punish(att, 1, true, e, new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType()));
                             return;
                         }
                     }
@@ -170,7 +170,7 @@ public class FightHitbox extends EntityInteractionCheck {
 
             }
         } else if (CHECK_BOX_INTERSECTION) {
-            punish(att, true, e, new Placeholder("type", "Did not hit hitbox."));
+            punish(att, 1, true, e, new Placeholder("type", "Did not hit hitbox."));
             return;
         }
 

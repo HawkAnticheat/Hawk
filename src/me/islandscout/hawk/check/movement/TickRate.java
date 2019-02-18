@@ -58,7 +58,7 @@ public class TickRate extends MovementCheck implements Listener {
         DEBUG = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.tickrate.debug");
         CALIBRATE_SLOWER = 1 - ConfigHelper.getOrSetDefault(0.003, hawk.getConfig(), "checks.tickrate.calibrateSlower");
         CALIBRATE_FASTER = 1 - ConfigHelper.getOrSetDefault(0.03, hawk.getConfig(), "checks.tickrate.calibrateFaster");
-        RUBBERBAND = (boolean)customSetting("rubberbandOnFail", "", false);
+        RUBBERBAND = (boolean)customSetting("rubberband", "", true);
         RESET_DRIFT_ON_FAIL = (boolean)customSetting("resetDriftOnFail", "", false);
         WARM_UP = (int)customSetting("ignoreTicksAfterLongTeleport", "", 150) - 1;
     }
@@ -86,7 +86,7 @@ public class TickRate extends MovementCheck implements Listener {
             p.sendMessage((msOffset < 0 ? (msOffset < THRESHOLD ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.BLUE) + "CLOCK DRIFT: " + MathPlus.round(-msOffset, 2) + "ms");
         }
         if (drift * 1E-6 < THRESHOLD) {
-            if(RUBBERBAND)
+            if(RUBBERBAND && pp.getCurrentTick() % 20 == 0) //Don't rubberband so often. You're already cancelling a ton of moves.
                 punishAndTryRubberband(pp, event, p.getLocation());
             else
                 punish(pp, true, event);

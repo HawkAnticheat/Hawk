@@ -53,7 +53,11 @@ public abstract class MovementCheck extends Check<MoveEvent> {
     }
 
     protected void punishAndTryRubberband(HawkPlayer offender, MoveEvent event, Location setback, Placeholder... placeholders) {
-        punish(offender, false, event, placeholders);
+        punishAndTryRubberband(offender, 1, event, setback, placeholders);
+    }
+
+    protected void punishAndTryRubberband(HawkPlayer offender, double vlAmnt, MoveEvent event, Location setback, Placeholder... placeholders) {
+        punish(offender, vlAmnt, false, event, placeholders);
         tryRubberband(event, setback);
     }
 }

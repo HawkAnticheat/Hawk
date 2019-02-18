@@ -25,6 +25,7 @@ import me.islandscout.hawk.util.ConfigHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -56,6 +57,7 @@ public class Hawk extends JavaPlugin {
     private BanManager banManager;
     private MuteManager muteManager;
     private MouseRecorder mouseRecorder;
+    //private JudgementDay judgementDay;
     private Map<UUID, HawkPlayer> profiles;
     private static int SERVER_VERSION;
     public static String FLAG_PREFIX;
@@ -72,7 +74,6 @@ public class Hawk extends JavaPlugin {
         BUILD_NAME = getDescription().getVersion();
         setServerVersion();
         loadModules();
-        saveConfigs();
         getLogger().info("Hawk Anticheat has been enabled. Copyright (C) 2015-2019 Hawk Development Team.");
     }
 
@@ -98,6 +99,8 @@ public class Hawk extends JavaPlugin {
         profiles = new ConcurrentHashMap<>();
         sql = new SQL(this);
         sql.createTableIfNotExists();
+        //judgementDay = new JudgementDay(this);
+        //judgementDay.start();
         guiManager = new GUIManager(this);
         lagCompensator = new LagCompensator(this);
         banManager = new BanManager(this);
@@ -113,7 +116,10 @@ public class Hawk extends JavaPlugin {
         packetCore.startListener();
         packetCore.setupListenerForOnlinePlayers();
         mouseRecorder = new MouseRecorder(this);
+
         registerCommand();
+
+        saveConfigs();
     }
 
     public void unloadModules() {
@@ -123,7 +129,10 @@ public class Hawk extends JavaPlugin {
         HandlerList.unregisterAll(this);
         guiManager.stop();
         guiManager = null;
+        //judgementDay.stop();
+        //judgementDay = null;
         lagCompensator = null;
+        checkManager.unloadChecks();
         checkManager = null;
         banManager.saveBannedPlayers();
         banManager = null;
@@ -138,7 +147,7 @@ public class Hawk extends JavaPlugin {
         violationLogger = null;
     }
 
-    public void saveConfigs() {
+    private void saveConfigs() {
         saveConfig();
         try {
             messages.save(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
@@ -246,6 +255,10 @@ public class Hawk extends JavaPlugin {
     public MouseRecorder getMouseRecorder() {
         return mouseRecorder;
     }
+
+    //public JudgementDay getJudgementDay() {
+    //    return judgementDay;
+    //}
 
     public boolean canSendJSONMessages() {
         return sendJSONMessages;

@@ -20,7 +20,6 @@ package me.islandscout.hawk.listener;
 
 import io.netty.channel.*;
 import me.islandscout.hawk.module.PacketCore;
-import me.islandscout.hawk.util.packet.PacketAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;

@@ -41,7 +41,7 @@ public class BlockInteractSpeed extends BlockInteractionCheck {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
         if (pp.getCurrentTick() == lastPlaceTick.getOrDefault(p.getUniqueId(), 0L))
-            punishAndTryCancelAndBlockRespawn(pp, e);
+            punishAndTryCancelAndBlockRespawn(pp, 1, e);
         else
             reward(pp);
 

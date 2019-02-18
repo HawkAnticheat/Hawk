@@ -22,6 +22,7 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.block.BlockNMS;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.material.Openable;
 import org.bukkit.util.Vector;
@@ -228,5 +229,43 @@ public class AdjacentBlocks {
                 return true;
         }
         return false;
+    }
+
+    public static Set<Direction> checkTouchingBlock(AABB boundingBox, World world) {
+        AABB bigBox = boundingBox.clone();
+        Vector min = bigBox.getMin().add(new Vector(-0.0001, -0.0001, -0.0001));
+        Vector max = bigBox.getMax().add(new Vector(0.0001, 0.0001, 0.0001));
+        Set<Direction> directions = new HashSet<>();
+        for(int x = (int)min.getX(); x < max.getX(); x++) {
+            for(int y = (int)min.getY(); y < max.getY(); y++) {
+                for(int z = (int)min.getZ(); z < max.getZ(); z++) {
+                    Block b = ServerUtils.getBlockAsync(new Location(world, x, y, z));
+                    if(b != null) {
+                        BlockNMS bNMS = BlockNMS.getBlockNMS(b);
+                        for(AABB blockBox : bNMS.getCollisionBoxes()) {
+                            if(blockBox.getMin().getX() > boundingBox.getMax().getX() && blockBox.getMin().getX() < bigBox.getMax().getX()) {
+                                directions.add(Direction.EAST);
+                            }
+                            if(blockBox.getMin().getY() > boundingBox.getMax().getY() && blockBox.getMin().getY() < bigBox.getMax().getY()) {
+                                directions.add(Direction.TOP);
+                            }
+                            if(blockBox.getMin().getZ() > boundingBox.getMax().getZ() && blockBox.getMin().getZ() < bigBox.getMax().getZ()) {
+                                directions.add(Direction.SOUTH);
+                            }
+                            if(blockBox.getMax().getX() > bigBox.getMin().getX() && blockBox.getMax().getX() < boundingBox.getMin().getX()) {
+                                directions.add(Direction.WEST);
+                            }
+                            if(blockBox.getMax().getY() > bigBox.getMin().getY() && blockBox.getMax().getY() < boundingBox.getMin().getY()) {
+                                directions.add(Direction.BOTTOM);
+                            }
+                            if(blockBox.getMax().getZ() > bigBox.getMin().getZ() && blockBox.getMax().getZ() < boundingBox.getMin().getZ()) {
+                                directions.add(Direction.NORTH);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return directions;
     }
 }

@@ -72,7 +72,7 @@ public class FightReachApprox extends EntityInteractionCheck {
         double chkDistanceSquared = Math.min(feetFeetDistanceSquared, eyeFeetDistanceSquared);
         double maxReach = e.getPlayer().getGameMode() == GameMode.CREATIVE ? MAX_REACH_CREATIVE : MAX_REACH;
         if (chkDistanceSquared > maxReach) {
-            punish(att, true, e, new Placeholder("distance", MathPlus.round(Math.sqrt(chkDistanceSquared), 2)));
+            punish(att, 1, true, e, new Placeholder("distance", MathPlus.round(Math.sqrt(chkDistanceSquared), 2)));
         } else {
             reward(att);
         }

@@ -21,7 +21,6 @@ package me.islandscout.hawk.event;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.packet.WrappedPacket;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -48,6 +47,7 @@ public class MoveEvent extends Event {
     private boolean acceptedKnockback;
     private boolean failedKnockback;
     private boolean hitSlowdown; //Idk, it's weird. Sprinting or hitting with kb enchant will multiply horizontal speed by 0.6.
+    private Set<Direction> boxSidesTouchingBlocks;
     //No, don't compute a delta vector during instantiation since teleports will affect it.
 
     //Not sure if these maps are necessary since you can determine the previous position using HawkPlayer#getLocation()
@@ -63,8 +63,9 @@ public class MoveEvent extends Event {
         this.updateRot = updateRot;
         this.onGround = onGround;
         ItemStack heldItem = pp.getItemUsedForAttack();
-        this.hitSlowdown = pp.getLastAttackedPlayerTick() == pp.getCurrentTick() && (pp.isSprinting() || (heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0));
-        this.acceptedKnockback = handlePendingVelocities();
+        hitSlowdown = pp.getLastAttackedPlayerTick() == pp.getCurrentTick() && (pp.isSprinting() || (heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0));
+        boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld());
+        acceptedKnockback = handlePendingVelocities();
     }
 
     //This literally makes me want to punch a wall.
@@ -76,7 +77,6 @@ public class MoveEvent extends Event {
             int expiredKbs = 0;
             long currTime = System.currentTimeMillis();
             Vector currVelocity = new Vector(getTo().getX() - getFrom().getX(), getTo().getY() - getFrom().getY(), getTo().getZ() - getFrom().getZ());
-            Set<PhysicsUtils.Direction> touchingBlocks = PhysicsUtils.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld());
             boolean jump = pp.isOnGround() && Math.abs(0.42 - currVelocity.getY()) < 0.00001;
             double speedPotMultiplier = 1;
             for (PotionEffect effect : p.getActivePotionEffects()) {
@@ -103,9 +103,8 @@ public class MoveEvent extends Event {
                     double z = hitSlowdown ? 0.6 * kbVelocity.getZ() : kbVelocity.getZ();
 
                     //check Y component
-                    //TODO: air, web, and liquid friction.
                     //skip to next kb if...
-                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.TOP) && y > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.BOTTOM) && y < 0)) && /*...player isn't colliding...*/
+                    if (!((boxSidesTouchingBlocks.contains(Direction.TOP) && y > 0) || (boxSidesTouchingBlocks.contains(Direction.BOTTOM) && y < 0)) && /*...player isn't colliding...*/
                             Math.abs(y - currVelocity.getY()) > 0.01 && /*...and velocity is nowhere close to kb velocity...*/
                             !jump /*...and did not jump*/) {
                         continue;
@@ -118,13 +117,13 @@ public class MoveEvent extends Event {
 
                     //check X component
                     //skip to next kb if...
-                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.EAST) && x > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.WEST) && x < 0)) && /*...player isn't colliding...*/
+                    if (!((boxSidesTouchingBlocks.contains(Direction.EAST) && x > 0) || (boxSidesTouchingBlocks.contains(Direction.WEST) && x < 0)) && /*...player isn't colliding...*/
                             !(currVelocity.getX() <= maxThresX && currVelocity.getX() >= minThresX)) { /*...and velocity is nowhere close to kb velocity...*/
                         continue;
                     }
                     //check Z component
                     //skip to next kb if...
-                    if (!((touchingBlocks.contains(PhysicsUtils.Direction.SOUTH) && z > 0) || (touchingBlocks.contains(PhysicsUtils.Direction.NORTH) && z < 0)) && /*...player isn't colliding...*/
+                    if (!((boxSidesTouchingBlocks.contains(Direction.SOUTH) && z > 0) || (boxSidesTouchingBlocks.contains(Direction.NORTH) && z < 0)) && /*...player isn't colliding...*/
                             !(currVelocity.getZ() <= maxThresZ && currVelocity.getZ() >= minThresZ)) { /*...and velocity is nowhere close to kb velocity...*/
                         continue;
                     }
@@ -223,6 +222,10 @@ public class MoveEvent extends Event {
 
     public boolean hasHitSlowdown() {
         return hitSlowdown;
+    }
+
+    public Set<Direction> getBoxSidesTouchingBlocks() {
+        return boxSidesTouchingBlocks;
     }
 
     public void cancelAndSetBack(Location setback) {

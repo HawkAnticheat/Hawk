@@ -69,7 +69,7 @@ public class FightSynchronized extends EntityInteractionCheck implements Cancell
             samples.put(attacker.getUniqueId(), 0);
             attackTimes.put(attacker.getUniqueId(), attackTimes.get(attacker.getUniqueId()) / SAMPLE_SIZE);
             if (attackTimes.get(attacker.getUniqueId()) < THRESHOLD) {
-                punish(pp, false, event);
+                punish(pp, 1, false, event);
             } else
                 reward(pp);
         }

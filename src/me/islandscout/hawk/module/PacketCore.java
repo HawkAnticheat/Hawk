@@ -198,11 +198,13 @@ public class PacketCore implements Listener {
                     pp.setTeleporting(true);
                     pp.teleportPlayer(((MoveEvent) event).getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
                 } else {
-                    //If cancelled but no rubberband,
-                    //are you sure you want to modify the next move's getFrom?
-                    //As long as you're rubberbanding the player back to this loc
-                    //when there's a discrepancy, (which you are) you should be OK
-                    ((MoveEvent) event).setTo(((MoveEvent) event).getFrom());
+                    //2/17/19: well, technically this shouldn't be allowed. I did
+                    //this so at least some other check such as speed can rubberband
+                    //if tickrate fails. If tickrate rubberbands, that'll just spam
+                    //more packets. And if someone fails tickrate then they'll just spam
+                    //speed, especially if speed isn't set to rubberband.
+
+                    //((MoveEvent) event).setTo(((MoveEvent) event).getFrom());
                 }
             } else {
                 //handle item consumption

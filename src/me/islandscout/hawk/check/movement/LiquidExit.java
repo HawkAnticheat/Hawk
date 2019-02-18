@@ -65,7 +65,7 @@ public class LiquidExit extends MovementCheck implements Listener {
             long ticksSinceKb = System.currentTimeMillis() - kb.getValue();
             ticksSinceKb /= 50;
             //check if they're being knocked out of the water
-            if (PhysicsUtils.waterYVelFunc(kb.getKey(), ticksSinceKb) < 0) {
+            if (Movement.waterYVelFunc(kb.getKey(), ticksSinceKb) < 0) {
                 punishAndTryRubberband(e.getHawkPlayer(), e, p.getLocation());
             }
         }

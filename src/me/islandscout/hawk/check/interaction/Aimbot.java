@@ -77,7 +77,7 @@ public class Aimbot extends CustomCheck implements Cancelless {
                 boolean result = analyze(sample);
 
                 if(!result) {
-                    punish(pp, false, e);
+                    punish(pp, 1, false, e);
                 }
                 else {
                     reward(pp);

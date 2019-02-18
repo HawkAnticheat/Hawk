@@ -120,7 +120,7 @@ public class BlockBreakHitbox extends BlockDigCheck {
                     if (occludeIntersection.distance(eyePos) < distance) {
                         Placeholder ph = new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType());
                         if(ALWAYS_CANCEL_OCCLUSION) {
-                            punish(pp, true, e, ph);
+                            punish(pp, 1, true, e, ph);
                             e.setCancelled(true);
                             blockRespawn(pp, e);
                         } else {
@@ -143,11 +143,11 @@ public class BlockBreakHitbox extends BlockDigCheck {
 
     private void cancelDig(HawkPlayer pp, BlockDigEvent e, Placeholder... placeholder) {
         if (pp.getPlayer().getGameMode() == GameMode.CREATIVE) {
-            punishAndTryCancelAndBlockRespawn(pp, e, placeholder);
+            punishAndTryCancelAndBlockRespawn(pp, 1, e, placeholder);
         } else if (e.getDigAction() == BlockDigEvent.DigAction.COMPLETE) {
-            punishAndTryCancelAndBlockRespawn(pp, e, placeholder);
+            punishAndTryCancelAndBlockRespawn(pp, 1, e, placeholder);
         } else if (CHECK_DIG_START && e.getDigAction() == BlockDigEvent.DigAction.START) {
-            punish(pp, true, e, placeholder);
+            punish(pp, 1, true, e, placeholder);
         }
     }
 }

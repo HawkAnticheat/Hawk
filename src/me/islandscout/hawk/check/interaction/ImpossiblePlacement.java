@@ -39,7 +39,7 @@ public class ImpossiblePlacement extends BlockInteractionCheck {
             return;
         Material mat = targetedBlock.getType();
         if(targetedBlock.isLiquid() || mat == Material.AIR) {
-            punishAndTryCancelAndBlockRespawn(pp, e);
+            punishAndTryCancelAndBlockRespawn(pp, 1, e);
         }
     }
 }

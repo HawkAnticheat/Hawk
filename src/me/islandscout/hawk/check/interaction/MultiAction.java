@@ -41,7 +41,7 @@ public class MultiAction extends CustomCheck {
             return;
         HawkPlayer pp = event.getHawkPlayer();
         if(pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow()) {
-            punish(pp, true, event);
+            punish(pp, 1, true, event);
         }
         else {
             reward(pp);

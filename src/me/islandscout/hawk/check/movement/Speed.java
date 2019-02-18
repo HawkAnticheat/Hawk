@@ -43,6 +43,10 @@ public class Speed extends MovementCheck implements Listener {
     //Do you realize how much easier it would be if
     //the server handled movement?
 
+    //Tf you can check axes X and Z independently, that would be totally AWESOME.
+    //Theoretically stop ANY advantageous horizontal movement mods. You'd need
+    //to rename this to something more relevant, such as MotionHorizontal.
+
     //TODO Shrink this code
     //TODO False flag when landing on ice
     //TODO False flag with pistons
@@ -58,6 +62,7 @@ public class Speed extends MovementCheck implements Listener {
     //Tolerance for client inconsistencies due to insignificance. Max no-update-pos ticks + 1
     private static final long MAX_TICKS_SINCE_POS_UPDATE = 9;
     private final double DISCREPANCY_THRESHOLD;
+    private final double VL_FAIL_DISCREPANCY_FACTOR;
     private final boolean DEBUG;
 
     private final Set<UUID> prevMoveWasOnGround;
@@ -82,6 +87,7 @@ public class Speed extends MovementCheck implements Listener {
         lastNegativeDiscrepancies = new HashMap<>();
         negativeDiscrepanciesCumulative = new HashMap<>();
         DISCREPANCY_THRESHOLD = (double) customSetting("discrepancyThreshold", "", 0.1D);
+        VL_FAIL_DISCREPANCY_FACTOR = (double) customSetting("vlFailDiscrepancyFactor", "", 10D);
         DEBUG = (boolean) customSetting("debug", "", false);
     }
 
@@ -275,7 +281,7 @@ public class Speed extends MovementCheck implements Listener {
 
             if(failed != null) {
                 if(totalDiscrepancy > DISCREPANCY_THRESHOLD && speed > haltDistanceExpected) {
-                    punishAndTryRubberband(pp, event, p.getLocation());
+                    punishAndTryRubberband(pp, discrepancy.value * VL_FAIL_DISCREPANCY_FACTOR, event, p.getLocation());
                     if(DEBUG)
                         p.sendMessage(ChatColor.RED + failed.toString());
                 }

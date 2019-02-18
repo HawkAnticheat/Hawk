@@ -71,7 +71,7 @@ public class FightSpeed extends EntityInteractionCheck {
                     avgCps = 1 / (divisor == 0 ? Double.NaN : divisor);
                     //if someone manages to get a NaN, they're dumb af
                     if (avgCps > MAX_CPS || Double.isNaN(avgCps)) {
-                        punish(pp, true, e, new Placeholder("cps", (Double.isNaN(avgCps) ? "INVALID" : MathPlus.round(avgCps, 2) + "")));
+                        punish(pp, 1, true, e, new Placeholder("cps", (Double.isNaN(avgCps) ? "INVALID" : MathPlus.round(avgCps, 2) + "")));
                     } else {
                         reward(pp);
                     }

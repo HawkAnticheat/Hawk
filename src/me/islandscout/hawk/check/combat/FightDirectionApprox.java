@@ -84,7 +84,7 @@ public class FightDirectionApprox extends EntityInteractionCheck {
         double angleOffset = direction.angle(victimLocation);
 
         if (angleOffset > maxAngleOffset) {
-            punish(e.getHawkPlayer(), true, e);
+            punish(e.getHawkPlayer(), 1, true, e);
         } else {
             reward(e.getHawkPlayer());
         }

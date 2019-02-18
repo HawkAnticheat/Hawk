@@ -110,18 +110,22 @@ public abstract class Check<E extends Event> {
     protected abstract void check(E e);
 
     protected void punish(HawkPlayer offender, boolean tryCancel, E e, Placeholder... placeholders) {
-        if (tryCancel && canCancel() && offender.getVL(this) >= cancelThreshold)
-            e.setCancelled(true);
-        punish(offender, placeholders);
+        punish(offender, 1, tryCancel, e, placeholders);
     }
 
-    private void punish(HawkPlayer pp, Placeholder... placeholders) {
+    protected void punish(HawkPlayer offender, double vlAmnt, boolean tryCancel, E e, Placeholder... placeholders) {
+        if (tryCancel && canCancel() && offender.getVL(this) >= cancelThreshold)
+            e.setCancelled(true);
+        punish(offender, vlAmnt, placeholders);
+    }
+
+    private void punish(HawkPlayer pp, double vlAmnt, Placeholder... placeholders) {
         Player offender = pp.getPlayer();
-        pp.incrementVL(this);
+        pp.addVL(this, vlAmnt);
 
         flag(offender, pp, placeholders);
 
-        CommandExecutor.runACommand(punishCommands, this, offender, pp, hawk, placeholders);
+        CommandExecutor.runACommand(punishCommands, this, vlAmnt, offender, pp, hawk, placeholders);
     }
 
     protected void reward(HawkPlayer pp) {

@@ -31,7 +31,7 @@ import java.util.List;
 
 public class CommandExecutor {
 
-    public static void runACommand(List<String> command, Check check, Player p, HawkPlayer pp, Hawk hawk, Placeholder... placeholders) {
+    public static void runACommand(List<String> command, Check check, double deltaVL, Player p, HawkPlayer pp, Hawk hawk, Placeholder... placeholders) {
         if (command.size() == 0 || command.get(0).length() == 0) return;
         for (String aCommand : command) {
             if (aCommand.length() == 0) return;
@@ -70,7 +70,9 @@ public class CommandExecutor {
                     }
                     return;
                 }
-                if (pp.getVL(check) == Integer.parseInt(parts[0])) {
+                int confVL = Integer.parseInt(parts[0]);
+                double currVL = pp.getVL(check);
+                if (pp.getVL(check) >= confVL && currVL - deltaVL <= confVL) {
                     execute(parts, p, hawk, check, placeholders);
                 }
             } catch (NumberFormatException e) {

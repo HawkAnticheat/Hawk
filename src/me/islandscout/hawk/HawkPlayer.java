@@ -101,6 +101,10 @@ public class HawkPlayer {
         this.vl.put(check, vl.getOrDefault(check, 0D) + 1D);
     }
 
+    public void addVL(Check check, double amnt) {
+        this.vl.put(check, vl.getOrDefault(check, 0D) + amnt);
+    }
+
     public void multiplyVL(Check check, double factor) {
         vl.put(check, vl.getOrDefault(check, 0D) * factor);
     }

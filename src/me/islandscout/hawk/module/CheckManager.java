@@ -30,8 +30,6 @@ import java.util.*;
 
 public class CheckManager {
 
-    private final Hawk hawk;
-
     private final Set<UUID> exemptedPlayers;
 
     //make these HashSets?
@@ -43,7 +41,6 @@ public class CheckManager {
     private final List<MovementCheck> movementChecks;
 
     public CheckManager(Hawk hawk) {
-        this.hawk = hawk;
         Check.setHawkReference(hawk);
         exemptedPlayers = new HashSet<>();
         checks = new ArrayList<>();
@@ -54,11 +51,8 @@ public class CheckManager {
         movementChecks = new ArrayList<>();
     }
 
-    //initialize checks and save any changes in configs to files.
-    //can be used to reload checks
+    //initialize checks
     public void loadChecks() {
-        unloadChecks();
-
         new FightHitbox();
         new Phase();
         new Fly();
@@ -88,11 +82,9 @@ public class CheckManager {
         new FastFall();
         new MultiAction();
         new SprintDirection();
-
-        hawk.saveConfigs();
     }
 
-    private void unloadChecks() {
+    public void unloadChecks() {
         checks.clear();
         blockDigChecks.clear();
         blockInteractionChecks.clear();

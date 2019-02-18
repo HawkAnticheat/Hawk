@@ -55,7 +55,7 @@ public class AutoPotion extends CustomCheck implements Cancelless {
         if(usedSomething.contains(uuid)) {
             long lastSwitchTick = lastSwitchTicks.getOrDefault(uuid, 0L);
             if(pp.getCurrentTick() - lastSwitchTick < MIN_SWITCH_TICKS) {
-                punish(pp, false, event);
+                punish(pp, 1, false, event);
             }
             else {
                 reward(pp);

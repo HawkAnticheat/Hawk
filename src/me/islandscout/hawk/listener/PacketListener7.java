@@ -19,8 +19,6 @@
 package me.islandscout.hawk.listener;
 
 import me.islandscout.hawk.module.PacketCore;
-import me.islandscout.hawk.util.Debug;
-import me.islandscout.hawk.util.packet.PacketAdapter;
 import net.minecraft.util.io.netty.channel.ChannelDuplexHandler;
 import net.minecraft.util.io.netty.channel.ChannelHandlerContext;
 import net.minecraft.util.io.netty.channel.ChannelPromise;

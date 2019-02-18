@@ -93,7 +93,7 @@ public class BlockBreakSpeed extends BlockDigCheck {
                 expectedTime = 0.05;
 
             if (actualTime < expectedTime || (PREVENT_SAME_TICK && pp.getCurrentTick() == interactTick.getOrDefault(p.getUniqueId(), 0L))) {
-                punishAndTryCancelAndBlockRespawn(pp, e, new Placeholder("block", b.getType()), new Placeholder("time", MathPlus.round(actualTime, 2) + "s"));
+                punishAndTryCancelAndBlockRespawn(pp, 1, e, new Placeholder("block", b.getType()), new Placeholder("time", MathPlus.round(actualTime, 2) + "s"));
             } else {
                 reward(pp);
             }

@@ -69,7 +69,7 @@ public class BlockInteractHitbox extends BlockInteractionCheck {
         Vector intersection = aabb.intersectsRay(ray, 0, Float.MAX_VALUE);
 
         if (intersection == null) {
-            punishAndTryCancelAndBlockRespawn(pp, e, new Placeholder("type", "Did not hit hitbox."));
+            punishAndTryCancelAndBlockRespawn(pp, 1, e, new Placeholder("type", "Did not hit hitbox."));
             return;
         }
 
@@ -93,11 +93,11 @@ public class BlockInteractHitbox extends BlockInteractionCheck {
                     if (occludeIntersection.distance(eyePos) < distance) {
                         Placeholder ph = new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType());
                         if(ALWAYS_CANCEL_OCCLUSION) {
-                            punish(pp, true, e, ph);
+                            punish(pp, 1, true, e, ph);
                             e.setCancelled(true);
                             blockRespawn(pp, e);
                         } else {
-                            punishAndTryCancelAndBlockRespawn(pp, e, ph);
+                            punishAndTryCancelAndBlockRespawn(pp, 1, e, ph);
                         }
                         return;
                     }
@@ -107,7 +107,7 @@ public class BlockInteractHitbox extends BlockInteractionCheck {
         }
 
         if (distance > MAX_REACH) {
-            punishAndTryCancelAndBlockRespawn(pp, e, new Placeholder("type", "Reached too far."));
+            punishAndTryCancelAndBlockRespawn(pp, 1, e, new Placeholder("type", "Reached too far."));
             return;
         }
 

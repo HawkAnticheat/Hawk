@@ -41,7 +41,11 @@ public abstract class BlockInteractionCheck extends Check<InteractWorldEvent> {
     }
 
     protected void punishAndTryCancelAndBlockRespawn(HawkPlayer offender, InteractWorldEvent event, Placeholder... placeholders) {
-        punish(offender, true, event, placeholders);
+        punishAndTryCancelAndBlockRespawn(offender, 1, event, placeholders);
+    }
+
+    protected void punishAndTryCancelAndBlockRespawn(HawkPlayer offender, double vlAmnt, InteractWorldEvent event, Placeholder... placeholders) {
+        punish(offender, vlAmnt, true, event, placeholders);
         if (offender.getVL(this) < cancelThreshold)
             return;
         blockRespawn(offender, event);

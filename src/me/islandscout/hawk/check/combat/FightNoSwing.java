@@ -60,7 +60,7 @@ public class FightNoSwing extends CustomCheck {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
         if (!lastClientTickSwung.containsKey(p.getUniqueId()) || pp.getCurrentTick() != lastClientTickSwung.get(p.getUniqueId())) {
-            punish(pp, true, e);
+            punish(pp, 1, true, e);
         } else {
             reward(pp);
         }
