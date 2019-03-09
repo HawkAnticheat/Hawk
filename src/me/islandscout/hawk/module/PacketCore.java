@@ -117,13 +117,14 @@ public class PacketCore implements Listener {
             //handle teleports
             if (pp.isTeleporting()) {
                 Location tpLoc = pp.getTeleportLoc();
+                //accepted teleport
                 if (tpLoc.getWorld().equals(posEvent.getTo().getWorld()) && posEvent.getTo().distanceSquared(tpLoc) < 0.001) {
                     posEvent.setFrom(tpLoc);
                     pp.setTeleporting(false);
                     posEvent.setTeleported(true);
                 } else {
                     //Help guide the confused client back to the tp location
-                    if (System.currentTimeMillis() - pp.getLastTeleportTime() > 1000) {
+                    if (pp.getCurrentTick() - pp.getLastTeleportTime() > 20) {
                         pp.teleportPlayer(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
                     }
                     return false;
@@ -191,6 +192,7 @@ public class PacketCore implements Listener {
         }
         if (event instanceof MoveEvent) {
             pp.setLastMoveTime(System.currentTimeMillis());
+            MoveEvent mEvent = (MoveEvent) event;
             if(event.isCancelled()) {
                 //handle rubberband if applicable
                 if(((MoveEvent) event).getCancelLocation() != null) {
@@ -212,15 +214,24 @@ public class PacketCore implements Listener {
                     pp.setConsumingItem(false);
                 }
 
-                Location to = ((MoveEvent) event).getTo();
-                Location from = ((MoveEvent) event).getFrom();
+                //handle swimming
+                pp.setInLiquid(mEvent.isInLiquid());
+                if(pp.getCurrentTick() < 2)
+                    pp.setSwimming(pp.isInLiquid());
+                long ticksSinceSwimToggle = pp.getCurrentTick() - pp.getLastInLiquidToggleTick();
+                pp.setSwimming(!pp.isFlyingClientside() && ((pp.isInLiquid() && ticksSinceSwimToggle > 0) || (!pp.isInLiquid() && ticksSinceSwimToggle < 1)));
+
+                Location to = mEvent.getTo();
+                Location from = mEvent.getFrom();
                 pp.setVelocity(new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ()));
                 pp.setDeltaYaw(to.getYaw() - from.getYaw());
                 pp.setDeltaPitch(to.getPitch() - from.getPitch());
                 pp.setLocation(to);
                 pp.updateFallDistance(to);
                 pp.updateTotalAscensionSinceGround(from.getY(), to.getY());
-                pp.setOnGround(((MoveEvent) event).isOnGround());
+                pp.setOnGround(mEvent.isOnGround());
+                pp.getBoxSidesTouchingBlocks().clear();
+                pp.getBoxSidesTouchingBlocks().addAll(mEvent.getBoxSidesTouchingBlocks());
             }
 
         }

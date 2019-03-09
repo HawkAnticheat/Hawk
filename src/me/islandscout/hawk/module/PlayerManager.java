@@ -65,7 +65,7 @@ public class PlayerManager implements Listener {
         pp.setTeleporting(true);
         pp.setTeleportLoc(e.getTo());
         pp.setLocation(e.getTo());
-        pp.setLastTeleportTime(System.currentTimeMillis());
+        pp.setLastTeleportTime(pp.getCurrentTick());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -74,7 +74,7 @@ public class PlayerManager implements Listener {
         pp.setTeleporting(true);
         pp.setTeleportLoc(e.getPlayer().getLocation());
         pp.setLocation(e.getPlayer().getLocation());
-        pp.setLastTeleportTime(System.currentTimeMillis());
+        pp.setLastTeleportTime(pp.getCurrentTick());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

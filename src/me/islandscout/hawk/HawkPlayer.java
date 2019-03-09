@@ -20,6 +20,7 @@ package me.islandscout.hawk;
 
 import me.islandscout.hawk.check.Check;
 import me.islandscout.hawk.util.ClientBlock;
+import me.islandscout.hawk.util.Direction;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Bukkit;
@@ -65,8 +66,11 @@ public class HawkPlayer {
     private boolean blocking;
     private boolean pullingBow;
     private boolean consumingItem;
+    private boolean inLiquid;
+    private boolean swimming;
     private long itemUseTick;
     private long lastAttackedPlayerTick;
+    private long lastInLiquidToggleTick;
     private ItemStack itemUsedForAttack;
     private double maxY;
     private double jumpedHeight;
@@ -74,6 +78,7 @@ public class HawkPlayer {
     private int heldItemSlot;
     private final Set<ClientBlock> clientBlocks;
     private final List<Pair<Vector, Long>> pendingVelocities;
+    private final Set<Direction> boxSidesTouchingBlocks;
 
     HawkPlayer(Player p, Hawk hawk) {
         this.uuid = p.getUniqueId();
@@ -87,6 +92,7 @@ public class HawkPlayer {
         this.ping = ServerUtils.getPing(p);
         clientBlocks = new HashSet<>();
         pendingVelocities = new ArrayList<>();
+        boxSidesTouchingBlocks = new HashSet<>();
     }
 
     public int getVL(Check check) {
@@ -291,6 +297,21 @@ public class HawkPlayer {
             itemUseTick = currentTick;
     }
 
+    public boolean isInLiquid() {
+        return inLiquid;
+    }
+
+    public void setInLiquid(boolean inLiquid) {
+        if(this.inLiquid != inLiquid) {
+            lastInLiquidToggleTick = currentTick;
+            this.inLiquid = inLiquid;
+        }
+    }
+
+    public boolean isFlyingClientside() {
+        return (p.getAllowFlight() && hasFlyPending()) || p.isFlying();
+    }
+
     public long getItemUseTick() {
         return itemUseTick;
     }
@@ -301,6 +322,18 @@ public class HawkPlayer {
 
     public void updateLastAttackedPlayerTick() {
         this.lastAttackedPlayerTick = currentTick;
+    }
+
+    public long getLastInLiquidToggleTick() {
+        return lastInLiquidToggleTick;
+    }
+
+    public boolean isSwimming() {
+        return swimming;
+    }
+
+    public void setSwimming(boolean swimming) {
+        this.swimming = swimming;
     }
 
     public ItemStack getItemUsedForAttack() {
@@ -365,6 +398,10 @@ public class HawkPlayer {
             }
         }
         clientBlocks.removeAll(oldPBlocks);
+    }
+
+    public Set<Direction> getBoxSidesTouchingBlocks() {
+        return boxSidesTouchingBlocks;
     }
 
     //safely kill the connection

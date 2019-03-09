@@ -22,6 +22,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.packet.WrappedPacket;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -48,11 +49,14 @@ public class MoveEvent extends Event {
     private boolean failedKnockback;
     private boolean hitSlowdown; //Idk, it's weird. Sprinting or hitting with kb enchant will multiply horizontal speed by 0.6.
     private Set<Direction> boxSidesTouchingBlocks;
+    private boolean inLiquid;
     //No, don't compute a delta vector during instantiation since teleports will affect it.
 
     //Not sure if these maps are necessary since you can determine the previous position using HawkPlayer#getLocation()
     private static final Map<UUID, Location> last = new HashMap<>();
     private static final Map<UUID, Location> current = new HashMap<>();
+
+    private static final List<Material> liquids = Arrays.asList(Material.WATER, Material.STATIONARY_WATER, Material.LAVA, Material.STATIONARY_LAVA);
 
     public MoveEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet, boolean updatePos, boolean updateRot) {
         super(p, pp, packet);
@@ -66,6 +70,21 @@ public class MoveEvent extends Event {
         hitSlowdown = pp.getLastAttackedPlayerTick() == pp.getCurrentTick() && (pp.isSprinting() || (heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0));
         boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld());
         acceptedKnockback = handlePendingVelocities();
+        inLiquid = testSwimming();
+    }
+
+    //Good thing I have MCP to figure this one out
+    //TODO: return liquids and directions. I would also make a cache of like 256 liquids' directions
+    private boolean testSwimming() {
+        AABB liquidTest = AABB.playerWaterCollisionBox.clone();
+        liquidTest.translate(getTo().toVector());
+        Set<Material> mats = liquidTest.getMaterials(p.getWorld());
+        for(Material mat : mats) {
+            if(liquids.contains(mat)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     //This literally makes me want to punch a wall.
@@ -224,8 +243,16 @@ public class MoveEvent extends Event {
         return hitSlowdown;
     }
 
+    public boolean isTouchingBlocks() {
+        return boxSidesTouchingBlocks.size() > 0;
+    }
+
     public Set<Direction> getBoxSidesTouchingBlocks() {
         return boxSidesTouchingBlocks;
+    }
+
+    public boolean isInLiquid() {
+        return inLiquid;
     }
 
     public void cancelAndSetBack(Location setback) {

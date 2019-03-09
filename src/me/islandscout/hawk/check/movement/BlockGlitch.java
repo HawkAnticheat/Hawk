@@ -19,4 +19,12 @@
 package me.islandscout.hawk.check.movement;
 
 public class BlockGlitch {
+
+    //Just rubberband to the location before touching the cancelled client block
+
+    //Look, if you're going to rubberband to a location like that, you should make a priority system. For example, if
+    //you jump on a phantomblock that gets cancelled, and then X moves ahead if you get flagged for speed AND fly (for failing phantomblock)
+    //on the same move, and speed is before fly in the process list, you'll get rubberbanded to the speed legit location and not the fly legit
+    //location; a fly bypass. The priority system should give priority to older setback locations if a conflict like this
+    //should occur.
 }

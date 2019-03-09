@@ -19,15 +19,24 @@
 package me.islandscout.hawk.util;
 
 import me.islandscout.hawk.Hawk;
-import org.bukkit.Bukkit;
-import org.bukkit.Effect;
-import org.bukkit.World;
+import me.islandscout.hawk.util.block.BlockNMS;
+import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class AABB implements Cloneable {
 
     private Vector min;
     private Vector max;
+
+    public static final AABB playerCollisionBox = new AABB(new Vector(-0.3, 0, -0.3), new Vector(0.3, 1.8, 0.3));
+    public static final AABB playerWaterCollisionBox = new AABB(new Vector(-0.3, 0.4, -0.3), new Vector(0.3, 1.4, 0.3));
+    public static final AABB playerLavaCollisionBox = new AABB(new Vector(-0.2, 0.4, -0.2), new Vector(0.2, 1.4, 0.2));
 
     public AABB(Vector min, Vector max) {
         this.min = min;
@@ -171,5 +180,34 @@ public class AABB implements Cloneable {
                             new Vector(max.getX(), min.getY(), max.getZ()),
                             new Vector(max.getX(), max.getY(), min.getZ()),
                             new Vector(max.getX(), max.getY(), max.getZ())};
+    }
+
+    public void shrink(double x, double y, double z) {
+        Vector subtraction = new Vector(x, y, z);
+        min.add(subtraction);
+        max.subtract(subtraction);
+    }
+
+    public void expand(double x, double y, double z) {
+        Vector compliment = new Vector(x, y, z);
+        min.subtract(compliment);
+        max.add(compliment);
+    }
+
+    public Set<Material> getMaterials(World world) {
+        Set<Material> mats = new HashSet<>();
+        for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
+            for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
+                for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
+                    Block block = ServerUtils.getBlockAsync(new Location(world, x, y, z));
+
+                    if(block == null)
+                        continue;
+
+                    mats.add(block.getType());
+                }
+            }
+        }
+        return mats;
     }
 }

@@ -20,6 +20,6 @@ package me.islandscout.hawk.util;
 
 public enum Direction {
 
-    TOP, BOTTOM, NORTH, SOUTH, EAST, WEST
+    TOP, BOTTOM, NORTH, SOUTH, EAST, WEST, NONE
 
 }

@@ -69,24 +69,11 @@ public class Fly extends MovementCheck implements Listener {
     //TODO: false flag with pistons
     //TODO: false flag on slime blocks
     //TODO: false flag while jumping down stairs
-    //TODO: false flag when kb'd out of water
     //TO DO: false flag when jumping on edge of block. Perhaps extrapolate next "noPos" moves until they touch the block, then reset expectedDeltaY
     //TODO: BYPASS! You can fly over fences. Jump, then toggle fly, then walk straight.
     //Don't change how you determine if on ground, even though that's what caused this. Instead, check when landing when deltaY > 0
     //perhaps check if player's jump height is great enough?
-
-    //TO DO: false flag when jumping on recently placed block
-    //To fix this... You'll need to work on PhantomBlocks/ClientBlocks (more in HawkPlayer)
-    //Fly check will keep track of positions ON phantom blocks in a List. If a phantom block passes, the fly check
-    //will remove it from the List. If a phantom block fails, the fly check will rubberband the player to the location
-    //before touching the failed phantom block, then clear the List. Fly check will setCancelled(true) positions as long as the list
-    //is not empty.
-
-    //Look, if you're going to rubberband to a location like that, you should make a priority system. For example, if
-    //you jump on a phantomblock that gets cancelled, and then X moves ahead if you get flagged for speed AND fly (for failing phantomblock)
-    //on the same move, and speed is before fly in the process list, you'll get rubberbanded to the speed legit location and not the fly legit
-    //location; a fly bypass. The priority system should give priority to older setback locations if a conflict like this
-    //should occur.
+    //TODO: You need to support "insignificant" moves
 
     private final Map<UUID, Double> lastDeltaY;
     private final Map<UUID, Location> legitLoc;
@@ -113,9 +100,10 @@ public class Fly extends MovementCheck implements Listener {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
         double deltaY = event.getTo().getY() - event.getFrom().getY();
+        //Debug.broadcastMessage(pp.isSwimming() + " " + deltaY + " " + event.getTo().getY());
         if (pp.hasFlyPending() && p.getAllowFlight())
             return;
-        if (!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() && !AdjacentBlocks.blockAdjacentIsLiquid(event.getTo()) &&
+        if (!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() && !pp.isSwimming() &&
                 !isInClimbable(event.getTo()) && !isOnBoat(event.getTo())) {
 
             if (!inAir.contains(p.getUniqueId()) && deltaY > 0)

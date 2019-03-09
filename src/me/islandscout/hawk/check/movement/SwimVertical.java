@@ -18,5 +18,58 @@
 
 package me.islandscout.hawk.check.movement;
 
-public class SwimVertical {
+import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.check.MovementCheck;
+import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.util.Debug;
+import me.islandscout.hawk.util.MathPlus;
+import me.islandscout.hawk.util.block.BlockNMS;
+import org.bukkit.ChatColor;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
+public class SwimVertical extends MovementCheck {
+
+    //TODO: Support lava
+
+    private Set<UUID> justExited;
+
+    public SwimVertical() {
+        super("swimvertical", "%player% failed swim vertical, VL: %vl%");
+        justExited = new HashSet<>();
+    }
+
+    @Override
+    protected void check(MoveEvent e) {
+        HawkPlayer pp = e.getHawkPlayer();
+        double currentDeltaY = MathPlus.round(e.getTo().getY() - e.getFrom().getY(), 6);
+        //TODO: slightly increase size of the collision box?
+        boolean exiting = pp.getBoxSidesTouchingBlocks().size() > 0 && !e.isInLiquid() && pp.isInLiquid() && currentDeltaY == 0.34;
+        if(pp.isSwimming() && (!exiting || justExited.contains(pp.getUuid())) && !e.hasTeleported() && !e.isOnGroundReally() && !pp.isFlyingClientside() && !e.hasAcceptedKnockback()) {
+            if(justExited.contains(pp.getUuid())) {
+                if(currentDeltaY > 0.3) {
+                    punishAndTryRubberband(pp, e, pp.getPlayer().getLocation());
+                }
+                else
+                    reward(pp);
+                justExited.remove(pp.getUuid());
+            }
+            else if(Math.abs(currentDeltaY) >= 0.1) {
+                //i check when it is >= 0.1 because this game is broken
+                //and i don't want work around each individual axis that does this
+                //stupid compression-like behavior
+
+                double prevDeltaY = pp.getVelocity().getY();
+                if(currentDeltaY < (prevDeltaY - 0.025001) * 0.800001 || currentDeltaY > 0.800001 * prevDeltaY + 0.020001) {
+                    punishAndTryRubberband(pp, e, pp.getPlayer().getLocation());
+                }
+                else
+                    reward(pp);
+            }
+        }
+        if(exiting)
+            justExited.add(pp.getUuid());
+    }
 }

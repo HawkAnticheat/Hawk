@@ -61,7 +61,7 @@ public class CheckManager {
         new Inertia();
         new BlockBreakHitbox();
         new WrongBlock();
-        new LiquidExit();
+        //new LiquidExit();
         new GroundSpoof();
         new FightSpeed();
         new FightAccuracy();
@@ -82,6 +82,7 @@ public class CheckManager {
         new FastFall();
         new MultiAction();
         new SprintDirection();
+        new SwimVertical();
     }
 
     public void unloadChecks() {

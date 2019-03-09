@@ -30,6 +30,8 @@ import org.bukkit.Material;
  */
 public class FastFall extends MovementCheck {
 
+    //TODO: You need to support "insignificant" moves
+
     public FastFall() {
         super("fastfall", "%player% failed fast-fall, VL: %vl%");
     }

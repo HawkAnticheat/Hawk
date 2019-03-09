@@ -20,20 +20,22 @@ package me.islandscout.hawk.util.block;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.AABB;
+import net.minecraft.server.v1_7_R4.Vec3D;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 public abstract class BlockNMS {
 
-    private final Block block;
+    final Block obcBlock;
     float strength;
     AABB hitbox;
     AABB[] collisionBoxes;
     boolean solid;
     float frictionFactor;
 
-    BlockNMS(Block block) {
-        this.block = block;
+    BlockNMS(Block obcBlock) {
+        this.obcBlock = obcBlock;
     }
 
     public abstract Object getNMS();
@@ -45,7 +47,7 @@ public abstract class BlockNMS {
     }
 
     public Block getBukkitBlock() {
-        return block;
+        return obcBlock;
     }
 
     public AABB getHitBox() {
@@ -79,5 +81,9 @@ public abstract class BlockNMS {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isSolid() {
         return solid;
+    }
+
+    public Vector getFlowDirection() {
+        return new Vector();
     }
 }

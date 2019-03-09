@@ -19,9 +19,7 @@
 package me.islandscout.hawk.util.block;
 
 import me.islandscout.hawk.util.AABB;
-import net.minecraft.server.v1_7_R4.AxisAlignedBB;
-import net.minecraft.server.v1_7_R4.BlockCarpet;
-import net.minecraft.server.v1_7_R4.PacketPlayOutBlockChange;
+import net.minecraft.server.v1_7_R4.*;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -107,5 +105,19 @@ public class BlockNMS7 extends BlockNMS {
             reallySolid = true;
         }
         return reallySolid;
+    }
+
+    public Vector getFlowDirection() {
+        Vector vec = new Vector();
+        Vec3D nmsVec = Vec3D.a(0, 0, 0);
+        Entity dummy = null;
+        if(!block.getMaterial().isLiquid())
+            return vec;
+        //i doubt this is thread safe
+        block.a(((CraftWorld)obcBlock.getWorld()).getHandle(), obcBlock.getX(), obcBlock.getY(), obcBlock.getZ(), dummy, nmsVec);
+        vec.setX(nmsVec.a);
+        vec.setY(nmsVec.b);
+        vec.setZ(nmsVec.c);
+        return vec;
     }
 }

@@ -22,18 +22,14 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
 import me.islandscout.hawk.util.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -43,9 +39,10 @@ public class Speed extends MovementCheck implements Listener {
     //Do you realize how much easier it would be if
     //the server handled movement?
 
-    //Tf you can check axes X and Z independently, that would be totally AWESOME.
-    //Theoretically stop ANY advantageous horizontal movement mods. You'd need
-    //to rename this to something more relevant, such as MotionHorizontal.
+    //If you can check axes X and Z independently, that would be totally AWESOME.
+    //Theoretically stop ANY advantageous horizontal movement mods. Plus, this will
+    //help with water flow direction. You'd need to rename this to something more
+    //relevant, such as MotionHorizontal or HorizontalIndependentAxisAcceleration.
 
     //TODO Shrink this code
     //TODO False flag when landing on ice
@@ -63,9 +60,9 @@ public class Speed extends MovementCheck implements Listener {
     private static final long MAX_TICKS_SINCE_POS_UPDATE = 9;
     private final double DISCREPANCY_THRESHOLD;
     private final double VL_FAIL_DISCREPANCY_FACTOR;
+    private final boolean IGNORE_ITEM_USE;
     private final boolean DEBUG;
 
-    private final Set<UUID> prevMoveWasOnGround;
     private final Map<UUID, Double> prevSpeed;
     private final Map<UUID, Long> landingTick;
     private final Map<UUID, Long> sprintingJumpTick;
@@ -77,7 +74,6 @@ public class Speed extends MovementCheck implements Listener {
 
     public Speed() {
         super("speed", true, 0, 5, 0.99, 5000, "%player% failed movement speed, VL: %vl%", null);
-        prevMoveWasOnGround = new HashSet<>();
         prevSpeed = new HashMap<>();
         landingTick = new HashMap<>();
         sprintingJumpTick = new HashMap<>();
@@ -88,6 +84,7 @@ public class Speed extends MovementCheck implements Listener {
         negativeDiscrepanciesCumulative = new HashMap<>();
         DISCREPANCY_THRESHOLD = (double) customSetting("discrepancyThreshold", "", 0.1D);
         VL_FAIL_DISCREPANCY_FACTOR = (double) customSetting("vlFailDiscrepancyFactor", "", 10D);
+        IGNORE_ITEM_USE = (boolean) customSetting("ignoreItemUse", "", false);
         DEBUG = (boolean) customSetting("debug", "", false);
     }
 
@@ -107,17 +104,19 @@ public class Speed extends MovementCheck implements Listener {
         }
         if(event.hasHitSlowdown())
             lastSpeed *= 0.6;
-        boolean wasOnGround = prevMoveWasOnGround.contains(p.getUniqueId());
+        boolean teleportBug = pp.getCurrentTick() - pp.getLastTeleportTime() < 3;
+        boolean wasOnGround = teleportBug ? event.isOnGroundReally() : pp.isOnGround();
         //In theory, YES, you can abuse the on ground flag. However, that won't get you far.
         //FastFall and SmallHop should patch some NCP bypasses
         //This is one of the very few times I'll actually trust the client. What's worse: an insignificant bypass, or intolerable false flagging?
-        boolean isOnGround = event.isOnGround();
-        long ticksSinceLanding = pp.getCurrentTick() - landingTick.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
-        long ticksSinceSprintJumping = pp.getCurrentTick() - sprintingJumpTick.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
-        long ticksSinceOnGround = pp.getCurrentTick() - lastTickOnGround.getOrDefault(p.getUniqueId(), Long.MIN_VALUE);
+        boolean isOnGround = teleportBug ? event.isOnGroundReally() : event.isOnGround();
+        long ticksSinceLanding = pp.getCurrentTick() - landingTick.getOrDefault(p.getUniqueId(), -10L); //default value should be less than 0, but not Long.MIN_VALUE, due to underflow error
+        long ticksSinceSprintJumping = pp.getCurrentTick() - sprintingJumpTick.getOrDefault(p.getUniqueId(), -10L);
+        long ticksSinceOnGround = pp.getCurrentTick() - lastTickOnGround.getOrDefault(p.getUniqueId(), -10L);
         boolean flying = (pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying();
+        boolean swimming = pp.isSwimming();
         boolean up = event.getTo().getY() > event.getFrom().getY();
-        boolean usingSomething = pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow();
+        boolean usingSomething = !IGNORE_ITEM_USE && (pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow());
         boolean sprinting = pp.isSprinting() && !pp.isSneaking() && !usingSomething;
         double walkMultiplier = 5 * p.getWalkSpeed() * speedEffectMultiplier(p); //TODO: account for latency
         double flyMultiplier = 10 * p.getFlySpeed();
@@ -133,22 +132,13 @@ public class Speed extends MovementCheck implements Listener {
         Discrepancy discrepancy = new Discrepancy(0, 0);
         boolean checked = true;
         //LIQUID
-        /*
-        Location chkPos = event.getTo().clone();
-        if(!flying && (AdjacentBlocks.blockAdjacentIsLiquid(chkPos) || AdjacentBlocks.blockAdjacentIsLiquid(chkPos.add(0, 1.8, 0)))) {
-            //lava (goes first since it overrides water)
-            if(AdjacentBlocks.matIsAdjacent(chkPos, Material.STATIONARY_LAVA, Material.LAVA) || AdjacentBlocks.matIsAdjacent(chkPos.add(0, -1.8, 0), Material.STATIONARY_LAVA, Material.LAVA)) {
-                if(event.isUpdatePos()) {
-
-                }
-            }
-            //water
-            else {
-
-            }
-        }*/
+        if(swimming) {
+            discrepancy = waterMapping(lastSpeed, speed);
+            if(discrepancy.value > 0)
+                failed = SpeedType.WATER;
+        }
         //LAND (instantaneous)
-        if((isOnGround && ticksSinceLanding == 1) || (ticksSinceOnGround == 1 && ticksSinceLanding == 1 && !up)) {
+        else if((isOnGround && ticksSinceLanding == 1) || (ticksSinceOnGround == 1 && ticksSinceLanding == 1 && !up)) {
             if(sprinting) {
                 discrepancy = sprintLandingMapping(lastSpeed, speed, walkMultiplier);
                 if(discrepancy.value > 0)
@@ -308,11 +298,8 @@ public class Speed extends MovementCheck implements Listener {
 
     private void prepareNextMove(boolean wasOnGround, boolean isOnGround, MoveEvent event, UUID uuid, long currentTick, double currentSpeed) {
         if(isOnGround) {
-            prevMoveWasOnGround.add(uuid);
             lastTickOnGround.put(uuid, currentTick);
         }
-        else
-            prevMoveWasOnGround.remove(uuid);
         prevSpeed.put(uuid, currentSpeed);
 
         //player touched the ground
@@ -337,11 +324,14 @@ public class Speed extends MovementCheck implements Listener {
 
     public void removeData(Player p) {
         UUID uuid = p.getUniqueId();
-        prevMoveWasOnGround.remove(uuid);
         prevSpeed.remove(uuid);
         landingTick.remove(uuid);
         sprintingJumpTick.remove(uuid);
         discrepancies.remove(uuid);
+        lastTickOnGround.remove(uuid);
+        lastTickPosUpdate.remove(uuid);
+        lastNegativeDiscrepancies.remove(uuid);
+        negativeDiscrepanciesCumulative.remove(uuid);
     }
 
     //these functions must be extremely accurate to support high level speed potions
@@ -485,6 +475,8 @@ public class Speed extends MovementCheck implements Listener {
         SNEAK,
         LANDING_WALK,
         LANDING_SPRINT,
-        FLYING
+        FLYING,
+        WATER,
+        LAVA
     }
 }

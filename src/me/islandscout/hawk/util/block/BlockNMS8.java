@@ -114,4 +114,20 @@ public class BlockNMS8 extends BlockNMS {
 
         return collisionBoxes;
     }
+
+    public Vector getFlowDirection() {
+        Vector vec = new Vector();
+        Vec3D nmsVec = new Vec3D(0, 0, 0);
+        Entity dummy = null;
+        if(!block.getMaterial().isLiquid())
+            return vec;
+        BlockPosition.MutableBlockPosition bPos = new BlockPosition.MutableBlockPosition();
+        bPos.c(obcBlock.getX(), obcBlock.getY(), obcBlock.getZ());
+        //i doubt this is thread safe
+        block.a(((CraftWorld)obcBlock.getWorld()).getHandle(), bPos, dummy, nmsVec);
+        vec.setX(nmsVec.a);
+        vec.setY(nmsVec.b);
+        vec.setZ(nmsVec.c);
+        return vec;
+    }
 }
