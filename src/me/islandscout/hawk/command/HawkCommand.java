@@ -46,7 +46,7 @@ public class HawkCommand implements CommandExecutor {
         arguments.add(new ReloadArgument());
         arguments.add(new ToggleAlertsArgument());
         arguments.add(new ChecksArgument());
-        arguments.add(new ChkinfArgument());
+        arguments.add(new ChkinfoArgument());
         arguments.add(new ViolationsArgument());
         arguments.add(new ChktoggleArgument());
         arguments.add(new MsgArgument());

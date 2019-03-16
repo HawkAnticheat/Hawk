@@ -25,8 +25,7 @@ import org.bukkit.entity.Entity;
 public abstract class EntityNMS {
 
     AABB collisionBox;
-    protected int id;
-    //hitbox appears to grow 0.1249 per side. verify?
+    float collisionBorderSize;
 
     EntityNMS() {
     }
@@ -41,5 +40,11 @@ public abstract class EntityNMS {
 
     public AABB getCollisionBox() {
         return collisionBox;
+    }
+
+    public AABB getHitbox() {
+        AABB hitbox = collisionBox.clone();
+        hitbox.expand(collisionBorderSize, collisionBorderSize, collisionBorderSize);
+        return hitbox;
     }
 }

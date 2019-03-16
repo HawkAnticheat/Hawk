@@ -61,6 +61,7 @@ public class Speed extends MovementCheck implements Listener {
     private final double DISCREPANCY_THRESHOLD;
     private final double VL_FAIL_DISCREPANCY_FACTOR;
     private final boolean IGNORE_ITEM_USE;
+    private final boolean RESET_DISCREPANCY_ON_FAIL;
     private final boolean DEBUG;
 
     private final Map<UUID, Double> prevSpeed;
@@ -85,6 +86,7 @@ public class Speed extends MovementCheck implements Listener {
         DISCREPANCY_THRESHOLD = (double) customSetting("discrepancyThreshold", "", 0.1D);
         VL_FAIL_DISCREPANCY_FACTOR = (double) customSetting("vlFailDiscrepancyFactor", "", 10D);
         IGNORE_ITEM_USE = (boolean) customSetting("ignoreItemUse", "", false);
+        RESET_DISCREPANCY_ON_FAIL = (boolean) customSetting("resetDiscrepancyOnFail", "", true);
         DEBUG = (boolean) customSetting("debug", "", false);
     }
 
@@ -260,7 +262,8 @@ public class Speed extends MovementCheck implements Listener {
         if (event.isUpdatePos()) {
             double haltDistanceExpected = negativeDiscrepanciesCumulative.getOrDefault(p.getUniqueId(), 0D);
             lastNegativeDiscrepancies.put(p.getUniqueId(), 0D);
-            discrepancies.put(p.getUniqueId(), Math.max(discrepancies.getOrDefault(p.getUniqueId(), 0D) + discrepancy.value, 0));
+            if(discrepancy.value < 0 || speed > haltDistanceExpected)
+                discrepancies.put(p.getUniqueId(), Math.max(discrepancies.getOrDefault(p.getUniqueId(), 0D) + discrepancy.value, 0));
             double totalDiscrepancy = discrepancies.get(p.getUniqueId());
 
             if(DEBUG) {
@@ -270,10 +273,12 @@ public class Speed extends MovementCheck implements Listener {
             }
 
             if(failed != null) {
-                if(totalDiscrepancy > DISCREPANCY_THRESHOLD && speed > haltDistanceExpected) {
+                if(totalDiscrepancy > DISCREPANCY_THRESHOLD) {
                     punishAndTryRubberband(pp, discrepancy.value * VL_FAIL_DISCREPANCY_FACTOR, event, p.getLocation());
                     if(DEBUG)
                         p.sendMessage(ChatColor.RED + failed.toString());
+                    if(RESET_DISCREPANCY_ON_FAIL)
+                        discrepancies.put(p.getUniqueId(), 0D);
                 }
 
             }
@@ -398,9 +403,8 @@ public class Speed extends MovementCheck implements Listener {
         return new Discrepancy(expected, currentSpeed);
     }
 
-    //TODO: fix speed multiplier
     private Discrepancy sneakGroundMapping(double lastSpeed, double currentSpeed, double speedMultiplier, boolean blocking) {
-        double initSpeed = (blocking ? 0.00588 : 0.041560) * speedMultiplier + EPSILON;
+        double initSpeed = (blocking ? 0.008316 : 0.041581) * speedMultiplier + EPSILON;
         double expected = 0.546001 * lastSpeed + initSpeed;
         return new Discrepancy(expected, currentSpeed);
     }

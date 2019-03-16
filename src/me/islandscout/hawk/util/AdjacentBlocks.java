@@ -20,6 +20,7 @@ package me.islandscout.hawk.util;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.block.BlockNMS;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -231,14 +232,15 @@ public class AdjacentBlocks {
         return false;
     }
 
-    public static Set<Direction> checkTouchingBlock(AABB boundingBox, World world) {
+    public static Set<Direction> checkTouchingBlock(AABB boundingBox, World world, double borderSize) {
         AABB bigBox = boundingBox.clone();
-        Vector min = bigBox.getMin().add(new Vector(-0.0001, -0.0001, -0.0001));
-        Vector max = bigBox.getMax().add(new Vector(0.0001, 0.0001, 0.0001));
+        Vector min = bigBox.getMin().add(new Vector(-borderSize, -borderSize, -borderSize));
+        Vector max = bigBox.getMax().add(new Vector(borderSize, borderSize, borderSize));
         Set<Direction> directions = new HashSet<>();
-        for(int x = (int)min.getX(); x < max.getX(); x++) {
-            for(int y = (int)min.getY(); y < max.getY(); y++) {
-                for(int z = (int)min.getZ(); z < max.getZ(); z++) {
+        //Don't ask why I'm subtracting 1 when the coordinate is less than 0. Beats me too.
+        for(int x = (int)(min.getX() < 0 ? min.getX() - 1 : min.getX()); x <= max.getX(); x++) {
+            for(int y = (int)(min.getY() < 0 ? min.getY() - 1 : min.getY()); y <= max.getY(); y++) {
+                for(int z = (int)(min.getZ() < 0 ? min.getZ() - 1 : min.getZ()); z <= max.getZ(); z++) {
                     Block b = ServerUtils.getBlockAsync(new Location(world, x, y, z));
                     if(b != null) {
                         BlockNMS bNMS = BlockNMS.getBlockNMS(b);

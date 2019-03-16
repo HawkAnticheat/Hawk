@@ -49,8 +49,6 @@ import java.util.*;
  */
 public abstract class Check<E extends Event> {
 
-    protected int id;
-    private static int instances;
     protected boolean enabled;
     protected int cancelThreshold;
     protected int flagThreshold;
@@ -77,7 +75,6 @@ public abstract class Check<E extends Event> {
      * @param punishCommands   list of commands to run
      */
     Check(String name, boolean enabled, int cancelThreshold, int flagThreshold, double vlPassMultiplier, long flagCooldown, String flag, List<String> punishCommands) {
-        this.id = instances++;
         this.permission = Hawk.BASE_PERMISSION + ".bypass." + name;
         this.name = name;
         FileConfiguration hawkConfig = hawk.getConfig();
@@ -238,10 +235,6 @@ public abstract class Check<E extends Event> {
 
     public static void setHawkReference(Hawk plugin) {
         hawk = plugin;
-    }
-
-    public int getId() {
-        return id;
     }
 
     //to be overridden by checks

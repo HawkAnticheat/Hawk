@@ -21,10 +21,10 @@ package me.islandscout.hawk.check.movement;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.Debug;
-import me.islandscout.hawk.util.MathPlus;
+import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.block.BlockNMS;
 import org.bukkit.ChatColor;
+import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,6 +33,8 @@ import java.util.UUID;
 public class SwimVertical extends MovementCheck {
 
     //TODO: Support lava
+    //TODO: false flag when exiting liquid while on slab while against wall
+    //TODO: false flag when swimming down water that pushes you down
 
     private Set<UUID> justExited;
 
@@ -45,8 +47,10 @@ public class SwimVertical extends MovementCheck {
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
         double currentDeltaY = MathPlus.round(e.getTo().getY() - e.getFrom().getY(), 6);
-        //TODO: slightly increase size of the collision box?
-        boolean exiting = pp.getBoxSidesTouchingBlocks().size() > 0 && !e.isInLiquid() && pp.isInLiquid() && currentDeltaY == 0.34;
+        //TODO: optimize
+        Set<Direction> boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(e.getFrom().toVector().add(new Vector(-0.299, 0.001, -0.299)), e.getFrom().toVector().add(new Vector(0.299, 1.799, 0.299))), e.getFrom().getWorld(), 0.1);
+
+        boolean exiting = boxSidesTouchingBlocks.size() > 0 && !e.isInLiquid() && pp.isInLiquid() && currentDeltaY == 0.34;
         if(pp.isSwimming() && (!exiting || justExited.contains(pp.getUuid())) && !e.hasTeleported() && !e.isOnGroundReally() && !pp.isFlyingClientside() && !e.hasAcceptedKnockback()) {
             if(justExited.contains(pp.getUuid())) {
                 if(currentDeltaY > 0.3) {
@@ -62,7 +66,7 @@ public class SwimVertical extends MovementCheck {
                 //stupid compression-like behavior
 
                 double prevDeltaY = pp.getVelocity().getY();
-                if(currentDeltaY < (prevDeltaY - 0.025001) * 0.800001 || currentDeltaY > 0.800001 * prevDeltaY + 0.020001) {
+                if(currentDeltaY < (prevDeltaY - 0.025001) * 0.8 || currentDeltaY > 0.8 * prevDeltaY + 0.020001) {
                     punishAndTryRubberband(pp, e, pp.getPlayer().getLocation());
                 }
                 else

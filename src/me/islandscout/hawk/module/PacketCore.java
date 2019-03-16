@@ -122,7 +122,7 @@ public class PacketCore implements Listener {
                     posEvent.setFrom(tpLoc);
                     pp.setTeleporting(false);
                     posEvent.setTeleported(true);
-                } else {
+                } else if(!pp.getPlayer().isSleeping()){
                     //Help guide the confused client back to the tp location
                     if (pp.getCurrentTick() - pp.getLastTeleportTime() > 20) {
                         pp.teleportPlayer(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);

@@ -100,35 +100,17 @@ public class Fly extends MovementCheck implements Listener {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
         double deltaY = event.getTo().getY() - event.getFrom().getY();
-        //Debug.broadcastMessage(pp.isSwimming() + " " + deltaY + " " + event.getTo().getY());
         if (pp.hasFlyPending() && p.getAllowFlight())
             return;
-        if (!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() && !pp.isSwimming() &&
+        if (!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() && !pp.isSwimming() && !p.isSleeping() &&
                 !isInClimbable(event.getTo()) && !isOnBoat(event.getTo())) {
 
             if (!inAir.contains(p.getUniqueId()) && deltaY > 0)
                 lastDeltaY.put(p.getUniqueId(), 0.42 + getJumpBoostLvl(p) * 0.1);
 
             //handle any pending knockbacks
-            if (velocities.containsKey(p.getUniqueId()) && velocities.get(p.getUniqueId()).size() > 0) {
-                List<Pair<Double, Long>> kbs = velocities.get(p.getUniqueId());
-                //pending knockbacks must be in order; get the first entry in the list.
-                //if the first entry doesn't work (probably because they were fired on the same tick),
-                //then work down the list until we find something
-                int kbIndex;
-                long currTime = System.currentTimeMillis();
-                for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
-                    Pair<Double, Long> kb = kbs.get(kbIndex);
-                    if (currTime - kb.getValue() <= ServerUtils.getPing(p) + 200) {
-                        if (Math.abs(kb.getKey() - deltaY) < 0.01) {
-                            lastDeltaY.put(p.getUniqueId(), kb.getKey());
-                            kbs = kbs.subList(kbIndex + 1, kbs.size());
-                            break;
-                        }
-                    }
-                }
-                velocities.put(p.getUniqueId(), kbs);
-            }
+            if(event.hasAcceptedKnockback())
+                lastDeltaY.put(p.getUniqueId(), deltaY);
 
             double expectedDeltaY = lastDeltaY.getOrDefault(p.getUniqueId(), 0D);
             double epsilon = 0.03;
@@ -139,8 +121,14 @@ public class Fly extends MovementCheck implements Listener {
                 epsilon = 0.000001;
                 if (AdjacentBlocks.onGroundReally(event.getTo().clone().add(0, -0.03, 0), -1, false, 0.02))
                     return;
-            } else
+            } else if(!pp.isInLiquid() && event.isInLiquid()) {
+                //entering liquid
+                lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) * 0.98) - 0.038399);
+            } else {
+                //in air
                 lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) - 0.08) * 0.98);
+            }
+
 
             //handle teleport
             if (event.hasTeleported()) {
@@ -245,7 +233,7 @@ public class Fly extends MovementCheck implements Listener {
         return 0;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    //@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onVelocity(HawkPlayerAsyncVelocityChangeEvent e) {
         if(e.isAdditive())
             return;

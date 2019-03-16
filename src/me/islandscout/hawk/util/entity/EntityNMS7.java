@@ -28,7 +28,8 @@ public class EntityNMS7 extends EntityNMS {
 
     public EntityNMS7(Entity entity) {
         super();
-        AxisAlignedBB bb = ((CraftEntity) entity).getHandle().boundingBox;
+        net.minecraft.server.v1_7_R4.Entity nmsEntity = ((CraftEntity) entity).getHandle();
+        AxisAlignedBB bb = nmsEntity.boundingBox;
         Vector min;
         Vector max;
         if (bb != null) {
@@ -39,5 +40,9 @@ public class EntityNMS7 extends EntityNMS {
             max = new Vector(0, 0, 0);
         }
         collisionBox = new AABB(min, max);
+
+        //MCP to the rescue! Minecraft client 1.7.10 net.minecraft.entity.Entity#getCollisionBorderSize()
+        //You wouldn't expect this method to be in NMS since it is used for hit scanning for the client.
+        collisionBorderSize = nmsEntity.af();
     }
 }

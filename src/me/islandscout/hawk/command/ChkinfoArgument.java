@@ -25,9 +25,9 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class ChkinfArgument extends Argument {
+public class ChkinfoArgument extends Argument {
 
-    ChkinfArgument() {
+    ChkinfoArgument() {
         super("chkinfo", "<check>", "Displays information about specified check.");
     }
 
@@ -38,7 +38,6 @@ public class ChkinfArgument extends Argument {
         for (Check check : hawk.getCheckManager().getChecks()) {
             if (check.getName().equalsIgnoreCase(args[1])) {
                 sender.sendMessage(ChatColor.GOLD + "Basic information about check \"" + check.getName() + "\":");
-                sender.sendMessage(ChatColor.GOLD + "ID: " + check.getId());
                 sender.sendMessage(ChatColor.GOLD + "Status: " + (check.isEnabled() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED"));
                 sender.sendMessage(ChatColor.GOLD + "Category: " + check.getClass().getSuperclass().getSimpleName());
                 sender.sendMessage(ChatColor.GOLD + "Cancel: " + (check instanceof Cancelless ? ChatColor.GRAY + "N/A" : ((check.canCancel() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED"))));

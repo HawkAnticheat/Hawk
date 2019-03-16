@@ -72,6 +72,7 @@ public class FightHitbox extends EntityInteractionCheck {
     private final boolean DEBUG_RAY;
     private final boolean CHECK_OCCLUSION;
     private final boolean CHECK_BOX_INTERSECTION;
+    private final double BOX_EPSILON = 0.05;
 
     public FightHitbox() {
         super("fighthitbox", true, 5, 10000, 0.95, 5000, "%player% failed combat hitbox. %type% VL: %vl%", null);
@@ -125,11 +126,12 @@ public class FightHitbox extends EntityInteractionCheck {
 
         AABB victimAABB;
         if (entity instanceof Player) {
-            Vector min = new Vector(victimLocation.getX() - 0.45, victimLocation.getY(), victimLocation.getZ() - 0.45);
-            Vector max = new Vector(victimLocation.getX() + 0.45, victimLocation.getY() + 2, victimLocation.getZ() + 0.45);
+            Vector min = new Vector(victimLocation.getX() - 0.45, victimLocation.getY() - 0.15, victimLocation.getZ() - 0.45);
+            Vector max = new Vector(victimLocation.getX() + 0.45, victimLocation.getY() + 1.95, victimLocation.getZ() + 0.45);
             victimAABB = new AABB(min, max);
         } else {
-            victimAABB = EntityNMS.getEntityNMS(entity).getCollisionBox();
+            victimAABB = EntityNMS.getEntityNMS(entity).getHitbox();
+            victimAABB.expand(BOX_EPSILON, BOX_EPSILON, BOX_EPSILON);
         }
 
         Vector intersectVec3d = victimAABB.intersectsRay(attackerRay, 0, Float.MAX_VALUE);

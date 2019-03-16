@@ -34,6 +34,18 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.*;
 
+/**
+ * The Tickrate check enforces a limit to clients' tickrates.
+ * Minecraft runs at 20 TPS, and some of the server logic for
+ * each player is dependent on their PacketPlayInFlying rates
+ * (eg: health regeneration, status effect, item consuming
+ * duration). Hackers can exploit this by modifying the tickrate
+ * of their client, thus creating cheats such as "instant"
+ * regeneration or eating, movement speed, "lag-switching",
+ * anti-potion, etc. Tickrate just alerts and prevents this.
+ * It can detect at least a 1% increase in tickrate frequency
+ * under default settings.
+ */
 public class TickRate extends MovementCheck implements Listener {
 
     private final Map<UUID, Long> prevNanoTime;
@@ -86,7 +98,7 @@ public class TickRate extends MovementCheck implements Listener {
             p.sendMessage((msOffset < 0 ? (msOffset < THRESHOLD ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.BLUE) + "CLOCK DRIFT: " + MathPlus.round(-msOffset, 2) + "ms");
         }
         if (drift * 1E-6 < THRESHOLD) {
-            if(RUBBERBAND && pp.getCurrentTick() % 20 == 0) //Don't rubberband so often. You're already cancelling a ton of moves.
+            if(RUBBERBAND && pp.getCurrentTick() - pp.getLastTeleportTime() > 20) //Don't rubberband so often. You're already cancelling a ton of moves.
                 punishAndTryRubberband(pp, event, p.getLocation());
             else
                 punish(pp, true, event);

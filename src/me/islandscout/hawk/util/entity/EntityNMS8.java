@@ -28,7 +28,9 @@ public class EntityNMS8 extends EntityNMS {
 
     public EntityNMS8(Entity entity) {
         super();
-        AxisAlignedBB bb = ((CraftEntity) entity).getHandle().getBoundingBox();
+        net.minecraft.server.v1_8_R3.Entity nmsEntity = ((CraftEntity) entity).getHandle();
+        AxisAlignedBB bb = nmsEntity.getBoundingBox();
         collisionBox = new AABB(new Vector(bb.a, bb.b, bb.c), new Vector(bb.d, bb.e, bb.f));
+        collisionBorderSize = nmsEntity.ao();
     }
 }

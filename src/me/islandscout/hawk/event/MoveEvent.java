@@ -68,7 +68,7 @@ public class MoveEvent extends Event {
         this.onGround = onGround;
         ItemStack heldItem = pp.getItemUsedForAttack();
         hitSlowdown = pp.getLastAttackedPlayerTick() == pp.getCurrentTick() && (pp.isSprinting() || (heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0));
-        boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld());
+        boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld(), 0.0001);
         acceptedKnockback = handlePendingVelocities();
         inLiquid = testSwimming();
     }
@@ -105,7 +105,7 @@ public class MoveEvent extends Event {
             }
             boolean flying          = p.isFlying();
             double sprintMultiplier = flying ? (pp.isSprinting() ? 2 : 1) : (pp.isSprinting() ? 1.3 : 1);
-            double weirdConstant    = jump && pp.isSprinting() ? 0.2518462 : 0.098; //(pp.isOnGround() ? 0.098 : (flying ? 0.049 : 0.0196));
+            double weirdConstant    = (jump && pp.isSprinting() ? 0.2518462 : (pp.isSwimming() ? 0.0196 : 0.098)); //(pp.isOnGround() ? 0.098 : (flying ? 0.049 : 0.0196));
             double baseMultiplier   = flying ? (10 * p.getFlySpeed()) : (5 * p.getWalkSpeed() * speedPotMultiplier);
             double maxDiscrepancy   = weirdConstant * baseMultiplier * sprintMultiplier + epsilon;
 
@@ -125,7 +125,7 @@ public class MoveEvent extends Event {
                     //skip to next kb if...
                     if (!((boxSidesTouchingBlocks.contains(Direction.TOP) && y > 0) || (boxSidesTouchingBlocks.contains(Direction.BOTTOM) && y < 0)) && /*...player isn't colliding...*/
                             Math.abs(y - currVelocity.getY()) > 0.01 && /*...and velocity is nowhere close to kb velocity...*/
-                            !jump /*...and did not jump*/) {
+                            !jump && !pp.isSwimming()/*...and did not jump and is not swimming*/) {
                         continue;
                     }
 
