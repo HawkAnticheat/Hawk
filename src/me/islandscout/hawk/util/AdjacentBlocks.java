@@ -146,8 +146,6 @@ public class AdjacentBlocks {
         return false;
     }
 
-    //TODO: this still needs to get optimized. Replace List with Set
-
     /**
      * Checks if the location is on ground. Good replacement for Entity#isOnGround()
      * since that flag can be spoofed by the client. Hawk's definition of being on
@@ -162,6 +160,8 @@ public class AdjacentBlocks {
      * @param feetDepth Don't set this too low. The client doesn't like to send moves unless they are significant enough.
      * @return boolean
      */
+    //TODO: this still needs to get optimized. Replace List with Set
+    //TODO: Pleaaaaaase fix this when jumping onto edges of blocks
     //if not sure what your velocity is, just put -1 for velocity
     //if you just want to check for location, just put -1 for velocity
     public static boolean onGroundReally(Location loc, double yVelocity, boolean ignoreInGround, double feetDepth) {

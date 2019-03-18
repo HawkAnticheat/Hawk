@@ -62,7 +62,7 @@ public class ViolationLogger {
         buffer.add("[" + (date.get(Calendar.MONTH) + 1) + "/" + date.get(Calendar.DAY_OF_MONTH) + "/" + date.get(Calendar.YEAR) + "] [" + hour + ":" + minute + ":" + second + "] " + message);
     }
 
-    void updateFile() {
+    public void updateFile() {
         if (!enabled) return;
         if (buffer.size() == 0) return;
         List<String> asyncList = new ArrayList<>(buffer);

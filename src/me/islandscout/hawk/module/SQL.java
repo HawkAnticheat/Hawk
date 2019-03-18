@@ -90,7 +90,7 @@ public class SQL {
     private short loop = 1;
 
     //lol, what a joke
-    void postBuffer() {
+    public void postBuffer() {
         if (!enabled)
             return;
         if (loop < postInterval) {
@@ -138,4 +138,6 @@ public class SQL {
     public boolean isRunning() {
         return conn != null && enabled;
     }
+
+
 }

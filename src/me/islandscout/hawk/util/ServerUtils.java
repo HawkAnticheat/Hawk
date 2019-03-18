@@ -63,6 +63,14 @@ public final class ServerUtils {
         return -1;
     }
 
+    public static int getCurrentTick() {
+        if (Hawk.getServerVersion() == 8)
+            return net.minecraft.server.v1_8_R3.MinecraftServer.currentTick;
+        if (Hawk.getServerVersion() == 7)
+            return net.minecraft.server.v1_7_R4.MinecraftServer.currentTick;
+        return -1;
+    }
+
     public static double getStress() {
         if (Hawk.getServerVersion() == 8)
             return net.minecraft.server.v1_8_R3.MathHelper.a(net.minecraft.server.v1_8_R3.MinecraftServer.getServer().h) * 2.0E-8D;

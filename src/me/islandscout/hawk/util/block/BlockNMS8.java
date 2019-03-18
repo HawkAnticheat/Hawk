@@ -20,6 +20,7 @@ package me.islandscout.hawk.util.block;
 
 import me.islandscout.hawk.util.AABB;
 import net.minecraft.server.v1_8_R3.*;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -123,7 +124,18 @@ public class BlockNMS8 extends BlockNMS {
             return vec;
         BlockPosition.MutableBlockPosition bPos = new BlockPosition.MutableBlockPosition();
         bPos.c(obcBlock.getX(), obcBlock.getY(), obcBlock.getZ());
-        //i doubt this is thread safe
+
+        //this should prevent async threads from calling NMS code that actually loads chunks
+        if(!Bukkit.isPrimaryThread()) {
+            if(!obcBlock.getWorld().isChunkLoaded(obcBlock.getX() >> 4, obcBlock.getZ() >> 4) ||
+                    !obcBlock.getWorld().isChunkLoaded(obcBlock.getX() + 1 >> 4, obcBlock.getZ() >> 4) ||
+                    !obcBlock.getWorld().isChunkLoaded(obcBlock.getX() - 1 >> 4, obcBlock.getZ() >> 4) ||
+                    !obcBlock.getWorld().isChunkLoaded(obcBlock.getX() >> 4, obcBlock.getZ() + 1 >> 4) ||
+                    !obcBlock.getWorld().isChunkLoaded(obcBlock.getX() >> 4, obcBlock.getZ() - 1 >> 4)) {
+                return vec;
+            }
+        }
+
         block.a(((CraftWorld)obcBlock.getWorld()).getHandle(), bPos, dummy, nmsVec);
         vec.setX(nmsVec.a);
         vec.setY(nmsVec.b);

@@ -21,6 +21,8 @@ package me.islandscout.hawk.event;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.packet.WrappedPacket;
+import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -50,6 +52,7 @@ public class MoveEvent extends Event {
     private boolean hitSlowdown; //Idk, it's weird. Sprinting or hitting with kb enchant will multiply horizontal speed by 0.6.
     private Set<Direction> boxSidesTouchingBlocks;
     private boolean inLiquid;
+    private boolean jumped;
     //No, don't compute a delta vector during instantiation since teleports will affect it.
 
     //Not sure if these maps are necessary since you can determine the previous position using HawkPlayer#getLocation()
@@ -71,6 +74,7 @@ public class MoveEvent extends Event {
         boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld(), 0.0001);
         acceptedKnockback = handlePendingVelocities();
         inLiquid = testSwimming();
+        jumped = testJumped();
     }
 
     //Good thing I have MCP to figure this one out
@@ -85,6 +89,12 @@ public class MoveEvent extends Event {
             }
         }
         return false;
+    }
+
+    //May return true if player is knocked up against a very low ceiling, but who cares?
+    private boolean testJumped() {
+        float deltaY = (float)(getTo().getY() - getFrom().getY());
+        return (pp.isOnGroundReally() && !isOnGround()) && (deltaY == 0.42F || boxSidesTouchingBlocks.contains(Direction.TOP));
     }
 
     //This literally makes me want to punch a wall.

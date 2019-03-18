@@ -57,6 +57,7 @@ public class HawkPlayer {
     private float deltaYaw;
     private float deltaPitch;
     private boolean onGround;
+    private boolean onGroundReally;
     private int ping;
     private short pingJitter;
     private long lastMoveTime;
@@ -184,6 +185,14 @@ public class HawkPlayer {
     //this should really not be public
     public void setOnGround(boolean onGround) {
         this.onGround = onGround;
+    }
+
+    public boolean isOnGroundReally() {
+        return onGroundReally;
+    }
+
+    public void setOnGroundReally(boolean onGroundReally) {
+        this.onGroundReally = onGroundReally;
     }
 
     public int getPing() {

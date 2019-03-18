@@ -230,6 +230,7 @@ public class PacketCore implements Listener {
                 pp.updateFallDistance(to);
                 pp.updateTotalAscensionSinceGround(from.getY(), to.getY());
                 pp.setOnGround(mEvent.isOnGround());
+                pp.setOnGroundReally(mEvent.isOnGroundReally());
                 pp.getBoxSidesTouchingBlocks().clear();
                 pp.getBoxSidesTouchingBlocks().addAll(mEvent.getBoxSidesTouchingBlocks());
             }

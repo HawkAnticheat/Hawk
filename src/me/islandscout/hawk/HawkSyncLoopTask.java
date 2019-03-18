@@ -16,35 +16,42 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.module;
+package me.islandscout.hawk;
 
-import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.ServerUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-public class Scheduler {
+public class HawkSyncLoopTask implements Runnable {
 
+    private long currentTick;
     private final Hawk hawk;
 
-    public Scheduler(Hawk hawk) {
+    HawkSyncLoopTask(Hawk hawk) {
         this.hawk = hawk;
     }
 
-    public void startSchedulers() {
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, () -> {
+    /**
+     * This is what runs every server tick
+     */
+    @Override
+    public void run() {
+
+        if(currentTick % 20 == 0) {
             hawk.getViolationLogger().updateFile();
             hawk.getSql().postBuffer();
-        }, 0L, 20L);
+        }
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, () -> {
-            for (HawkPlayer pp : hawk.getHawkPlayers()) {
+        for(HawkPlayer pp : hawk.getHawkPlayers()) {
+            if(currentTick % 40 == 0) {
                 Player p = pp.getPlayer();
                 int newPing = ServerUtils.getPing(p);
                 pp.setPingJitter((short) (newPing - pp.getPing()));
                 pp.setPing(ServerUtils.getPing(p));
             }
-        }, 0L, 40L);
+
+            //TODO: add entities to a list called nearbyEntities in HawkPlayer
+        }
+
+        currentTick++;
     }
 }

@@ -46,7 +46,6 @@ public class Hawk extends JavaPlugin {
     //Made with passion in U.S.A.
 
     private CheckManager checkManager;
-    private Scheduler scheduler;
     private SQL sql;
     private Hawk plugin;
     private PacketCore packetCore;
@@ -110,8 +109,7 @@ public class Hawk extends JavaPlugin {
         startLoggerFile();
         checkManager = new CheckManager(plugin);
         checkManager.loadChecks();
-        scheduler = new Scheduler(this);
-        scheduler.startSchedulers();
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new HawkSyncLoopTask(this), 0L, 1L);
         packetCore = new PacketCore(SERVER_VERSION, this);
         packetCore.startListener();
         packetCore.setupListenerForOnlinePlayers();
@@ -143,7 +141,6 @@ public class Hawk extends JavaPlugin {
         sql.closeConnection();
         sql = null;
         Bukkit.getScheduler().cancelTasks(this);
-        scheduler = null;
         violationLogger = null;
     }
 
