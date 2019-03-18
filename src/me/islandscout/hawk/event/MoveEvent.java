@@ -21,13 +21,11 @@ package me.islandscout.hawk.event;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.util.block.BlockNMS;
 import me.islandscout.hawk.util.packet.WrappedPacket;
-import org.bukkit.Chunk;
-import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -57,13 +55,16 @@ public class MoveEvent extends Event {
     private boolean inLiquid;
     private boolean jumped;
     private boolean slimeBlockBounce;
+    private Vector waterFlowForce;
+    private List<Pair<Block, Vector>> liquidsAndDirections;
+    private Set<Material> liquidTypes;
     //No, don't compute a delta vector during instantiation since teleports will affect it.
 
     //Not sure if these maps are necessary since you can determine the previous position using HawkPlayer#getLocation()
     private static final Map<UUID, Location> last = new HashMap<>();
     private static final Map<UUID, Location> current = new HashMap<>();
 
-    private static final List<Material> liquids = Arrays.asList(Material.WATER, Material.STATIONARY_WATER, Material.LAVA, Material.STATIONARY_LAVA);
+    private static final List<Material> liquidDefs = Arrays.asList(Material.WATER, Material.STATIONARY_WATER, Material.LAVA, Material.STATIONARY_LAVA);
 
     public MoveEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet, boolean updatePos, boolean updateRot) {
         super(p, pp, packet);
@@ -73,27 +74,32 @@ public class MoveEvent extends Event {
         this.updatePos = updatePos;
         this.updateRot = updateRot;
         this.onGround = onGround;
+        this.liquidTypes = new HashSet<>();
         ItemStack heldItem = pp.getItemUsedForAttack();
         hitSlowdown = pp.getLastAttackedPlayerTick() == pp.getCurrentTick() && (pp.isSprinting() || (heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0));
         boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld(), 0.0001);
         acceptedKnockback = handlePendingVelocities();
-        inLiquid = testSwimming();
+        liquidsAndDirections = testLiquids();
+        inLiquid = liquidsAndDirections.size() > 0;
         jumped = testJumped();
         slimeBlockBounce = testSlimeBlockBounce();
+        waterFlowForce = computeWaterFlowForce();
     }
 
     //Good thing I have MCP to figure this one out
-    //TODO: return liquids and directions. I would also make a cache of like 256 liquids' directions
-    private boolean testSwimming() {
+    private List<Pair<Block, Vector>> testLiquids() {
         AABB liquidTest = AABB.playerWaterCollisionBox.clone();
         liquidTest.translate(getTo().toVector());
-        Set<Material> mats = liquidTest.getMaterials(p.getWorld());
-        for(Material mat : mats) {
-            if(liquids.contains(mat)) {
-                return true;
+        List<Pair<Block, Vector>> liquids = new ArrayList<>();
+        List<Block> blocks = liquidTest.getBlocks(p.getWorld());
+        for(Block b : blocks) {
+            if(liquidDefs.contains(b.getType())) {
+                Vector direction = BlockNMS.getBlockNMS(b).getFlowDirection();
+                liquids.add(new Pair<>(b, direction));
+                this.liquidTypes.add(b.getType());
             }
         }
-        return false;
+        return liquids;
     }
 
     //May return true if player is knocked up against a very low ceiling, but who cares?
@@ -117,6 +123,22 @@ public class MoveEvent extends Event {
                 deltaY > 0 &&
                 deltaY > (prevPrevDeltaY < -0.1F ? expected - 0.003 : 0) &&
                 deltaY <= expected;
+    }
+
+    private Vector computeWaterFlowForce() {
+        Vector finalForce = new Vector();
+        for(Pair<Block, Vector> liquid : liquidsAndDirections) {
+            Material mat = liquid.getKey().getType();
+            if(mat == Material.STATIONARY_WATER || mat == Material.WATER) {
+                finalForce.add(liquid.getValue());
+            }
+        }
+        if(finalForce.lengthSquared() > 0 && !pp.isFlyingClientside()) {
+            finalForce.normalize();
+            finalForce.multiply(Physics.WATER_FLOW_FORCE_MULTIPLIER);
+            return finalForce;
+        }
+        return finalForce;
     }
 
     //This literally makes me want to punch a wall.
@@ -287,12 +309,20 @@ public class MoveEvent extends Event {
         return inLiquid;
     }
 
+    public Set<Material> getLiquidTypes() {
+        return liquidTypes;
+    }
+
     public boolean hasJumped() {
         return jumped;
     }
 
     public boolean isSlimeBlockBounce() {
         return slimeBlockBounce;
+    }
+
+    public Vector getWaterFlowForce() {
+        return waterFlowForce;
     }
 
     public void cancelAndSetBack(Location setback) {

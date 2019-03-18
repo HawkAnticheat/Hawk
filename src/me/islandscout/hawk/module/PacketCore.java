@@ -233,6 +233,7 @@ public class PacketCore implements Listener {
                 pp.setOnGroundReally(mEvent.isOnGroundReally());
                 pp.getBoxSidesTouchingBlocks().clear();
                 pp.getBoxSidesTouchingBlocks().addAll(mEvent.getBoxSidesTouchingBlocks());
+                pp.setWaterFlowForce(mEvent.getWaterFlowForce());
             }
 
         }

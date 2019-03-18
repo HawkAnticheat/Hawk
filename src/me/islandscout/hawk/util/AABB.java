@@ -194,8 +194,8 @@ public class AABB implements Cloneable {
         max.add(compliment);
     }
 
-    public Set<Material> getMaterials(World world) {
-        Set<Material> mats = new HashSet<>();
+    public List<Block> getBlocks(World world) {
+        List<Block> blocks = new ArrayList<>();
         for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
             for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
                 for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
@@ -204,10 +204,10 @@ public class AABB implements Cloneable {
                     if(block == null)
                         continue;
 
-                    mats.add(block.getType());
+                    blocks.add(block);
                 }
             }
         }
-        return mats;
+        return blocks;
     }
 }

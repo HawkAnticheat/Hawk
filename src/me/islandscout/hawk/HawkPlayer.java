@@ -81,6 +81,7 @@ public class HawkPlayer {
     private final Set<ClientBlock> clientBlocks;
     private final List<Pair<Vector, Long>> pendingVelocities;
     private final Set<Direction> boxSidesTouchingBlocks;
+    private Vector waterFlowForce;
 
     HawkPlayer(Player p, Hawk hawk) {
         this.uuid = p.getUniqueId();
@@ -96,6 +97,7 @@ public class HawkPlayer {
         clientBlocks = new HashSet<>();
         pendingVelocities = new ArrayList<>();
         boxSidesTouchingBlocks = new HashSet<>();
+        this.waterFlowForce = new Vector();
     }
 
     public int getVL(Check check) {
@@ -418,6 +420,14 @@ public class HawkPlayer {
 
     public Set<Direction> getBoxSidesTouchingBlocks() {
         return boxSidesTouchingBlocks;
+    }
+
+    public Vector getWaterFlowForce() {
+        return waterFlowForce;
+    }
+
+    public void setWaterFlowForce(Vector waterFlowForce) {
+        this.waterFlowForce = waterFlowForce;
     }
 
     //safely kill the connection

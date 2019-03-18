@@ -19,6 +19,7 @@
 package me.islandscout.hawk.util.block;
 
 import me.islandscout.hawk.util.AABB;
+import me.islandscout.hawk.util.Debug;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -122,8 +123,7 @@ public class BlockNMS8 extends BlockNMS {
         Entity dummy = null;
         if(!block.getMaterial().isLiquid())
             return vec;
-        BlockPosition.MutableBlockPosition bPos = new BlockPosition.MutableBlockPosition();
-        bPos.c(obcBlock.getX(), obcBlock.getY(), obcBlock.getZ());
+        BlockPosition bPos = new BlockPosition(obcBlock.getX(), obcBlock.getY(), obcBlock.getZ());
 
         //this should prevent async threads from calling NMS code that actually loads chunks
         if(!Bukkit.isPrimaryThread()) {
@@ -136,7 +136,7 @@ public class BlockNMS8 extends BlockNMS {
             }
         }
 
-        block.a(((CraftWorld)obcBlock.getWorld()).getHandle(), bPos, dummy, nmsVec);
+        nmsVec = block.a(((CraftWorld)obcBlock.getWorld()).getHandle(), bPos, dummy, nmsVec);
         vec.setX(nmsVec.a);
         vec.setY(nmsVec.b);
         vec.setZ(nmsVec.c);

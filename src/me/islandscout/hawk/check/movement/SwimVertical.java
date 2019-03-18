@@ -22,13 +22,10 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
-import me.islandscout.hawk.util.block.BlockNMS;
-import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class SwimVertical extends MovementCheck {
 
@@ -60,13 +57,17 @@ public class SwimVertical extends MovementCheck {
                     reward(pp);
                 justExited.remove(pp.getUuid());
             }
+            //TODO: when you're getting pushed down by water, your terminal velocity is < 0.1 when going up, thus bypass when swimming up
             else if(Math.abs(currentDeltaY) >= 0.1) {
                 //i check when it is >= 0.1 because this game is broken
                 //and i don't want work around each individual axis that does this
                 //stupid compression-like behavior
-
+                float flowForce = (float)pp.getWaterFlowForce().getY();
                 double prevDeltaY = pp.getVelocity().getY();
-                if(currentDeltaY < (prevDeltaY - 0.025001) * 0.8 || currentDeltaY > 0.8 * prevDeltaY + 0.020001) {
+                Set<Material> liquidTypes = e.getLiquidTypes();
+                float kineticPreservation = (liquidTypes.contains(Material.LAVA) || liquidTypes.contains(Material.STATIONARY_LAVA) ? Physics.KINETIC_PRESERVATION_LAVA : Physics.KINETIC_PRESERVATION_WATER);
+                if(currentDeltaY < kineticPreservation * prevDeltaY + (-(Physics.MOVE_LIQUID_FORCE + 0.000001) + flowForce) ||
+                        currentDeltaY > kineticPreservation * prevDeltaY + (Physics.MOVE_LIQUID_FORCE + 0.000001 + flowForce)) {
                     punishAndTryRubberband(pp, e, pp.getPlayer().getLocation());
                 }
                 else

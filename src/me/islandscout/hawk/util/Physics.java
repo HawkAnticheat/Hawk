@@ -19,30 +19,52 @@
 package me.islandscout.hawk.util;
 
 /**
- * High accuracy Minecraft movement library.
+ * High accuracy Minecraft physics library.
  */
-public final class Movement {
+public final class Physics {
+
+    //Calculus is fun
 
     //Legit, I don't know how else to describe these.
     //This is the amount of kinetic energy that is preserved per tick.
-    public static final double KINETIC_PRESERVATION_AIR = 0.91;
-    public static final double KINETIC_PRESERVATION_GROUND = 0.546;
-    public static final double KINETIC_PRESERVATION_ICE = 0.891801;
+    //Without this, the player's velocity would steadily approach infinity,
+    //and their position vs. time function would look like a quadratic.
+    public static final float KINETIC_PRESERVATION_AIR_HORIZONTAL = 0.91F;
+    public static final float KINETIC_PRESERVATION_AIR_VERTICAL = 0.98F;
+    public static final float KINETIC_PRESERVATION_GROUND = 0.546F;
+    public static final float KINETIC_PRESERVATION_ICE = 0.891801F;
+    public static final float KINETIC_PRESERVATION_WATER = 0.8F;
+    public static final float KINETIC_PRESERVATION_LAVA = 0.5F;
 
-    public static final double JUMP_INITIAL_VELOCITY_VERTICAL = 0.42;
+    public static final float GRAVITY_FORCE = 0.08F;
+
+    //Player movement force (applies for horizontal and vertical movement; not individual axes).
+    //Technically, gravity does not work in liquids or cobwebs.
+    public static final float MOVE_LIQUID_FORCE = 0.02F;
+    public static final float MOVE_WALK_FORCE = 0.1F;
+    public static final float MOVE_HORIZONTAL_AIR_FORCE = 0.02F;
+    public static final float MOVE_HORIZONTAL_FLY_FORCE = 0.05F;
+
+    //Water flow force
+    public static final float WATER_FLOW_FORCE_MULTIPLIER = 0.014F;
+
+    public static final float JUMP_INITIAL_VELOCITY_VERTICAL = 0.42F;
 
     //Fun fact: The client should never reach these values. When
     //graphing the client's velocity on a velocity vs. time graph,
     //the velocity appears to exponentially decay towards one of
-    //these specific values.
-    public static final double WALK_TERMINAL_VELOCITY = 50D/227D;
-    public static final double WALK_ACCELERATION = 0.1;
-    public static final double SPRINT_MULTIPLIER = 1.3;
-    public static final double SNEAK_MULTIPLIER = 0.41561;
-    public static final double FLY_TERMINAL_VELOCITY = 5D/9D;
-    public static final double FLY_SPRINT_MULTIPLIER = 1.3;
+    //these specific values. In other words, the function's limit
+    //as time approaches infinity is one of these constants.
+    public static final float TERMINAL_VELOCITY_WALK = 50F/227F;
+    public static final float TfloatERMINAL_VELOCITY_FLY = 5F/9F;
+    public static final float TERMINAL_VELOCITY_SWIM_WATER = 0.1F;
+    public static final float TERMINAL_VELOCITY_FALL = 3.92F;
 
-    private Movement() {
+    public static final float SNEAK_MULTIPLIER = 0.41561F;
+    public static final float FLY_SPRINT_MULTIPLIER = 2F;
+    public static final float SPRINT_MULTIPLIER = 1.3F;
+
+    private Physics() {
     }
 
     /**
