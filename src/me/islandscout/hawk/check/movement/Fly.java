@@ -67,7 +67,6 @@ public class Fly extends MovementCheck implements Listener {
     //TODO: I suggest getting rid of map lastDeltaY and instead use HawkPlayer#getVelocity(). Should keep things consistent, especially when moving from liquids to air.
 
     //TODO: false flag with pistons
-    //TODO: false flag on slime blocks
     //TODO: false flag while jumping down stairs
     //TO DO: false flag when jumping on edge of block. Perhaps extrapolate next "noPos" moves until they touch the block, then reset expectedDeltaY
     //TODO: BYPASS! You can fly over fences. Jump, then toggle fly, then walk straight.
@@ -110,6 +109,9 @@ public class Fly extends MovementCheck implements Listener {
 
             //handle any pending knockbacks
             if(event.hasAcceptedKnockback())
+                lastDeltaY.put(p.getUniqueId(), deltaY);
+
+            if(event.isSlimeBlockBounce())
                 lastDeltaY.put(p.getUniqueId(), deltaY);
 
             double expectedDeltaY = lastDeltaY.getOrDefault(p.getUniqueId(), 0D);

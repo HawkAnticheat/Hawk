@@ -47,6 +47,7 @@ public class Speed extends MovementCheck implements Listener {
     //TODO Shrink this code
     //TODO False flag when landing on ice
     //TODO False flag with pistons
+    //TODO Make sure to handle slime block bounces (Remember: sprint-BOUNCING on slime blocks is NOT sprint-JUMPING, so no speed boost)
 
     //Basically, this check is doing, "if your previous speed was X then your current speed must not exceed f(X)"
 

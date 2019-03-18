@@ -18,6 +18,7 @@
 
 package me.islandscout.hawk.event;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.packet.WrappedPacket;
@@ -25,6 +26,8 @@ import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -53,6 +56,7 @@ public class MoveEvent extends Event {
     private Set<Direction> boxSidesTouchingBlocks;
     private boolean inLiquid;
     private boolean jumped;
+    private boolean slimeBlockBounce;
     //No, don't compute a delta vector during instantiation since teleports will affect it.
 
     //Not sure if these maps are necessary since you can determine the previous position using HawkPlayer#getLocation()
@@ -75,6 +79,7 @@ public class MoveEvent extends Event {
         acceptedKnockback = handlePendingVelocities();
         inLiquid = testSwimming();
         jumped = testJumped();
+        slimeBlockBounce = testSlimeBlockBounce();
     }
 
     //Good thing I have MCP to figure this one out
@@ -95,6 +100,22 @@ public class MoveEvent extends Event {
     private boolean testJumped() {
         float deltaY = (float)(getTo().getY() - getFrom().getY());
         return (pp.isOnGroundReally() && !isOnGround()) && (deltaY == 0.42F || boxSidesTouchingBlocks.contains(Direction.TOP));
+    }
+
+    //Again, kudos to MCP for guiding me to the right direction
+    private boolean testSlimeBlockBounce() {
+        if(Hawk.getServerVersion() < 8)
+            return false;
+        float deltaY = (float)(getTo().getY() - getFrom().getY());
+        Block staningOn = ServerUtils.getBlockAsync(getFrom().clone().add(0, -0.01, 0));
+        if(staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
+            return false;
+        float expected = -0.96F * (float)pp.getPreviousVelocity().getY();
+        return !pp.isSneaking() &&
+                pp.getVelocity().getY() < 0 &&
+                deltaY > 0 &&
+                deltaY > (deltaY < 0.1 ? expected - 0.003 : 0) &&
+                deltaY <= expected;
     }
 
     //This literally makes me want to punch a wall.
@@ -263,6 +284,14 @@ public class MoveEvent extends Event {
 
     public boolean isInLiquid() {
         return inLiquid;
+    }
+
+    public boolean hasJumped() {
+        return jumped;
+    }
+
+    public boolean isSlimeBlockBounce() {
+        return slimeBlockBounce;
     }
 
     public void cancelAndSetBack(Location setback) {

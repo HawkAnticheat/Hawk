@@ -54,6 +54,7 @@ public class HawkPlayer {
     private final Hawk hawk;
     private Location location;
     private Vector velocity;
+    private Vector previousVelocity;
     private float deltaYaw;
     private float deltaPitch;
     private boolean onGround;
@@ -88,6 +89,7 @@ public class HawkPlayer {
         this.p = p;
         this.location = p.getLocation();
         this.velocity = new Vector();
+        this.previousVelocity = new Vector();
         this.onGround = ((Entity) p).isOnGround();
         this.hawk = hawk;
         this.ping = ServerUtils.getPing(p);
@@ -224,7 +226,12 @@ public class HawkPlayer {
     }
 
     public void setVelocity(Vector velocity) {
+        this.previousVelocity = this.velocity;
         this.velocity = velocity;
+    }
+
+    public Vector getPreviousVelocity() {
+        return previousVelocity;
     }
 
     public float getDeltaYaw() {
