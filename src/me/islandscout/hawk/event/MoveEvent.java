@@ -110,11 +110,12 @@ public class MoveEvent extends Event {
         Block staningOn = ServerUtils.getBlockAsync(getFrom().clone().add(0, -0.01, 0));
         if(staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
             return false;
-        float expected = -0.96F * (float)pp.getPreviousVelocity().getY();
+        float prevPrevDeltaY = (float)pp.getPreviousVelocity().getY();
+        float expected = -0.96F * prevPrevDeltaY;
         return !pp.isSneaking() &&
                 pp.getVelocity().getY() < 0 &&
                 deltaY > 0 &&
-                deltaY > (deltaY < 0.1 ? expected - 0.003 : 0) &&
+                deltaY > (prevPrevDeltaY < -0.1F ? expected - 0.003 : 0) &&
                 deltaY <= expected;
     }
 
