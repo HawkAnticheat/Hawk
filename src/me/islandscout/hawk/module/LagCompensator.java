@@ -43,6 +43,12 @@ public class LagCompensator implements Listener {
     //http://www.gabrielgambetta.com/client-side-prediction-live-demo.html
     //https://en.wikipedia.org/wiki/Lag#Rewind_time
 
+    //Yes, I use System.currentTimeMillis()! Should the main thread start lagging
+    //behind, the lag compensator will not be affected. The lag compensator
+    //should be dependent on system time and not server ticks. System time is
+    //stable for this application and is thus a reliable time reference for
+    //measuring latency.
+
     private final Map<UUID, List<Pair<Location, Long>>> locationTimes;
     private final int historySize;
     private final int pingOffset;
@@ -55,7 +61,7 @@ public class LagCompensator implements Listener {
         Bukkit.getPluginManager().registerEvents(this, hawk);
     }
 
-    //uses linear interpolation to get the best location
+    //Uses linear interpolation to get the best location
     public Location getHistoryLocation(int rewindMillisecs, Player player) {
         List<Pair<Location, Long>> times = locationTimes.get(player.getUniqueId());
         long currentTime = System.currentTimeMillis();

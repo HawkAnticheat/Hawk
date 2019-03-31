@@ -19,10 +19,7 @@
 package me.islandscout.hawk;
 
 import me.islandscout.hawk.check.Check;
-import me.islandscout.hawk.util.ClientBlock;
-import me.islandscout.hawk.util.Direction;
-import me.islandscout.hawk.util.Pair;
-import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.util.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -73,6 +70,7 @@ public class HawkPlayer {
     private long itemUseTick;
     private long lastAttackedPlayerTick;
     private long lastInLiquidToggleTick;
+    private long lastMoveTick;
     private ItemStack itemUsedForAttack;
     private double maxY;
     private double jumpedHeight;
@@ -428,6 +426,18 @@ public class HawkPlayer {
 
     public void setWaterFlowForce(Vector waterFlowForce) {
         this.waterFlowForce = waterFlowForce;
+    }
+
+    public long getLastMoveTick() {
+        return lastMoveTick;
+    }
+
+    public long getClientTicksSinceLastMove() {
+        return getCurrentTick() - lastMoveTick;
+    }
+
+    public void setHasMoved() {
+        this.lastMoveTick = getCurrentTick();
     }
 
     //safely kill the connection

@@ -30,9 +30,6 @@ import java.util.*;
 
 public class BanManager implements Listener {
 
-    //I don't have intentions of making a "judgement day" system in Hawk, but if
-    //you would like to think of this as one, then by all means, go ahead.
-
     private final Hawk hawk;
     private final Map<UUID, BanEntry> bans;
     private final File dataFile;

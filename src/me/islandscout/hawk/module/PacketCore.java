@@ -114,6 +114,8 @@ public class PacketCore implements Listener {
             MoveEvent posEvent = (MoveEvent) event;
             posEvent.setTeleported(false);
             pp.incrementCurrentTick();
+            if(posEvent.isUpdatePos())
+                pp.setHasMoved();
             //handle teleports
             if (pp.isTeleporting()) {
                 Location tpLoc = pp.getTeleportLoc();
@@ -147,6 +149,7 @@ public class PacketCore implements Listener {
             return false;
 
         //update HawkPlayer
+        //TODO: Jeez, this oughta bog down performance. Replace these if statements w/ else-if statements
         if (event instanceof InteractItemEvent && !event.isCancelled()) {
             InteractItemEvent itemEvent = (InteractItemEvent) event;
             Material mat = itemEvent.getItemStack().getType();
@@ -187,6 +190,13 @@ public class PacketCore implements Listener {
             InteractWorldEvent bPlaceEvent = (InteractWorldEvent) event;
             if (!bPlaceEvent.isCancelled()) {
                 ClientBlock clientBlock = new ClientBlock(bPlaceEvent.getPlacedBlockLocation(), pp.getCurrentTick(), bPlaceEvent.getPlacedBlockMaterial());
+                pp.addClientBlock(clientBlock);
+            }
+        }
+        if (event instanceof BlockDigEvent && ((BlockDigEvent) event).getDigAction() == BlockDigEvent.DigAction.COMPLETE) {
+            BlockDigEvent dEvent = (BlockDigEvent) event;
+            if(!dEvent.isCancelled()) {
+                ClientBlock clientBlock = new ClientBlock(dEvent.getBlock().getLocation(), pp.getCurrentTick(), Material.AIR);
                 pp.addClientBlock(clientBlock);
             }
         }

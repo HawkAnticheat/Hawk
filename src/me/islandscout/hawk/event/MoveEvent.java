@@ -58,7 +58,7 @@ public class MoveEvent extends Event {
     private Vector waterFlowForce;
     private List<Pair<Block, Vector>> liquidsAndDirections;
     private Set<Material> liquidTypes;
-    //No, don't compute a delta vector during instantiation since teleports will affect it.
+    //No, don't compute a delta vector during instantiation since it won't respond to teleports.
 
     //Not sure if these maps are necessary since you can determine the previous position using HawkPlayer#getLocation()
     private static final Map<UUID, Location> last = new HashMap<>();
@@ -104,8 +104,16 @@ public class MoveEvent extends Event {
 
     //May return true if player is knocked up against a very low ceiling, but who cares?
     private boolean testJumped() {
+        int jumpBoostLvl = 0;
+        for (PotionEffect pEffect : p.getActivePotionEffects()) {
+            if (pEffect.getType().equals(PotionEffectType.JUMP)) {
+                jumpBoostLvl = pEffect.getAmplifier() + 1;
+                break;
+            }
+        }
+        float initJumpVelocity = 0.42F + jumpBoostLvl * 0.1F;
         float deltaY = (float)(getTo().getY() - getFrom().getY());
-        return (pp.isOnGroundReally() && !isOnGround()) && (deltaY == 0.42F || boxSidesTouchingBlocks.contains(Direction.TOP));
+        return (pp.isOnGroundReally() && !isOnGround()) && (deltaY == initJumpVelocity || boxSidesTouchingBlocks.contains(Direction.TOP));
     }
 
     //Again, kudos to MCP for guiding me to the right direction

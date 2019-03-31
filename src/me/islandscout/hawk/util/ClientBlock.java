@@ -21,6 +21,7 @@ package me.islandscout.hawk.util;
 import me.islandscout.hawk.HawkPlayer;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 
 import java.util.Set;
@@ -33,10 +34,6 @@ import java.util.Set;
  * a block. This should especially be used in movement
  * checks to significantly reduce annoying false-positives,
  * but caution is advised since ClientBlocks may be spoofed.
- * Since they can be spoofed by the client or canceled by
- * the main thread for whatever reason, I highly advise
- * making a system--in each check utilising ClientBlocks--
- * that keeps track of expired ClientBlocks.
  */
 public class ClientBlock {
 

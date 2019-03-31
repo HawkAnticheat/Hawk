@@ -19,8 +19,10 @@
 package me.islandscout.hawk.util;
 
 import me.islandscout.hawk.Hawk;
-import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
+
+import java.util.Arrays;
+import java.util.List;
 
 public final class MathPlus {
 
@@ -98,5 +100,72 @@ public final class MathPlus {
         }
     }
 
-    //Perhaps make an angle method that compares two vectors and uses a lookup table for arccos values? Will eat up 256kiB of memory, though.
+    public static double stdev(List<Double> data) {
+        double[] array = new double[data.size()];
+        for(int i = 0; i < array.length; i++) {
+            array[i] = data.get(i);
+        }
+        return stdev(array);
+    }
+
+    public static double stdev(double[] data) {
+        double mean = mean(data);
+        double dividend = 0;
+        for(double num : data) {
+            dividend += Math.pow(num - mean, 2);
+        }
+        return Math.sqrt(dividend / (data.length - 1));
+    }
+
+    public static double mean(double[] data) {
+        double ans = 0;
+        for(double num : data) {
+            ans += num;
+        }
+        ans /= data.length;
+        return ans;
+    }
+
+    public static float derivative(MathFunction func, double x) {
+        double h = (x * 1E-8);
+        return (float)((func.func(x + h) - func.func(x))/h);
+    }
+
+    //rough approximate
+    public static float integral(MathFunction func, double lowerBound, double upperBound) {
+        int trapezoids = 128;
+        double trapWidth = (upperBound - lowerBound) / trapezoids;
+        double x0 = lowerBound;
+        double sum = 0;
+        for(double x1 = lowerBound + trapWidth; x1 <= upperBound; x1+=trapWidth) {
+            sum += func.func(x1) + func.func(x0);
+            x0 = x1;
+        }
+        return (float)((trapWidth / 2D) * sum);
+    }
+
+    public static float gcdRational(float a, float b) {
+        if(a == 0) {
+            return b;
+        }
+        int quotient = getIntQuotient(b, a);
+        float remainder = ((b / a) - quotient) * a;
+        if(Math.abs(remainder) < Math.max(a, b) * 1E-3F)
+            remainder = 0;
+        return gcdRational(remainder, a);
+    }
+
+    public static float gcdRational(List<Float> numbers) {
+        float result = numbers.get(0);
+        for (int i = 1; i < numbers.size(); i++) {
+            result = gcdRational(numbers.get(i), result);
+        }
+        return result;
+    }
+
+    public static int getIntQuotient(float dividend, float divisor) {
+        float ans = dividend / divisor;
+        float error = Math.max(dividend, divisor) * 1E-3F;
+        return (int)(ans + error);
+    }
 }

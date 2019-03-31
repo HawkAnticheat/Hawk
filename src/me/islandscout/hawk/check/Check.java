@@ -179,6 +179,7 @@ public abstract class Check<E extends Event> {
                 }
             }
         }
+        hawk.getBungeeBridge().sendAlertForBroadcast(message);
     }
 
     private void logToConsole(String message) {

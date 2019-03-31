@@ -35,6 +35,7 @@ public class SQL {
     private final ArrayList<Violation> violations = new ArrayList<>();
     private final int postInterval;
     private final boolean enabled;
+    private static final String DEFAULT_CHARACTER_ENCODING = "utf-8";
 
     public SQL(Hawk hawk) {
         this.hawk = hawk;
@@ -42,17 +43,21 @@ public class SQL {
         postInterval = ConfigHelper.getOrSetDefault(60, hawk.getConfig(), "sql.updateInterval");
         String host = ConfigHelper.getOrSetDefault("127.0.0.1", hawk.getConfig(), "sql.host");
         String port = ConfigHelper.getOrSetDefault("3389", hawk.getConfig(), "sql.port");
-        String user = ConfigHelper.getOrSetDefault("", hawk.getConfig(), "sql.username");
+        String characterEncoding = ConfigHelper.getOrSetDefault(DEFAULT_CHARACTER_ENCODING, hawk.getConfig(), "sql.characterEncoding");
         String database = ConfigHelper.getOrSetDefault("", hawk.getConfig(), "sql.database");
+        String user = ConfigHelper.getOrSetDefault("", hawk.getConfig(), "sql.username");
         String password = ConfigHelper.getOrSetDefault("", hawk.getConfig(), "sql.password");
-        this.openConnection(host, port, user, database, password);
+        this.openConnection(host, port, user, database, password, characterEncoding);
     }
 
-    private void openConnection(String hostname, String port, String username, String database, String password) {
+    //TODO: Test this
+    private void openConnection(String hostname, String port, String username, String database, String password, String charEncoding) {
         if (!enabled) return;
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            conn = DriverManager.getConnection("jdbc:mysql://" + hostname + ":" + port + "/" + database, username, password);
+            //https://stackoverflow.com/a/3042646
+            String url = "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?characterEncoding=" + charEncoding;
+            conn = DriverManager.getConnection(url, username, password);
             hawk.getLogger().info("Connected to SQL server.");
         } catch (Exception e) {
             e.printStackTrace();

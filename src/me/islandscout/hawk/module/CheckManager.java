@@ -65,7 +65,7 @@ public class CheckManager {
         new GroundSpoof();
         new FightSpeed();
         new FightAccuracy();
-        new Aimbot();
+        new AimbotHeuristics();
         new FightNoSwing();
         new AntiVelocity();
         new InvalidPitch();
@@ -83,6 +83,9 @@ public class CheckManager {
         new MultiAction();
         new SprintDirection();
         new SwimVertical();
+        new ClickDuration();
+        new ClickRateConsistency();
+        new AimbotAlgorithmic();
     }
 
     public void unloadChecks() {

@@ -25,7 +25,6 @@ import me.islandscout.hawk.util.ConfigHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -56,6 +55,7 @@ public class Hawk extends JavaPlugin {
     private BanManager banManager;
     private MuteManager muteManager;
     private MouseRecorder mouseRecorder;
+    private BungeeBridge bungeeBridge;
     //private JudgementDay judgementDay;
     private Map<UUID, HawkPlayer> profiles;
     private static int SERVER_VERSION;
@@ -85,6 +85,7 @@ public class Hawk extends JavaPlugin {
 
     public void loadModules() {
         getLogger().info("Loading modules...");
+        new File(plugin.getDataFolder().getAbsolutePath()).mkdirs();
         getServer().getPluginManager().registerEvents(new PlayerManager(this), this);
         messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
         FLAG_PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cHAWK: &7", messages, "prefix"));
@@ -107,6 +108,7 @@ public class Hawk extends JavaPlugin {
         muteManager = new MuteManager(this);
         muteManager.loadMutedPlayers();
         startLoggerFile();
+        bungeeBridge = new BungeeBridge(this, ConfigHelper.getOrSetDefault(false, getConfig(), "enableBungeeAlerts"));
         checkManager = new CheckManager(plugin);
         checkManager.loadChecks();
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new HawkSyncLoopTask(this), 0L, 1L);
@@ -132,6 +134,7 @@ public class Hawk extends JavaPlugin {
         lagCompensator = null;
         checkManager.unloadChecks();
         checkManager = null;
+        bungeeBridge = null;
         banManager.saveBannedPlayers();
         banManager = null;
         muteManager.saveMutedPlayers();
@@ -251,6 +254,10 @@ public class Hawk extends JavaPlugin {
 
     public MouseRecorder getMouseRecorder() {
         return mouseRecorder;
+    }
+
+    public BungeeBridge getBungeeBridge() {
+        return bungeeBridge;
     }
 
     //public JudgementDay getJudgementDay() {

@@ -31,7 +31,6 @@ public class SwimVertical extends MovementCheck {
 
     //TODO: Support lava
     //TODO: false flag when exiting liquid while on slab while against wall
-    //TODO: false flag when swimming down water that pushes you down
 
     private Set<UUID> justExited;
 

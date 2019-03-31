@@ -22,6 +22,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractAction;
 import me.islandscout.hawk.event.InteractEntityEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Placeholder;
 import org.bukkit.entity.Player;
@@ -30,7 +31,8 @@ import java.util.*;
 
 public class FightSpeed extends EntityInteractionCheck {
 
-    //PASSED (9/11/18)
+    //TODO: INCORPORATE CLICKCONSISTENCY
+    //TODO: MAKE A DYNAMIC CPS LIMIT (LOWER LIMIT SLOWLY WHEN A CPS IS REACHED)
 
     private final Map<UUID, Long> lastClickTime; //in client ticks
     private final Map<UUID, List<Long>> deltaTimes;
