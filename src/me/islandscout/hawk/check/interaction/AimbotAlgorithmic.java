@@ -21,9 +21,7 @@ package me.islandscout.hawk.check.interaction;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.MathPlus;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -42,7 +40,7 @@ public class AimbotAlgorithmic extends MovementCheck {
     private static final int GCD_COMPARE_SIZE = 11;
 
     public AimbotAlgorithmic() {
-        super("aimbotarithmetic", true, -1, 5, 0.9, 5000, "%player% may be using aimbot (algorithmic), VL: %vl%", null);
+        super("aimbotalgorithmic", true, -1, 5, 0.9, 5000, "%player% may be using aimbot (algorithmic), VL: %vl%", null);
         this.deltaPitches = new HashMap<>();
         this.lastDeltaPitchGCDs = new HashMap<>();
     }

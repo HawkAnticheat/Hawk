@@ -39,7 +39,7 @@ import java.util.*;
  * certain circumstances. This check should only be used as a
  * hint that the player might be cheating.
  */
-public class AimbotHeuristics extends CustomCheck implements Cancelless {
+public class AimbotHeuristic extends CustomCheck implements Cancelless {
 
     private final Map<UUID, List<Vector>> mouseMoves;
     private final Map<UUID, List<Long>> clickTimes;
@@ -47,8 +47,8 @@ public class AimbotHeuristics extends CustomCheck implements Cancelless {
     private static final int MOVES_PER_SAMPLE = 4; //must be greater than 0
     private final int MOVES_AFTER_HIT;
 
-    public AimbotHeuristics() {
-        super("aimbot", true, -1, 5, 0.99, 5000, "&8%player% may be using aimbot (heuristic), VL %vl%", null);
+    public AimbotHeuristic() {
+        super("aimbotheuristic", true, -1, 5, 0.99, 5000, "&8%player% may be using aimbot (heuristic), VL %vl%", null);
         mouseMoves = new HashMap<>();
         clickTimes = new HashMap<>();
 

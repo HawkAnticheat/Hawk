@@ -65,7 +65,7 @@ public class CheckManager {
         new GroundSpoof();
         new FightSpeed();
         new FightAccuracy();
-        new AimbotHeuristics();
+        new AimbotHeuristic();
         new FightNoSwing();
         new AntiVelocity();
         new InvalidPitch();
