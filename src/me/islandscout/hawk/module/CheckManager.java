@@ -85,7 +85,7 @@ public class CheckManager {
         new SwimVertical();
         new ClickDuration();
         new ClickRateConsistency();
-        new AimbotAlgorithmic();
+        new AimbotPrecision();
     }
 
     public void unloadChecks() {

@@ -22,10 +22,12 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.util.entity.EntityNMS;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 public class FightReachApprox extends EntityInteractionCheck {
 
@@ -37,8 +39,8 @@ public class FightReachApprox extends EntityInteractionCheck {
 
     public FightReachApprox() {
         super("fightreachapprox", "%player% failed fight reach (approximate). Reach: %distance%m VL: %vl%");
-        MAX_REACH = Math.pow(ConfigHelper.getOrSetDefault(4.0, hawk.getConfig(), "checks.fightreachapprox.maxReach"), 2);
-        MAX_REACH_CREATIVE = Math.pow(ConfigHelper.getOrSetDefault(5.8, hawk.getConfig(), "checks.fightreachapprox.maxReachCreative"), 2);
+        MAX_REACH = ConfigHelper.getOrSetDefault(3.1, hawk.getConfig(), "checks.fightreachapprox.maxReach");
+        MAX_REACH_CREATIVE = ConfigHelper.getOrSetDefault(4.9, hawk.getConfig(), "checks.fightreachapprox.maxReachCreative");
         PING_LIMIT = ConfigHelper.getOrSetDefault(-1, hawk.getConfig(), "checks.fightreachapprox.pingLimit");
         LAG_COMPENSATION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fightreachapprox.lagCompensation");
         CHECK_OTHER_ENTITIES = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fightreachapprox.checkOtherEntities");
@@ -67,12 +69,18 @@ public class FightReachApprox extends EntityInteractionCheck {
             victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, (Player) victimEntity);
         else
             victimLocation = victimEntity.getLocation();
-        double feetFeetDistanceSquared = victimLocation.distanceSquared(attackerLocation);
-        double eyeFeetDistanceSquared = victimLocation.distanceSquared(attackerLocation.clone().add(0, 1.62, 0));
-        double chkDistanceSquared = Math.min(feetFeetDistanceSquared, eyeFeetDistanceSquared);
-        double maxReach = e.getPlayer().getGameMode() == GameMode.CREATIVE ? MAX_REACH_CREATIVE : MAX_REACH;
-        if (chkDistanceSquared > maxReach) {
-            punish(att, 1, true, e, new Placeholder("distance", MathPlus.round(Math.sqrt(chkDistanceSquared), 2)));
+
+        AABB victimAABB = EntityNMS.getEntityNMS(victimEntity).getHitbox(victimLocation.toVector());
+        victimAABB.expand(0.05, 0.05, 0.05);
+
+        float headHeight = att.isSneaking() ? 1.54F : 1.62F;
+        Vector attackerPos = attackerLocation.toVector().add(new Vector(0D, headHeight, 0D));
+
+        double maxReach = att.getPlayer().getGameMode() == GameMode.CREATIVE ? MAX_REACH_CREATIVE : MAX_REACH;
+        double dist = victimAABB.distanceToPosition(attackerPos);
+
+        if (dist > maxReach) {
+            punish(att, 1, true, e, new Placeholder("distance", MathPlus.round(dist, 2)));
         } else {
             reward(att);
         }

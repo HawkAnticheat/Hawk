@@ -19,6 +19,7 @@
 package me.islandscout.hawk.check.interaction;
 
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.MathPlus;
@@ -28,19 +29,26 @@ import java.util.*;
 
 /**
  * The AimbotAlgorithmic check detects aimbots by
- * checking for inconsistencies in head pitch
- * (specifically vertical movement). It does this by
- * comparing the greatest common divisor between
- * each sample of mouse moves.
+ * checking for variation in head pitch precision.
+ * It does this by solving the greatest common divisor
+ * of the samples. All pitch changes should be divisible
+ * by a constant, which is determined by the in-game
+ * sensitivity. Not compatible with cinematic camera mode.
  */
-public class AimbotAlgorithmic extends MovementCheck {
+public class AimbotPrecision extends MovementCheck implements Cancelless {
+
+    //This concept could be used to determine someone's in-game sensitivity.
+    //That's pretty spoopy if you ask me.
 
     private final Map<UUID, List<Float>> deltaPitches;
     private final Map<UUID, Float> lastDeltaPitchGCDs;
-    private static final int GCD_COMPARE_SIZE = 11;
 
-    public AimbotAlgorithmic() {
-        super("aimbotalgorithmic", true, -1, 5, 0.9, 5000, "%player% may be using aimbot (algorithmic), VL: %vl%", null);
+    //SAMPLES should be higher for lower mouse sensitivities
+    //in order to accurately predict pitch precision
+    private static final int SAMPLES = 20;
+
+    public AimbotPrecision() {
+        super("aimbotprecision", true, -1, 5, 0.9, 5000, "%player% may be using aimbot (precision), VL: %vl%", null);
         this.deltaPitches = new HashMap<>();
         this.lastDeltaPitchGCDs = new HashMap<>();
     }
@@ -52,18 +60,21 @@ public class AimbotAlgorithmic extends MovementCheck {
         float deltaPitch = e.getTo().getPitch() - e.getFrom().getPitch();
         List<Float> lastDeltaPitches = deltaPitches.getOrDefault(uuid, new ArrayList<>());
 
-        if(deltaPitch != 0 && deltaPitch < 10 && Math.abs(e.getTo().getPitch()) != 90)
+        //ignore if deltaPitch is 0 and if pitch is +/-90. Also ignore if pitchrate is too high
+        if(deltaPitch != 0 && Math.abs(deltaPitch) < 10 && Math.abs(e.getTo().getPitch()) != 90) {
             lastDeltaPitches.add(Math.abs(deltaPitch));
+        }
 
         //Only check for pitch
         //For some reason when you spin your head around too much,
         //yaw checking becomes unreliable. Precision errors?
         //Still, this check is pretty impressive.
-        if(lastDeltaPitches.size() >= GCD_COMPARE_SIZE) {
+        if(lastDeltaPitches.size() >= SAMPLES) {
             float deltaPitchGCD = MathPlus.gcdRational(lastDeltaPitches);
             float lastDeltaPitchGCD = lastDeltaPitchGCDs.getOrDefault(uuid, deltaPitchGCD);
             float gcdDiff = Math.abs(deltaPitchGCD - lastDeltaPitchGCD);
-            if(gcdDiff > 0.001) {
+            //if GCD is significantly different or if GCD was unsolvable
+            if(gcdDiff > 0.001 || deltaPitchGCD < 0.00001) {
                 fail(pp, e);
             }
             else

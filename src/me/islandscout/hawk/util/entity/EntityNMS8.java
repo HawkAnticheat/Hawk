@@ -32,5 +32,6 @@ public class EntityNMS8 extends EntityNMS {
         AxisAlignedBB bb = nmsEntity.getBoundingBox();
         collisionBox = new AABB(new Vector(bb.a, bb.b, bb.c), new Vector(bb.d, bb.e, bb.f));
         collisionBorderSize = nmsEntity.ao();
+        location = entity.getLocation();
     }
 }

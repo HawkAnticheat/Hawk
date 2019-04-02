@@ -75,7 +75,7 @@ public class FightHitbox extends EntityInteractionCheck {
     private final double BOX_EPSILON = 0.05;
 
     public FightHitbox() {
-        super("fighthitbox", true, 5, 10000, 0.95, 5000, "%player% failed combat hitbox. %type% VL: %vl%", null);
+        super("fighthitbox", false, 5, 10000, 0.95, 5000, "%player% failed combat hitbox. %type% VL: %vl%", null);
         CHECK_BOX_INTERSECTION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fighthitbox.checkBoxIntersection");
         CHECK_OCCLUSION = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.checkOccluding");
         MAX_REACH = ConfigHelper.getOrSetDefault(3.1, hawk.getConfig(), "checks.fighthitbox.maxReach");

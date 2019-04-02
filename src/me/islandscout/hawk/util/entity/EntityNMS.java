@@ -20,12 +20,15 @@ package me.islandscout.hawk.util.entity;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.AABB;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.util.Vector;
 
 public abstract class EntityNMS {
 
     AABB collisionBox;
     float collisionBorderSize;
+    Location location;
 
     EntityNMS() {
     }
@@ -37,6 +40,18 @@ public abstract class EntityNMS {
             return new EntityNMS7(entity);
     }
 
+    public AABB getCollisionBox(Vector entityPos) {
+        Vector move = location.toVector().subtract(entityPos).multiply(-1);
+        AABB box = getCollisionBox().clone();
+        box.translate(move);
+        return box;
+    }
+
+    public AABB getHitbox(Vector entityPos) {
+        AABB box = getCollisionBox(entityPos);
+        box.expand(collisionBorderSize, collisionBorderSize, collisionBorderSize);
+        return box;
+    }
 
     public AABB getCollisionBox() {
         return collisionBox;

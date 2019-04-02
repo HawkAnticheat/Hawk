@@ -210,4 +210,16 @@ public class AABB implements Cloneable {
         }
         return blocks;
     }
+
+    /**
+     * Returns the shortest distance between this AABB and a point in space.
+     * @param vector Point
+     * @return Distance
+     */
+    public double distanceToPosition(Vector vector) {
+        double distX = Math.max(min.getX() - vector.getX(), Math.max(0, vector.getX() - max.getX()));
+        double distY = Math.max(min.getY() - vector.getY(), Math.max(0, vector.getY() - max.getY()));
+        double distZ = Math.max(min.getZ() - vector.getZ(), Math.max(0, vector.getZ() - max.getZ()));
+        return Math.sqrt(distX*distX + distY*distY + distZ*distZ);
+    }
 }
