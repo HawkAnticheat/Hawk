@@ -26,31 +26,38 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class SQL {
+public class SQLModule {
 
-    private Connection conn;
     private final Hawk hawk;
-    private final ArrayList<Violation> violations = new ArrayList<>();
+    private boolean enabled;
     private final int postInterval;
-    private final boolean enabled;
-    private static final String DEFAULT_CHARACTER_ENCODING = "utf-8";
+    private final List<Violation> violations;
+    private Connection conn;
+    private short loopCounter;
+    private static final String DEFAULT_CHARACTER_ENCODING = "utf8";
+    private static final String INSERT_TABLE = "INSERT INTO `hawkviolations` " +
+            "(`id`, `uuid`, `check`, `ping`, `vl`, `server`, `time`) VALUES " +
+            "(?,?,?,?,?,?,?)";
 
-    public SQL(Hawk hawk) {
+    //ehhh... I think it would be better if Hawk had the control to enable or disable this module.
+    //kinda scary to think that instantiating this would immediately enable it...
+    public SQLModule(Hawk hawk) {
         this.hawk = hawk;
         enabled = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "sql.enabled");
         postInterval = ConfigHelper.getOrSetDefault(60, hawk.getConfig(), "sql.updateInterval");
+        violations = Collections.synchronizedList(new ArrayList<>());
         String host = ConfigHelper.getOrSetDefault("127.0.0.1", hawk.getConfig(), "sql.host");
-        String port = ConfigHelper.getOrSetDefault("3389", hawk.getConfig(), "sql.port");
+        String port = ConfigHelper.getOrSetDefault("3306", hawk.getConfig(), "sql.port");
         String characterEncoding = ConfigHelper.getOrSetDefault(DEFAULT_CHARACTER_ENCODING, hawk.getConfig(), "sql.characterEncoding");
         String database = ConfigHelper.getOrSetDefault("", hawk.getConfig(), "sql.database");
         String user = ConfigHelper.getOrSetDefault("", hawk.getConfig(), "sql.username");
         String password = ConfigHelper.getOrSetDefault("", hawk.getConfig(), "sql.password");
-        this.openConnection(host, port, user, database, password, characterEncoding);
+        openConnection(host, port, user, database, password, characterEncoding);
     }
 
-    //TODO: Test this
     private void openConnection(String hostname, String port, String username, String database, String password, String charEncoding) {
         if (!enabled) return;
         try {
@@ -61,6 +68,8 @@ public class SQL {
             hawk.getLogger().info("Connected to SQL server.");
         } catch (Exception e) {
             e.printStackTrace();
+            closeConnection();
+            enabled = false;
         }
     }
 
@@ -71,6 +80,7 @@ public class SQL {
                 hawk.getLogger().info("Closed SQL connection.");
             } catch (SQLException e) {
                 e.printStackTrace();
+                enabled = false;
             }
         }
     }
@@ -78,13 +88,24 @@ public class SQL {
     public void createTableIfNotExists() {
         if (!enabled) return;
         try {
-            PreparedStatement create = conn.prepareStatement("CREATE TABLE IF NOT EXISTS `hawkviolations` ( `id` INT(8) NOT NULL AUTO_INCREMENT, `uuid` VARCHAR(32) NOT NULL , `check` VARCHAR(32) NOT NULL , `ping` INT(5) NOT NULL , `vl` INT(5) NOT NULL , `server` VARCHAR(255) NOT NULL , `time` TIMESTAMP NOT NULL , PRIMARY KEY (`id`))");
+            PreparedStatement create = conn.prepareStatement("CREATE TABLE IF NOT EXISTS `hawkviolations` ( `id` INT(8) NOT NULL AUTO_INCREMENT, `uuid` VARCHAR(64) NOT NULL , `check` VARCHAR(32) NOT NULL , `ping` INT(5) NOT NULL , `vl` INT(5) NOT NULL , `server` VARCHAR(255) NOT NULL , `time` TIMESTAMP NOT NULL , PRIMARY KEY (`id`))");
             create.executeUpdate();
             hawk.getLogger().info("SQL logging enabled successfully.");
         } catch (Exception e) {
             hawk.getLogger().warning("An error occurred while attempting to check if table \"hawkviolations\" exists!");
             e.printStackTrace();
+            closeConnection();
+            enabled = false;
         }
+    }
+
+    //to be called every second by Hawk's scheduler task
+    public void tick() {
+        if(loopCounter >= postInterval) {
+            loopCounter = 0;
+            postBuffer();
+        }
+        loopCounter++;
     }
 
     public void addToBuffer(Violation violation) {
@@ -92,57 +113,42 @@ public class SQL {
         violations.add(violation);
     }
 
-    private short loop = 1;
+    private void postBuffer() {
+        if (!enabled || violations.size() == 0)
+            return;
 
-    //lol, what a joke
-    public void postBuffer() {
-        if (!enabled)
-            return;
-        if (loop < postInterval) {
-            loop++;
-            return;
-        }
-        loop = 1;
-        if (violations.size() == 0)
-            return;
+        //TODO: thread safety alert!!!
         List<Violation> asyncList = new ArrayList<>(violations);
         violations.clear();
-        BukkitScheduler hawkLogger = Bukkit.getServer().getScheduler();
-        hawkLogger.runTaskAsynchronously(hawk, () -> { //run async
-            Timestamp timestamp;
-            StringBuilder statementBuild = new StringBuilder();
-            statementBuild.append("INSERT INTO `hawkviolations` (`id`, `uuid`, `check`, `ping`, `vl`, `server`, `time`) VALUES "); //begin statement
 
-            int i = 0;
-            for (Violation loopViolation : asyncList) { //generate the rest of the statement as bulk
-                timestamp = new Timestamp(loopViolation.getTime());
-                statementBuild.append("(NULL, '").append(loopViolation.getPlayer().getUniqueId()).append("', '").append(loopViolation.getCheck()).append("', '").append(loopViolation.getPing()).append("', '").append(loopViolation.getVl()).append("', '").append(loopViolation.getServer()).append("', '").append(timestamp).append("'), ");
-                if (statementBuild.length() > 8192) { //if exceeds certain length, stop, then post, then make a new statement if there is still more data to send
-                    post(statementBuild.substring(0, statementBuild.length() - 2));
-                    statementBuild.setLength(0);
-                    if (i < asyncList.size() - 1)
-                        statementBuild.append("INSERT INTO `hawkviolations` (`id`, `uuid`, `check`, `ping`, `vl`, `server`, `time`) VALUES ");
-                } else if (i == asyncList.size() - 1) { //else, post when there are no more violations left in the buffer
-                    post(statementBuild.substring(0, statementBuild.length() - 2));
+        BukkitScheduler hawkLogger = Bukkit.getServer().getScheduler();
+        hawkLogger.runTaskAsynchronously(hawk, () -> {
+            PreparedStatement ps;
+            try {
+                ps = conn.prepareStatement(INSERT_TABLE);
+
+                for (Violation loopViolation : asyncList) {
+                    ps.setNull(1, Types.INTEGER);
+                    ps.setObject(2, loopViolation.getPlayer().getUniqueId(), Types.VARCHAR);
+                    ps.setObject(3, loopViolation.getCheck(), Types.VARCHAR);
+                    ps.setObject(4, loopViolation.getPing(), Types.INTEGER);
+                    ps.setObject(5, loopViolation.getVl(), Types.INTEGER);
+                    ps.setObject(6, loopViolation.getServer(), Types.VARCHAR);
+                    ps.setTimestamp(7, new Timestamp(loopViolation.getTime()));
+                    ps.addBatch();
                 }
-                i++;
+
+                ps.executeBatch();
+
+            }
+            catch (SQLException e) {
+                e.printStackTrace();
             }
         });
-    }
-
-    private void post(String statement) {
-        if (!enabled) return;
-        try {
-            PreparedStatement post = conn.prepareStatement(statement);
-            post.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public boolean isRunning() {
         return conn != null && enabled;
     }
-
 
 }

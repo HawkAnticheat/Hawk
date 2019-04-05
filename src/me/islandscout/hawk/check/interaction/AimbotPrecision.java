@@ -28,7 +28,7 @@ import org.bukkit.entity.Player;
 import java.util.*;
 
 /**
- * The AimbotAlgorithmic check detects aimbots by
+ * The AimbotPrecision check detects aimbots by
  * checking for variation in head pitch precision.
  * It does this by solving the greatest common divisor
  * of the samples. All pitch changes should be divisible

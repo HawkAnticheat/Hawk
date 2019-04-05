@@ -38,7 +38,7 @@ public class HawkSyncLoopTask implements Runnable {
 
         if(currentTick % 20 == 0) {
             hawk.getViolationLogger().updateFile();
-            hawk.getSql().postBuffer();
+            hawk.getSQLModule().tick();
         }
 
         for(HawkPlayer pp : hawk.getHawkPlayers()) {

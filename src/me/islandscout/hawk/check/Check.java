@@ -150,8 +150,8 @@ public abstract class Check<E extends Event> {
         logToFile(flag);
 
 
-        if (hawk.getSql().isRunning())
-            hawk.getSql().addToBuffer(violation);
+        if (hawk.getSQLModule().isRunning())
+            hawk.getSQLModule().addToBuffer(violation);
         Bukkit.getScheduler().runTask(hawk, () -> Bukkit.getServer().getPluginManager().callEvent(new HawkFlagEvent(violation)));
     }
 

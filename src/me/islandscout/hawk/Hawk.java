@@ -45,7 +45,7 @@ public class Hawk extends JavaPlugin {
     //Made with passion in U.S.A.
 
     private CheckManager checkManager;
-    private SQL sql;
+    private SQLModule sqlModule;
     private Hawk plugin;
     private PacketCore packetCore;
     private ViolationLogger violationLogger;
@@ -97,8 +97,8 @@ public class Hawk extends JavaPlugin {
             Bukkit.getLogger().warning("Hawk cannot send JSON flag messages on a 1.7.10 server! Please use 1.8.8 to use this feature.");
         }
         profiles = new ConcurrentHashMap<>();
-        sql = new SQL(this);
-        sql.createTableIfNotExists();
+        sqlModule = new SQLModule(this);
+        sqlModule.createTableIfNotExists();
         //judgementDay = new JudgementDay(this);
         //judgementDay.start();
         guiManager = new GUIManager(this);
@@ -141,8 +141,8 @@ public class Hawk extends JavaPlugin {
         muteManager = null;
         MoveEvent.discardData();
         profiles = null;
-        sql.closeConnection();
-        sql = null;
+        sqlModule.closeConnection();
+        sqlModule = null;
         Bukkit.getScheduler().cancelTasks(this);
         violationLogger = null;
     }
@@ -199,8 +199,8 @@ public class Hawk extends JavaPlugin {
         return checkManager;
     }
 
-    public SQL getSql() {
-        return plugin.sql;
+    public SQLModule getSQLModule() {
+        return plugin.sqlModule;
     }
 
     public GUIManager getGuiManager() {
