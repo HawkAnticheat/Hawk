@@ -16,22 +16,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.check.interaction;
+package me.islandscout.hawk.check.combat;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.*;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.MathPlus;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.*;
 
-public class ClickRateConsistency extends EntityInteractionCheck implements Cancelless {
+public class FightSpeedConsistency extends EntityInteractionCheck implements Cancelless {
 
-    //TODO: MOVE TO FIGHTSPEED
+    //This check is very similar to the FightSpeed check, however I will
+    //not be merging these, because their SAMPLES variable may vary
+    //based on configuration. For instance, FightSpeed relies on samples
+    //of 10, yet this check relies on samples of 5.
 
     private final int SAMPLES;
     private final int SAMPLE_SIZE;
@@ -43,8 +44,8 @@ public class ClickRateConsistency extends EntityInteractionCheck implements Canc
     private final Map<UUID, Long> lastClickTick;
     private final Map<UUID, List<Long>> deltaTimes;
 
-    public ClickRateConsistency() {
-        super("clickrateconsistency", true, -1, 3, 0.99, 5000, "%player% failed click consistency. Autoclicker? VL: %vl%", null);
+    public FightSpeedConsistency() {
+        super("fightspeedconsistency", true, -1, 3, 0.99, 5000, "%player% failed click consistency. Autoclicker? VL: %vl%", null);
         MIN_CPS = (double)customSetting("checkAboveCPS", "", 10D);
         SAMPLES = (int)customSetting("samples", "", 5);
         SAMPLE_SIZE = (int)customSetting("sampleSize", "", 20);

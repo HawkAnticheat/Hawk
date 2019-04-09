@@ -84,7 +84,7 @@ public class CheckManager {
         new SprintDirection();
         new SwimVertical();
         new ClickDuration();
-        new ClickRateConsistency();
+        new FightSpeedConsistency();
         new AimbotPrecision();
     }
 

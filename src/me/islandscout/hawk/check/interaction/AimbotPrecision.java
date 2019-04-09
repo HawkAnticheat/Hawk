@@ -33,7 +33,8 @@ import java.util.*;
  * It does this by solving the greatest common divisor
  * of the samples. All pitch changes should be divisible
  * by a constant, which is determined by the in-game
- * sensitivity. Not compatible with cinematic camera mode.
+ * mouse sensitivity. Not compatible with cinematic
+ * camera mode or low mouse sensitivity.
  */
 public class AimbotPrecision extends MovementCheck implements Cancelless {
 
@@ -45,10 +46,13 @@ public class AimbotPrecision extends MovementCheck implements Cancelless {
 
     //SAMPLES should be higher for lower mouse sensitivities
     //in order to accurately predict pitch precision
-    private static final int SAMPLES = 20;
+    private final int SAMPLES;
+    private final float PITCHRATE_LIMIT;
 
     public AimbotPrecision() {
-        super("aimbotprecision", true, -1, 5, 0.9, 5000, "%player% may be using aimbot (precision), VL: %vl%", null);
+        super("aimbotprecision", false, -1, 5, 0.9, 5000, "%player% may be using aimbot (precision), VL: %vl%", null);
+        SAMPLES = (int)customSetting("samples", "", 20);
+        PITCHRATE_LIMIT = (float)((double)customSetting("ignorePitchrateHigherThan", "", 10D));
         this.deltaPitches = new HashMap<>();
         this.lastDeltaPitchGCDs = new HashMap<>();
     }
@@ -60,8 +64,8 @@ public class AimbotPrecision extends MovementCheck implements Cancelless {
         float deltaPitch = e.getTo().getPitch() - e.getFrom().getPitch();
         List<Float> lastDeltaPitches = deltaPitches.getOrDefault(uuid, new ArrayList<>());
 
-        //ignore if deltaPitch is 0 and if pitch is +/-90. Also ignore if pitchrate is too high
-        if(deltaPitch != 0 && Math.abs(deltaPitch) < 10 && Math.abs(e.getTo().getPitch()) != 90) {
+        //ignore if deltaPitch is 0 or >= 10 or if pitch is +/-90.
+        if(deltaPitch != 0 && Math.abs(deltaPitch) <= PITCHRATE_LIMIT && Math.abs(e.getTo().getPitch()) != 90) {
             lastDeltaPitches.add(Math.abs(deltaPitch));
         }
 
@@ -73,7 +77,7 @@ public class AimbotPrecision extends MovementCheck implements Cancelless {
             float deltaPitchGCD = MathPlus.gcdRational(lastDeltaPitches);
             float lastDeltaPitchGCD = lastDeltaPitchGCDs.getOrDefault(uuid, deltaPitchGCD);
             float gcdDiff = Math.abs(deltaPitchGCD - lastDeltaPitchGCD);
-            //if GCD is significantly different or if GCD was unsolvable
+            //if GCD is significantly different or if GCD is practically unsolvable
             if(gcdDiff > 0.001 || deltaPitchGCD < 0.00001) {
                 fail(pp, e);
             }
@@ -87,7 +91,7 @@ public class AimbotPrecision extends MovementCheck implements Cancelless {
     }
 
     private void fail(HawkPlayer pp, MoveEvent e) {
-        punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+        punish(pp, false, e);
     }
 
     @Override

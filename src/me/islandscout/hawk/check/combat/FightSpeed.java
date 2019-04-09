@@ -31,8 +31,10 @@ import java.util.*;
 
 public class FightSpeed extends EntityInteractionCheck {
 
-    //TODO: INCORPORATE CLICKCONSISTENCY
-    //TODO: MAKE A DYNAMIC CPS LIMIT (LOWER LIMIT SLOWLY WHEN A CPS IS REACHED)
+    //This check is very similar to the FightSpeedConsistency check, however I will
+    //not be merging these, because their SAMPLES variable may vary
+    //based on configuration. For instance, FightSpeedConsistency relies on samples
+    //of 5, yet this check relies on samples of 10.
 
     private final Map<UUID, Long> lastClickTime; //in client ticks
     private final Map<UUID, List<Long>> deltaTimes;

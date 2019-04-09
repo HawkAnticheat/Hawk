@@ -86,7 +86,6 @@ public class AimbotHeuristic extends CustomCheck implements Cancelless {
             for(int i = 1; i < lastMoves.size(); i++) {
                 Vector lastMouseMove = lastMoves.get(0);
                 Vector currMouseMove = lastMoves.get(i);
-                Vector accel = currMouseMove.clone().subtract(lastMouseMove);
                 double speed = currMouseMove.length();
                 double lastSpeed = lastMouseMove.length();
                 double angle = (lastSpeed != 0 && lastSpeed != 0) ? lastMouseMove.angle(currMouseMove) : 0D;
@@ -96,12 +95,8 @@ public class AimbotHeuristic extends CustomCheck implements Cancelless {
                 minSpeed = Math.min(speed, minSpeed);
                 maxAngle = Math.max(angle, maxAngle);
 
-                //similar delta yaw
-                if(currMouseMove.getX() > 0 && Math.abs(accel.getX()) < 0.001) {
-                    punishEm(pp, e);
-                }
                 //stutter
-                else if(maxSpeed - minSpeed > 4 && minSpeed < 0.01 && maxAngle < 0.1 /*&& lastSpeed > 1*/) { //this lastSpeed check eliminates a false positive
+                if(maxSpeed - minSpeed > 4 && minSpeed < 0.01 && maxAngle < 0.1 /*&& lastSpeed > 1*/) { //this lastSpeed check eliminates a false positive
                     punishEm(pp, e);
                 }
                 //twitching or zig zags

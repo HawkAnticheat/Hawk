@@ -182,6 +182,7 @@ public class AABB implements Cloneable {
                             new Vector(max.getX(), max.getY(), max.getZ())};
     }
 
+    //TODO: prevent negative volumes when shrinking/expanding
     public void shrink(double x, double y, double z) {
         Vector subtraction = new Vector(x, y, z);
         min.add(subtraction);

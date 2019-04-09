@@ -207,7 +207,7 @@ public abstract class Check<E extends Event> {
     }
 
     public boolean canCancel() {
-        return cancelThreshold > -1;
+        return cancelThreshold > -1 && !(this instanceof Cancelless);
     }
 
     public void setCancelThreshold(int cancelThreshold) {

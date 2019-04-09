@@ -114,25 +114,19 @@ public class FightHitbox extends EntityInteractionCheck {
         if (attacker.getGameMode() == GameMode.CREATIVE)
             maxReach += 1.8; //MC1.7: 1.8, MC1.8: 1.5
 
-        Location victimLocation;
+        Vector victimLocation;
         if (LAG_COMPENSATION && entity instanceof Player)
-            victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, (Player) e.getEntity());
+            victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, (Player) e.getEntity()).toVector();
         else
-            victimLocation = e.getEntity().getLocation();
+            victimLocation = e.getEntity().getLocation().toVector();
 
         Vector eyePos = new Vector(attackerEyeLocation.getX(), attacker.isSneaking() ? attackerEyeLocation.getY() - 0.08 : attackerEyeLocation.getY(), attackerEyeLocation.getZ());
         Vector direction = new Vector(attackerDirection.getX(), attackerDirection.getY(), attackerDirection.getZ());
         Ray attackerRay = new Ray(eyePos, direction);
 
         AABB victimAABB;
-        if (entity instanceof Player) {
-            Vector min = new Vector(victimLocation.getX() - 0.45, victimLocation.getY() - 0.15, victimLocation.getZ() - 0.45);
-            Vector max = new Vector(victimLocation.getX() + 0.45, victimLocation.getY() + 1.95, victimLocation.getZ() + 0.45);
-            victimAABB = new AABB(min, max);
-        } else {
-            victimAABB = EntityNMS.getEntityNMS(entity).getHitbox();
-            victimAABB.expand(BOX_EPSILON, BOX_EPSILON, BOX_EPSILON);
-        }
+        victimAABB = EntityNMS.getEntityNMS(entity).getHitbox(victimLocation);
+        victimAABB.expand(BOX_EPSILON, BOX_EPSILON, BOX_EPSILON);
 
         Vector intersectVec3d = victimAABB.intersectsRay(attackerRay, 0, Float.MAX_VALUE);
 
@@ -160,8 +154,7 @@ public class FightHitbox extends EntityInteractionCheck {
                         continue;
 
                     BlockNMS b = BlockNMS.getBlockNMS(bukkitBlock);
-                    AABB checkIntersection = new AABB(b.getHitBox().getMin(), b.getHitBox().getMax());
-                    Vector intersection = checkIntersection.intersectsRay(new Ray(attackerEyeLocation.toVector(), attackerDirection), 0, Float.MAX_VALUE);
+                    Vector intersection = b.getHitBox().intersectsRay(new Ray(attackerEyeLocation.toVector(), attackerDirection), 0, Float.MAX_VALUE);
                     if (intersection != null) {
                         if (intersection.distance(eyePos) < interDistance) {
                             punish(att, 1, true, e, new Placeholder("type", "Interacted through " + b.getBukkitBlock().getType()));

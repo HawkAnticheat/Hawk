@@ -23,6 +23,7 @@ import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.block.BlockNMS;
+import me.islandscout.hawk.util.entity.EntityNMS;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -83,7 +84,10 @@ public class Phase extends MovementCheck {
 
         Vector moveDirection = new Vector(locTo.getX() - locFrom.getX(), locTo.getY() - locFrom.getY(), locTo.getZ() - locFrom.getZ());
 
-        AABB playerFrom = new AABB(new Vector(locFrom.getX() - (0.3 - SIDE_EPSILON), locFrom.getY() + BOTTOM_EPSILON, locFrom.getZ() - (0.3 - SIDE_EPSILON)), new Vector(locFrom.getX() + (0.3 - SIDE_EPSILON), locFrom.getY() + 1.8 - TOP_EPSILON, locFrom.getZ() + (0.3 - SIDE_EPSILON)));
+        AABB playerFrom = EntityNMS.getEntityNMS(p).getCollisionBox(locFrom.toVector());
+        playerFrom.shrink(SIDE_EPSILON, 0, SIDE_EPSILON);
+        playerFrom.getMin().setY(playerFrom.getMin().getY() + BOTTOM_EPSILON);
+        playerFrom.getMax().setY(playerFrom.getMax().getY() - TOP_EPSILON);
         AABB playerTo = playerFrom.clone();
         playerTo.translate(moveDirection);
 

@@ -61,7 +61,7 @@ public class TickRate extends MovementCheck implements Listener {
     private final int WARM_UP;
 
     public TickRate() {
-        super("tickrate", true, 10, 10, 0.995, 10000, "%player% failed tickrate. VL: %vl%, ping: %ping%, TPS: %tps%", null);
+        super("tickrate", true, 10, 50, 0.995, 10000, "%player% failed tickrate. VL: %vl%, ping: %ping%, TPS: %tps%", null);
         prevNanoTime = new HashMap<>();
         clockDrift = new HashMap<>();
         lastBigTeleportTime = new HashMap<>();
@@ -79,18 +79,24 @@ public class TickRate extends MovementCheck implements Listener {
     protected void check(MoveEvent event) {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
-        if (event.hasTeleported() || pp.getCurrentTick() - lastBigTeleportTime.getOrDefault(p.getUniqueId(), 0L) < WARM_UP)
-            return;
+
         long time = System.nanoTime();
         if (!prevNanoTime.containsKey(p.getUniqueId())) {
             prevNanoTime.put(p.getUniqueId(), time);
             return;
         }
-        time -= prevNanoTime.get(p.getUniqueId());
-        prevNanoTime.put(p.getUniqueId(), System.nanoTime());
+        long timeElapsed = time - prevNanoTime.get(p.getUniqueId());
+        prevNanoTime.put(p.getUniqueId(), time);
+
+        if (event.hasTeleported() || pp.getCurrentTick() - lastBigTeleportTime.getOrDefault(p.getUniqueId(), 0L) < WARM_UP) {
+            if(DEBUG)
+                p.sendMessage(ChatColor.GRAY + "Tickrate check warming up. Please wait a moment...");
+            clockDrift.put(p.getUniqueId(), 50000000L);
+            return;
+        }
 
         long drift = clockDrift.getOrDefault(p.getUniqueId(), 0L);
-        drift += time - 50000000L;
+        drift += timeElapsed - 50000000L;
         if (drift > MAX_CATCHUP_TIME)
             drift = MAX_CATCHUP_TIME;
         if (DEBUG) {

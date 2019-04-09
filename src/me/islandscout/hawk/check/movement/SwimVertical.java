@@ -22,6 +22,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
@@ -29,14 +30,13 @@ import java.util.*;
 
 public class SwimVertical extends MovementCheck {
 
-    //TODO: Support lava
     //TODO: false flag when exiting liquid while on slab while against wall
 
-    private Set<UUID> justExited;
+    private Set<UUID> wasReadyToExit;
 
     public SwimVertical() {
         super("swimvertical", "%player% failed swim vertical, VL: %vl%");
-        justExited = new HashSet<>();
+        wasReadyToExit = new HashSet<>();
     }
 
     @Override
@@ -46,18 +46,15 @@ public class SwimVertical extends MovementCheck {
         //TODO: optimize
         Set<Direction> boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(e.getFrom().toVector().add(new Vector(-0.299, 0.001, -0.299)), e.getFrom().toVector().add(new Vector(0.299, 1.799, 0.299))), e.getFrom().getWorld(), 0.1);
 
-        boolean exiting = boxSidesTouchingBlocks.size() > 0 && !e.isInLiquid() && pp.isInLiquid() && currentDeltaY == 0.34;
-        if(pp.isSwimming() && (!exiting || justExited.contains(pp.getUuid())) && !e.hasTeleported() && !e.isOnGroundReally() && !pp.isFlyingClientside() && !e.hasAcceptedKnockback()) {
-            if(justExited.contains(pp.getUuid())) {
-                if(currentDeltaY > 0.3) {
-                    punishAndTryRubberband(pp, e, pp.getPlayer().getLocation());
-                }
-                else
-                    reward(pp);
-                justExited.remove(pp.getUuid());
-            }
+        boolean readyToExit = boxSidesTouchingBlocks.size() > 0 && !e.isInLiquid() && pp.isInLiquid();
+        boolean exiting = readyToExit && currentDeltaY == 0.34;
+        if(exiting || (wasReadyToExit.contains(pp.getUuid()) && currentDeltaY == 0.3)) {
+            reward(pp);
+        }
+
+        else if(pp.isSwimming() && !e.hasTeleported() && !e.isOnGroundReally() && !pp.isFlyingClientside() && !e.hasAcceptedKnockback()) {
             //TODO: when you're getting pushed down by water, your terminal velocity is < 0.1 when going up, thus bypass when swimming up
-            else if(Math.abs(currentDeltaY) >= 0.1) {
+            if(Math.abs(currentDeltaY) >= 0.1) {
                 //i check when it is >= 0.1 because this game is broken
                 //and i don't want work around each individual axis that does this
                 //stupid compression-like behavior
@@ -73,7 +70,10 @@ public class SwimVertical extends MovementCheck {
                     reward(pp);
             }
         }
-        if(exiting)
-            justExited.add(pp.getUuid());
+
+        if(readyToExit)
+            wasReadyToExit.add(pp.getUuid());
+        else
+            wasReadyToExit.remove(pp.getUuid());
     }
 }
