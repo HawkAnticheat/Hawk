@@ -45,6 +45,12 @@ public class Phase extends MovementCheck {
 
     //TODO: False positive due to block updating inside player bounding box or if someone teleports into a block. Probably can only fix TP issue.
 
+    //The way that this works is by geometry. Two AAABs represent the previous
+    //and current position. They are inscribed within a new AABB. Then, planes
+    //will cut through this AABB along the inscribed AABBs to form a tesseract.
+    //This tesseract will then test against nearby blocks' collision boxes for
+    //intersection.
+
     //decrease bounding box size if there are false positives.
     //(these values shrink the bounding box)
     private static final double TOP_EPSILON = 0.1;
@@ -95,12 +101,14 @@ public class Phase extends MovementCheck {
         Vector maxBigBox = new Vector(Math.max(playerFrom.getMax().getX(), playerTo.getMax().getX()), Math.max(playerFrom.getMax().getY(), playerTo.getMax().getY()), Math.max(playerFrom.getMax().getZ(), playerTo.getMax().getZ()));
         AABB bigBox = new AABB(minBigBox, maxBigBox);
 
-        //way too many indentations here
+        AABB selection = bigBox.clone();
+        selection.getMin().setY(selection.getMin().getY() - 0.6);
+
         GameMode gm = p.getGameMode();
         if(gm == GameMode.SURVIVAL || gm == GameMode.ADVENTURE || gm == GameMode.CREATIVE) {
-            for (int x = bigBox.getMin().getBlockX(); x <= bigBox.getMax().getBlockX(); x++) {
-                for (int y = bigBox.getMin().getBlockY(); y <= bigBox.getMax().getBlockY(); y++) {
-                    for (int z = bigBox.getMin().getBlockZ(); z <= bigBox.getMax().getBlockZ(); z++) {
+            for (int x = selection.getMin().getBlockX(); x <= selection.getMax().getBlockX(); x++) {
+                for (int y = selection.getMin().getBlockY(); y <= selection.getMax().getBlockY(); y++) {
+                    for (int z = selection.getMin().getBlockZ(); z <= selection.getMax().getBlockZ(); z++) {
 
                         Block bukkitBlock = ServerUtils.getBlockAsync(new Location(locTo.getWorld(), x, y, z));
 

@@ -20,6 +20,7 @@ package me.islandscout.hawk;
 
 import me.islandscout.hawk.check.Check;
 import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.util.entity.EntityNMS;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -440,6 +441,10 @@ public class HawkPlayer {
         this.lastMoveTick = getCurrentTick();
     }
 
+    public List<Pair<Vector, Long>> getPendingVelocities() {
+        return pendingVelocities;
+    }
+
     //safely kill the connection
     public void kickPlayer(String reason) {
         online = false;
@@ -473,8 +478,12 @@ public class HawkPlayer {
         return loc;
     }
 
-    public List<Pair<Vector, Long>> getPendingVelocities() {
-        return pendingVelocities;
+    public AABB getCollisionBox() {
+        return EntityNMS.getEntityNMS(p).getCollisionBox(location.toVector());
+    }
+
+    public AABB getHitBox() {
+        return EntityNMS.getEntityNMS(p).getHitbox(location.toVector());
     }
 
 }

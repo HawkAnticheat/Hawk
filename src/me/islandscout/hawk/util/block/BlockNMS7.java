@@ -35,8 +35,6 @@ import java.util.List;
 
 public class BlockNMS7 extends BlockNMS {
 
-    //TODO: Define collision box for snow (1.7)
-
     private final net.minecraft.server.v1_7_R4.Block block;
 
     public BlockNMS7(Block block) {
