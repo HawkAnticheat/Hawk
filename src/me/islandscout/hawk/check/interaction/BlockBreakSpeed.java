@@ -47,6 +47,10 @@ public class BlockBreakSpeed extends BlockDigCheck {
       A player using a diamond shovel to mine stone is able to break 1.4x faster using cheats. Might need to improve this.
     */
 
+    /*TODO: Rewrite this so that it updates expected block damage every client tick, rather than
+        waiting until a COMPLETE status to approximate expected time. Should be more accurate.
+        Take a peek at nms.Block#getDamage(...)
+    */
     //TODO: Shears and wool
 
     private final Map<UUID, Long> interactTick;

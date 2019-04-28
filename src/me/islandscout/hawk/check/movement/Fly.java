@@ -35,6 +35,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -63,6 +64,8 @@ import java.util.*;
  * p(x) = -3.92(x+1) - 0.98^(x+1) * 50(3.92 + v_i) + 50(3.92 + v_i) + p_i
  */
 public class Fly extends MovementCheck implements Listener {
+
+    //TODO: Please. Just rewrite this.
 
     //TODO: I suggest getting rid of map lastDeltaY and instead use HawkPlayer#getVelocity(). Should keep things consistent, especially when moving from liquids to air.
 
@@ -235,16 +238,10 @@ public class Fly extends MovementCheck implements Listener {
         return 0;
     }
 
-    //@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onVelocity(HawkPlayerAsyncVelocityChangeEvent e) {
-        if(e.isAdditive())
-            return;
-        UUID uuid = e.getPlayer().getUniqueId();
-        Vector vector = e.getVelocity();
-
-        List<Pair<Double, Long>> kbs = velocities.getOrDefault(uuid, new ArrayList<>());
-        kbs.add(new Pair<>(vector.getY(), System.currentTimeMillis()));
-        velocities.put(uuid, kbs);
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onTeleport(PlayerTeleportEvent e) {
+        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
+        legitLoc.put(pp.getUuid(), e.getTo());
     }
 
     @Override

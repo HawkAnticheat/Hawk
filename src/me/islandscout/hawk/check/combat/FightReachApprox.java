@@ -39,11 +39,11 @@ public class FightReachApprox extends EntityInteractionCheck {
 
     public FightReachApprox() {
         super("fightreachapprox", "%player% failed fight reach (approximate). Reach: %distance%m VL: %vl%");
-        MAX_REACH = ConfigHelper.getOrSetDefault(3.1, hawk.getConfig(), "checks.fightreachapprox.maxReach");
-        MAX_REACH_CREATIVE = ConfigHelper.getOrSetDefault(4.9, hawk.getConfig(), "checks.fightreachapprox.maxReachCreative");
-        PING_LIMIT = ConfigHelper.getOrSetDefault(-1, hawk.getConfig(), "checks.fightreachapprox.pingLimit");
-        LAG_COMPENSATION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fightreachapprox.lagCompensation");
-        CHECK_OTHER_ENTITIES = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fightreachapprox.checkOtherEntities");
+        MAX_REACH = (double) customSetting("maxReach", "", 3.1);
+        MAX_REACH_CREATIVE = (double) customSetting("maxReachCreative", "", 4.9);
+        PING_LIMIT = (int) customSetting("pingLimit", "", -1);
+        LAG_COMPENSATION = (boolean) customSetting("lagCompensation", "", true);
+        CHECK_OTHER_ENTITIES = (boolean) customSetting("checkOtherEntities", "", false);
     }
 
     @Override

@@ -486,4 +486,9 @@ public class HawkPlayer {
         return EntityNMS.getEntityNMS(p).getHitbox(location.toVector());
     }
 
+    public long getCurrentValidatedTick() {
+        //TODO
+        return 0;
+    }
+
 }

@@ -44,12 +44,12 @@ public class BlockBreakHitbox extends BlockDigCheck {
 
     public BlockBreakHitbox() {
         super("blockbreakhitbox", true, 5, 10, 0.9, 5000, "%player% failed block break hitbox. %type% VL: %vl%", null);
-        DEBUG_HITBOX = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.debug.hitbox");
-        DEBUG_RAY = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.debug.ray");
-        CHECK_DIG_START = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.blockbreakhitbox.checkDigStart");
-        MAX_REACH = ConfigHelper.getOrSetDefault(6.0, hawk.getConfig(), "checks.blockbreakhitbox.maxReach");
-        CHECK_OCCLUSION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.blockbreakhitbox.checkOccluding.enabled");
-        ALWAYS_CANCEL_OCCLUSION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.blockbreakhitbox.checkOccluding.alwaysCancel");
+        DEBUG_HITBOX = (boolean) customSetting("hitbox", "debug", false);
+        DEBUG_RAY = (boolean) customSetting("ray", "debug", false);
+        CHECK_DIG_START = (boolean) customSetting("checkDigStart", "", false);
+        MAX_REACH = (double) customSetting("maxReach", "", 6.0);
+        CHECK_OCCLUSION = (boolean) customSetting("enabled", "checkOccluding", true);
+        ALWAYS_CANCEL_OCCLUSION = (boolean) customSetting("alwaysCancel", "checkOccluding", true);
     }
 
     @Override

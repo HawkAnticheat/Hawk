@@ -77,18 +77,18 @@ public abstract class Check<E extends Event> {
     Check(String name, boolean enabled, int cancelThreshold, int flagThreshold, double vlPassMultiplier, long flagCooldown, String flag, List<String> punishCommands) {
         this.permission = Hawk.BASE_PERMISSION + ".bypass." + name;
         this.name = name;
-        FileConfiguration hawkConfig = hawk.getConfig();
+        FileConfiguration checkConfig = hawk.getChecksConfig();
         FileConfiguration msgs = hawk.getMessages();
-        configPath = "checks." + this.name + ".";
-        this.enabled = ConfigHelper.getOrSetDefault(enabled, hawkConfig, configPath + "enabled");
+        configPath = this.name + ".";
+        this.enabled = ConfigHelper.getOrSetDefault(enabled, checkConfig, configPath + "enabled");
         if (!(this instanceof Cancelless))
-            this.cancelThreshold = ConfigHelper.getOrSetDefault(cancelThreshold, hawkConfig, configPath + "cancelThreshold");
-        this.flagThreshold = ConfigHelper.getOrSetDefault(flagThreshold, hawkConfig, configPath + "flagThreshold");
-        this.vlPassMultiplier = ConfigHelper.getOrSetDefault(vlPassMultiplier, hawkConfig, configPath + "vlPassMultiplier");
-        this.flagCooldown = ConfigHelper.getOrSetDefault(flagCooldown, hawkConfig, configPath + "flagCooldown");
+            this.cancelThreshold = ConfigHelper.getOrSetDefault(cancelThreshold, checkConfig, configPath + "cancelThreshold");
+        this.flagThreshold = ConfigHelper.getOrSetDefault(flagThreshold, checkConfig, configPath + "flagThreshold");
+        this.vlPassMultiplier = ConfigHelper.getOrSetDefault(vlPassMultiplier, checkConfig, configPath + "vlPassMultiplier");
+        this.flagCooldown = ConfigHelper.getOrSetDefault(flagCooldown, checkConfig, configPath + "flagCooldown");
         if (punishCommands == null)
             punishCommands = Collections.emptyList();
-        this.punishCommands = ConfigHelper.getOrSetDefault(new ArrayList<>(punishCommands), hawkConfig, configPath + "punishCommands");
+        this.punishCommands = ConfigHelper.getOrSetDefault(new ArrayList<>(punishCommands), checkConfig, configPath + "punishCommands");
         String msgPath = "flags." + this.name;
         this.flag = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault(flag, msgs, msgPath));
         this.lastFlagTimes = new HashMap<>();
@@ -191,7 +191,7 @@ public abstract class Check<E extends Event> {
     }
 
     protected Object customSetting(String name, String localConfigPath, Object defaultValue) {
-        return ConfigHelper.getOrSetDefault(defaultValue, hawk.getConfig(), configPath + localConfigPath + "." + name);
+        return ConfigHelper.getOrSetDefault(defaultValue, hawk.getChecksConfig(), configPath + localConfigPath + "." + name);
     }
 
     public String getName() {

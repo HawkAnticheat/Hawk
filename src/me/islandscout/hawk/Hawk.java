@@ -50,6 +50,7 @@ public class Hawk extends JavaPlugin {
     private PacketCore packetCore;
     private ViolationLogger violationLogger;
     private FileConfiguration messages;
+    private FileConfiguration checksConfig;
     private GUIManager guiManager;
     private LagCompensator lagCompensator;
     private BanManager banManager;
@@ -88,6 +89,7 @@ public class Hawk extends JavaPlugin {
         new File(plugin.getDataFolder().getAbsolutePath()).mkdirs();
         getServer().getPluginManager().registerEvents(new PlayerManager(this), this);
         messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
+        checksConfig = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "checks.yml"));
         FLAG_PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cHAWK: &7", messages, "prefix"));
         sendJSONMessages = ConfigHelper.getOrSetDefault(false, getConfig(), "sendJSONMessages");
         playSoundOnFlag = ConfigHelper.getOrSetDefault(false, getConfig(), "playSoundOnFlag");
@@ -151,8 +153,8 @@ public class Hawk extends JavaPlugin {
         saveConfig();
         try {
             messages.save(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
+            checksConfig.save(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "checks.yml"));
         } catch (IOException e) {
-            getLogger().severe("Could not save messages to messages.yml");
             e.printStackTrace();
         }
     }
@@ -193,6 +195,10 @@ public class Hawk extends JavaPlugin {
 
     public FileConfiguration getMessages() {
         return messages;
+    }
+
+    public FileConfiguration getChecksConfig() {
+        return checksConfig;
     }
 
     public CheckManager getCheckManager() {

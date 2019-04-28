@@ -37,9 +37,9 @@ public class FightDirectionApprox extends EntityInteractionCheck {
 
     public FightDirectionApprox() {
         super("fightdirectionapprox", "%player% failed fight direction. VL: %vl%");
-        PING_LIMIT = ConfigHelper.getOrSetDefault(-1, hawk.getConfig(), "checks.fightdirectionapprox.pingLimit");
-        LAG_COMPENSATION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fightdirectionapprox.lagCompensation");
-        CHECK_OTHER_ENTITIES = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fightdirectionapprox.checkOtherEntities");
+        PING_LIMIT = (int) customSetting("pingLimit", "", -1);
+        LAG_COMPENSATION = (boolean) customSetting("lagCompensation", "", true);
+        CHECK_OTHER_ENTITIES = (boolean) customSetting("checkOtherEntities", "", false);
     }
 
     @Override

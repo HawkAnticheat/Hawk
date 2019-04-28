@@ -35,8 +35,8 @@ public class GroundSpoof extends MovementCheck {
 
     public GroundSpoof() {
         super("groundspoof", true, -1, 3, 0.995, 5000, "%player% failed ground spoof. VL: %vl%", null);
-        STRICT = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.groundspoof.strict");
-        PREVENT_NOFALL = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.groundspoof.preventNoFall");
+        STRICT = (boolean) customSetting("strict", "", false);
+        PREVENT_NOFALL = (boolean) customSetting("preventNoFall", "", true);
     }
 
     @Override

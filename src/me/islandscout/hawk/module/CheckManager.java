@@ -86,6 +86,7 @@ public class CheckManager {
         new ClickDuration();
         new FightSpeedConsistency();
         new AimbotPrecision();
+        new ItemUseSpeed();
     }
 
     public void unloadChecks() {

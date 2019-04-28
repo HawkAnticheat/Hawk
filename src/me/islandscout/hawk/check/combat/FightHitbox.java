@@ -76,14 +76,14 @@ public class FightHitbox extends EntityInteractionCheck {
 
     public FightHitbox() {
         super("fighthitbox", false, 5, 10000, 0.95, 5000, "%player% failed combat hitbox. %type% VL: %vl%", null);
-        CHECK_BOX_INTERSECTION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fighthitbox.checkBoxIntersection");
-        CHECK_OCCLUSION = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.checkOccluding");
-        MAX_REACH = ConfigHelper.getOrSetDefault(3.1, hawk.getConfig(), "checks.fighthitbox.maxReach");
-        CHECK_OTHER_ENTITIES = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.checkOtherEntities");
-        LAG_COMPENSATION = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "checks.fighthitbox.lagCompensation");
-        PING_LIMIT = ConfigHelper.getOrSetDefault(-1, hawk.getConfig(), "checks.fighthitbox.pingLimit");
-        DEBUG_HITBOX = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.debug.hitbox");
-        DEBUG_RAY = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "checks.fighthitbox.debug.ray");
+        CHECK_BOX_INTERSECTION = (boolean) customSetting("checkBoxIntersection", "", true);
+        CHECK_OCCLUSION = (boolean) customSetting("checkOccluding", "", false);
+        MAX_REACH = (double) customSetting("maxReach", "", 3.1);
+        CHECK_OTHER_ENTITIES = (boolean) customSetting("checkOtherEntities", "", false);
+        LAG_COMPENSATION = (boolean) customSetting("lagCompensation", "", true);
+        PING_LIMIT = (int) customSetting("pingLimit", "", -1);
+        DEBUG_HITBOX = (boolean) customSetting("hitbox", "debug", false);
+        DEBUG_RAY = (boolean) customSetting("ray", "debug", false);
     }
 
     protected void check(InteractEntityEvent e) {
