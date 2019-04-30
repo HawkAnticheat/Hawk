@@ -53,7 +53,7 @@ public class PacketListener8 extends PacketListener {
         pipeline = ((CraftPlayer) p).getHandle().playerConnection.networkManager.channel.pipeline();
         if (pipeline == null)
             return;
-        String handlerName = "hawk" + p.getName();
+        String handlerName = "hawk_packet_processor";
         if (pipeline.get(handlerName) != null)
             pipeline.remove(handlerName);
         pipeline.addBefore("packet_handler", handlerName, channelDuplexHandler);
@@ -64,7 +64,7 @@ public class PacketListener8 extends PacketListener {
             Channel channel = ((CraftPlayer) p).getHandle().playerConnection.networkManager.channel;
 
             ChannelPipeline pipeline = channel.pipeline();
-            String handlerName = "hawk" + p.getName();
+            String handlerName = "hawk_packet_processor";
             if (pipeline.get(handlerName) != null)
                 pipeline.remove(handlerName);
             //old. Should probably use this since it might have to do with concurrency safety

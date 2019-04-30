@@ -19,6 +19,7 @@
 package me.islandscout.hawk.listener;
 
 import me.islandscout.hawk.module.PacketCore;
+import me.islandscout.hawk.util.Debug;
 import net.minecraft.util.io.netty.channel.ChannelDuplexHandler;
 import net.minecraft.util.io.netty.channel.ChannelHandlerContext;
 import net.minecraft.util.io.netty.channel.ChannelPromise;
@@ -26,6 +27,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
 public class PacketListener7 extends PacketListener {
 
@@ -60,11 +62,11 @@ public class PacketListener7 extends PacketListener {
             net.minecraft.util.io.netty.channel.ChannelPipeline pipeline = channel.pipeline();
             if (pipeline == null)
                 return;
-            String handlerName = "hawk" + p.getName();
+            String handlerName = "hawk_packet_processor";
             if (pipeline.get(handlerName) != null)
                 pipeline.remove(handlerName);
             pipeline.addBefore("packet_handler", handlerName, channelDuplexHandler);
-        } catch (NoSuchFieldException | SecurityException | IllegalAccessException e) {
+        } catch (ReflectiveOperationException | SecurityException e) {
             e.printStackTrace();
         }
     }
@@ -77,7 +79,7 @@ public class PacketListener7 extends PacketListener {
                 net.minecraft.util.io.netty.channel.Channel channel = (net.minecraft.util.io.netty.channel.Channel) channelField.get(((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer) p).getHandle().playerConnection.networkManager);
                 channelField.setAccessible(false);
                 net.minecraft.util.io.netty.channel.ChannelPipeline pipeline = channel.pipeline();
-                String handlerName = "hawk" + p.getName();
+                String handlerName = "hawk_packet_processor";
                 if (pipeline.get(handlerName) != null)
                     pipeline.remove(handlerName);
                 //old. Should probably use this since it might have to do with concurrency safety
@@ -85,7 +87,7 @@ public class PacketListener7 extends PacketListener {
                     channel.pipeline().remove("hawk" + p.getName());
                     return null;
                 });*/
-            } catch (NoSuchFieldException | SecurityException | IllegalAccessException e) {
+            } catch (ReflectiveOperationException | SecurityException e) {
                 e.printStackTrace();
             }
         }

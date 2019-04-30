@@ -71,7 +71,7 @@ public class LiquidExit extends MovementCheck implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onVelocity(HawkPlayerAsyncVelocityChangeEvent e) {
         if(e.isAdditive())
             return;

@@ -126,12 +126,12 @@ public class TickRate extends MovementCheck implements Listener {
         lastBigTeleportTime.remove(p.getUniqueId());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onWorldChange(PlayerChangedWorldEvent e) {
         lastBigTeleportTime.put(e.getPlayer().getUniqueId(), hawk.getHawkPlayer(e.getPlayer()).getCurrentTick());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onTeleport(PlayerTeleportEvent e) {
         Location loc = e.getTo();
         if(!loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {

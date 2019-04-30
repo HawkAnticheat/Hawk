@@ -238,7 +238,7 @@ public class Fly extends MovementCheck implements Listener {
         return 0;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTeleport(PlayerTeleportEvent e) {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         legitLoc.put(pp.getUuid(), e.getTo());

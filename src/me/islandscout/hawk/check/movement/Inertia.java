@@ -49,7 +49,7 @@ public class Inertia extends MovementCheck {
             if (!AdjacentBlocks.blockNearbyIsSolid(e.getTo(), true) && !AdjacentBlocks.blockAdjacentIsSolid(e.getFrom().clone().add(0, -0.3, 0)) &&
                     !AdjacentBlocks.blockNearbyIsSolid(e.getTo().clone().add(0, 1, 0), true) && !p.isFlying() && !p.isInsideVehicle() && !e.isOnGroundReally()) {
                 if (deltaAngle > 0.2 && !e.hasAcceptedKnockback()) {
-                    punishAndTryRubberband(pp, e, e.getFrom());
+                    punishAndTryRubberband(pp, e, p.getLocation());
                 } else {
                     reward(pp);
                 }

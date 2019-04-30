@@ -43,20 +43,20 @@ public class PlayerManager implements Listener {
         this.hawk = hawk;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onLogin(PlayerLoginEvent e) {
         Player p = e.getPlayer();
         hawk.addProfile(p); //This line is necessary since it must get called BEFORE hawk listens to the player's packets
         hawk.getHawkPlayer(p).setOnline(true);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onQuit(PlayerQuitEvent e) {
         hawk.removeProfile(e.getPlayer().getUniqueId());
         hawk.getCheckManager().removeData(e.getPlayer());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTeleport(PlayerTeleportEvent e) {
         if (!e.getTo().getWorld().equals(e.getFrom().getWorld())) {
             return;
@@ -68,7 +68,7 @@ public class PlayerManager implements Listener {
         pp.setLastTeleportTime(pp.getCurrentTick());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void worldChangeEvent(PlayerChangedWorldEvent e) {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         pp.setTeleporting(true);
@@ -77,14 +77,14 @@ public class PlayerManager implements Listener {
         pp.setLastTeleportTime(pp.getCurrentTick());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onRespawn(PlayerRespawnEvent e) {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         pp.setTeleporting(true);
         pp.setTeleportLoc(e.getRespawnLocation());
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onVelocity(HawkPlayerAsyncVelocityChangeEvent e) {
         if(e.isAdditive())
             return;
