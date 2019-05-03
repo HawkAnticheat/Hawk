@@ -105,11 +105,11 @@ public abstract class PacketListener {
     }
 
     private boolean dispatchInbound(Object packet, Player p) {
-        for(PacketAdapter adapter : adaptersInbound) {
-            adapter.run(packet, p);
-        }
-
         try {
+            for(PacketAdapter adapter : adaptersInbound) {
+                adapter.run(packet, p);
+            }
+
             if (!packetCore.processIn(packet, p))
                 return false;
         } catch (Exception e) {
@@ -119,11 +119,15 @@ public abstract class PacketListener {
     }
 
     private void dispatchOutbound(Object packet, Player p) {
-        for(PacketAdapter adapter : adaptersOutbound) {
-            adapter.run(packet, p);
-        }
+        try {
+            for(PacketAdapter adapter : adaptersOutbound) {
+                adapter.run(packet, p);
+            }
 
-        packetCore.processOut(packet, p);
+            packetCore.processOut(packet, p);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void prepareAsync() {
