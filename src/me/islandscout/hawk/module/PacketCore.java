@@ -54,11 +54,12 @@ public class PacketCore implements Listener {
     private final Hawk hawk;
     private PacketListener packetListener;
     private List<HawkEventListener> hawkEventListeners;
+    private final boolean async;
 
-    public PacketCore(int serverVersion, Hawk hawk) {
-        this.serverVersion = serverVersion;
+    public PacketCore(Hawk hawk) {
+        this.serverVersion = Hawk.getServerVersion();
         this.hawk = hawk;
-        boolean async = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "asyncChecking");
+        async = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "asyncChecking");
         if(async) {
             hawk.getLogger().warning("---");
             hawk.getLogger().warning("It appears that you have enabled ASYNCHRONOUS packet checking.");
@@ -67,28 +68,8 @@ public class PacketCore implements Listener {
             hawk.getLogger().warning("any bypasses that you encounter. You have been warned.");
             hawk.getLogger().warning("---");
         }
-        try {
-            if (serverVersion == 7) {
-                packetListener = new PacketListener7(this, async);
-                hawk.getLogger().info("Using NMS 1.7_R4 NIO for packet interception.");
-            } else if (serverVersion == 8) {
-                packetListener = new PacketListener8(this, async);
-                hawk.getLogger().info("Using NMS 1.8_R3 NIO for packet interception.");
-            } else warnConsole(hawk);
-        } catch (NoClassDefFoundError e) {
-            e.printStackTrace();
-            warnConsole(hawk);
-        }
         hawkEventListeners = new CopyOnWriteArrayList<>();
         Bukkit.getPluginManager().registerEvents(this, hawk);
-    }
-
-    private void warnConsole(Hawk hawk) {
-        hawk.getLogger().severe("!!!!!!!!!!");
-        hawk.getLogger().severe("It appears that you are not running Hawk on a 1.7.10 or 1.8.8 server.");
-        hawk.getLogger().severe("Hawk will NOT work. Please run Hawk on a 1.7_R4 or 1.8_R3 server.");
-        hawk.getLogger().severe("!!!!!!!!!!");
-        Bukkit.getPluginManager().disablePlugin(hawk);
     }
 
     //These packets will be converted into Hawk Events for verification by checks
@@ -302,11 +283,39 @@ public class PacketCore implements Listener {
     }
 
     public void startListener() {
+        try {
+            if (serverVersion == 7) {
+                packetListener = new PacketListener7(this, async);
+                hawk.getLogger().info("Using NMS 1.7_R4 NIO for packet interception.");
+            } else if (serverVersion == 8) {
+                packetListener = new PacketListener8(this, async);
+                hawk.getLogger().info("Using NMS 1.8_R3 NIO for packet interception.");
+            } else {
+                warnConsole(hawk);
+                return;
+            }
+        } catch (NoClassDefFoundError e) {
+            e.printStackTrace();
+            hawk.disable();
+            return;
+        }
         packetListener.enable();
     }
 
+    private void warnConsole(Hawk hawk) {
+        hawk.getLogger().severe("!!!!!!!!!!");
+        hawk.getLogger().severe("It appears that you are not running Hawk on a supported server version.");
+        hawk.getLogger().severe("Hawk will NOT work. Please run Hawk on a 1.7_R4 or 1.8_R3 server. If you");
+        hawk.getLogger().severe("are confident that you are running the correct version of the server,");
+        hawk.getLogger().severe("please verify that the package \"net.minecraft.server.[VERSION]\" in your");
+        hawk.getLogger().severe("Spigot JAR contains one of the above specified versions.");
+        hawk.getLogger().severe("!!!!!!!!!!");
+        hawk.disable();
+    }
+
     public void killListener() {
-        packetListener.disable();
+        if(packetListener != null)
+            packetListener.disable();
     }
 
     public void setupListenerForOnlinePlayers() {
@@ -317,7 +326,8 @@ public class PacketCore implements Listener {
     }
 
     private void setupListenerForPlayer(Player p) {
-        packetListener.addListener(p);
+        if(packetListener != null)
+            packetListener.addListener(p);
     }
 
     @EventHandler

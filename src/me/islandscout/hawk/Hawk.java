@@ -114,7 +114,7 @@ public class Hawk extends JavaPlugin {
         checkManager = new CheckManager(plugin);
         checkManager.loadChecks();
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new HawkSyncLoopTask(this), 0L, 1L);
-        packetCore = new PacketCore(SERVER_VERSION, this);
+        packetCore = new PacketCore(this);
         packetCore.startListener();
         packetCore.setupListenerForOnlinePlayers();
         mouseRecorder = new MouseRecorder(this);
@@ -126,30 +126,48 @@ public class Hawk extends JavaPlugin {
 
     public void unloadModules() {
         getLogger().info("Unloading modules...");
-        plugin.packetCore.killListener();
-        plugin.getCommand("hawk").setExecutor(null);
+        if(packetCore != null)
+            packetCore.killListener();
+        getCommand("hawk").setExecutor(null);
         HandlerList.unregisterAll(this);
-        guiManager.stop();
+        if(guiManager != null)
+            guiManager.stop();
         guiManager = null;
         //judgementDay.stop();
         //judgementDay = null;
         lagCompensator = null;
-        checkManager.unloadChecks();
+        if(checkManager != null)
+            checkManager.unloadChecks();
         checkManager = null;
         bungeeBridge = null;
-        banManager.saveBannedPlayers();
+        if(banManager != null)
+            banManager.saveBannedPlayers();
         banManager = null;
-        muteManager.saveMutedPlayers();
+        if(muteManager != null)
+            muteManager.saveMutedPlayers();
         muteManager = null;
         MoveEvent.discardData();
         profiles = null;
-        sqlModule.closeConnection();
+        if(sqlModule != null)
+            sqlModule.closeConnection();
         sqlModule = null;
         Bukkit.getScheduler().cancelTasks(this);
         violationLogger = null;
+        mouseRecorder = null;
+    }
+
+    public void disable() {
+        Bukkit.getScheduler().runTask(this, new Runnable() {
+            @Override
+            public void run() {
+                Bukkit.getPluginManager().disablePlugin(plugin);
+            }
+        });
     }
 
     private void saveConfigs() {
+        if(plugin == null)
+            return;
         saveConfig();
         try {
             messages.save(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
@@ -160,6 +178,8 @@ public class Hawk extends JavaPlugin {
     }
 
     private void registerCommand() {
+        if(plugin == null)
+            return;
         PluginCommand cmd = plugin.getCommand("hawk");
         cmd.setExecutor(new HawkCommand(this));
         cmd.setPermission(Hawk.BASE_PERMISSION + ".cmd");
@@ -180,16 +200,14 @@ public class Hawk extends JavaPlugin {
     }
 
     private void setServerVersion() {
-        switch (Bukkit.getBukkitVersion().substring(0, 4)) {
-            case "1.7.":
-                SERVER_VERSION = 7;
-                break;
-            case "1.8.":
-                SERVER_VERSION = 8;
-                break;
-            default:
-                SERVER_VERSION = 0;
-                break;
+        if(Package.getPackage("net.minecraft.server.v1_8_R3") != null) {
+            SERVER_VERSION = 8;
+        }
+        else if(Package.getPackage("net.minecraft.server.v1_7_R4") != null) {
+            SERVER_VERSION = 7;
+        }
+        else {
+            SERVER_VERSION = 0;
         }
     }
 
