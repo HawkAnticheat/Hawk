@@ -112,7 +112,7 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
                 }
                 punish(att, 1, false, e, new Placeholder("accuracy", MathPlus.round(fightData.getRatio() * 100, 2) + "%"));
             } else if (DEBUG) {
-                att.getPlayer().sendMessage(ChatColor.GREEN + "PASSED");
+                att.getPlayer().sendMessage(ChatColor.GREEN + "PASS");
             }
             fightData.normalize();
         }

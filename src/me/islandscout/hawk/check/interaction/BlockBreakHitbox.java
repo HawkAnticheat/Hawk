@@ -33,11 +33,11 @@ import org.bukkit.util.Vector;
 
 public class BlockBreakHitbox extends BlockDigCheck {
 
-    //PASSED (9/12/18)
-
     private final boolean DEBUG_HITBOX;
     private final boolean DEBUG_RAY;
     private final boolean CHECK_DIG_START;
+    private final boolean CHECK_DIG_CANCEL;
+    private final boolean CHECK_DIG_COMPLETE;
     private final double MAX_REACH;
     private final boolean CHECK_OCCLUSION;
     private final boolean ALWAYS_CANCEL_OCCLUSION;
@@ -47,6 +47,8 @@ public class BlockBreakHitbox extends BlockDigCheck {
         DEBUG_HITBOX = (boolean) customSetting("hitbox", "debug", false);
         DEBUG_RAY = (boolean) customSetting("ray", "debug", false);
         CHECK_DIG_START = (boolean) customSetting("checkDigStart", "", false);
+        CHECK_DIG_CANCEL = (boolean) customSetting("checkDigCancel", "", false);
+        CHECK_DIG_COMPLETE = (boolean) customSetting("checkDigComplete", "", true);
         MAX_REACH = (double) customSetting("maxReach", "", 6.0);
         CHECK_OCCLUSION = (boolean) customSetting("enabled", "checkOccluding", true);
         ALWAYS_CANCEL_OCCLUSION = (boolean) customSetting("alwaysCancel", "checkOccluding", true);
@@ -58,6 +60,22 @@ public class BlockBreakHitbox extends BlockDigCheck {
         HawkPlayer pp = e.getHawkPlayer();
         Location eyeLoc = pp.getLocation().clone().add(0, 1.62, 0);
         Location bLoc = e.getBlock().getLocation();
+
+        switch (e.getDigAction()) {
+            case START:
+                if(CHECK_DIG_START || (p.getGameMode() == GameMode.CREATIVE && CHECK_DIG_COMPLETE))
+                    break;
+                return;
+            case CANCEL:
+                if(CHECK_DIG_CANCEL)
+                    break;
+                return;
+            case COMPLETE:
+                if(CHECK_DIG_COMPLETE)
+                    break;
+                return;
+        }
+
         if (p.isSneaking())
             eyeLoc.add(0, -0.08, 0);
 
@@ -96,7 +114,7 @@ public class BlockBreakHitbox extends BlockDigCheck {
         Vector intersection = aabb.intersectsRay(ray, 0, Float.MAX_VALUE);
 
         if (intersection == null) {
-            cancelDig(pp, e, new Placeholder("type", "Did not hit hitbox."));
+            punishAndTryCancelAndBlockRespawn(pp, 1, e, new Placeholder("type", "Did not hit hitbox."));
             return;
         }
 
@@ -124,7 +142,7 @@ public class BlockBreakHitbox extends BlockDigCheck {
                             e.setCancelled(true);
                             blockRespawn(pp, e);
                         } else {
-                            cancelDig(pp, e, ph);
+                            punishAndTryCancelAndBlockRespawn(pp, 1, e, ph);
                         }
                         return;
                     }
@@ -134,20 +152,10 @@ public class BlockBreakHitbox extends BlockDigCheck {
         }
 
         if (distance > MAX_REACH) {
-            cancelDig(pp, e, new Placeholder("type", "Reached too far."));
+            punishAndTryCancelAndBlockRespawn(pp, 1, e, new Placeholder("type", "Reached too far."));
             return;
         }
 
         reward(pp);
-    }
-
-    private void cancelDig(HawkPlayer pp, BlockDigEvent e, Placeholder... placeholder) {
-        if (pp.getPlayer().getGameMode() == GameMode.CREATIVE) {
-            punishAndTryCancelAndBlockRespawn(pp, 1, e, placeholder);
-        } else if (e.getDigAction() == BlockDigEvent.DigAction.COMPLETE) {
-            punishAndTryCancelAndBlockRespawn(pp, 1, e, placeholder);
-        } else if (CHECK_DIG_START && e.getDigAction() == BlockDigEvent.DigAction.START) {
-            punish(pp, 1, true, e, placeholder);
-        }
     }
 }
