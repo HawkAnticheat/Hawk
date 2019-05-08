@@ -22,6 +22,7 @@ import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.ConfigHelper;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -53,11 +54,13 @@ public class LagCompensator implements Listener {
     private final int historySize;
     private final int pingOffset;
     private static final int TIME_RESOLUTION = 40; //in milliseconds
+    private final boolean DEBUG;
 
     public LagCompensator(Hawk hawk) {
         this.locationTimes = new HashMap<>();
         historySize = ConfigHelper.getOrSetDefault(20, hawk.getConfig(), "lagCompensation.historySize");
         pingOffset = ConfigHelper.getOrSetDefault(175, hawk.getConfig(), "lagCompensation.pingOffset");
+        DEBUG = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "lagCompensation.debug");
         Bukkit.getPluginManager().registerEvents(this, hawk);
     }
 
@@ -90,6 +93,8 @@ public class LagCompensator implements Listener {
     private void processPosition(Location loc, Player p) {
         List<Pair<Location, Long>> times = locationTimes.getOrDefault(p.getUniqueId(), new ArrayList<>());
         long currTime = System.currentTimeMillis();
+        if(DEBUG)
+            p.sendMessage(ChatColor.GRAY + "Lag Compensator Debug: " + currTime);
         if (times.size() > 0 && currTime - times.get(times.size() - 1).getValue() < TIME_RESOLUTION)
             return;
         times.add(new Pair<>(loc, currTime));
