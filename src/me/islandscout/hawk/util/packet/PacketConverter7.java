@@ -171,6 +171,8 @@ public final class PacketConverter7 {
             Location loc = new Location(p.getWorld(), packet.c(), packet.d(), packet.e());
 
             org.bukkit.block.Block b = ServerUtils.getBlockAsync(loc);
+            if(b == null)
+                return null;
             BlockNMS block = new BlockNMS7(b);
 
             pp.setDigging(digAction == BlockDigEvent.DigAction.START && block.getStrength() != 0);

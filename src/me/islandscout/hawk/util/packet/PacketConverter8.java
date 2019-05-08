@@ -183,6 +183,8 @@ public final class PacketConverter8 {
             Location loc = new Location(p.getWorld(), pos.getX(), pos.getY(), pos.getZ());
 
             org.bukkit.block.Block b = ServerUtils.getBlockAsync(loc);
+            if(b == null)
+                return null;
             BlockNMS block = new BlockNMS8(b);
 
             pp.setDigging(digAction == BlockDigEvent.DigAction.START && block.getStrength() != 0);
