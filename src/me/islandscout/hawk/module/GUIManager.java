@@ -73,7 +73,7 @@ public class GUIManager implements Listener {
         e.setCancelled(true);
         String perm = Hawk.BASE_PERMISSION + ".gui";
         if (!p.hasPermission(perm)) {
-            p.sendMessage(Hawk.NO_PERMISSION.replaceAll("%p", "\"" + perm + "\""));
+            p.sendMessage(String.format(Hawk.NO_PERMISSION, perm));
             p.closeInventory();
             return;
         }

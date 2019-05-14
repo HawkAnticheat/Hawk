@@ -57,14 +57,14 @@ public class Hawk extends JavaPlugin {
     private MuteManager muteManager;
     private MouseRecorder mouseRecorder;
     private BungeeBridge bungeeBridge;
-    //private JudgementDay judgementDay;
+    private PunishmentScheduler punishmentScheduler;
     private Map<UUID, HawkPlayer> profiles;
     private static int SERVER_VERSION;
     public static String FLAG_PREFIX;
     public static final String BASE_PERMISSION = "hawk";
     public static String BUILD_NAME;
     public static String FLAG_CLICK_COMMAND;
-    public static final String NO_PERMISSION = ChatColor.RED + "You do not have permission %p to perform this action.";
+    public static final String NO_PERMISSION = ChatColor.RED + "You do not have permission \"%s\" to perform this action.";
     private boolean sendJSONMessages;
     private boolean playSoundOnFlag;
 
@@ -101,8 +101,9 @@ public class Hawk extends JavaPlugin {
         profiles = new ConcurrentHashMap<>();
         sqlModule = new SQLModule(this);
         sqlModule.createTableIfNotExists();
-        //judgementDay = new JudgementDay(this);
-        //judgementDay.start();
+        punishmentScheduler = new PunishmentScheduler(this);
+        punishmentScheduler.load();
+        punishmentScheduler.start();
         guiManager = new GUIManager(this);
         lagCompensator = new LagCompensator(this);
         banManager = new BanManager(this);
@@ -133,8 +134,12 @@ public class Hawk extends JavaPlugin {
         if(guiManager != null)
             guiManager.stop();
         guiManager = null;
-        //judgementDay.stop();
-        //judgementDay = null;
+        if(punishmentScheduler != null) {
+            punishmentScheduler.setEnabled(false);
+            punishmentScheduler.stop();
+            punishmentScheduler.saveSynchronously();
+            punishmentScheduler = null;
+        }
         lagCompensator = null;
         if(checkManager != null)
             checkManager.unloadChecks();
@@ -157,12 +162,7 @@ public class Hawk extends JavaPlugin {
     }
 
     public void disable() {
-        Bukkit.getScheduler().runTask(this, new Runnable() {
-            @Override
-            public void run() {
-                Bukkit.getPluginManager().disablePlugin(plugin);
-            }
-        });
+        Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().disablePlugin(plugin));
     }
 
     private void saveConfigs() {
@@ -248,6 +248,19 @@ public class Hawk extends JavaPlugin {
         return profiles.values();
     }
 
+    public void broadcastAlertToAdmins(String msg) {
+        for(HawkPlayer pp : getHawkPlayers()) {
+            if(pp.canReceiveAlerts())
+                pp.getPlayer().sendMessage(msg);
+        }
+        Bukkit.getConsoleSender().sendMessage(msg);
+    }
+
+    public void broadcastPrefixedAlertToAdmins(String msg) {
+        String alert = FLAG_PREFIX + msg;
+        broadcastAlertToAdmins(alert);
+    }
+
     public void addProfile(Player p) {
         profiles.put(p.getUniqueId(), new HawkPlayer(p, this));
     }
@@ -284,9 +297,9 @@ public class Hawk extends JavaPlugin {
         return bungeeBridge;
     }
 
-    //public JudgementDay getJudgementDay() {
-    //    return judgementDay;
-    //}
+    public PunishmentScheduler getPunishmentScheduler() {
+        return punishmentScheduler;
+    }
 
     public boolean canSendJSONMessages() {
         return sendJSONMessages;

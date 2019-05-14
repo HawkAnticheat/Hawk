@@ -26,47 +26,26 @@ import java.util.List;
 
 public class TextFileReader {
 
-    private final Hawk hawk;
     private final File file;
-    private final String filename;
     private BufferedReader buffer;
 
     public TextFileReader(Hawk hawk, String filename) {
-        this.hawk = hawk;
         this.file = new File(hawk.getDataFolder().getAbsolutePath() + File.separator + filename);
-        this.filename = filename;
     }
 
-    public void load() {
+    public void load() throws IOException {
         if (!file.exists()) {
-            try {
-                //noinspection ResultOfMethodCallIgnored
-                file.createNewFile();
-            } catch (IOException e) {
-                hawk.getLogger().severe("Failed to create " + filename);
-                e.printStackTrace();
-                return;
-            }
+            //noinspection ResultOfMethodCallIgnored
+            file.createNewFile();
         }
-        try {
-            buffer = new BufferedReader(new FileReader(file));
-        } catch (FileNotFoundException e) {
-            hawk.getLogger().severe("Failed to locate " + filename);
-            e.printStackTrace();
-        }
+        buffer = new BufferedReader(new FileReader(file));
     }
 
-    public String readLine() {
-        try {
-            return buffer.readLine();
-        } catch (IOException e) {
-            hawk.getLogger().severe("Failed to read " + filename + ". Is its BufferedReader initialized?");
-            e.printStackTrace();
-            return null;
-        }
+    public String readLine() throws IOException {
+        return buffer.readLine();
     }
 
-    public List<String> read() {
+    public List<String> read() throws IOException {
         List<String> result = new ArrayList<>();
         String line = readLine();
         while(line != null) {
@@ -92,17 +71,13 @@ public class TextFileReader {
         }
     }
 
-    public void overwrite(List<String> data) {
-        try (FileWriter fw = new FileWriter(file, false);
-             BufferedWriter bw = new BufferedWriter(fw);
-             PrintWriter out = new PrintWriter(bw))
-        {
-            for (String line : data) {
-                out.println(line);
-            }
-        } catch (IOException e) {
-            hawk.getLogger().severe("Failed to write to " + filename);
-            e.printStackTrace();
+    public void overwrite(List<String> data) throws IOException {
+        FileWriter fw = new FileWriter(file, false);
+        BufferedWriter bw = new BufferedWriter(fw);
+        PrintWriter out = new PrintWriter(bw);
+        for (String line : data) {
+            out.println(line);
         }
+        out.close();
     }
 }

@@ -57,6 +57,7 @@ public class HawkCommand implements CommandExecutor {
         arguments.add(new UnbanArgument());
         arguments.add(new UnmuteArgument());
         arguments.add(new MouseRecArgument());
+        arguments.add(new PunishArgument());
 
         Collections.sort(arguments);
 
@@ -72,7 +73,7 @@ public class HawkCommand implements CommandExecutor {
                 if (argName.equalsIgnoreCase(args[0])) {
                     String perm = Hawk.BASE_PERMISSION + ".cmd." + argName;
                     if (!sender.hasPermission(perm)) {
-                        sender.sendMessage(Hawk.NO_PERMISSION.replaceAll("%p", "\"" + perm + "\""));
+                        sender.sendMessage(String.format(Hawk.NO_PERMISSION, perm));
                         return true;
                     } else {
                         if (!arg.process(sender, cmd, label, args)) {
@@ -125,7 +126,7 @@ public class HawkCommand implements CommandExecutor {
             Argument argument = arguments.get(i);
             sender.sendMessage(ChatColor.GOLD + "/hawk " + argument.getUsage() + ": " + ChatColor.GRAY + argument.getDescription());
         }
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m------------------&r &8[ &ePage " + (pageNumber + 1) + " of " + (maxPage + 1) + " &8] &7&m--------------------"));
-        sender.sendMessage(ChatColor.GRAY + "Build " + Hawk.BUILD_NAME);
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m------------------&r &8[ &ePage " + (pageNumber + 1) + " of " + (maxPage + 1) + " &8] &7&m-------------------"));
+        sender.sendMessage(ChatColor.GRAY + "/hawk help <page number>                       Build " + Hawk.BUILD_NAME);
     }
 }

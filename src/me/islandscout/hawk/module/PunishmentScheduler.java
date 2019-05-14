@@ -19,13 +19,13 @@
 package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.util.ConfigHelper;
-import me.islandscout.hawk.util.Pair;
-import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.util.*;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
+import java.io.IOException;
 import java.time.DayOfWeek;
 import java.util.*;
 
@@ -33,10 +33,11 @@ public class PunishmentScheduler {
 
     //Allows hourly, daily, and weekly schedule setup for punishing players.
 
-    //TODO load from file & save to file
+    private static final int AUTO_SAVE_INTERVAL = 60;
 
-    private Map<UUID, Pair<String, Boolean>> convicts; //UUID mapped to reason and whether they're authorized for punishment or not
+    private volatile Map<UUID, Pair<String, Boolean>> convicts; //UUID mapped to reason and whether they're authorized for punishment or not
     private int taskId;
+    private int currentSecond;
     private Hawk hawk;
     private Schedule schedule;
     private boolean justExecuted;
@@ -45,19 +46,23 @@ public class PunishmentScheduler {
     private boolean ignoreIfServerOverloaded;
     private int pingThreshold;
     private boolean requireAuthorization;
+    private TextFileReader fileReader;
 
+    private final boolean AUTO_SAVE;
     private final String DEFAULT_REASON;
     private final String USER_ADDED;
     private final String USER_REMOVED;
     private final String USER_AUTHORIZED;
+    private final String USER_NOT_FOUND;
 
     public PunishmentScheduler(Hawk hawk) {
         convicts = new HashMap<>();
         this.hawk = hawk;
 
-        USER_ADDED = ConfigHelper.getOrSetDefault("&6%player% has been added to punishment system.", hawk.getMessages(), "punishmentScheduler.userAdded");
-        USER_REMOVED = ConfigHelper.getOrSetDefault("&6%player% has been removed from punishment system.", hawk.getMessages(), "punishmentScheduler.userRemoved");
-        USER_AUTHORIZED = ConfigHelper.getOrSetDefault("&6%player% has been authorized for punishment.", hawk.getMessages(), "punishmentScheduler.userAuthorized");
+        USER_ADDED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6%player% has been added to punishment system.", hawk.getMessages(), "punishmentScheduler.userAdded"));
+        USER_REMOVED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6%player% has been removed from punishment system.", hawk.getMessages(), "punishmentScheduler.userRemoved"));
+        USER_AUTHORIZED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6%player% has been authorized for punishment.", hawk.getMessages(), "punishmentScheduler.userAuthorized"));
+        USER_NOT_FOUND = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6%player% has not been found in the punishment system.", hawk.getMessages(), "punishmentScheduler.userNotFound"));
 
         enabled = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "punishmentScheduler.enabled");
         cmd = ConfigHelper.getOrSetDefault("ban %player% %reason%", hawk.getConfig(), "punishmentScheduler.command");
@@ -66,32 +71,37 @@ public class PunishmentScheduler {
         ignoreIfServerOverloaded = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "punishmentScheduler.ignoreIfServerOverloaded");
         pingThreshold = ConfigHelper.getOrSetDefault(-1, hawk.getConfig(), "punishmentScheduler.pingThreshold");
         requireAuthorization = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "punishmentScheduler.requireAuthorization");
+        AUTO_SAVE = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "punishmentScheduler.autoSave");
 
         String[] schedule = rawSchedule.split(" ");
         int sDayOfWeek = schedule[0].equals("*") ? -1 : DayOfWeek.valueOf(schedule[0].toUpperCase()).getValue();
         int sHour = schedule[1].equals("*") ? -1 : Integer.parseInt(schedule[1]);
         int sMinute = schedule[2].equals("*") ? -1 : Integer.parseInt(schedule[2]);
         this.schedule = new Schedule(sDayOfWeek, sHour, sMinute);
+
+        fileReader = new TextFileReader(hawk, "convicts.txt");
     }
 
     public void start() {
         if(!enabled)
             return;
-        taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, new Runnable() {
-            @Override
-            public void run() {
+        taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, () -> {
 
-                if(schedule.isNow()) {
-                    if(!justExecuted) {
-                        punishTime();
-                    }
-                    justExecuted = true;
+            if(schedule.isNow()) {
+                if(!justExecuted) {
+                    punishTime();
                 }
-                else {
-                    justExecuted = false;
-                }
-
+                justExecuted = true;
             }
+            else {
+                justExecuted = false;
+            }
+
+            currentSecond++;
+            if(AUTO_SAVE && currentSecond % AUTO_SAVE_INTERVAL == 0) {
+                saveAsynchronously();
+            }
+
         }, 0L, 20L);
     }
 
@@ -106,8 +116,7 @@ public class PunishmentScheduler {
             Pair<String, Boolean> pair = convicts.get(currUuid);
             if (pair.getValue()) {
                 OfflinePlayer p = Bukkit.getOfflinePlayer(currUuid);
-                //TODO dont forget to parse prefix. should there be a utility class for this?
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", p.getName()));
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", p.getName()).replace("%reason%", pair.getKey()));
                 convicts.remove(currUuid);
             }
 
@@ -124,6 +133,7 @@ public class PunishmentScheduler {
         boolean authorized = !requireAuthorization;
         String processedReason = reason == null ? DEFAULT_REASON : reason;
         convicts.put(p.getUniqueId(), new Pair<>(processedReason, authorized));
+        hawk.broadcastAlertToAdmins(USER_ADDED.replace("%player%", p.getName()));
         return Result.PASSED;
     }
 
@@ -131,21 +141,67 @@ public class PunishmentScheduler {
         if(!enabled)
             return Result.DISABLED;
         convicts.remove(p.getUniqueId());
+        hawk.broadcastAlertToAdmins(USER_REMOVED.replace("%player%", p.getName()));
         return Result.PASSED;
     }
 
     public void authorize(Player p) {
         UUID uuid = p.getUniqueId();
-        if(convicts.containsKey(uuid))
+        if(convicts.containsKey(uuid)) {
             convicts.get(uuid).setValue(true);
+            hawk.broadcastAlertToAdmins(USER_AUTHORIZED.replace("%player%", p.getName()));
+        }
+        else {
+            hawk.broadcastAlertToAdmins(USER_NOT_FOUND.replace("%player%", p.getName()));
+        }
     }
 
     public void load() {
+        Bukkit.getScheduler().runTaskAsynchronously(hawk, () -> {
+            try {
+                fileReader.load();
+                String input = fileReader.readLine();
+                while(input != null) {
+                    String[] parts = input.split(" ", 3);
 
+                    if(parts.length < 3)
+                        continue;
+
+                    UUID uuid = UUID.fromString(parts[0]);
+                    boolean authorized = Boolean.parseBoolean(parts[1]);
+                    String reason = parts[2];
+
+                    convicts.put(uuid, new Pair<>(reason, authorized));
+
+                    input = fileReader.readLine();
+                }
+                fileReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
-    public void save() {
+    //Do NOT call on plugin disable if you don't want errors!
+    public void saveAsynchronously() {
+        Bukkit.getScheduler().runTaskAsynchronously(hawk, this::saveSynchronously);
+    }
 
+    public void saveSynchronously() {
+        try {
+            List<String> data = new ArrayList<>();
+
+            for(UUID uuid : convicts.keySet()) {
+                Pair<String, Boolean> value = convicts.get(uuid);
+                String line = uuid + " " + value.getValue() + " " + value.getKey();
+                data.add(line);
+            }
+
+            fileReader.overwrite(data);
+            //hawk.getLogger().info("Successfully saved users for PunishmentScheduler");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean isEnabled() {
