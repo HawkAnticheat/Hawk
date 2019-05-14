@@ -27,7 +27,7 @@ import org.bukkit.entity.Player;
 
 public class ViolationsArgument extends Argument {
 
-    public ViolationsArgument() {
+    ViolationsArgument() {
         super("vl", "<player> <check>", "Get the VL of a player for a specified check.");
     }
 

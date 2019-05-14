@@ -61,7 +61,6 @@ public class CheckManager {
         new Inertia();
         new BlockBreakHitbox();
         new WrongBlock();
-        //new LiquidExit();
         new GroundSpoof();
         new FightSpeed();
         new FightAccuracy();
@@ -87,6 +86,7 @@ public class CheckManager {
         new FightSpeedConsistency();
         new AimbotPrecision();
         new ItemUseSpeed();
+        new FightSynchronized();
     }
 
     public void unloadChecks() {

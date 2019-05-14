@@ -55,7 +55,7 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
     private final boolean DEBUG;
 
     public FightAccuracy() {
-        super("fightaccuracy", true, -1, 0, 0.99, 5000, "%player% may be using killaura (accuracy). Accuracy: %accuracy%, VL: %vl%", null);
+        super("fightaccuracy", true, -1, 0, 0.99, 5000, "%player% may be using killaura (ACCURACY). Accuracy: %accuracy%, VL: %vl%", null);
         accuracy = new HashMap<>();
         lastAttacked = new HashMap<>();
         swingTick = new HashMap<>();
