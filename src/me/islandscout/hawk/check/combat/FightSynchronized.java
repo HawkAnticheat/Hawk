@@ -48,7 +48,7 @@ public class FightSynchronized extends CustomCheck implements Cancelless {
     private static final int THRESHOLD = 6;
 
     public FightSynchronized() {
-        super("fightsync", true, -1, 2, 0.95, 5000, "%player% may be using killaura (SYNC). VL %vl%", null);
+        super("fightsync", true, -1, 2, 0.95, 5000, "%player% may be using killaura (sync). VL %vl%", null);
         attackTime = new HashMap<>();
         sample = new HashMap<>();
         SAMPLE_SIZE = (int)customSetting("sampleSize", "", 10);

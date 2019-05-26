@@ -21,6 +21,7 @@ package me.islandscout.hawk;
 import me.islandscout.hawk.check.Check;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.entity.EntityNMS;
+import net.minecraft.server.v1_7_R4.PacketPlayOutEntityTeleport;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -452,7 +453,7 @@ public class HawkPlayer {
     }
 
     //safely teleport player
-    public void teleportPlayer(Location location, PlayerTeleportEvent.TeleportCause teleportCause) {
+    public void teleport(Location location, PlayerTeleportEvent.TeleportCause teleportCause) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.teleport(location, teleportCause), 0L);
     }
 

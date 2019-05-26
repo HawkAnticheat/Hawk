@@ -23,15 +23,21 @@ import me.islandscout.hawk.util.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permissible;
+import org.bukkit.permissions.ServerOperator;
 
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PunishmentScheduler {
 
     //Allows hourly, daily, and weekly schedule setup for punishing players.
+
+    //TODO perhaps add BungeeCord compatibility? If one player gets banned on one server, notify other servers.
 
     private static final int AUTO_SAVE_INTERVAL = 60;
 
@@ -54,15 +60,23 @@ public class PunishmentScheduler {
     private final String USER_REMOVED;
     private final String USER_AUTHORIZED;
     private final String USER_NOT_FOUND;
+    private final String LIST_EMPTY;
+    private final String DISABLED;
+    private final String SERVER_OVERLOADED;
+    private final String PING_LIMIT_EXCEEDED;
 
     public PunishmentScheduler(Hawk hawk) {
-        convicts = new HashMap<>();
+        convicts = new ConcurrentHashMap<>();
         this.hawk = hawk;
 
-        USER_ADDED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6%player% has been added to punishment system.", hawk.getMessages(), "punishmentScheduler.userAdded"));
-        USER_REMOVED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6%player% has been removed from punishment system.", hawk.getMessages(), "punishmentScheduler.userRemoved"));
+        USER_ADDED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6%player% has been added to the punishment system.", hawk.getMessages(), "punishmentScheduler.userAdded"));
+        USER_REMOVED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6%player% has been removed from the punishment system.", hawk.getMessages(), "punishmentScheduler.userRemoved"));
         USER_AUTHORIZED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6%player% has been authorized for punishment.", hawk.getMessages(), "punishmentScheduler.userAuthorized"));
-        USER_NOT_FOUND = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6%player% has not been found in the punishment system.", hawk.getMessages(), "punishmentScheduler.userNotFound"));
+        USER_NOT_FOUND = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6%player% was not found in the punishment system.", hawk.getMessages(), "punishmentScheduler.userNotFound"));
+        LIST_EMPTY = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6The list is empty.", hawk.getMessages(), "punishmentScheduler.listEmpty"));
+        DISABLED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cError: The punishment system is disabled.", hawk.getMessages(), "punishmentScheduler.disabled"));
+        SERVER_OVERLOADED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cError: The server is overloaded.", hawk.getMessages(), "punishmentScheduler.serverOverloaded"));
+        PING_LIMIT_EXCEEDED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cError: %player%'s ping is too high.", hawk.getMessages(), "punishmentScheduler.pingTooHigh"));
 
         enabled = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "punishmentScheduler.enabled");
         cmd = ConfigHelper.getOrSetDefault("ban %player% %reason%", hawk.getConfig(), "punishmentScheduler.command");
@@ -123,29 +137,27 @@ public class PunishmentScheduler {
         }
     }
 
-    public Result add(Player p, String reason) {
-        if(!enabled)
-            return Result.DISABLED;
-        if(ignoreIfServerOverloaded && ServerUtils.getStress() > 1)
-            return Result.SERVER_OVERLOADED;
-        if(pingThreshold > -1 && ServerUtils.getPing(p) > pingThreshold)
-            return Result.PING_LIMIT_EXCEEDED;
+    public void add(Player p, String reason) {
+        if(ignoreIfServerOverloaded && ServerUtils.getStress() > 1) {
+            hawk.broadcastAlertToAdmins(SERVER_OVERLOADED);
+            return;
+        }
+        if(pingThreshold > -1 && ServerUtils.getPing(p) > pingThreshold) {
+            hawk.broadcastAlertToAdmins(PING_LIMIT_EXCEEDED.replace("%player%", p.getName()));
+            return;
+        }
         boolean authorized = !requireAuthorization;
         String processedReason = reason == null ? DEFAULT_REASON : reason;
         convicts.put(p.getUniqueId(), new Pair<>(processedReason, authorized));
         hawk.broadcastAlertToAdmins(USER_ADDED.replace("%player%", p.getName()));
-        return Result.PASSED;
     }
 
-    public Result remove(Player p) {
-        if(!enabled)
-            return Result.DISABLED;
+    public void remove(OfflinePlayer p) {
         convicts.remove(p.getUniqueId());
         hawk.broadcastAlertToAdmins(USER_REMOVED.replace("%player%", p.getName()));
-        return Result.PASSED;
     }
 
-    public void authorize(Player p) {
+    public void authorize(OfflinePlayer p) {
         UUID uuid = p.getUniqueId();
         if(convicts.containsKey(uuid)) {
             convicts.get(uuid).setValue(true);
@@ -154,6 +166,30 @@ public class PunishmentScheduler {
         else {
             hawk.broadcastAlertToAdmins(USER_NOT_FOUND.replace("%player%", p.getName()));
         }
+    }
+
+    public void info(CommandSender admin, OfflinePlayer target) {
+        Pair<String, Boolean> info = convicts.get(target.getUniqueId());
+        if(info == null) {
+            admin.sendMessage(USER_NOT_FOUND.replace("%player%", target.getName()));
+            return;
+        }
+        admin.sendMessage(ChatColor.GOLD + "Punishment information about " + target.getName() + ":");
+        admin.sendMessage(ChatColor.GOLD + "Authorized: " + (info.getValue() ? ChatColor.GREEN: ChatColor.GRAY) + "" + info.getValue());
+        admin.sendMessage(ChatColor.GOLD + "Reason: " + ChatColor.RESET + info.getKey());
+    }
+
+    public void list(CommandSender admin) {
+        if(convicts.size() == 0) {
+            admin.sendMessage(LIST_EMPTY);
+            return;
+        }
+        List<String> names = new ArrayList<>();
+        for(UUID uuid : convicts.keySet()) {
+            boolean authorized = convicts.get(uuid).getValue();
+            names.add((authorized ? ChatColor.GREEN : ChatColor.GRAY) + Bukkit.getOfflinePlayer(uuid).getName());
+        }
+        admin.sendMessage(String.join(", ", names));
     }
 
     public void load() {
@@ -243,12 +279,5 @@ public class PunishmentScheduler {
             }
             return minute == -1 || compareMinute == minute;
         }
-    }
-
-    public enum Result {
-        PASSED,
-        DISABLED,
-        SERVER_OVERLOADED,
-        PING_LIMIT_EXCEEDED
     }
 }

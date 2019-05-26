@@ -147,7 +147,7 @@ public class Speed extends MovementCheck implements Listener {
                 if(discrepancy.value > 0)
                     failed = SpeedType.LANDING_SPRINT;
             }
-            else if(!sprinting) {
+            else {
                 discrepancy = walkLandingMapping(lastSpeed, speed, walkMultiplier, usingSomething);
                 if(discrepancy.value > 0)
                     failed = SpeedType.LANDING_WALK;
@@ -165,7 +165,7 @@ public class Speed extends MovementCheck implements Listener {
                 if(discrepancy.value > 0)
                     failed = SpeedType.WALK;
             }
-            else if(sprinting) {
+            else {
                 discrepancy = sprintGroundMapping(lastSpeed, speed, walkMultiplier);
                 if(discrepancy.value > 0)
                     failed = SpeedType.SPRINT;
@@ -189,7 +189,7 @@ public class Speed extends MovementCheck implements Listener {
                         failed = SpeedType.WALK_JUMPING_CONTINUE;
                 }
                 //SPRINT
-                else if (sprinting) {
+                else {
                     discrepancy = sprintJumpContinueMapping(lastSpeed, speed, walkMultiplier);
                     if(discrepancy.value > 0)
                         failed = SpeedType.SPRINT_JUMPING_CONTINUE;
@@ -211,7 +211,7 @@ public class Speed extends MovementCheck implements Listener {
                         failed = SpeedType.WALK_JUMPING_START;
                 }
                 //SPRINT
-                else if (sprinting) {
+                else {
                     discrepancy = sprintJumpStartMapping(lastSpeed, speed, walkMultiplier);
                     if(discrepancy.value > 0)
                         failed = SpeedType.SPRINT_JUMPING_START;
@@ -249,7 +249,7 @@ public class Speed extends MovementCheck implements Listener {
                 if(discrepancy.value > 0)
                     failed = SpeedType.AIR_SPRINT;
             }
-            else if(!sprinting) {
+            else {
                 discrepancy = walkAirMapping(lastSpeed, speed, usingSomething);
                 if(discrepancy.value > 0)
                     failed = SpeedType.AIR_WALK;

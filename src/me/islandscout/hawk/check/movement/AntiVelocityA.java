@@ -25,15 +25,15 @@ import me.islandscout.hawk.event.MoveEvent;
 import org.bukkit.event.Listener;
 
 /**
- * The AntiVelocity check enforces players to accept knockback.
+ * The AntiVelocityA check verifies that players accept knockback.
  * It relies on MoveEvent's knockback acceptance detection.
- * The AntiVelocity check has been tested to detect as low as a
+ * The AntiVelocityA check has been tested to detect as low as a
  * 10% difference in horizontal or vertical knockback.
  */
-public class AntiVelocity extends MovementCheck implements Listener, Cancelless {
+public class AntiVelocityA extends MovementCheck implements Cancelless {
 
-    public AntiVelocity() {
-        super("antivelocity", false, -1, 5, 0.999, 5000, "%player% may be using anti-velocity. VL: %vl%", null);
+    public AntiVelocityA() {
+        super("antivelocitya", true, -1, 5, 0.999, 5000, "%player% may be using anti-velocity. VL: %vl%", null);
     }
 
     @Override

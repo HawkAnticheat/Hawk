@@ -50,7 +50,7 @@ public class BlockNMS8 extends BlockNMS {
         solid = isReallySolid(block);
         hitbox = getHitBox(b, block.getLocation());
         collisionBoxes = getCollisionBoxes(b, block.getLocation(), bPos, data);
-        frictionFactor = b.frictionFactor;
+        slipperiness = b.frictionFactor;
 
         this.block = b;
     }

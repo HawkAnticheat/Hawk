@@ -107,8 +107,8 @@ public class PacketCore implements Listener {
                     posEvent.setTeleported(true);
                 } else if(!pp.getPlayer().isSleeping()){
                     //Help guide the confused client back to the tp location
-                    if (pp.getCurrentTick() - pp.getLastTeleportTime() > 20) {
-                        pp.teleportPlayer(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                    if (pp.getCurrentTick() - pp.getLastTeleportTime() > (pp.getPing() / 50) + 5) { //5 is an arbitrary constant to keep things smooth
+                        pp.teleport(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
                     }
                     return false;
                 }
@@ -189,7 +189,7 @@ public class PacketCore implements Listener {
                 if(((MoveEvent) event).getCancelLocation() != null) {
                     ((MoveEvent) event).setTo(((MoveEvent) event).getCancelLocation());
                     pp.setTeleporting(true);
-                    pp.teleportPlayer(((MoveEvent) event).getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+                    pp.teleport(((MoveEvent) event).getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
                 } else {
                     //2/17/19: well, technically this shouldn't be allowed. I did
                     //this so at least some other check such as speed can rubberband

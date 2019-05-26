@@ -32,7 +32,7 @@ public abstract class BlockNMS {
     AABB hitbox;
     AABB[] collisionBoxes;
     boolean solid;
-    float frictionFactor;
+    float slipperiness;
 
     BlockNMS(Block obcBlock) {
         this.obcBlock = obcBlock;
@@ -73,8 +73,8 @@ public abstract class BlockNMS {
             return new BlockNMS7(b);
     }
 
-    public float getFrictionFactor() {
-        return frictionFactor;
+    public float getSlipperiness() {
+        return slipperiness;
     }
 
     //Man, I hate having to do this. I don't know why Bukkit is confused over the definition of SOLID.

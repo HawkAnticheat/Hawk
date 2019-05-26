@@ -56,7 +56,7 @@ public final class Physics {
     //these specific values. In other words, the function's limit
     //as time approaches infinity is one of these constants.
     public static final float TERMINAL_VELOCITY_WALK = 50F/227F;
-    public static final float TfloatERMINAL_VELOCITY_FLY = 5F/9F;
+    public static final float TERMINAL_VELOCITY_FLY = 5F/9F;
     public static final float TERMINAL_VELOCITY_SWIM_WATER = 0.1F;
     public static final float TERMINAL_VELOCITY_FALL = 3.92F;
 
