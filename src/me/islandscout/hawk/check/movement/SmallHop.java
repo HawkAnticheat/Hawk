@@ -22,11 +22,8 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
-import me.islandscout.hawk.util.Debug;
 import org.bukkit.Location;
 import org.bukkit.Material;
-
-import java.util.*;
 
 /**
  * This check is used to flag clients whose jumps are too

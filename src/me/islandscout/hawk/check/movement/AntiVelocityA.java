@@ -22,7 +22,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.event.MoveEvent;
-import org.bukkit.event.Listener;
 
 /**
  * The AntiVelocityA check verifies that players accept knockback.

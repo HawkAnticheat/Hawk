@@ -25,8 +25,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permissible;
-import org.bukkit.permissions.ServerOperator;
 
 import java.io.IOException;
 import java.time.DayOfWeek;

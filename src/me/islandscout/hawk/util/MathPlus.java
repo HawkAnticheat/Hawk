@@ -21,7 +21,6 @@ package me.islandscout.hawk.util;
 import me.islandscout.hawk.Hawk;
 import org.bukkit.util.Vector;
 
-import java.util.Arrays;
 import java.util.List;
 
 public final class MathPlus {
@@ -126,6 +125,14 @@ public final class MathPlus {
         return ans;
     }
 
+    public static double mean(List<Double> data) {
+        double[] array = new double[data.size()];
+        for(int i = 0; i < array.length; i++) {
+            array[i] = data.get(i);
+        }
+        return mean(array);
+    }
+
     public static float derivative(MathFunction func, double x) {
         double h = (x * 1E-8);
         return (float)((func.func(x + h) - func.func(x))/h);
@@ -142,6 +149,13 @@ public final class MathPlus {
             x0 = x1;
         }
         return (float)((trapWidth / 2D) * sum);
+    }
+
+    public static double truncateRound(double num, double sigFigs) {
+        int numExponent = (int)Math.floor(Math.log10(num));
+        int shift = (int) Math.pow(10, sigFigs - numExponent - 1);
+        double result = Math.round(num * shift);
+        return result / shift;
     }
 
     public static float gcdRational(float a, float b) {

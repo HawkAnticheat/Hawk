@@ -22,7 +22,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockDigCheck;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.event.BlockDigEvent;
-import me.islandscout.hawk.util.Debug;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;

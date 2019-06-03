@@ -19,7 +19,6 @@
 package me.islandscout.hawk.listener;
 
 import me.islandscout.hawk.module.PacketCore;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import org.bukkit.entity.Player;

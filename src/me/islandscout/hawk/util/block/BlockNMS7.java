@@ -19,7 +19,6 @@
 package me.islandscout.hawk.util.block;
 
 import me.islandscout.hawk.util.AABB;
-import me.islandscout.hawk.util.ServerUtils;
 import net.minecraft.server.v1_7_R4.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

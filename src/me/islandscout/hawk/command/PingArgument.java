@@ -41,17 +41,42 @@ public class PingArgument extends Argument {
                 return true;
             }
             HawkPlayer pp = hawk.getHawkPlayer(target);
-            sender.sendMessage(ChatColor.GOLD + target.getName() + "'s ping: " + ServerUtils.getPing(target) + "ms");
-            sender.sendMessage(ChatColor.GOLD + target.getName() + "'s jitter: " + pp.getPingJitter() + "ms");
+            int ping = ServerUtils.getPing(target);
+            ChatColor pingColor = pingZoneColor(ping);
+            ChatColor jitterColor = pingZoneColor(Math.abs(pp.getPingJitter()));
+            sender.sendMessage(ChatColor.GOLD + target.getName() + "'s ping: " + pingColor + "" + ping + "ms");
+            sender.sendMessage(ChatColor.GOLD + target.getName() + "'s jitter: " + jitterColor + "" + pp.getPingJitter() + "ms");
+            sender.sendMessage(ChatColor.GOLD + target.getName() + "'s ping zone: " + pingColor + "" + ping / 50);
         } else {
             if (!(sender instanceof Player)) {
                 sender.sendMessage(HawkCommand.PLAYER_ONLY);
                 return true;
             }
             HawkPlayer pp = hawk.getHawkPlayer((Player) sender);
-            sender.sendMessage(ChatColor.GOLD + "Your ping: " + ServerUtils.getPing((Player) sender) + "ms");
-            sender.sendMessage(ChatColor.GOLD + "Your jitter: " + pp.getPingJitter() + "ms");
+            int ping = ServerUtils.getPing((Player) sender);
+            ChatColor pingColor = pingZoneColor(ping);
+            ChatColor jitterColor = pingZoneColor(Math.abs(pp.getPingJitter()));
+            sender.sendMessage(ChatColor.GOLD + "Your ping: " + pingColor + "" + ping + "ms");
+            sender.sendMessage(ChatColor.GOLD + "Your jitter: " + jitterColor + "" + pp.getPingJitter() + "ms");
+            sender.sendMessage(ChatColor.GOLD + "Your ping zone: " + pingColor + "" + ping / 50);
         }
         return true;
+    }
+
+    private ChatColor pingZoneColor(int millis) {
+        int zone = millis / 50;
+        if(zone < 1) {
+            return ChatColor.AQUA;
+        }
+        if(zone < 2) {
+            return ChatColor.GREEN;
+        }
+        if(zone < 3) {
+            return ChatColor.YELLOW;
+        }
+        if(zone < 4) {
+            return ChatColor.GOLD;
+        }
+        return ChatColor.RED;
     }
 }

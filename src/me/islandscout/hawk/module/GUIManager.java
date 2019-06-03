@@ -24,7 +24,6 @@ import me.islandscout.hawk.gui.MainMenuWindow;
 import me.islandscout.hawk.gui.Window;
 import me.islandscout.hawk.util.ConfigHelper;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

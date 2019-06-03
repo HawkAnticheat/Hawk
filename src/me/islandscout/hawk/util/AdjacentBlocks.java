@@ -20,7 +20,6 @@ package me.islandscout.hawk.util;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.block.BlockNMS;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;

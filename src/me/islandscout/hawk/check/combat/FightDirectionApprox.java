@@ -21,7 +21,6 @@ package me.islandscout.hawk.check.combat;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractEntityEvent;
-import me.islandscout.hawk.util.ConfigHelper;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;

@@ -19,7 +19,6 @@
 package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.util.Debug;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;

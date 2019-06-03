@@ -19,8 +19,6 @@
 package me.islandscout.hawk.command;
 
 import me.islandscout.hawk.module.PunishmentScheduler;
-import me.islandscout.hawk.util.Pair;
-import net.minecraft.server.v1_8_R3.PacketPlayOutChat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -28,10 +26,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 
 public class PunishArgument extends Argument {
 

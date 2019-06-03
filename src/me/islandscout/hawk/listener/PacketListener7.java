@@ -19,7 +19,6 @@
 package me.islandscout.hawk.listener;
 
 import me.islandscout.hawk.module.PacketCore;
-import me.islandscout.hawk.util.Debug;
 import net.minecraft.util.io.netty.channel.ChannelDuplexHandler;
 import net.minecraft.util.io.netty.channel.ChannelHandlerContext;
 import net.minecraft.util.io.netty.channel.ChannelPromise;
@@ -27,7 +26,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
-import java.util.List;
 
 public class PacketListener7 extends PacketListener {
 

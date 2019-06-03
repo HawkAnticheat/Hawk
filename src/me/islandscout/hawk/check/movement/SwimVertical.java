@@ -22,7 +22,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 

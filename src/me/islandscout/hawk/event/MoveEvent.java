@@ -45,6 +45,7 @@ public class MoveEvent extends Event {
     private final boolean onGround;
     private final boolean onGroundReally;
     private boolean teleported;
+    private Location toLocation;
     private Location cancelLocation;
     private boolean updatePos;
     private boolean updateRot;
@@ -60,16 +61,9 @@ public class MoveEvent extends Event {
     private Set<Material> liquidTypes;
     //No, don't compute a delta vector during instantiation since it won't respond to teleports.
 
-    //Not sure if these maps are necessary since you can determine the previous position using HawkPlayer#getLocation()
-    private static final Map<UUID, Location> last = new HashMap<>();
-    private static final Map<UUID, Location> current = new HashMap<>();
-
-    private static final List<Material> liquidDefs = Arrays.asList(Material.WATER, Material.STATIONARY_WATER, Material.LAVA, Material.STATIONARY_LAVA);
-
     public MoveEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet, boolean updatePos, boolean updateRot) {
         super(p, pp, packet);
-        last.put(p.getUniqueId(), current.getOrDefault(p.getUniqueId(), pp.getLocation()));
-        current.put(p.getUniqueId(), update);
+        toLocation = update;
         onGroundReally = AdjacentBlocks.onGroundReally(update, update.getY() - getFrom().getY(), true, 0.02);
         this.updatePos = updatePos;
         this.updateRot = updateRot;
@@ -93,7 +87,7 @@ public class MoveEvent extends Event {
         List<Pair<Block, Vector>> liquids = new ArrayList<>();
         List<Block> blocks = liquidTest.getBlocks(p.getWorld());
         for(Block b : blocks) {
-            if(liquidDefs.contains(b.getType())) {
+            if(Physics.liquidDefs.contains(b.getType())) {
                 Vector direction = BlockNMS.getBlockNMS(b).getFlowDirection();
                 liquids.add(new Pair<>(b, direction));
                 this.liquidTypes.add(b.getType());
@@ -226,20 +220,16 @@ public class MoveEvent extends Event {
     }
 
     public Location getTo() {
-        //how this can possibly ever return null, idek. here's a getOrDefault for now.
-        return current.getOrDefault(p.getUniqueId(), pp.getLocation());
+        //TODO: test if this will ever return null
+        return toLocation;
     }
 
     public Location getFrom() {
-        return last.getOrDefault(p.getUniqueId(), pp.getLocation());
+        return pp.getLocation();
     }
 
     public void setTo(Location to) {
-        current.put(p.getUniqueId(), to);
-    }
-
-    public void setFrom(Location from) {
-        last.put(p.getUniqueId(), from);
+        toLocation = to;
     }
 
     public boolean isOnGround() {
@@ -348,15 +338,6 @@ public class MoveEvent extends Event {
         if(!cancelled) {
             cancelLocation = null;
         }
-    }
-
-    public static void discardData() {
-        last.clear();
-        current.clear();
-    }
-
-    public static Location getLastPosition(HawkPlayer pp) {
-        return current.getOrDefault(pp.getUuid(), pp.getLocation());
     }
 
 }

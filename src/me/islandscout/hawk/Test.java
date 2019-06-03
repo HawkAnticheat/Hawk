@@ -19,7 +19,6 @@
 package me.islandscout.hawk;
 
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import net.minecraft.server.v1_7_R4.*;
 import net.minecraft.util.io.netty.buffer.Unpooled;

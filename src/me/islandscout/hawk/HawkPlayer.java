@@ -21,7 +21,6 @@ package me.islandscout.hawk;
 import me.islandscout.hawk.check.Check;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.entity.EntityNMS;
-import net.minecraft.server.v1_7_R4.PacketPlayOutEntityTeleport;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;

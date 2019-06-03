@@ -20,7 +20,6 @@ package me.islandscout.hawk.util.block;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.AABB;
-import net.minecraft.server.v1_7_R4.Vec3D;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;

@@ -22,7 +22,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractAction;
 import me.islandscout.hawk.event.InteractEntityEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Placeholder;
 import org.bukkit.entity.Player;

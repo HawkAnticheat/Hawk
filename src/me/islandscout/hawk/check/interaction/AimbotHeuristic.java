@@ -21,11 +21,7 @@ package me.islandscout.hawk.check.interaction;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.check.Cancelless;
-import me.islandscout.hawk.command.DevArgument;
 import me.islandscout.hawk.event.*;
-import me.islandscout.hawk.util.Debug;
-import me.islandscout.hawk.util.MathPlus;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 

@@ -102,7 +102,7 @@ public class PacketCore implements Listener {
                 Location tpLoc = pp.getTeleportLoc();
                 //accepted teleport
                 if (tpLoc.getWorld().equals(posEvent.getTo().getWorld()) && posEvent.getTo().distanceSquared(tpLoc) < 0.001) {
-                    posEvent.setFrom(tpLoc);
+                    pp.setLocation(tpLoc);
                     pp.setTeleporting(false);
                     posEvent.setTeleported(true);
                 } else if(!pp.getPlayer().isSleeping()){

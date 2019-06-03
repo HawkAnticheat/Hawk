@@ -77,12 +77,14 @@ public class AimbotPrecision extends MovementCheck implements Cancelless {
             float deltaPitchGCD = MathPlus.gcdRational(lastDeltaPitches);
             float lastDeltaPitchGCD = lastDeltaPitchGCDs.getOrDefault(uuid, deltaPitchGCD);
             float gcdDiff = Math.abs(deltaPitchGCD - lastDeltaPitchGCD);
+
             //if GCD is significantly different or if GCD is practically unsolvable
             if(gcdDiff > 0.001 || deltaPitchGCD < 0.00001) {
                 fail(pp, e);
             }
             else
                 reward(pp);
+
             lastDeltaPitches.clear();
             lastDeltaPitchGCDs.put(uuid, deltaPitchGCD);
         }
