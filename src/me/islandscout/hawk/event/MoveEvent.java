@@ -49,9 +49,9 @@ public class MoveEvent extends Event {
     private Location cancelLocation;
     private boolean updatePos;
     private boolean updateRot;
-    private boolean acceptedKnockback;
+    private Vector acceptedKnockback;
     private boolean failedKnockback;
-    private boolean hitSlowdown; //Idk, it's weird. Sprinting or hitting with kb enchant will multiply horizontal speed by 0.6.
+    private boolean hitSlowdown; //Idk, it's weird. Hitting while sprinting or with kb enchant will multiply horizontal speed by 0.6.
     private Set<Direction> boxSidesTouchingBlocks;
     private boolean inLiquid;
     private boolean jumped;
@@ -96,7 +96,7 @@ public class MoveEvent extends Event {
         return liquids;
     }
 
-    //May return true if player is knocked up against a very low ceiling, but who cares?
+    //May return true if player is knocked up against a very low ceiling. Not sure.
     private boolean testJumped() {
         int jumpBoostLvl = 0;
         for (PotionEffect pEffect : p.getActivePotionEffects()) {
@@ -107,7 +107,10 @@ public class MoveEvent extends Event {
         }
         float initJumpVelocity = 0.42F + jumpBoostLvl * 0.1F;
         float deltaY = (float)(getTo().getY() - getFrom().getY());
-        return (pp.isOnGroundReally() && !isOnGround()) && (deltaY == initJumpVelocity || boxSidesTouchingBlocks.contains(Direction.TOP));
+        boolean hitCeiling = boxSidesTouchingBlocks.contains(Direction.TOP);
+        boolean kbSimilarToJump = acceptedKnockback != null &&
+                (Math.abs(acceptedKnockback.getY() - initJumpVelocity) < 0.001 || hitCeiling);
+        return !kbSimilarToJump && (pp.isOnGroundReally() && !isOnGround()) && (deltaY == initJumpVelocity || hitCeiling);
     }
 
     //Again, kudos to MCP for guiding me to the right direction
@@ -144,7 +147,7 @@ public class MoveEvent extends Event {
     }
 
     //This literally makes me want to punch a wall.
-    private boolean handlePendingVelocities() {
+    private Vector handlePendingVelocities() {
         List<Pair<Vector, Long>> kbs = pp.getPendingVelocities();
         if (kbs.size() > 0) {
             double epsilon = 0.003;
@@ -203,7 +206,7 @@ public class MoveEvent extends Event {
                         continue;
                     }
                     kbs.subList(0, kbIndex + 1).clear();
-                    return true;
+                    return kbVelocity;
                 }
                 else {
                     failedKnockback = true;
@@ -212,7 +215,7 @@ public class MoveEvent extends Event {
             }
             kbs.subList(0, expiredKbs).clear();
         }
-        return false;
+        return null;
     }
 
     public Player getPlayer() {
@@ -220,7 +223,6 @@ public class MoveEvent extends Event {
     }
 
     public Location getTo() {
-        //TODO: test if this will ever return null
         return toLocation;
     }
 
@@ -284,6 +286,10 @@ public class MoveEvent extends Event {
     }
 
     public boolean hasAcceptedKnockback() {
+        return acceptedKnockback != null;
+    }
+
+    public Vector getAcceptedKnockback() {
         return acceptedKnockback;
     }
 

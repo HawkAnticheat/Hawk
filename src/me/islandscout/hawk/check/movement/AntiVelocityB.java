@@ -22,6 +22,11 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.util.Pair;
+import net.minecraft.server.v1_8_R3.PacketPlayOutEntity;
+
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * The AntiVelocityB check monitors the abuse of an exploit
@@ -33,15 +38,43 @@ import me.islandscout.hawk.event.MoveEvent;
  */
 public class AntiVelocityB extends MovementCheck implements Cancelless {
 
+    private int SAMPLES;
+    private double RATIO_THRESHOLD;
+
+    private Map<UUID, Pair<Integer, Integer>> ratioMap;
+    private Map<UUID, Long> landingTickMap;
+
     public AntiVelocityB() {
-        super("antivelocityb", false, -1, 5, 0.999, 5000, "%player% may be using anti-velocity. VL: %vl%", null);
+        super("antivelocityb", false, -1, 1, 0.9, 5000, "%player% may be using anti-velocity. VL: %vl%", null);
+        SAMPLES = (int)customSetting("samples", "", 10);
+        RATIO_THRESHOLD = (double)customSetting("ratioThreshold", "", 0.9);
     }
 
     @Override
     protected void check(MoveEvent event) {
         HawkPlayer pp = event.getHawkPlayer();
-        if(event.hasAcceptedKnockback() && event.hasJumped()) { //TODO make sure to ignore kbs with a Y of 0.42 and not under a block
-            //TODO add to a ratio
+        if(event.hasAcceptedKnockback() && pp.isOnGround() && pp.isSprinting()) { //TODO and must have been on ground for at least a couple of ticks (to stop false flaggers)
+
+            Pair<Integer, Integer> ratio = ratioMap.getOrDefault(pp.getUuid(), new Pair<>(0, 0));
+
+            if(event.hasJumped()) { //TODO Test kbs with a Y of 0.42 or if player is under a block. This should eval to FALSE in those cases
+                ratio.setKey(ratio.getKey() + 1);
+            }
+            ratio.setValue(ratio.getValue() + 1);
+
+            if(ratio.getValue() >= SAMPLES) {
+                double ratioValue = (double)ratio.getKey() / ratio.getValue();
+                if(ratioValue > RATIO_THRESHOLD) {
+                    punish(pp, false, event);
+                }
+                else {
+                    reward(pp);
+                }
+                ratio.setKey(0);
+                ratio.setValue(0);
+            }
+
+            ratioMap.put(pp.getUuid(), ratio);
         }
     }
 }
