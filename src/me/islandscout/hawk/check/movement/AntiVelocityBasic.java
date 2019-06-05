@@ -24,15 +24,15 @@ import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.event.MoveEvent;
 
 /**
- * The AntiVelocityA check verifies that players accept knockback.
+ * The AntiVelocityBasic check verifies that players accept knockback.
  * It relies on MoveEvent's knockback acceptance detection.
- * The AntiVelocityA check has been tested to detect as low as a
- * 10% difference in horizontal or vertical knockback.
+ * The AntiVelocityBasic check has been tested to detect as low as a
+ * 10% difference in horizontal and/or vertical knockback.
  */
-public class AntiVelocityA extends MovementCheck implements Cancelless {
+public class AntiVelocityBasic extends MovementCheck implements Cancelless {
 
-    public AntiVelocityA() {
-        super("antivelocitya", true, -1, 5, 0.999, 5000, "%player% may be using anti-velocity. VL: %vl%", null);
+    public AntiVelocityBasic() {
+        super("antivelocitybasic", true, -1, 5, 0.999, 5000, "%player% may be using anti-velocity (basic), VL: %vl%", null);
     }
 
     @Override

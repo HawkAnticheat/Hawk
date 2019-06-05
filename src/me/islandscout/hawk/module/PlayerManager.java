@@ -21,7 +21,9 @@ package me.islandscout.hawk.module;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
+import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -37,6 +39,18 @@ public class PlayerManager implements Listener {
 
     public PlayerManager(Hawk hawk) {
         this.hawk = hawk;
+
+        hawk.getHawkSyncTaskScheduler().addRepeatingTask(new Runnable() {
+            @Override
+            public void run() {
+                for(HawkPlayer pp : hawk.getHawkPlayers()) {
+                    Player p = pp.getPlayer();
+                    int newPing = ServerUtils.getPing(p);
+                    pp.setPingJitter((short) (newPing - pp.getPing()));
+                    pp.setPing(ServerUtils.getPing(p));
+                }
+            }
+        }, 40);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

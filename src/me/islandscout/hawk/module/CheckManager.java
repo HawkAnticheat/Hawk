@@ -66,8 +66,8 @@ public class CheckManager {
         new FightAccuracy();
         new AimbotHeuristic();
         new FightNoSwing();
-        new AntiVelocityA();
-        new AntiVelocityB();
+        new AntiVelocityBasic();
+        new AntiVelocityJump();
         new InvalidPitch();
         new FightReachApprox();
         new FightDirectionApprox();

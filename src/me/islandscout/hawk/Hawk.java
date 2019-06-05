@@ -57,6 +57,7 @@ public class Hawk extends JavaPlugin {
     private MouseRecorder mouseRecorder;
     private BungeeBridge bungeeBridge;
     private PunishmentScheduler punishmentScheduler;
+    private HawkSyncTaskScheduler hawkSyncTaskScheduler;
     private Map<UUID, HawkPlayer> profiles;
     private static int SERVER_VERSION;
     public static String FLAG_PREFIX;
@@ -85,8 +86,8 @@ public class Hawk extends JavaPlugin {
 
     public void loadModules() {
         getLogger().info("Loading modules...");
+
         new File(plugin.getDataFolder().getAbsolutePath()).mkdirs();
-        getServer().getPluginManager().registerEvents(new PlayerManager(this), this);
         messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
         checksConfig = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "checks.yml"));
         FLAG_PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cHAWK: &7", messages, "prefix"));
@@ -97,7 +98,12 @@ public class Hawk extends JavaPlugin {
             sendJSONMessages = false;
             Bukkit.getLogger().warning("Hawk cannot send JSON flag messages on a 1.7.10 server! Please use 1.8.8 to use this feature.");
         }
+
+        hawkSyncTaskScheduler = new HawkSyncTaskScheduler(this);
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, hawkSyncTaskScheduler, 0L, 1L);
+
         profiles = new ConcurrentHashMap<>();
+        getServer().getPluginManager().registerEvents(new PlayerManager(this), this);
         sqlModule = new SQLModule(this);
         sqlModule.createTableIfNotExists();
         punishmentScheduler = new PunishmentScheduler(this);
@@ -113,7 +119,6 @@ public class Hawk extends JavaPlugin {
         bungeeBridge = new BungeeBridge(this, ConfigHelper.getOrSetDefault(false, getConfig(), "enableBungeeAlerts"));
         checkManager = new CheckManager(plugin);
         checkManager.loadChecks();
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new HawkSyncLoopTask(this), 0L, 1L);
         packetCore = new PacketCore(this);
         packetCore.startListener();
         packetCore.setupListenerForOnlinePlayers();
@@ -155,6 +160,7 @@ public class Hawk extends JavaPlugin {
             sqlModule.closeConnection();
         sqlModule = null;
         Bukkit.getScheduler().cancelTasks(this);
+        hawkSyncTaskScheduler = null;
         violationLogger = null;
         mouseRecorder = null;
     }
@@ -297,6 +303,10 @@ public class Hawk extends JavaPlugin {
 
     public PunishmentScheduler getPunishmentScheduler() {
         return punishmentScheduler;
+    }
+
+    public HawkSyncTaskScheduler getHawkSyncTaskScheduler() {
+        return hawkSyncTaskScheduler;
     }
 
     public boolean canSendJSONMessages() {

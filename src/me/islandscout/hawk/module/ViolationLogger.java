@@ -19,6 +19,7 @@
 package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.util.Debug;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -32,12 +33,13 @@ public class ViolationLogger {
 
     private final Hawk hawk;
     private File storageFile;
-    private final List<String> buffer = new ArrayList<>();
+    private final List<String> buffer;
     private final boolean enabled;
 
     public ViolationLogger(Hawk hawk, boolean enabled) {
         this.hawk = hawk;
         this.enabled = enabled;
+        this.buffer = new ArrayList<>();
     }
 
     public void prepare(File loggerFile) {
@@ -50,6 +52,14 @@ public class ViolationLogger {
                 e.printStackTrace();
             }
         }
+
+        hawk.getHawkSyncTaskScheduler().addRepeatingTask(new Runnable() {
+            @Override
+            public void run() {
+                hawk.getViolationLogger().updateFile();
+                hawk.getSQLModule().tick();
+            }
+        }, 20);
     }
 
     public void logMessage(String message) {

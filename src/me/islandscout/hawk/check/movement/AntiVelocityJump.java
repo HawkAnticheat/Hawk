@@ -22,21 +22,25 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.util.Debug;
+import me.islandscout.hawk.util.Direction;
 import me.islandscout.hawk.util.Pair;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntity;
+import org.bukkit.entity.Player;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 /**
- * The AntiVelocityB check monitors the abuse of an exploit
+ * The AntiVelocityJump check monitors the abuse of an exploit
  * in the client which alters received knockback significantly.
  * The exploit is as follows: sprint-jump on the same tick that you
  * receive knockback. This is difficult to achieve consistently
  * without external assistance; those that can do it consistently
  * are most likely cheating.
  */
-public class AntiVelocityB extends MovementCheck implements Cancelless {
+public class AntiVelocityJump extends MovementCheck implements Cancelless {
 
     private int SAMPLES;
     private double RATIO_THRESHOLD;
@@ -44,20 +48,23 @@ public class AntiVelocityB extends MovementCheck implements Cancelless {
     private Map<UUID, Pair<Integer, Integer>> ratioMap;
     private Map<UUID, Long> landingTickMap;
 
-    public AntiVelocityB() {
-        super("antivelocityb", false, -1, 1, 0.9, 5000, "%player% may be using anti-velocity. VL: %vl%", null);
+    public AntiVelocityJump() {
+        super("antivelocityjump", true, -1, 1, 0.9, 5000, "%player% may be using anti-velocity (jump), VL: %vl%", null);
         SAMPLES = (int)customSetting("samples", "", 10);
-        RATIO_THRESHOLD = (double)customSetting("ratioThreshold", "", 0.9);
+        RATIO_THRESHOLD = (double)customSetting("ratioThreshold", "", 0.85);
+        ratioMap = new HashMap<>();
+        landingTickMap = new HashMap<>();
     }
 
     @Override
     protected void check(MoveEvent event) {
         HawkPlayer pp = event.getHawkPlayer();
-        if(event.hasAcceptedKnockback() && pp.isOnGround() && pp.isSprinting()) { //TODO and must have been on ground for at least a couple of ticks (to stop false flaggers)
+        long ticksOnGround = landingTickMap.getOrDefault(pp.getUuid(), 0L);
+        if(event.hasAcceptedKnockback() && pp.isOnGround() && pp.isSprinting() && ticksOnGround > 1 && !event.getBoxSidesTouchingBlocks().contains(Direction.TOP)) {
 
             Pair<Integer, Integer> ratio = ratioMap.getOrDefault(pp.getUuid(), new Pair<>(0, 0));
 
-            if(event.hasJumped()) { //TODO Test kbs with a Y of 0.42 or if player is under a block. This should eval to FALSE in those cases
+            if(event.hasJumped()) {
                 ratio.setKey(ratio.getKey() + 1);
             }
             ratio.setValue(ratio.getValue() + 1);
@@ -76,5 +83,15 @@ public class AntiVelocityB extends MovementCheck implements Cancelless {
 
             ratioMap.put(pp.getUuid(), ratio);
         }
+
+        if(!pp.isOnGround() && event.isOnGround()) {
+            landingTickMap.put(pp.getUuid(), pp.getCurrentTick());
+        }
+    }
+
+    @Override
+    public void removeData(Player p) {
+        ratioMap.remove(p.getUniqueId());
+        landingTickMap.remove(p.getUniqueId());
     }
 }

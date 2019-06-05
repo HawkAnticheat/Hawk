@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package me.islandscout.hawk.check.combat;
+package me.islandscout.hawk.check.interaction;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.Cancelless;
@@ -32,6 +32,7 @@ public class AutoPotion extends CustomCheck implements Cancelless {
     private Set<UUID> usedSomething;
     private int MIN_SWITCH_TICKS;
 
+    //might rename this to "AutoUse"
     public AutoPotion() {
         super("autopotion", true, -1, 5, 0.99, 5000, "%player% may be using auto-potion, VL: %vl%", null);
         lastSwitchTicks = new HashMap<>();

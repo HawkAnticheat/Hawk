@@ -40,8 +40,8 @@ public final class Debug {
           - Get the class name and possibly the reference of the troublesome object. (getClass().getName() usually does this)
      */
 
-    public static void broadcastMessage(String str) {
-        Bukkit.broadcastMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "[Hawk DEBUG]: " + ChatColor.RESET + str);
+    public static void broadcastMessage(Object msg) {
+        Bukkit.broadcastMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "[Hawk DEBUG]: " + ChatColor.RESET + msg);
     }
 
     public static void sendToPlayer(Player player, String str) {
