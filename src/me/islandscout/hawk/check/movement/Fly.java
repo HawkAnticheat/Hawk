@@ -103,7 +103,7 @@ public class Fly extends MovementCheck implements Listener {
         if (pp.hasFlyPending() && p.getAllowFlight())
             return;
         if (!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() && !pp.isSwimming() && !p.isSleeping() &&
-                !isInClimbable(event.getTo()) && !isOnBoat(event.getTo())) {
+                !isInClimbable(event.getTo()) && !isOnBoat(p, event.getTo())) {
 
             if (!inAir.contains(p.getUniqueId()) && deltaY > 0)
                 lastDeltaY.put(p.getUniqueId(), 0.42 + getJumpBoostLvl(p) * 0.1);
@@ -203,15 +203,12 @@ public class Fly extends MovementCheck implements Listener {
         stupidMoves.put(p.getUniqueId(), 0);
     }
 
-    //TODO: Fix issues on edge of chunks
-    private boolean isOnBoat(Location loc) {
-        Chunk chunk = ServerUtils.getChunkAsync(loc);
-        if (chunk == null)
-            return false;
-        Entity[] entities = chunk.getEntities().clone(); //TODO: IOOB Exception here due to async issue
-        for (Entity entity : entities) {
+    private boolean isOnBoat(Player p, Location loc) {
+        Set<Entity> trackedEntities = hawk.getLagCompensator().getTrackedEntities();
+        int ping = ServerUtils.getPing(p);
+        for(Entity entity : trackedEntities) {
             if (entity instanceof Boat) {
-                AABB boatBB = EntityNMS.getEntityNMS(entity).getCollisionBox();
+                AABB boatBB = EntityNMS.getEntityNMS(entity).getCollisionBox(hawk.getLagCompensator().getHistoryLocation(ping, entity).toVector());
                 AABB feet = new AABB(
                         new Vector(-0.3, -0.4, -0.3).add(loc.toVector()),
                         new Vector(0.3, 0, 0.3).add(loc.toVector()));

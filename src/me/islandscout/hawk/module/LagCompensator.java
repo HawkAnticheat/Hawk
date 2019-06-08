@@ -18,7 +18,6 @@
 
 package me.islandscout.hawk.module;
 
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.ConfigHelper;
@@ -26,13 +25,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChangedWorldEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -141,35 +134,15 @@ public class LagCompensator implements Listener {
         trackedEntities.put(entity, times);
     }
 
-
-    /*
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onMove(PlayerMoveEvent e) {
-        processPosition(e.getTo(), e.getPlayer());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onRespawn(PlayerRespawnEvent e) {
-        processPosition(e.getRespawnLocation(), e.getPlayer());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onTeleport(PlayerTeleportEvent e) {
-        processPosition(e.getTo(), e.getPlayer());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onWorldChange(PlayerChangedWorldEvent e) {
-        processPosition(e.getPlayer().getLocation(), e.getPlayer());
-    }
-    */
-
-
     public int getHistorySize() {
         return historySize;
     }
 
     public int getPingOffset() {
         return pingOffset;
+    }
+
+    public Set<Entity> getTrackedEntities() {
+        return trackedEntities.keySet();
     }
 }
