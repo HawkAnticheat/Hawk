@@ -63,8 +63,8 @@ public class FightDirectionApprox extends EntityInteractionCheck {
         }
 
         Vector victimLocation;
-        if (victimEntity instanceof Player && LAG_COMPENSATION)
-            victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, (Player) victimEntity).toVector().setY(0);
+        if (LAG_COMPENSATION)
+            victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, victimEntity).toVector().setY(0);
         else
             victimLocation = victimEntity.getLocation().toVector().setY(0);
 

@@ -115,8 +115,8 @@ public class FightHitbox extends EntityInteractionCheck {
             maxReach += 1.8; //MC1.7: 1.8, MC1.8: 1.5
 
         Vector victimLocation;
-        if (LAG_COMPENSATION && entity instanceof Player)
-            victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, (Player) e.getEntity()).toVector();
+        if (LAG_COMPENSATION)
+            victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, e.getEntity()).toVector();
         else
             victimLocation = e.getEntity().getLocation().toVector();
 

@@ -65,8 +65,8 @@ public class FightReachApprox extends EntityInteractionCheck {
         }
 
         Location victimLocation;
-        if (victimEntity instanceof Player && LAG_COMPENSATION)
-            victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, (Player) victimEntity);
+        if (LAG_COMPENSATION)
+            victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, victimEntity);
         else
             victimLocation = victimEntity.getLocation();
 
