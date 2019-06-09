@@ -44,7 +44,7 @@ public class AimbotHeuristic extends CustomCheck implements Cancelless {
     private final int MOVES_AFTER_HIT;
 
     public AimbotHeuristic() {
-        super("aimbotheuristic", true, -1, 5, 0.99, 5000, "&8%player% may be using aimbot (heuristic), VL %vl%", null);
+        super("aimbotheuristic", false, -1, 5, 0.99, 5000, "&8%player% may be using aimbot (heuristic), VL %vl%", null);
         mouseMoves = new HashMap<>();
         clickTimes = new HashMap<>();
 

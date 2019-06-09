@@ -21,17 +21,29 @@ package me.islandscout.hawk.module;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.Check;
-import me.islandscout.hawk.util.MathPlus;
-import me.islandscout.hawk.util.Placeholder;
-import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.util.*;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.List;
+import java.util.*;
 
 public class CommandExecutor {
 
-    public static void runACommand(List<String> command, Check check, double deltaVL, Player p, HawkPlayer pp, Hawk hawk, Placeholder... placeholders) {
+    private final Set<Pair<UUID, Pair<Check, String>>> commandHistory;
+
+    public CommandExecutor(Hawk hawk) {
+        this.commandHistory = Collections.synchronizedSet(new HashSet<>());
+        int cooldown = ConfigHelper.getOrSetDefault(1, hawk.getConfig(), "commandExecutor.cooldownTicks");
+
+        hawk.getHawkSyncTaskScheduler().addRepeatingTask(new Runnable() {
+            @Override
+            public void run() {
+                commandHistory.clear();
+            }
+        }, cooldown);
+    }
+
+    public void runACommand(List<String> command, Check check, double deltaVL, Player p, HawkPlayer pp, Hawk hawk, Placeholder... placeholders) {
         if (command.size() == 0 || command.get(0).length() == 0) return;
         for (String aCommand : command) {
             if (aCommand.length() == 0) return;
@@ -42,6 +54,7 @@ public class CommandExecutor {
             }
 
             //ignore colons in command
+            //TODO: um... what if there are multiple cmds in the list that meet the conditions? Either get rid of the > / < or fix this
             for (int i = 3; i < parts.length; i++)
                 parts[2] += ":" + parts[i];
 
@@ -81,7 +94,7 @@ public class CommandExecutor {
         }
     }
 
-    private static void execute(String[] parts, Player player, Hawk hawk, Check check, Placeholder... placeholders) {
+    private void execute(String[] parts, Player player, Hawk hawk, Check check, Placeholder... placeholders) {
         String preCmd = parts[2]
                 .replace("%player%", player.getName())
                 .replace("%ping%", ServerUtils.getPing(player) + "")
@@ -90,6 +103,9 @@ public class CommandExecutor {
         for (Placeholder placeholder : placeholders)
             preCmd = preCmd.replace("%" + placeholder.getKey() + "%", placeholder.getValue().toString());
         final String cmd = preCmd;
-        Bukkit.getScheduler().scheduleSyncDelayedTask((hawk), () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd), Long.parseLong(parts[1]) * 20);
+        Pair<UUID, Pair<Check, String>> cmdInfo = new Pair<>(player.getUniqueId(), new Pair<>(check, parts[2]));
+        if(!commandHistory.contains(cmdInfo))
+            Bukkit.getScheduler().scheduleSyncDelayedTask((hawk), () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd), Long.parseLong(parts[1]) * 20);
+        commandHistory.add(cmdInfo);
     }
 }

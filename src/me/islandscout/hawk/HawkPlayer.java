@@ -103,6 +103,10 @@ public class HawkPlayer {
         return (int) (double) vl.getOrDefault(check, 0D);
     }
 
+    public Map<Check, Double> getVLs() {
+        return vl;
+    }
+
     public void setVL(Check check, double vl) {
         this.vl.put(check, vl);
     }

@@ -58,6 +58,7 @@ public class Hawk extends JavaPlugin {
     private BungeeBridge bungeeBridge;
     private PunishmentScheduler punishmentScheduler;
     private HawkSyncTaskScheduler hawkSyncTaskScheduler;
+    private CommandExecutor commandExecutor;
     private Map<UUID, HawkPlayer> profiles;
     private static int SERVER_VERSION;
     public static String FLAG_PREFIX;
@@ -106,6 +107,7 @@ public class Hawk extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerManager(this), this);
         sqlModule = new SQLModule(this);
         sqlModule.createTableIfNotExists();
+        commandExecutor = new CommandExecutor(this);
         punishmentScheduler = new PunishmentScheduler(this);
         punishmentScheduler.load();
         punishmentScheduler.start();
@@ -159,6 +161,7 @@ public class Hawk extends JavaPlugin {
         if(sqlModule != null)
             sqlModule.closeConnection();
         sqlModule = null;
+        commandExecutor = null;
         Bukkit.getScheduler().cancelTasks(this);
         hawkSyncTaskScheduler = null;
         violationLogger = null;
@@ -307,6 +310,10 @@ public class Hawk extends JavaPlugin {
 
     public HawkSyncTaskScheduler getHawkSyncTaskScheduler() {
         return hawkSyncTaskScheduler;
+    }
+
+    public CommandExecutor getCommandExecutor() {
+        return commandExecutor;
     }
 
     public boolean canSendJSONMessages() {

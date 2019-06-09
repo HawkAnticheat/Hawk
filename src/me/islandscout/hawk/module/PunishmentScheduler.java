@@ -59,7 +59,7 @@ public class PunishmentScheduler {
     private final String USER_AUTHORIZED;
     private final String USER_NOT_FOUND;
     private final String LIST_EMPTY;
-    private final String DISABLED;
+    //private final String DISABLED;
     private final String SERVER_OVERLOADED;
     private final String PING_LIMIT_EXCEEDED;
 
@@ -72,7 +72,7 @@ public class PunishmentScheduler {
         USER_AUTHORIZED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6%player% has been authorized for punishment.", hawk.getMessages(), "punishmentScheduler.userAuthorized"));
         USER_NOT_FOUND = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6%player% was not found in the punishment system.", hawk.getMessages(), "punishmentScheduler.userNotFound"));
         LIST_EMPTY = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&6The list is empty.", hawk.getMessages(), "punishmentScheduler.listEmpty"));
-        DISABLED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cError: The punishment system is disabled.", hawk.getMessages(), "punishmentScheduler.disabled"));
+        //DISABLED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cError: The punishment system is disabled.", hawk.getMessages(), "punishmentScheduler.disabled"));
         SERVER_OVERLOADED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cError: The server is overloaded.", hawk.getMessages(), "punishmentScheduler.serverOverloaded"));
         PING_LIMIT_EXCEEDED = ChatColor.translateAlternateColorCodes('&', ConfigHelper.getOrSetDefault("&cError: %player%'s ping is too high.", hawk.getMessages(), "punishmentScheduler.pingTooHigh"));
 
@@ -97,8 +97,8 @@ public class PunishmentScheduler {
     public void start() {
         if(!enabled)
             return;
-        taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(hawk, () -> {
 
+        taskId = hawk.getHawkSyncTaskScheduler().addRepeatingTask(() -> {
             if(schedule.isNow()) {
                 if(!justExecuted) {
                     punishTime();
@@ -113,14 +113,13 @@ public class PunishmentScheduler {
             if(AUTO_SAVE && currentSecond % AUTO_SAVE_INTERVAL == 0) {
                 saveAsynchronously();
             }
-
-        }, 0L, 20L);
+        }, 20);
     }
 
     public void stop() {
         if(!enabled)
             return;
-        Bukkit.getScheduler().cancelTask(taskId);
+        hawk.getHawkSyncTaskScheduler().cancelTask(taskId);
     }
 
     private void punishTime() {

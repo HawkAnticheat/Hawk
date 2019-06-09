@@ -55,6 +55,16 @@ public class HawkSyncTaskScheduler implements Runnable {
         return hawkTask.id;
     }
 
+    public void cancelTask(int id) {
+        for(int i = 0; i < tasks.size(); i++) {
+            HawkTask task = tasks.get(i);
+            if(id == task.id) {
+                tasks.remove(i);
+                break;
+            }
+        }
+    }
+
     private class HawkTask {
 
         private Runnable task;

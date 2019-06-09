@@ -46,6 +46,7 @@ public class LagCompensator implements Listener {
     //measuring latency.
 
     private final Map<Entity, List<Pair<Location, Long>>> trackedEntities;
+    //TODO lag compensate server-side player stats (flying, effects, speed)
     private final int historySize;
     private final int pingOffset;
     private final boolean DEBUG;
@@ -93,6 +94,11 @@ public class LagCompensator implements Listener {
                 for(Entity entity : trackedEntities.keySet()) {
                     processPosition(entity);
                 }
+                /*
+                for(HawkPlayer pp : hawk.getHawkPlayers()) {
+                    Player p = pp.getPlayer();
+                    p.getActivePotionEffects();
+                }*/
             }
         }, 1);
     }
@@ -142,7 +148,11 @@ public class LagCompensator implements Listener {
         return pingOffset;
     }
 
-    public Set<Entity> getTrackedEntities() {
+    public Set<Entity> getPositionTrackedEntities() {
         return trackedEntities.keySet();
+    }
+
+    public void getStatsTrackedPlayers() {
+
     }
 }

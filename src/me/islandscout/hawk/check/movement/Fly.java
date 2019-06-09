@@ -23,7 +23,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.entity.EntityNMS;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -204,7 +203,7 @@ public class Fly extends MovementCheck implements Listener {
     }
 
     private boolean isOnBoat(Player p, Location loc) {
-        Set<Entity> trackedEntities = hawk.getLagCompensator().getTrackedEntities();
+        Set<Entity> trackedEntities = hawk.getLagCompensator().getPositionTrackedEntities();
         int ping = ServerUtils.getPing(p);
         for(Entity entity : trackedEntities) {
             if (entity instanceof Boat) {

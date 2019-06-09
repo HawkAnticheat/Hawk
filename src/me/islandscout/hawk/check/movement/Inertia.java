@@ -36,7 +36,7 @@ public class Inertia extends MovementCheck {
     private Map<UUID, Long> lastTickOnGround;
 
     public Inertia() {
-        super("inertia", true, -1, 5, 0.995, 5000, "%player% failed inertia. VL: %vl%", null);
+        super("inertia", true, -1, 5, 0.995, 5000, "%player% failed inertia, VL: %vl%", null);
         lastTickOnGround = new HashMap<>();
     }
 

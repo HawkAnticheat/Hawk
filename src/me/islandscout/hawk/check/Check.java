@@ -122,7 +122,7 @@ public abstract class Check<E extends Event> {
 
         flag(offender, pp, placeholders);
 
-        CommandExecutor.runACommand(punishCommands, this, vlAmnt, offender, pp, hawk, placeholders);
+        hawk.getCommandExecutor().runACommand(punishCommands, this, vlAmnt, offender, pp, hawk, placeholders);
     }
 
     protected void reward(HawkPlayer pp) {

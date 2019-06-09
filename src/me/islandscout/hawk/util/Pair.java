@@ -18,6 +18,8 @@
 
 package me.islandscout.hawk.util;
 
+import java.util.Objects;
+
 //Because OpenJDK does not include JavaFX, I need to make my own Pair.
 public class Pair<K,V> {
 
@@ -44,6 +46,16 @@ public class Pair<K,V> {
 
     public void setValue(V value) {
         this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Pair && ((Pair) obj).key.equals(key) && ((Pair) obj).value.equals(value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key, value);
     }
 
     @Override

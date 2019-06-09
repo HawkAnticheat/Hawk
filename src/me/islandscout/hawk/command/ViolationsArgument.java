@@ -18,26 +18,50 @@
 
 package me.islandscout.hawk.command;
 
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.Check;
+import me.islandscout.hawk.util.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.*;
+
 public class ViolationsArgument extends Argument {
 
     ViolationsArgument() {
-        super("vl", "<player> <check>", "Get the VL of a player for a specified check.");
+        super("vl", "<player> [check]", "Get the VLs of a player.");
     }
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        if (args.length < 3)
+        if (args.length < 2)
             return false;
         Player target = Bukkit.getPlayer(args[1]);
         if (target == null) {
             sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[1] + "\"");
+            return true;
+        }
+        if(args.length < 3) {
+            sender.sendMessage(ChatColor.GOLD + "" + target.getName() + "'s top 5 VLs:");
+
+            HawkPlayer pp = hawk.getHawkPlayer(target);
+            List<Map.Entry<Check, Double>> list = new LinkedList<>(pp.getVLs().entrySet());
+            list.sort(Comparator.comparing(Map.Entry::getValue));
+
+            int line = 0;
+            for(int i = list.size() - 1; i >= 0 && line < 5; i--) {
+                Map.Entry<Check, Double> entry = list.get(i);
+                int vl = (int)(double)entry.getValue();
+                if(vl == 0)
+                    continue;
+                sender.sendMessage(ChatColor.GOLD + "" + entry.getKey() + ": " + vl);
+                line++;
+            }
+
+            sender.sendMessage(ChatColor.GOLD + "----");
             return true;
         }
         for (Check check : hawk.getCheckManager().getChecks()) {
