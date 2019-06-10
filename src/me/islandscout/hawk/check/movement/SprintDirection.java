@@ -37,7 +37,7 @@ public class SprintDirection extends MovementCheck {
     protected void check(MoveEvent e) {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
-        if(!pp.isSprinting()) {
+        if(!pp.isSprinting() || pp.isSwimming()) {
             return;
         }
         Vector look = MathPlus.getDirection(e.getTo().getYaw(), e.getTo().getPitch()).setY(0);

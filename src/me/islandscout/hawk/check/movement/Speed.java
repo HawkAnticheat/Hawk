@@ -30,6 +30,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -117,7 +118,7 @@ public class Speed extends MovementCheck implements Listener {
         long ticksSinceSprintJumping = pp.getCurrentTick() - sprintingJumpTick.getOrDefault(p.getUniqueId(), -10L);
         long ticksSinceOnGround = pp.getCurrentTick() - lastTickOnGround.getOrDefault(p.getUniqueId(), -10L);
         boolean flying = (pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying();
-        boolean swimming = pp.isSwimming();
+        boolean swimming = pp.isInLiquid(); //this needs improvement
         boolean up = event.getTo().getY() > event.getFrom().getY();
         boolean usingSomething = !IGNORE_ITEM_USE && (pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow());
         boolean sprinting = pp.isSprinting() && !pp.isSneaking() && !usingSomething;
@@ -136,7 +137,23 @@ public class Speed extends MovementCheck implements Listener {
         boolean checked = true;
         //LIQUID
         if(swimming) {
-            discrepancy = waterMapping(lastSpeed, speed);
+
+            Vector move = new Vector(event.getTo().getX() - event.getFrom().getX(), 0, event.getTo().getZ() - event.getFrom().getZ());
+            Vector waterForce = event.getWaterFlowForce().clone().setY(0).normalize().multiply(Physics.WATER_FLOW_FORCE_MULTIPLIER);
+            double waterForceLength = waterForce.length();
+            double computedForce = MathPlus.cos(move.angle(waterForce)) * waterForceLength;
+
+            computedForce += 0.003; //add epsilon to allow room for error
+
+            if(Double.isNaN(computedForce)) {
+                computedForce = waterForceLength;
+                //wtf how can this still be NaN?
+                if(Double.isNaN(computedForce)) {
+                    computedForce = 0;
+                }
+            }
+
+            discrepancy = waterMapping(lastSpeed, speed, computedForce);
             if(discrepancy.value > 0)
                 failed = SpeedType.WATER;
         }
@@ -411,8 +428,8 @@ public class Speed extends MovementCheck implements Listener {
     }
 
     //speed potions do not affect swimming
-    private Discrepancy waterMapping(double lastSpeed, double currentSpeed) {
-        double expected = 0.800001 * lastSpeed + 0.020001;
+    private Discrepancy waterMapping(double lastSpeed, double currentSpeed, double waterFlowForce) {
+        double expected = 0.800001 * lastSpeed + 0.020001 + waterFlowForce;
         return new Discrepancy(expected, currentSpeed);
     }
 
