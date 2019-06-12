@@ -65,7 +65,7 @@ public class LagCompensator implements Listener {
                 Set<Entity> collectedEntities = new HashSet<>();
 
                 for(Player p : Bukkit.getOnlinePlayers()) {
-                    List<Entity> nearbyEntities = p.getNearbyEntities(20, 10, 20);
+                    List<Entity> nearbyEntities = p.getNearbyEntities(20, 10, 20); //TODO make this range configurable
                     for(Entity entity : nearbyEntities) {
                         //add anything that moves and is clickable
                         if(entity instanceof LivingEntity || entity instanceof Vehicle || entity instanceof Fireball) {
@@ -86,7 +86,7 @@ public class LagCompensator implements Listener {
                 }
 
             }
-        }, 20);
+        }, 20); //TODO and make this polling interval configurable
 
         hawk.getHawkSyncTaskScheduler().addRepeatingTask(new Runnable() {
             @Override

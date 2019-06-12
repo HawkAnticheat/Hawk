@@ -40,12 +40,6 @@ public class Speed extends MovementCheck implements Listener {
     //Do you realize how much easier it would be if
     //the server handled movement?
 
-    //If you can check axes X and Z independently, that would be totally AWESOME.
-    //Theoretically stop ANY advantageous horizontal movement mods. Plus, this will
-    //help with water flow direction. You'd need to rename this to something more
-    //relevant, such as MotionHorizontal or HorizontalIndependentAxisAcceleration.
-
-    //TODO Shrink this code
     //TODO False flag when landing on ice
     //TODO False flag with pistons
     //TODO Make sure to handle slime block bounces (Remember: sprint-BOUNCING on slime blocks is NOT sprint-JUMPING, so no speed boost)
@@ -136,7 +130,7 @@ public class Speed extends MovementCheck implements Listener {
         Discrepancy discrepancy = new Discrepancy(0, 0);
         boolean checked = true;
         //LIQUID
-        if(swimming) {
+        if(swimming && !flying) {
 
             Vector move = new Vector(event.getTo().getX() - event.getFrom().getX(), 0, event.getTo().getZ() - event.getFrom().getZ());
             Vector waterForce = event.getWaterFlowForce().clone().setY(0).normalize().multiply(Physics.WATER_FLOW_FORCE_MULTIPLIER);

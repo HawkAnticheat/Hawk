@@ -16,26 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.check.interaction;
+package me.islandscout.hawk.event;
 
-import me.islandscout.hawk.check.CustomCheck;
-import me.islandscout.hawk.event.ArmSwingEvent;
-import me.islandscout.hawk.event.Event;
+import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.util.packet.WrappedPacket;
+import org.bukkit.entity.Player;
 
-public class SwordBlockHit extends CustomCheck {
+public class BadEvent extends Event {
 
-    //MutiAction check might be able to replace this. Just remember to fix Hawk's digging tracker
-
-    public SwordBlockHit() {
-        super("swordblockhit", "%player% failed sword block-hit, VL: %vl%");
-    }
-
-    @Override
-    protected void check(Event e) {
-        //ignore creative
-        //ignore if interacting with instant break block. might need to change how the dig tracker works
-        if(e instanceof ArmSwingEvent && e.getHawkPlayer().isBlocking() && !e.getHawkPlayer().isDigging()) {
-
-        }
+    public BadEvent(Player p, HawkPlayer pp, WrappedPacket wPacket) {
+        super(p, pp, wPacket);
     }
 }

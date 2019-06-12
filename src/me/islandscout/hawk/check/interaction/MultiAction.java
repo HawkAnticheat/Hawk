@@ -27,7 +27,7 @@ import me.islandscout.hawk.event.InteractWorldEvent;
 
 public class MultiAction extends CustomCheck {
 
-    //I think 1.7 clients can punch blocks while eating. I might need to look into this.
+    //I think 1.7 clients can punch blocks while eating/blocking. I might need to look into this.
 
     public MultiAction() {
         super("multiaction", false, 0, 10, 0.95, 5000, "%player% failed multi-action, VL: %vl%", null);

@@ -21,11 +21,13 @@ package me.islandscout.hawk.util.packet;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
 import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.util.block.BlockNMS;
 import me.islandscout.hawk.util.block.BlockNMS7;
 import net.minecraft.server.v1_7_R4.*;
 import net.minecraft.util.io.netty.buffer.Unpooled;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
@@ -93,7 +95,7 @@ public final class PacketConverter7 {
         return null;
     }
 
-    private static MoveEvent packetToPosEvent(PacketPlayInFlying packet, Player p, HawkPlayer pp) {
+    private static Event packetToPosEvent(PacketPlayInFlying packet, Player p, HawkPlayer pp) {
         //default position
         Location loc = pp.getLocation();
 
@@ -124,6 +126,11 @@ public final class PacketConverter7 {
             loc.setX(packet.c());
             loc.setY(packet.d());
             loc.setZ(packet.e());
+        }
+
+        //Spigot already does NaN checks
+        if(Math.abs(loc.getX()) >= Integer.MAX_VALUE || Math.abs(loc.getY()) >= Integer.MAX_VALUE || Math.abs(loc.getZ()) >= Integer.MAX_VALUE) {
+            return new BadEvent(p, pp, new WrappedPacket7(packet, pType));
         }
 
         return new MoveEvent(p, loc, packet.i(), pp, new WrappedPacket7(packet, pType), updatePos, updateRot);

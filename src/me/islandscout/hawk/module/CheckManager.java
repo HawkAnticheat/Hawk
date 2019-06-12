@@ -88,7 +88,7 @@ public class CheckManager {
         new AimbotPrecision();
         new ItemUseSpeed();
         new FightSynchronized();
-        //new SwordBlockHit();
+        //new AimbotConvergence();
     }
 
     public void unloadChecks() {

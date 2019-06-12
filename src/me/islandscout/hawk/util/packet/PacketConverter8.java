@@ -104,7 +104,7 @@ public final class PacketConverter8 {
         return null;
     }
 
-    private static MoveEvent packetToPosEvent(PacketPlayInFlying packet, Player p, HawkPlayer pp) {
+    private static Event packetToPosEvent(PacketPlayInFlying packet, Player p, HawkPlayer pp) {
         //default position
         Location loc = pp.getLocation();
 
@@ -134,6 +134,11 @@ public final class PacketConverter8 {
             loc.setX(packet.a());
             loc.setY(packet.b());
             loc.setZ(packet.c());
+        }
+
+        //Spigot already does NaN checks
+        if(Math.abs(loc.getX()) >= Integer.MAX_VALUE || Math.abs(loc.getY()) >= Integer.MAX_VALUE || Math.abs(loc.getZ()) >= Integer.MAX_VALUE) {
+            return new BadEvent(p, pp, new WrappedPacket8(packet, pType));
         }
 
         return new MoveEvent(p, loc, packet.f(), pp, new WrappedPacket8(packet, pType), updatePos, updateRot);
