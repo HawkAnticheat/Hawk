@@ -88,8 +88,10 @@ public class PacketCore implements Listener {
             event = PacketConverter7.packetInboundToEvent(packet, p, pp);
         else
             return true;
-        if (event == null || event instanceof BadEvent)
+        if (event == null)
             return true;
+        if (event instanceof BadEvent)
+            return false;
 
         if (event instanceof MoveEvent) {
             MoveEvent posEvent = (MoveEvent) event;
