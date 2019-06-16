@@ -28,6 +28,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -78,6 +79,83 @@ public class MoveEvent extends Event {
         jumped = testJumped();
         slimeBlockBounce = testSlimeBlockBounce();
         waterFlowForce = computeWaterFlowForce();
+    }
+
+    @Override
+    public boolean preProcess() {
+        setTeleported(false);
+        pp.incrementCurrentTick();
+        if(isUpdatePos())
+            pp.setHasMoved();
+        //handle teleports
+        if (pp.isTeleporting()) {
+            Location tpLoc = pp.getTeleportLoc();
+            //accepted teleport
+            if (tpLoc.getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(tpLoc) < 0.001) {
+                pp.setLocation(tpLoc);
+                pp.setTeleporting(false);
+                setTeleported(true);
+            } else if(!pp.getPlayer().isSleeping()){
+                //Help guide the confused client back to the tp location
+                if (pp.getCurrentTick() - pp.getLastTeleportTime() > (pp.getPing() / 50) + 5) { //5 is an arbitrary constant to keep things smooth
+                    pp.teleport(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                }
+                return false;
+            }
+        }
+        //handle illegal move or discrepancy
+        else if (getFrom().getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(getFrom()) > 64) {
+            cancelAndSetBack(p.getLocation());
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void postProcess() {
+        pp.setLastMoveTime(System.currentTimeMillis());
+        if(isCancelled()) {
+            //handle rubberband if applicable
+            if(getCancelLocation() != null) {
+                setTo(getCancelLocation());
+                pp.setTeleporting(true);
+                pp.teleport(getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+            } else {
+                //2/17/19: well, technically this shouldn't be allowed. I did
+                //this so at least some other check such as speed can rubberband
+                //if tickrate fails. If tickrate rubberbands, that'll just spam
+                //more packets. And if someone fails tickrate then they'll just spam
+                //speed, especially if speed isn't set to rubberband.
+
+                //((MoveEvent) event).setTo(((MoveEvent) event).getFrom());
+            }
+        } else {
+            //handle item consumption
+            if(pp.getCurrentTick() - pp.getItemUseTick() > 31 && pp.isConsumingItem()) {
+                pp.setConsumingItem(false);
+            }
+
+            //handle swimming
+            pp.setInLiquid(isInLiquid());
+            if(pp.getCurrentTick() < 2)
+                pp.setSwimming(pp.isInLiquid());
+            long ticksSinceSwimToggle = pp.getCurrentTick() - pp.getLastInLiquidToggleTick();
+            pp.setSwimming(!pp.isFlyingClientside() && ((pp.isInLiquid() && ticksSinceSwimToggle > 0) || (!pp.isInLiquid() && ticksSinceSwimToggle < 1)));
+
+            Location to = getTo();
+            Location from = getFrom();
+            pp.setVelocity(new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ()));
+            pp.setDeltaYaw(to.getYaw() - from.getYaw());
+            pp.setDeltaPitch(to.getPitch() - from.getPitch());
+            pp.setLocation(to);
+            pp.updateFallDistance(to);
+            pp.updateTotalAscensionSinceGround(from.getY(), to.getY());
+            pp.setOnGround(isOnGround());
+            pp.setOnGroundReally(isOnGroundReally());
+            pp.getBoxSidesTouchingBlocks().clear();
+            pp.getBoxSidesTouchingBlocks().addAll(getBoxSidesTouchingBlocks());
+            pp.setWaterFlowForce(getWaterFlowForce());
+        }
     }
 
     //Good thing I have MCP to figure this one out

@@ -31,6 +31,16 @@ public class ItemSwitchEvent extends Event {
         this.slotIndex = slotIndex;
     }
 
+    @Override
+    public void postProcess() {
+        if (!isCancelled()) {
+            pp.setHeldItemSlot(getSlotIndex());
+            pp.setConsumingItem(false);
+            pp.setBlocking(false);
+            pp.setPullingBow(false);
+        }
+    }
+
     public int getSlotIndex() {
         return slotIndex;
     }

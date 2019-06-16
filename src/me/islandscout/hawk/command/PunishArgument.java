@@ -31,7 +31,7 @@ import java.util.Arrays;
 public class PunishArgument extends Argument {
 
     PunishArgument() {
-        super("punish", "<list> | <<info> <player>> | <<'add' | 'remove' | 'authorize'> <player> [reason]>", "Manage Hawk's PunishmentScheduler");
+        super("punish", "<'list'> | <<'info'> <player>> | <<'add' | 'remove' | 'authorize'> <player> [reason]>", "Manage Hawk's PunishmentScheduler");
     }
 
     @Override

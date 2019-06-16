@@ -19,6 +19,7 @@
 package me.islandscout.hawk.event;
 
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.util.ClientBlock;
 import me.islandscout.hawk.util.packet.WrappedPacket;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -40,6 +41,14 @@ public class InteractWorldEvent extends Event {
         this.material = material;
         this.blockFace = blockFace;
         this.interactionType = interactionType;
+    }
+
+    @Override
+    public void postProcess() {
+        if (!isCancelled() && getInteractionType() == InteractWorldEvent.InteractionType.PLACE_BLOCK) {
+            ClientBlock clientBlock = new ClientBlock(getPlacedBlockLocation(), pp.getCurrentTick(), getPlacedBlockMaterial());
+            pp.addClientBlock(clientBlock);
+        }
     }
 
     public InteractionType getInteractionType() {

@@ -27,4 +27,9 @@ public class BadEvent extends Event {
     public BadEvent(Player p, HawkPlayer pp, WrappedPacket wPacket) {
         super(p, pp, wPacket);
     }
+
+    @Override
+    public boolean preProcess() {
+        return false;
+    }
 }

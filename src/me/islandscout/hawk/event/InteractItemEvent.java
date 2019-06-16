@@ -20,8 +20,12 @@ package me.islandscout.hawk.event;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.packet.WrappedPacket;
+import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.Potion;
 
 public class InteractItemEvent extends Event {
 
@@ -32,6 +36,39 @@ public class InteractItemEvent extends Event {
         super(p, pp, wPacket);
         this.type = type;
         this.itemStack = itemStack;
+    }
+
+    @Override
+    public void postProcess() {
+        if (!isCancelled()) {
+            Material mat = getItemStack().getType();
+            if(getType() == InteractItemEvent.Type.START_USE_ITEM) {
+                if((mat.isEdible() && p.getFoodLevel() < 20 && p.getGameMode() != GameMode.CREATIVE) ||
+                        //TODO: Fix IllegalArgumentException when consuming water bottles
+                        (mat == Material.POTION && !Potion.fromItemStack(getItemStack()).isSplash())) {
+                    pp.setConsumingItem(true);
+                }
+                if(EnchantmentTarget.WEAPON.includes(mat)) {
+                    pp.setBlocking(true);
+                }
+                if(mat == Material.BOW && (p.getInventory().contains(Material.ARROW) || p.getGameMode() == GameMode.CREATIVE)) {
+                    pp.setPullingBow(true);
+                }
+            }
+            else if(getType() == InteractItemEvent.Type.RELEASE_USE_ITEM) {
+                if((mat.isEdible() && p.getFoodLevel() < 20 && p.getGameMode() != GameMode.CREATIVE) ||
+                        //TODO: Fix IllegalArgumentException when consuming water bottles
+                        (mat == Material.POTION && !Potion.fromItemStack(getItemStack()).isSplash())) {
+                    pp.setConsumingItem(false);
+                }
+                if(EnchantmentTarget.WEAPON.includes(mat)) {
+                    pp.setBlocking(false);
+                }
+                if(mat == Material.BOW && (p.getInventory().contains(Material.ARROW) || p.getGameMode() == GameMode.CREATIVE)) {
+                    pp.setPullingBow(false);
+                }
+            }
+        }
     }
 
     public Type getType() {

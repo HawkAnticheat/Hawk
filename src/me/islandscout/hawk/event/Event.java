@@ -35,6 +35,16 @@ public abstract class Event {
         this.wPacket = wPacket;
     }
 
+    //to be implemented by other Events
+    public boolean preProcess() {
+        return true;
+    }
+
+    //to be implemented by other Events
+    public void postProcess() {
+
+    }
+
     public boolean isCancelled() {
         return cancelled;
     }

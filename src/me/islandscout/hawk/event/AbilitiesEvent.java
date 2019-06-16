@@ -31,6 +31,13 @@ public class AbilitiesEvent extends Event {
         this.flying = flying;
     }
 
+    @Override
+    public void postProcess() {
+        if (!isCancelled() && isFlying()) {
+            pp.setFlyPendingTime(System.currentTimeMillis());
+        }
+    }
+
     public boolean isFlying() {
         return flying;
     }

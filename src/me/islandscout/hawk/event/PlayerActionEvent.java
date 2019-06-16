@@ -31,6 +31,26 @@ public class PlayerActionEvent extends Event {
         this.action = action;
     }
 
+    @Override
+    public void postProcess() {
+        if (!isCancelled()) {
+            switch (action) {
+                case SNEAK_START:
+                    pp.setSneaking(true);
+                    break;
+                case SNEAK_STOP:
+                    pp.setSneaking(false);
+                    break;
+                case SPRINT_START:
+                    pp.setSprinting(true);
+                    break;
+                case SPRINT_STOP:
+                    pp.setSprinting(false);
+                    break;
+            }
+        }
+    }
+
     public PlayerAction getAction() {
         return action;
     }

@@ -34,6 +34,16 @@ public class InteractEntityEvent extends Event {
         this.entity = entity;
     }
 
+    @Override
+    public void postProcess() {
+        if(!isCancelled() && getInteractAction() == InteractAction.ATTACK) {
+            pp.updateItemUsedForAttack();
+            if(getEntity() instanceof Player) {
+                pp.updateLastAttackedPlayerTick();
+            }
+        }
+    }
+
     public InteractAction getInteractAction() {
         return interactAction;
     }

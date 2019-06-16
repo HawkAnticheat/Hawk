@@ -136,8 +136,8 @@ public final class PacketConverter8 {
             loc.setZ(packet.c());
         }
 
-        //Spigot already does NaN checks
-        if(Math.abs(loc.getX()) >= Integer.MAX_VALUE || Math.abs(loc.getY()) >= Integer.MAX_VALUE || Math.abs(loc.getZ()) >= Integer.MAX_VALUE) {
+        if(Math.abs(loc.getX()) >= Integer.MAX_VALUE || Math.abs(loc.getY()) >= Integer.MAX_VALUE || Math.abs(loc.getZ()) >= Integer.MAX_VALUE ||
+                Double.isNaN(loc.getX()) || Double.isNaN(loc.getY()) || Double.isNaN(loc.getZ())) {
             return new BadEvent(p, pp, new WrappedPacket8(packet, pType));
         }
 

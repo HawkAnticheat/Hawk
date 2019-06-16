@@ -128,22 +128,23 @@ public final class PacketConverter7 {
             loc.setZ(packet.e());
         }
 
-        //Spigot already does NaN checks
-        if(Math.abs(loc.getX()) >= Integer.MAX_VALUE || Math.abs(loc.getY()) >= Integer.MAX_VALUE || Math.abs(loc.getZ()) >= Integer.MAX_VALUE) {
+        if(Math.abs(loc.getX()) >= Integer.MAX_VALUE || Math.abs(loc.getY()) >= Integer.MAX_VALUE || Math.abs(loc.getZ()) >= Integer.MAX_VALUE ||
+            Double.isNaN(loc.getX()) || Double.isNaN(loc.getY()) || Double.isNaN(loc.getZ())) {
             return new BadEvent(p, pp, new WrappedPacket7(packet, pType));
         }
 
         return new MoveEvent(p, loc, packet.i(), pp, new WrappedPacket7(packet, pType), updatePos, updateRot);
     }
 
-    private static InteractEntityEvent packetToInterEvent(PacketPlayInUseEntity packet, Player p, HawkPlayer pp) {
+    private static Event packetToInterEvent(PacketPlayInUseEntity packet, Player p, HawkPlayer pp) {
         if (packet.c() == null) return null;
         InteractAction action;
         if (packet.c() == EnumEntityUseAction.ATTACK) action = InteractAction.ATTACK;
         else action = InteractAction.INTERACT;
         //get interacted entity. phew.
         Entity nmsEntity = packet.a(((CraftWorld) pp.getLocation().getWorld()).getHandle());
-        if (nmsEntity == null) return null; //interacting with a non-existent entity
+        if (nmsEntity == null)
+            return new BadEvent(p, pp, new WrappedPacket7(packet, WrappedPacket.PacketType.USE_ENTITY)); //interacting with a non-existent entity
         org.bukkit.entity.Entity entity = nmsEntity.getBukkitEntity();
         return new InteractEntityEvent(p, pp, action, entity, new WrappedPacket7(packet, WrappedPacket.PacketType.USE_ENTITY));
     }
@@ -172,7 +173,7 @@ public final class PacketConverter7 {
                 interactAction = InteractItemEvent.Type.RELEASE_USE_ITEM;
                 break;
             default:
-                return null;
+                return new BadEvent(p, pp, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_DIG));
         }
         if(interactAction == null) {
             Location loc = new Location(p.getWorld(), packet.c(), packet.d(), packet.e());
