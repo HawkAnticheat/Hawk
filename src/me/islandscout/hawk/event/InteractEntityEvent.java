@@ -19,9 +19,12 @@
 package me.islandscout.hawk.event;
 
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.WrappedPacket;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class InteractEntityEvent extends Event {
 
@@ -36,10 +39,17 @@ public class InteractEntityEvent extends Event {
 
     @Override
     public void postProcess() {
-        if(!isCancelled() && getInteractAction() == InteractAction.ATTACK) {
+        //We won't ignore if it's cancelled because otherwise that would set off
+        //movement false flags regarding the hit slowdown mechanic. (Look at the
+        //MoveEvent class for more information.)
+        if(/*!isCancelled() && */getInteractAction() == InteractAction.ATTACK) {
             pp.updateItemUsedForAttack();
             if(getEntity() instanceof Player) {
                 pp.updateLastAttackedPlayerTick();
+                ItemStack heldItem = pp.getItemUsedForAttack();
+                if(pp.isSprinting() || (heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0)) {
+                    pp.updateHitSlowdownTick();
+                }
             }
         }
     }

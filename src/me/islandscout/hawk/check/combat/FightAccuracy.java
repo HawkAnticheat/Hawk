@@ -26,6 +26,7 @@ import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -63,7 +64,7 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
         EFFORT_THRESHOLD = (double)customSetting("effortThreshold", "", 0.7D);
         ACCURACY_THRESHOLD = (double)customSetting("accuracyThreshold", "", 0.9D);
         SWINGS_UNTIL_CHECK = (int)customSetting("swingsUntilCheck", "", 20);
-        MIN_PRECISION_THRESHOLD = (double)customSetting("minPrecisionThreshold", "", 0.3D);
+        MIN_PRECISION_THRESHOLD = (double)customSetting("minPrecisionThreshold", "", 0.3D); //TODO change to 0.18? Was pretty sensitive on 0.1
         DEBUG = (boolean)customSetting("debug", "", false);
     }
 
@@ -146,15 +147,22 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
             swingTick.put(uuid, att.getCurrentTick());
         }
 
+        //Need to get the reference of the locations ONCE since the HawkPlayer#getLocation() is currently implemented incorrectly
+        //(i.e. not thread safe; still being accessed by multiple threads)
+        //These won't change unless something on the main thread does HawkPlayer#getLocation().set... between now
+        //and the next 10 lines. 6/19/19
+        Location attackerLoc = att.getLocation();
+        Location victimLoc = att.getLocation();
+
         //determine how far the opponent has moved horizontally on local coordinates and compute required mouse precision
-        if(!att.getPlayer().getWorld().equals(victim.getPlayer().getWorld()))
+        if(!attackerLoc.getWorld().equals(victimLoc.getWorld()))
             return;
         Vector victimVelocity = victim.getVelocity().clone().setY(0);
         Vector attackerDirection = att.getPlayer().getLocation().getDirection().clone().setY(0);
         double localMovement = MathPlus.sin(victimVelocity.angle(attackerDirection)) * victimVelocity.length();
         if(Double.isNaN(localMovement))
             localMovement = 0D;
-        double requiredPrecision = localMovement * att.getLocation().distance(victim.getLocation());
+        double requiredPrecision = localMovement * attackerLoc.distance(victimLoc);
         double effort = this.effort.getOrDefault(uuid, 0D);
 
         if(DEBUG) {

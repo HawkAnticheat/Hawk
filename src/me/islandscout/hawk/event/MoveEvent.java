@@ -23,6 +23,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.block.BlockNMS;
 import me.islandscout.hawk.util.packet.WrappedPacket;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -70,8 +71,7 @@ public class MoveEvent extends Event {
         this.updateRot = updateRot;
         this.onGround = onGround;
         this.liquidTypes = new HashSet<>();
-        ItemStack heldItem = pp.getItemUsedForAttack();
-        hitSlowdown = pp.getLastAttackedPlayerTick() == pp.getCurrentTick() && (pp.isSprinting() || (heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0));
+        hitSlowdown = pp.hasHitSlowdown();
         boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld(), 0.0001);
         acceptedKnockback = handlePendingVelocities();
         liquidsAndDirections = testLiquids();
@@ -225,6 +225,7 @@ public class MoveEvent extends Event {
     }
 
     //This literally makes me want to punch a wall.
+    //TODO: detect w-taps heuristically to allow some unexpected hit-slowdowns. damn I hate this game
     private Vector handlePendingVelocities() {
         List<Pair<Vector, Long>> kbs = pp.getPendingVelocities();
         if (kbs.size() > 0) {

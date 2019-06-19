@@ -98,7 +98,7 @@ public class PacketCore implements Listener {
         return !event.isCancelled();
     }
 
-    //These packets will be converted into Bukkit Events and will be broadcasted on the main thread
+    //These packets will be converted into Bukkit Events and will be broadcasted using Bukkit's event system
     public void processOut(Object packet, Player p) {
         org.bukkit.event.Event event = convertPacketOutboundToEvent(packet, p);
         if (event == null)

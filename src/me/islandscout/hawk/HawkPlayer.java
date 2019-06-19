@@ -40,6 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class HawkPlayer {
 
+    //TODO You need to consider thread safety! Some of these fields are being modified by multiple threads without any sync system!
+
     private final UUID uuid;
     private final Map<Check, Double> vl;
     private boolean digging;
@@ -72,6 +74,7 @@ public class HawkPlayer {
     private long lastAttackedPlayerTick;
     private long lastInLiquidToggleTick;
     private long lastMoveTick;
+    private long hitSlowdownTick;
     private ItemStack itemUsedForAttack;
     private double maxY;
     private double jumpedHeight;
@@ -93,6 +96,7 @@ public class HawkPlayer {
         this.onGround = ((Entity) p).isOnGround();
         this.hawk = hawk;
         this.ping = ServerUtils.getPing(p);
+        this.heldItemSlot = p.getInventory().getHeldItemSlot();
         clientBlocks = new HashSet<>();
         pendingVelocities = new ArrayList<>();
         boxSidesTouchingBlocks = new HashSet<>();
@@ -347,6 +351,18 @@ public class HawkPlayer {
 
     public long getLastInLiquidToggleTick() {
         return lastInLiquidToggleTick;
+    }
+
+    public long getHitSlowdownTick() {
+        return hitSlowdownTick;
+    }
+
+    public void updateHitSlowdownTick() {
+        this.hitSlowdownTick = currentTick;
+    }
+
+    public boolean hasHitSlowdown() {
+        return hitSlowdownTick == currentTick;
     }
 
     public boolean isSwimming() {
