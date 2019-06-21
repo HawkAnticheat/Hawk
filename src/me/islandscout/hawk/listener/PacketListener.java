@@ -18,7 +18,7 @@
 
 package me.islandscout.hawk.listener;
 
-import me.islandscout.hawk.module.PacketCore;
+import me.islandscout.hawk.module.PacketHandler;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import org.bukkit.entity.Player;
@@ -30,7 +30,7 @@ import java.util.List;
 public abstract class PacketListener {
 
     private boolean running;
-    private final PacketCore packetCore;
+    private final PacketHandler packetHandler;
     private List<PacketAdapter> adaptersInbound;
     private List<PacketAdapter> adaptersOutbound;
 
@@ -38,8 +38,8 @@ public abstract class PacketListener {
     private Thread hawkAsyncCheckThread;
     private List<Pair<Pair<Object, Player>, Boolean>> asyncQueuedPackets; //<<packet, player>, inbound>
 
-    PacketListener(PacketCore packetCore, boolean async) {
-        this.packetCore = packetCore;
+    PacketListener(PacketHandler packetHandler, boolean async) {
+        this.packetHandler = packetHandler;
         this.adaptersInbound = new ArrayList<>();
         this.adaptersOutbound = new ArrayList<>();
         this.async = async;
@@ -109,7 +109,7 @@ public abstract class PacketListener {
                 adapter.run(packet, p);
             }
 
-            if (!packetCore.processIn(packet, p))
+            if (!packetHandler.processIn(packet, p))
                 return false;
         } catch (Exception e) {
             e.printStackTrace();
@@ -123,7 +123,7 @@ public abstract class PacketListener {
                 adapter.run(packet, p);
             }
 
-            packetCore.processOut(packet, p);
+            packetHandler.processOut(packet, p);
         } catch (Exception e) {
             e.printStackTrace();
         }

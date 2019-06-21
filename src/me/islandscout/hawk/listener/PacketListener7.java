@@ -18,7 +18,7 @@
 
 package me.islandscout.hawk.listener;
 
-import me.islandscout.hawk.module.PacketCore;
+import me.islandscout.hawk.module.PacketHandler;
 import net.minecraft.util.io.netty.channel.ChannelDuplexHandler;
 import net.minecraft.util.io.netty.channel.ChannelHandlerContext;
 import net.minecraft.util.io.netty.channel.ChannelPromise;
@@ -29,8 +29,8 @@ import java.lang.reflect.Field;
 
 public class PacketListener7 extends PacketListener {
 
-    public PacketListener7(PacketCore packetCore, boolean async) {
-        super(packetCore, async);
+    public PacketListener7(PacketHandler packetHandler, boolean async) {
+        super(packetHandler, async);
     }
 
     public void add(Player p) {

@@ -76,7 +76,7 @@ public class Test {
             }
         };
 
-        hawk.getPacketCore().addPacketAdapterOutbound(adapter);
+        hawk.getPacketHandler().addPacketAdapterOutbound(adapter);
     }
 
     public void skid() {
@@ -125,6 +125,6 @@ public class Test {
             }
         };
 
-        hawk.getPacketCore().addPacketAdapterOutbound(adapter);
+        hawk.getPacketHandler().addPacketAdapterOutbound(adapter);
     }
 }

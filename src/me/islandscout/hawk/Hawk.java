@@ -46,7 +46,7 @@ public class Hawk extends JavaPlugin {
     private CheckManager checkManager;
     private SQLModule sqlModule;
     private Hawk plugin;
-    private PacketCore packetCore;
+    private PacketHandler packetHandler;
     private ViolationLogger violationLogger;
     private FileConfiguration messages;
     private FileConfiguration checksConfig;
@@ -121,9 +121,9 @@ public class Hawk extends JavaPlugin {
         bungeeBridge = new BungeeBridge(this, ConfigHelper.getOrSetDefault(false, getConfig(), "enableBungeeAlerts"));
         checkManager = new CheckManager(plugin);
         checkManager.loadChecks();
-        packetCore = new PacketCore(this);
-        packetCore.startListener();
-        packetCore.setupListenerForOnlinePlayers();
+        packetHandler = new PacketHandler(this);
+        packetHandler.startListener();
+        packetHandler.setupListenerForOnlinePlayers();
         mouseRecorder = new MouseRecorder(this);
 
         registerCommand();
@@ -133,8 +133,8 @@ public class Hawk extends JavaPlugin {
 
     public void unloadModules() {
         getLogger().info("Unloading modules...");
-        if(packetCore != null)
-            packetCore.killListener();
+        if(packetHandler != null)
+            packetHandler.killListener();
         getCommand("hawk").setExecutor(null);
         HandlerList.unregisterAll(this);
         if(guiManager != null)
@@ -292,8 +292,8 @@ public class Hawk extends JavaPlugin {
         return muteManager;
     }
 
-    public PacketCore getPacketCore() {
-        return packetCore;
+    public PacketHandler getPacketHandler() {
+        return packetHandler;
     }
 
     public MouseRecorder getMouseRecorder() {

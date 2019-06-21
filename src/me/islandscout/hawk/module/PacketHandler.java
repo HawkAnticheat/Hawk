@@ -46,7 +46,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * This class is mainly used to process packets that are intercepted from the Netty channels.
  * Remember, caution is advised when accessing the Bukkit API from the Netty thread.
  */
-public class PacketCore implements Listener {
+public class PacketHandler implements Listener {
 
     //Welcome to TCP damnation.
 
@@ -56,7 +56,7 @@ public class PacketCore implements Listener {
     private List<HawkEventListener> hawkEventListeners;
     private final boolean async;
 
-    public PacketCore(Hawk hawk) {
+    public PacketHandler(Hawk hawk) {
         this.serverVersion = Hawk.getServerVersion();
         this.hawk = hawk;
         async = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "asyncChecking");

@@ -19,15 +19,15 @@
 package me.islandscout.hawk.listener;
 
 import io.netty.channel.*;
-import me.islandscout.hawk.module.PacketCore;
+import me.islandscout.hawk.module.PacketHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 public class PacketListener8 extends PacketListener {
 
-    public PacketListener8(PacketCore packetCore, boolean async) {
-        super(packetCore, async);
+    public PacketListener8(PacketHandler packetHandler, boolean async) {
+        super(packetHandler, async);
     }
 
     public void add(Player p) {

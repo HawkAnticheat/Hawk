@@ -61,7 +61,7 @@ public class MouseRecorder {
 
     //to be called from main thread
     public void start(CommandSender admin, Player target, float time) {
-        List<HawkEventListener> hawkListeners = hawk.getPacketCore().getHawkEventListeners();
+        List<HawkEventListener> hawkListeners = hawk.getPacketHandler().getHawkEventListeners();
         for(HawkEventListener hawkListener : hawkListeners) {
             if(hawkListener instanceof MouseRecorderListener && ((MouseRecorderListener) hawkListener).target.equals(target)) {
                 admin.sendMessage(ChatColor.RED + "" + target.getName() + " is already being recorded.");
@@ -76,7 +76,7 @@ public class MouseRecorder {
 
     //to be called from main thread
     public void stop(CommandSender admin, Player target) {
-        List<HawkEventListener> hawkListeners = hawk.getPacketCore().getHawkEventListeners();
+        List<HawkEventListener> hawkListeners = hawk.getPacketHandler().getHawkEventListeners();
         for(HawkEventListener hawkListener : hawkListeners) {
             if(hawkListener instanceof MouseRecorderListener && ((MouseRecorderListener) hawkListener).target.equals(target)) {
                 MouseRecorderListener mRecLis = (MouseRecorderListener)hawkListener;
@@ -210,7 +210,7 @@ public class MouseRecorder {
             clicks = new ArrayList<>();
             teleports = new ArrayList<>();
             this.moves = (time == 0 ? (int)(DEFAULT_TIME * 20) : (int)(time * 20));
-            hawkListeners = hawk.getPacketCore().getHawkEventListeners();
+            hawkListeners = hawk.getPacketHandler().getHawkEventListeners();
             Bukkit.getPluginManager().registerEvents(this, hawk);
         }
 
