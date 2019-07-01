@@ -58,13 +58,7 @@ public class FightReachApprox extends EntityInteractionCheck {
             return;
         HawkPlayer att = e.getHawkPlayer();
 
-        Location attackerLocation;
-        if(ServerUtils.getClientVersion(att.getPlayer()) == 7) {
-            attackerLocation = att.getPredictedLocation();
-        }
-        else {
-            attackerLocation = att.getLocation();
-        }
+        Location attackerLocation = att.getPredictedLocation();
 
         Location victimLocation;
         if (LAG_COMPENSATION)

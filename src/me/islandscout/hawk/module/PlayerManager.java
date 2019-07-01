@@ -73,7 +73,6 @@ public class PlayerManager implements Listener {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         pp.setTeleporting(true);
         pp.setTeleportLoc(e.getTo());
-        pp.setLocation(e.getTo());
         pp.setLastTeleportTime(pp.getCurrentTick());
     }
 
@@ -82,7 +81,6 @@ public class PlayerManager implements Listener {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         pp.setTeleporting(true);
         pp.setTeleportLoc(e.getPlayer().getLocation());
-        pp.setLocation(e.getPlayer().getLocation());
         pp.setLastTeleportTime(pp.getCurrentTick());
     }
 

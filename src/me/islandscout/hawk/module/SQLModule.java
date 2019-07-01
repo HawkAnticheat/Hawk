@@ -117,7 +117,6 @@ public class SQLModule {
         if (!enabled || violations.size() == 0)
             return;
 
-        //TODO: thread safety alert!!! Replace this w/ Queue?
         List<Violation> asyncList = new ArrayList<>(violations);
         violations.clear();
 
