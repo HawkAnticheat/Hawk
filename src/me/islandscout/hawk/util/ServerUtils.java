@@ -19,10 +19,14 @@
 package me.islandscout.hawk.util;
 
 import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.util.block.BlockNMS;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 public final class ServerUtils {
 
@@ -90,6 +94,29 @@ public final class ServerUtils {
     public static Chunk getChunkAsync(Location loc) {
         if (loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4))
             return loc.getChunk();
+        return null;
+    }
+
+    public static AABB[] getBlockCollisionBoxesAsyncClientSide(Location loc, HawkPlayer pp) {
+        if (loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
+            ClientBlock cb = pp.getClientBlocks().get(loc);
+            if (cb == null) {
+                return BlockNMS.getBlockNMS(loc.getBlock()).getCollisionBoxes();
+            }
+
+            AABB[] result = {null};
+            if (cb.getMaterial().isSolid()) {
+                //It would be nice if I can manage to get the correct bounding boxes for a hypothetical block.
+                //Bounding boxes depend on the data of the block. Unfortunately, data isn't stored in NMS
+                //Block; it's stored in NMS World. So, I'd need to "set" the block on the main thread, but
+                //that literally defeats the purpose of this method. My checks NEED this utility on the
+                //network thread WHILE the player is placing blocks.
+                result[0] = new AABB(loc.toVector(), loc.toVector().clone().add(new Vector(1, 1, 1)));
+                return result;
+            }
+            result[0] = new AABB(new Vector(0, 0, 0), new Vector(0, 0, 0));
+            return result;
+        }
         return null;
     }
 }

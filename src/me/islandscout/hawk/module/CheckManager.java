@@ -88,6 +88,7 @@ public class CheckManager {
         new AimbotPrecision();
         new ItemUseSpeed();
         new FightSynchronized();
+        new EntityInteractMulti();
         //new AimbotConvergence();
     }
 

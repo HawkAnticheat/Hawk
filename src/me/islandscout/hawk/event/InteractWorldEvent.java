@@ -46,8 +46,8 @@ public class InteractWorldEvent extends Event {
     @Override
     public void postProcess() {
         if (!isCancelled() && getInteractionType() == InteractWorldEvent.InteractionType.PLACE_BLOCK) {
-            ClientBlock clientBlock = new ClientBlock(getPlacedBlockLocation(), pp.getCurrentTick(), getPlacedBlockMaterial());
-            pp.addClientBlock(clientBlock);
+            ClientBlock clientBlock = new ClientBlock(pp.getCurrentTick(), getPlacedBlockMaterial());
+            pp.addClientBlock(getPlacedBlockLocation(), clientBlock);
         }
     }
 

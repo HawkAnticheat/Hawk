@@ -80,7 +80,7 @@ public class HawkPlayer {
     private double jumpedHeight;
     private long flyPendingTime;
     private int heldItemSlot;
-    private final Set<ClientBlock> clientBlocks;
+    private final Map<Location, ClientBlock> clientBlocks;
     private final List<Pair<Vector, Long>> pendingVelocities;
     private final Set<Direction> boxSidesTouchingBlocks;
     private Vector waterFlowForce;
@@ -97,7 +97,7 @@ public class HawkPlayer {
         this.hawk = hawk;
         this.ping = ServerUtils.getPing(p);
         this.heldItemSlot = p.getInventory().getHeldItemSlot();
-        clientBlocks = new HashSet<>();
+        clientBlocks = new ConcurrentHashMap<>();
         pendingVelocities = new ArrayList<>();
         boxSidesTouchingBlocks = new HashSet<>();
         this.waterFlowForce = new Vector();
@@ -417,24 +417,23 @@ public class HawkPlayer {
         return p;
     }
 
-    public Set<ClientBlock> getClientBlocks() {
+    public Map<Location, ClientBlock> getClientBlocks() {
         return clientBlocks;
     }
 
-    public void addClientBlock(ClientBlock pBlock) {
+    public void addClientBlock(Location loc, ClientBlock pBlock) {
         if (clientBlocks.size() >= ClientBlock.MAX_PER_PLAYER)
             return;
-        clientBlocks.add(pBlock);
+        clientBlocks.put(loc, pBlock);
     }
 
     private void manageClientBlocks() {
-        Set<ClientBlock> oldPBlocks = new HashSet<>();
-        for (ClientBlock loopPBlock : clientBlocks) {
-            if (currentTick - loopPBlock.getInitTick() > ClientBlock.CLIENTTICKS_UNTIL_EXPIRE) {
-                oldPBlocks.add(loopPBlock);
+        for (Location loc : clientBlocks.keySet()) {
+            ClientBlock clientBlock = clientBlocks.get(loc);
+            if (currentTick - clientBlock.getInitTick() > ClientBlock.CLIENTTICKS_UNTIL_EXPIRE) {
+                clientBlocks.remove(loc);
             }
         }
-        clientBlocks.removeAll(oldPBlocks);
     }
 
     public Set<Direction> getBoxSidesTouchingBlocks() {

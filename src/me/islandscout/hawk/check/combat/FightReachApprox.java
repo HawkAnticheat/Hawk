@@ -31,6 +31,8 @@ import org.bukkit.util.Vector;
 
 public class FightReachApprox extends EntityInteractionCheck {
 
+    //PASSED (6/24/2019)
+
     private final double MAX_REACH;
     private final double MAX_REACH_CREATIVE;
     private final int PING_LIMIT;

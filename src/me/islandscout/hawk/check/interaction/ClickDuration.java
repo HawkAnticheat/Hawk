@@ -34,6 +34,9 @@ import java.util.UUID;
  */
 public class ClickDuration extends BlockDigCheck implements Cancelless {
 
+    //Inspired by this resource
+    //https://www.spigotmc.org/resources/autokiller-advanced-auto-clicker-detection.40520/
+
     private Map<UUID, Long> digStartTick;
 
     public ClickDuration() {

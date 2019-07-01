@@ -39,8 +39,8 @@ public class BlockDigEvent extends Event {
     @Override
     public void postProcess() {
         if (!isCancelled() && getDigAction() == BlockDigEvent.DigAction.COMPLETE) {
-            ClientBlock clientBlock = new ClientBlock(getBlock().getLocation(), pp.getCurrentTick(), Material.AIR);
-            pp.addClientBlock(clientBlock);
+            ClientBlock clientBlock = new ClientBlock(pp.getCurrentTick(), Material.AIR);
+            pp.addClientBlock(getBlock().getLocation(), clientBlock);
         }
     }
 

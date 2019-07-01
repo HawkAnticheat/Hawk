@@ -326,8 +326,11 @@ public class MoveEvent extends Event {
         AABB aboveFeet = feet.clone();
         aboveFeet.translate(new Vector(0, 0.020001, 0));
         AABB cube = new AABB(new Vector(0, 0, 0), new Vector(1, 1, 1));
-        for(ClientBlock cBlock : pp.getClientBlocks()) {
-            cube.translateTo(cBlock.getLocation().toVector());
+        for(Location loc : pp.getClientBlocks().keySet()) {
+            if(!getTo().getWorld().equals(loc.getWorld()))
+                continue;
+            ClientBlock cBlock = pp.getClientBlocks().get(loc);
+            cube.translateTo(loc.toVector());
             if(cBlock.getMaterial().isSolid() && feet.isColliding(cube) && !aboveFeet.isColliding(cube))
                 return cBlock;
         }

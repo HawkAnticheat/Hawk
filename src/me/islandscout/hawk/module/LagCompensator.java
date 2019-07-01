@@ -21,10 +21,12 @@ package me.islandscout.hawk.module;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.ConfigHelper;
+import me.islandscout.hawk.util.packet.PacketAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.util.Vector;
 
@@ -50,11 +52,19 @@ public class LagCompensator implements Listener {
     private final int historySize;
     private final int pingOffset;
     private final boolean DEBUG;
+    private final int SEARCH_WIDTH;
+    private final int SEARCH_HEIGHT;
+    private final int POLL_RATE;
+    private final boolean ALWAYS_TICK_PLAYERS;
 
     public LagCompensator(Hawk hawk) {
         this.trackedEntities = new ConcurrentHashMap<>();
         historySize = ConfigHelper.getOrSetDefault(20, hawk.getConfig(), "lagCompensation.historySize");
         pingOffset = ConfigHelper.getOrSetDefault(175, hawk.getConfig(), "lagCompensation.pingOffset");
+        SEARCH_WIDTH = ConfigHelper.getOrSetDefault(40, hawk.getConfig(), "lagCompensation.entityTracking.searchWidth") / 2;
+        SEARCH_HEIGHT = ConfigHelper.getOrSetDefault(20, hawk.getConfig(), "lagCompensation.entityTracking.searchHeight") / 2;
+        POLL_RATE = ConfigHelper.getOrSetDefault(20, hawk.getConfig(), "lagCompensation.entityTracking.searchRate");
+        ALWAYS_TICK_PLAYERS = ConfigHelper.getOrSetDefault(true, hawk.getConfig(), "lagCompensation.entityTracking.alwaysTickPlayers");
         DEBUG = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "lagCompensation.debug");
         Bukkit.getPluginManager().registerEvents(this, hawk);
 
@@ -65,7 +75,7 @@ public class LagCompensator implements Listener {
                 Set<Entity> collectedEntities = new HashSet<>();
 
                 for(Player p : Bukkit.getOnlinePlayers()) {
-                    List<Entity> nearbyEntities = p.getNearbyEntities(20, 10, 20); //TODO make this range configurable
+                    List<Entity> nearbyEntities = p.getNearbyEntities(SEARCH_WIDTH, SEARCH_HEIGHT, SEARCH_WIDTH);
                     for(Entity entity : nearbyEntities) {
                         //add anything that moves and is clickable
                         if(entity instanceof LivingEntity || entity instanceof Vehicle || entity instanceof Fireball) {
@@ -86,7 +96,18 @@ public class LagCompensator implements Listener {
                 }
 
             }
-        }, 20); //TODO and make this polling interval configurable
+        }, POLL_RATE);
+
+        if(ALWAYS_TICK_PLAYERS) {
+            hawk.getHawkSyncTaskScheduler().addRepeatingTask(new Runnable() {
+                @Override
+                public void run() {
+                    for(Player p : Bukkit.getOnlinePlayers()) {
+                        trackedEntities.put(p, trackedEntities.getOrDefault(p, new ArrayList<>()));
+                    }
+                }
+            }, 1);
+        }
 
         hawk.getHawkSyncTaskScheduler().addRepeatingTask(new Runnable() {
             @Override
@@ -104,7 +125,6 @@ public class LagCompensator implements Listener {
     }
 
     //Uses linear interpolation to get the best location
-    //TODO: handle world change
     public Location getHistoryLocation(int rewindMillisecs, Entity entity) {
         List<Pair<Location, Long>> times = trackedEntities.get(entity);
         if (times == null) {
@@ -133,8 +153,10 @@ public class LagCompensator implements Listener {
     private void processPosition(Entity entity) {
         List<Pair<Location, Long>> times = trackedEntities.getOrDefault(entity, new ArrayList<>());
         long currTime = System.currentTimeMillis();
-        if(DEBUG && entity instanceof Player)
-            entity.sendMessage(ChatColor.GRAY + "[Lag Compensator] Your moves are being recorded: " + currTime);
+        if(DEBUG && entity instanceof Player) {
+            Player p = (Player) entity;
+            p.sendMessage(ChatColor.GRAY + "[Lag Compensator] Your moves are being recorded: " + currTime);
+        }
         times.add(new Pair<>(entity.getLocation(), currTime));
         if (times.size() > historySize) times.remove(0);
         trackedEntities.put(entity, times);

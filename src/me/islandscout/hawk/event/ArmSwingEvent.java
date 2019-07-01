@@ -34,4 +34,6 @@ public class ArmSwingEvent extends Event {
     public int getType() {
         return type;
     }
+
+    //TODO post process? Check if all swing packets are forwarded to nearby players. If this is true, we need to implement a rate limiter to mitigate network congestion.
 }

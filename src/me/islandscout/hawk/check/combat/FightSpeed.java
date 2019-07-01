@@ -39,16 +39,13 @@ public class FightSpeed extends EntityInteractionCheck {
     private final Map<UUID, List<Long>> deltaTimes;
     private static final double RECORD_SENSITIVITY = 4; //don't log click if it took longer than these ticks
     private static int SAMPLES;
-    private final boolean CANCEL_SAME_TICK;
     private final double MAX_CPS;
-
 
     public FightSpeed() {
         super("fightspeed", "%player% failed attack speed. CPS: %cps%, VL: %vl%");
         lastClickTime = new HashMap<>();
         deltaTimes = new HashMap<>();
         SAMPLES = (int)customSetting("sampleSize", "", 10);
-        CANCEL_SAME_TICK = (boolean)customSetting("cancelSameTick", "", true);
         MAX_CPS = (double)customSetting("maxCps", "", 16D);
     }
 
@@ -61,8 +58,6 @@ public class FightSpeed extends EntityInteractionCheck {
         if (lastClickTime.containsKey(uuid)) {
             List<Long> deltaTs = deltaTimes.getOrDefault(uuid, new ArrayList<>());
             long deltaT = (pp.getCurrentTick() - lastClickTime.get(uuid));
-            if (CANCEL_SAME_TICK && deltaT == 0)
-                e.setCancelled(true);
             if (deltaT <= RECORD_SENSITIVITY) {
                 deltaTs.add(deltaT);
                 if (deltaTs.size() >= SAMPLES) {
@@ -71,10 +66,10 @@ public class FightSpeed extends EntityInteractionCheck {
                         avgCps += entry;
                     }
                     double divisor = (avgCps / SAMPLES / 20);
-                    avgCps = 1 / (divisor == 0 ? Double.NaN : divisor);
-                    //if someone manages to get a NaN, they're dumb af
-                    if (avgCps > MAX_CPS || Double.isNaN(avgCps)) {
-                        punish(pp, 1, true, e, new Placeholder("cps", (Double.isNaN(avgCps) ? "INVALID" : MathPlus.round(avgCps, 2) + "")));
+                    avgCps = 1 / divisor;
+                    //if someone manages to get an Infinity, they're dumb af
+                    if (avgCps > MAX_CPS) {
+                        punish(pp, 1, true, e, new Placeholder("cps", (Double.isInfinite(avgCps) ? avgCps : MathPlus.round(avgCps, 2) + "")));
                     } else {
                         reward(pp);
                     }

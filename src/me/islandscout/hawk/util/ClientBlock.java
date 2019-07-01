@@ -38,18 +38,12 @@ public class ClientBlock {
 
     public static final long CLIENTTICKS_UNTIL_EXPIRE = 5;
     public static final int MAX_PER_PLAYER = 16;
-    private final Location location;
     private final Material material;
     private final long initTick;
 
-    public ClientBlock(Location location, long clientTick, Material material) {
-        this.location = location;
+    public ClientBlock(long clientTick, Material material) {
         this.material = material;
         initTick = clientTick;
-    }
-
-    public Location getLocation() {
-        return location;
     }
 
     public Material getMaterial() {
@@ -58,21 +52,5 @@ public class ClientBlock {
 
     public long getInitTick() {
         return initTick;
-    }
-
-    public static ClientBlock playerIsOnAClientBlock(HawkPlayer pp, Location playerLoc) {
-        Set<ClientBlock> clientBlocks = pp.getClientBlocks();
-        if(clientBlocks.size() == 0)
-            return null;
-        AABB feet = new AABB(
-                new Vector(-0.3, -0.01, -0.3).add(playerLoc.toVector()),
-                new Vector(0.3, 0, 0.3).add(playerLoc.toVector()));
-        for (ClientBlock pBlock : clientBlocks) {
-            AABB cube = new AABB(pBlock.getLocation().toVector(), pBlock.getLocation().toVector().add(new Vector(1, 1, 1)));
-            if (feet.isColliding(cube)) {
-                return pBlock;
-            }
-        }
-        return null;
     }
 }
