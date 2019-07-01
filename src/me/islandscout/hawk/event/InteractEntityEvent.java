@@ -38,6 +38,11 @@ public class InteractEntityEvent extends Event {
     }
 
     @Override
+    public boolean preProcess() {
+        return !pp.isTeleporting();
+    }
+
+    @Override
     public void postProcess() {
         //We won't ignore if it's cancelled because otherwise that would set off
         //movement false flags regarding the hit slowdown mechanic. (Look at the

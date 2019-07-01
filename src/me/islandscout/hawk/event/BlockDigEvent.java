@@ -18,8 +18,11 @@
 
 package me.islandscout.hawk.event;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.ClientBlock;
+import me.islandscout.hawk.util.block.BlockNMS7;
+import me.islandscout.hawk.util.block.BlockNMS8;
 import me.islandscout.hawk.util.packet.WrappedPacket;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -37,10 +40,27 @@ public class BlockDigEvent extends Event {
     }
 
     @Override
+    public boolean preProcess() {
+        if(pp.isTeleporting()) {
+            revertChangeClientside();
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public void postProcess() {
         if (!isCancelled() && getDigAction() == BlockDigEvent.DigAction.COMPLETE) {
             ClientBlock clientBlock = new ClientBlock(pp.getCurrentTick(), Material.AIR);
             pp.addClientBlock(getBlock().getLocation(), clientBlock);
+        }
+    }
+
+    protected void revertChangeClientside() {
+        if (Hawk.getServerVersion() == 7) {
+            BlockNMS7.getBlockNMS(getBlock()).sendPacketToPlayer(pp.getPlayer());
+        } else if (Hawk.getServerVersion() == 8) {
+            BlockNMS8.getBlockNMS(getBlock()).sendPacketToPlayer(pp.getPlayer());
         }
     }
 

@@ -18,11 +18,16 @@
 
 package me.islandscout.hawk.event;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.ClientBlock;
+import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.util.block.BlockNMS7;
+import me.islandscout.hawk.util.block.BlockNMS8;
 import me.islandscout.hawk.util.packet.WrappedPacket;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -44,10 +49,30 @@ public class InteractWorldEvent extends Event {
     }
 
     @Override
+    public boolean preProcess() {
+        if(pp.isTeleporting()) {
+            revertChangeClientside();
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public void postProcess() {
         if (!isCancelled() && getInteractionType() == InteractWorldEvent.InteractionType.PLACE_BLOCK) {
             ClientBlock clientBlock = new ClientBlock(pp.getCurrentTick(), getPlacedBlockMaterial());
             pp.addClientBlock(getPlacedBlockLocation(), clientBlock);
+        }
+    }
+
+    protected void revertChangeClientside() {
+        Block b = ServerUtils.getBlockAsync(getPlacedBlockLocation());
+        if(b == null)
+            return;
+        if (Hawk.getServerVersion() == 7) {
+            BlockNMS7.getBlockNMS(b).sendPacketToPlayer(pp.getPlayer());
+        } else if (Hawk.getServerVersion() == 8) {
+            BlockNMS8.getBlockNMS(b).sendPacketToPlayer(pp.getPlayer());
         }
     }
 
