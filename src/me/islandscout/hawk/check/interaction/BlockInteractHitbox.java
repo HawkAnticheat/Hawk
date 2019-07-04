@@ -51,7 +51,7 @@ public class BlockInteractHitbox extends BlockInteractionCheck {
     protected void check(InteractWorldEvent e) {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
-        Location eyeLoc = pp.getLocation().clone();
+        Location eyeLoc = new Location(pp.getWorld(), pp.getPosition().getX(), pp.getPosition().getY(), pp.getPosition().getZ(), pp.getYaw(), pp.getPitch());
         eyeLoc.add(0, (p.isSneaking() ? 1.54 : 1.62), 0);
         Location targetLocation = e.getTargetedBlockLocation();
 

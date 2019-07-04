@@ -97,11 +97,12 @@ public final class PacketConverter7 {
 
     private static Event packetToPosEvent(PacketPlayInFlying packet, Player p, HawkPlayer pp) {
         //default position
-        Location loc = pp.getLocation();
+        Vector position = pp.getPosition();
+        Location loc = new Location(pp.getWorld(), position.getX(), position.getY(), position.getZ(), pp.getYaw(), pp.getPitch());
 
         //There's an NPE here if someone teleports to another world using a dumb multi-world plugin (which sets the PlayerTeleportEvent#getTo() location to null)
         //I don't believe it is my responsibility to "fix" this. If there are enough complaints, I MIGHT consider looking into it.
-        loc = new Location(pp.getLocation().getWorld(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
+        loc = new Location(pp.getWorld(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
 
         WrappedPacket.PacketType pType = WrappedPacket.PacketType.FLYING;
 
@@ -142,7 +143,7 @@ public final class PacketConverter7 {
         if (packet.c() == EnumEntityUseAction.ATTACK) action = InteractAction.ATTACK;
         else action = InteractAction.INTERACT;
         //get interacted entity. phew.
-        Entity nmsEntity = packet.a(((CraftWorld) pp.getLocation().getWorld()).getHandle());
+        Entity nmsEntity = packet.a(((CraftWorld) pp.getWorld()).getHandle());
         if (nmsEntity == null)
             return new BadEvent(p, pp, new WrappedPacket7(packet, WrappedPacket.PacketType.USE_ENTITY)); //interacting with a non-existent entity
         org.bukkit.entity.Entity entity = nmsEntity.getBukkitEntity();

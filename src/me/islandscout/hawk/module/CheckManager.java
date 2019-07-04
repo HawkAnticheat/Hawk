@@ -31,6 +31,7 @@ import java.util.*;
 public class CheckManager {
 
     private final Set<UUID> exemptedPlayers;
+    private final Set<UUID> forcedPlayers;
 
     //make these HashSets?
     private final List<Check> checks;
@@ -43,6 +44,7 @@ public class CheckManager {
     public CheckManager(Hawk hawk) {
         Check.setHawkReference(hawk);
         exemptedPlayers = new HashSet<>();
+        forcedPlayers = new HashSet<>();
         checks = new ArrayList<>();
         blockDigChecks = new ArrayList<>();
         blockInteractionChecks = new ArrayList<>();
@@ -88,7 +90,7 @@ public class CheckManager {
         new AimbotPrecision();
         new ItemUseSpeed();
         new FightSynchronized();
-        new EntityInteractMulti();
+        new FightMulti();
         //new AimbotConvergence();
     }
 
@@ -152,5 +154,27 @@ public class CheckManager {
 
     public Set<UUID> getExemptedPlayers() {
         return exemptedPlayers;
+    }
+
+    public Set<UUID> getForcedPlayers() {
+        return forcedPlayers;
+    }
+
+    public void addExemption(UUID uuid) {
+        forcedPlayers.remove(uuid);
+        exemptedPlayers.add(uuid);
+    }
+
+    public void addForced(UUID uuid) {
+        exemptedPlayers.remove(uuid);
+        forcedPlayers.add(uuid);
+    }
+
+    public void removeExemption(UUID uuid) {
+        exemptedPlayers.remove(uuid);
+    }
+
+    public void removeForced(UUID uuid) {
+        forcedPlayers.remove(uuid);
     }
 }

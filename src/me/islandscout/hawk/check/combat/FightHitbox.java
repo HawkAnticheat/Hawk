@@ -105,7 +105,7 @@ public class FightHitbox extends EntityInteractionCheck {
             attackerEyeLocation = att.getPredictedLocation().add(0, 1.62, 0);
         }
         else {
-            attackerEyeLocation = att.getLocation().clone().add(0, 1.62, 0);
+            attackerEyeLocation = new Location(att.getWorld(), att.getPosition().getX(), att.getPosition().getY(), att.getPosition().getZ(), att.getYaw(), att.getPitch()).clone().add(0, 1.62, 0);
         }
 
         Vector attackerDirection = attackerEyeLocation.getDirection();

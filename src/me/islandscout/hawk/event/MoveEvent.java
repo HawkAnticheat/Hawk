@@ -92,7 +92,7 @@ public class MoveEvent extends Event {
             Location tpLoc = pp.getTeleportLoc();
             //accepted teleport
             if (tpLoc.getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(tpLoc) < 0.001) {
-                pp.setLocation(tpLoc);
+                pp.setPositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch());
                 pp.setTeleporting(false);
                 setTeleported(true);
             } else if(!pp.getPlayer().isSleeping()){
@@ -147,7 +147,7 @@ public class MoveEvent extends Event {
             pp.setVelocity(new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ()));
             pp.setDeltaYaw(to.getYaw() - from.getYaw());
             pp.setDeltaPitch(to.getPitch() - from.getPitch());
-            pp.setLocation(to);
+            pp.setPositionYawPitch(to.toVector(), to.getYaw(), to.getPitch());
             pp.updateFallDistance(to);
             pp.updateTotalAscensionSinceGround(from.getY(), to.getY());
             pp.setOnGround(isOnGround());
@@ -306,7 +306,8 @@ public class MoveEvent extends Event {
     }
 
     public Location getFrom() {
-        return pp.getLocation();
+        Vector position = pp.getPosition();
+        return new Location(pp.getWorld(), position.getX(), position.getY(), position.getZ(), pp.getYaw(), pp.getPitch());
     }
 
     public void setTo(Location to) {

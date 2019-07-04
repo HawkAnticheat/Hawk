@@ -25,6 +25,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.UUID;
+
 public class ChkinfoArgument extends Argument {
 
     ChkinfoArgument() {
@@ -43,7 +45,13 @@ public class ChkinfoArgument extends Argument {
                 sender.sendMessage(ChatColor.GOLD + "Cancel: " + (check instanceof Cancelless ? ChatColor.GRAY + "N/A" : ((check.canCancel() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED"))));
                 sender.sendMessage(ChatColor.GOLD + "Flag: " + ((check.canFlag() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED")));
 
-                boolean bypass = sender.hasPermission(check.getBypassPermission()) || ((sender instanceof Player) && hawk.getCheckManager().getExemptedPlayers().contains(((Player) sender).getUniqueId()));
+                boolean bypass;
+                if(sender instanceof Player) {
+                    UUID uuid = ((Player) sender).getUniqueId();
+                    bypass = !hawk.getCheckManager().getForcedPlayers().contains(uuid) && (sender.hasPermission(check.getBypassPermission()) || hawk.getCheckManager().getExemptedPlayers().contains(uuid));
+                }
+                else
+                    bypass = true;
 
                 sender.sendMessage(ChatColor.GOLD + "You " + (!bypass ? "do not " : "") + "have permission to bypass this check.");
                 return true;

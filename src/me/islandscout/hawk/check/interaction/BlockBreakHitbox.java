@@ -58,7 +58,7 @@ public class BlockBreakHitbox extends BlockDigCheck {
     protected void check(BlockDigEvent e) {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
-        Location eyeLoc = pp.getLocation().clone().add(0, 1.62, 0);
+        Location eyeLoc = new Location(pp.getWorld(), pp.getPosition().getX(), pp.getPosition().getY(), pp.getPosition().getZ(), pp.getYaw(), pp.getPitch()).add(0, 1.62, 0);
         Location bLoc = e.getBlock().getLocation();
 
         switch (e.getDigAction()) {

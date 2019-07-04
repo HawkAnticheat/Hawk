@@ -16,10 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.check.interaction;
+package me.islandscout.hawk.check.combat;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
+import me.islandscout.hawk.event.InteractAction;
 import me.islandscout.hawk.event.InteractEntityEvent;
 import org.bukkit.entity.Player;
 
@@ -27,17 +28,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class EntityInteractMulti extends EntityInteractionCheck {
+public class FightMulti extends EntityInteractionCheck {
 
     private final Map<UUID, Long> lastHitTime; //in client ticks
 
-    public EntityInteractMulti() {
-        super("fightmulti", "%player% failed entity multi-interact, VL %vl%");
+    public FightMulti() {
+        super("fightmulti", "%player% failed fight multi, VL %vl%");
         lastHitTime = new HashMap<>();
     }
 
     @Override
     protected void check(InteractEntityEvent e) {
+        if(e.getInteractAction() != InteractAction.ATTACK)
+            return;
         HawkPlayer pp = e.getHawkPlayer();
         if(pp.getCurrentTick() == lastHitTime.getOrDefault(pp.getUuid(), -1L)) {
             punish(pp, true, e);

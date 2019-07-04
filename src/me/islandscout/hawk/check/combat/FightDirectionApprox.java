@@ -22,6 +22,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.util.ServerUtils;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -58,8 +59,8 @@ public class FightDirectionApprox extends EntityInteractionCheck {
             direction = att.getPredictedLocation().getDirection().clone().setY(0);
         }
         else {
-            attackerLocation = att.getLocation().toVector().setY(0);
-            direction = att.getLocation().getDirection().clone().setY(0);
+            attackerLocation = att.getPosition().clone().setY(0);
+            direction = new Location(null, 0, 0, 0, att.getYaw(), att.getPitch()).getDirection().setY(0);
         }
 
         Vector victimLocation;

@@ -18,7 +18,6 @@
 
 package me.islandscout.hawk.command;
 
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -28,10 +27,10 @@ import org.bukkit.entity.Player;
 import java.util.Set;
 import java.util.UUID;
 
-public class ExemptArgument extends Argument {
+public class ForceArgument extends Argument {
 
-    public ExemptArgument() {
-        super("exempt", "<player>", "Exempts a player from checks, regardless of their permissions.");
+    public ForceArgument() {
+        super("force", "<player>", "Forces checking for a player, regardless of their permissions.");
     }
 
     @Override
@@ -45,13 +44,13 @@ public class ExemptArgument extends Argument {
             return true;
         }
         UUID uuid = target.getUniqueId();
-        Set<UUID> exempted = hawk.getCheckManager().getExemptedPlayers();
-        if(exempted.contains(uuid)) {
-            hawk.getCheckManager().removeExemption(uuid);
-            sender.sendMessage(ChatColor.GOLD + "" + target.getName() + " is no longer exempted from checks.");
+        Set<UUID> forced = hawk.getCheckManager().getForcedPlayers();
+        if(forced.contains(uuid)) {
+            hawk.getCheckManager().removeForced(uuid);
+            sender.sendMessage(ChatColor.GOLD + "Checking for " + target.getName() + " no longer forced.");
         } else {
-            hawk.getCheckManager().addExemption(uuid);
-            sender.sendMessage(ChatColor.GOLD + "" + target.getName() + " is now exempted from checks.");
+            hawk.getCheckManager().addForced(uuid);
+            sender.sendMessage(ChatColor.GOLD + "Checking for " + target.getName() + " now forced.");
         }
         return true;
     }

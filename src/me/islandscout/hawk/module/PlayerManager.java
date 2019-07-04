@@ -72,6 +72,7 @@ public class PlayerManager implements Listener {
         }
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         pp.setTeleporting(true);
+        pp.setWorld(e.getTo().getWorld());
         pp.setTeleportLoc(e.getTo());
         pp.setLastTeleportTime(pp.getCurrentTick());
     }
@@ -80,6 +81,7 @@ public class PlayerManager implements Listener {
     public void worldChangeEvent(PlayerChangedWorldEvent e) {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         pp.setTeleporting(true);
+        pp.setWorld(e.getPlayer().getLocation().getWorld());
         pp.setTeleportLoc(e.getPlayer().getLocation());
         pp.setLastTeleportTime(pp.getCurrentTick());
     }
@@ -88,6 +90,7 @@ public class PlayerManager implements Listener {
     public void onRespawn(PlayerRespawnEvent e) {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         pp.setTeleporting(true);
+        pp.setWorld(e.getRespawnLocation().getWorld());
         pp.setTeleportLoc(e.getRespawnLocation());
     }
 

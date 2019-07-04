@@ -98,7 +98,9 @@ public abstract class Check<E extends Event> {
     }
 
     public void checkEvent(E e) {
-        if (e.getPlayer().hasPermission(permission) || hawk.getCheckManager().getExemptedPlayers().contains(e.getPlayer().getUniqueId()) || !enabled)
+        boolean exempt = hawk.getCheckManager().getExemptedPlayers().contains(e.getPlayer().getUniqueId());
+        boolean forced = hawk.getCheckManager().getForcedPlayers().contains(e.getPlayer().getUniqueId());
+        if (!enabled || ((e.getPlayer().hasPermission(permission) || exempt) && !forced))
             return;
         check(e);
     }
@@ -166,7 +168,7 @@ public abstract class Check<E extends Event> {
             for (HawkPlayer pp : hawk.getHawkPlayers()) {
                 if (pp.canReceiveAlerts()) {
                     if (hawk.canPlaySoundOnFlag())
-                        pp.getPlayer().playSound(pp.getLocation(), Sound.NOTE_PIANO, 1, 1);
+                        pp.getPlayer().playSound(pp.getPosition().toLocation(pp.getWorld()), Sound.NOTE_PIANO, 1, 1);
                     msg.sendMessage(pp.getPlayer());
                 }
             }
@@ -174,7 +176,7 @@ public abstract class Check<E extends Event> {
             for (HawkPlayer pp : hawk.getHawkPlayers()) {
                 if (pp.canReceiveAlerts()) {
                     if (hawk.canPlaySoundOnFlag())
-                        pp.getPlayer().playSound(pp.getLocation(), Sound.NOTE_PIANO, 1, 1);
+                        pp.getPlayer().playSound(pp.getPosition().toLocation(pp.getWorld()), Sound.NOTE_PIANO, 1, 1);
                     pp.getPlayer().sendMessage(Hawk.FLAG_PREFIX + message);
                 }
             }

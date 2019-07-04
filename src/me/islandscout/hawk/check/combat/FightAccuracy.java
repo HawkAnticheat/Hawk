@@ -135,7 +135,7 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
 
         //proceed if victim's invulnerability is gone
         //diff between current client tick and last swing tick should never be negative
-        //a bypass for this IS possible, but you'd get caught by clockspeed if you try to change your tickrate
+        //a bypass for this IS possible, but you'd get caught by TickRate if you try to change your tickrate
         if (att.getCurrentTick() - lastSwingTick >= victim.getPlayer().getMaximumNoDamageTicks() / 2) {
 
             Map<UUID, FightData> accuracyToVictim = accuracy.getOrDefault(uuid, new HashMap<>());
@@ -147,12 +147,8 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
             swingTick.put(uuid, att.getCurrentTick());
         }
 
-        //Need to get the reference of the locations ONCE since the HawkPlayer#getLocation() is currently implemented incorrectly
-        //(i.e. not thread safe; still being accessed by multiple threads)
-        //These won't change unless something on the main thread does HawkPlayer#getLocation().set... between now
-        //and the next 10 lines. 6/19/19
-        Location attackerLoc = att.getLocation();
-        Location victimLoc = att.getLocation();
+        Location attackerLoc = new Location(att.getWorld(), att.getPosition().getX(), att.getPosition().getY(), att.getPosition().getZ(), att.getYaw(), att.getPitch());
+        Location victimLoc = new Location(victim.getWorld(), victim.getPosition().getX(), victim.getPosition().getY(), victim.getPosition().getZ(), victim.getYaw(), victim.getPitch());
 
         //determine how far the opponent has moved horizontally on local coordinates and compute required mouse precision
         if(!attackerLoc.getWorld().equals(victimLoc.getWorld()))

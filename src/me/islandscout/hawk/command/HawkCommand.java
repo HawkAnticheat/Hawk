@@ -59,6 +59,7 @@ public class HawkCommand implements CommandExecutor {
         arguments.add(new MouseRecArgument());
         arguments.add(new PunishArgument());
         arguments.add(new ExemptArgument());
+        arguments.add(new ForceArgument());
 
         Collections.sort(arguments);
 

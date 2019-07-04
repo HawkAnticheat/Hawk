@@ -23,6 +23,7 @@ import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.entity.EntityNMS;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -40,8 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class HawkPlayer {
 
-    //TODO You need to consider thread safety! Some of these fields are being modified by multiple threads without any sync system!
-
     private final UUID uuid;
     private final Map<Check, Double> vl;
     private boolean digging;
@@ -52,7 +51,14 @@ public class HawkPlayer {
     private Location teleportLoc;
     private long lastTeleportTime;
     private final Hawk hawk;
-    private Location location;
+
+    //Be careful when playing with these fields.
+    //World is not sync'd to position, yaw, nor pitch.
+    private World world; //updated by server
+    private Vector position; //updated by client
+    private float yaw; //updated by client
+    private float pitch; //updated by client
+
     private Vector velocity;
     private Vector previousVelocity;
     private float deltaYaw;
@@ -90,7 +96,11 @@ public class HawkPlayer {
         vl = new ConcurrentHashMap<>();
         receiveNotifications = true;
         this.p = p;
-        this.location = p.getLocation();
+        Location defaultLocation = p.getLocation();
+        this.world = p.getWorld();
+        this.position = defaultLocation.toVector();
+        this.yaw = defaultLocation.getYaw();
+        this.pitch = defaultLocation.getPitch();
         this.velocity = new Vector();
         this.previousVelocity = new Vector();
         this.onGround = ((Entity) p).isOnGround();
@@ -181,14 +191,6 @@ public class HawkPlayer {
         this.lastTeleportTime = lastTeleportTime;
     }
 
-    public Location getLocation() {
-        return location;
-    }
-
-    public void setLocation(Location location) {
-        this.location = location;
-    }
-
     public boolean isOnGround() {
         return onGround;
     }
@@ -228,6 +230,44 @@ public class HawkPlayer {
 
     public void setLastMoveTime(long lastMoveTime) {
         this.lastMoveTime = lastMoveTime;
+    }
+
+    public World getWorld() {
+        return world;
+    }
+
+    public void setWorld(World world) {
+        this.world = world;
+    }
+
+    public Vector getPosition() {
+        return position;
+    }
+
+    public void setPosition(Vector position) {
+        this.position = position;
+    }
+
+    public void setPositionYawPitch(Vector position, float yaw, float pitch) {
+        this.position = position;
+        this.yaw = yaw;
+        this.pitch = pitch;
+    }
+
+    public float getYaw() {
+        return yaw;
+    }
+
+    public void setYaw(float yaw) {
+        this.yaw = yaw;
+    }
+
+    public float getPitch() {
+        return pitch;
+    }
+
+    public void setPitch(float pitch) {
+        this.pitch = pitch;
     }
 
     public Vector getVelocity() {
@@ -301,7 +341,7 @@ public class HawkPlayer {
     }
 
     public double getFallDistance() {
-        return maxY - location.getY();
+        return maxY - position.getY();
     }
 
     public int getHeldItemSlot() {
@@ -489,7 +529,7 @@ public class HawkPlayer {
         movement.multiply(moveDelay);
         rotation.multiply(moveDelay);
 
-        Location loc = location.clone();
+        Location loc = new Location(world, position.getX(), position.getY(), position.getZ(), yaw, pitch);
         loc.add(movement);
         loc.setYaw(loc.getYaw() + (float) rotation.getX());
         loc.setPitch(loc.getPitch() + (float) rotation.getY());
@@ -498,11 +538,11 @@ public class HawkPlayer {
     }
 
     public AABB getCollisionBox() {
-        return EntityNMS.getEntityNMS(p).getCollisionBox(location.toVector());
+        return EntityNMS.getEntityNMS(p).getCollisionBox(position);
     }
 
     public AABB getHitBox() {
-        return EntityNMS.getEntityNMS(p).getHitbox(location.toVector());
+        return EntityNMS.getEntityNMS(p).getHitbox(position);
     }
 
     public long getCurrentValidatedTick() {

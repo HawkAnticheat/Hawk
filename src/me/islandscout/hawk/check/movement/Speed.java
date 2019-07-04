@@ -277,7 +277,7 @@ public class Speed extends MovementCheck implements Listener {
             lastNegativeDiscrepancies.put(p.getUniqueId(), 0D);
             if(discrepancy.value < 0 || speed > haltDistanceExpected)
                 discrepancies.put(p.getUniqueId(), Math.max(discrepancies.getOrDefault(p.getUniqueId(), 0D) + discrepancy.value, 0));
-            double totalDiscrepancy = discrepancies.get(p.getUniqueId());
+            double totalDiscrepancy = discrepancies.getOrDefault(p.getUniqueId(), 0D);
 
             if(DEBUG) {
                 if(!checked)
