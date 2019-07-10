@@ -22,10 +22,8 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Direction;
 import me.islandscout.hawk.util.Pair;
-import net.minecraft.server.v1_8_R3.PacketPlayOutEntity;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -64,7 +62,7 @@ public class AntiVelocityJump extends MovementCheck implements Cancelless {
 
             Pair<Integer, Integer> ratio = ratioMap.getOrDefault(pp.getUuid(), new Pair<>(0, 0));
 
-            if(event.hasJumped()) {
+            if(event.isJump()) {
                 ratio.setKey(ratio.getKey() + 1);
             }
             ratio.setValue(ratio.getValue() + 1);

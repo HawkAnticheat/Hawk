@@ -23,14 +23,11 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.util.block.BlockNMS;
 import me.islandscout.hawk.util.packet.WrappedPacket;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -58,6 +55,7 @@ public class MoveEvent extends Event {
     private boolean inLiquid;
     private boolean jumped;
     private boolean slimeBlockBounce;
+    private boolean step;
     private Vector waterFlowForce;
     private List<Pair<Block, Vector>> liquidsAndDirections;
     private Set<Material> liquidTypes;
@@ -71,6 +69,7 @@ public class MoveEvent extends Event {
         this.updateRot = updateRot;
         this.onGround = onGround;
         this.liquidTypes = new HashSet<>();
+        this.step = testStep();
         hitSlowdown = pp.hasHitSlowdown();
         boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld(), 0.0001);
         acceptedKnockback = handlePendingVelocities();
@@ -129,7 +128,9 @@ public class MoveEvent extends Event {
 
                 //((MoveEvent) event).setTo(((MoveEvent) event).getFrom());
             }
-        } else {
+        }
+        //This event has passed checks; proceed to update the HawkPlayer.
+        else {
             //handle item consumption
             if(pp.getCurrentTick() - pp.getItemUseTick() > 31 && pp.isConsumingItem()) {
                 pp.setConsumingItem(false);
@@ -156,6 +157,15 @@ public class MoveEvent extends Event {
             pp.getBoxSidesTouchingBlocks().addAll(getBoxSidesTouchingBlocks());
             pp.setWaterFlowForce(getWaterFlowForce());
         }
+    }
+
+    private boolean testStep() {
+        Vector extraVelocity = pp.getVelocity().clone();
+        extraVelocity.setY((extraVelocity.getY() - 0.08) * 0.98);
+        Location extraPos = pp.getPosition().toLocation(pp.getWorld());
+        extraPos.add(extraVelocity);
+        float deltaY = (float) (getTo().getY() - getFrom().getY());
+        return AdjacentBlocks.onGroundReally(extraPos, extraVelocity.getY(), false, 0.001) && onGroundReally && deltaY > 0F && deltaY <= 0.6F;
     }
 
     //Good thing I have MCP to figure this one out
@@ -263,7 +273,7 @@ public class MoveEvent extends Event {
                     //skip to next kb if...
                     if (!((boxSidesTouchingBlocks.contains(Direction.TOP) && y > 0) || (boxSidesTouchingBlocks.contains(Direction.BOTTOM) && y < 0)) && /*...player isn't colliding...*/
                             Math.abs(y - currVelocity.getY()) > 0.01 && /*...and velocity is nowhere close to kb velocity...*/
-                            !jump && !pp.isSwimming()/*...and did not jump and is not swimming*/) {
+                            !jump && !pp.isSwimming() && !step /*...and did not jump and is not swimming and did not "step"*/) {
                         continue;
                     }
 
@@ -400,8 +410,12 @@ public class MoveEvent extends Event {
         return liquidTypes;
     }
 
-    public boolean hasJumped() {
+    public boolean isJump() {
         return jumped;
+    }
+
+    public boolean isStep() {
+        return step;
     }
 
     public boolean isSlimeBlockBounce() {
@@ -412,6 +426,10 @@ public class MoveEvent extends Event {
         return waterFlowForce;
     }
 
+    //A proper setback system. Permits only a maximum of 1 rubberband
+    //per move (unless you cancel the cancel and then rubberband again,
+    //but you have to be stupid to do that). I might make a priority
+    //system sometime in the future.
     public void cancelAndSetBack(Location setback) {
         if (cancelLocation == null) {
             cancelLocation = setback;
