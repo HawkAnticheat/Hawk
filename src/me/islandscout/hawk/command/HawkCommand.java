@@ -60,6 +60,7 @@ public class HawkCommand implements CommandExecutor {
         arguments.add(new PunishArgument());
         arguments.add(new ExemptArgument());
         arguments.add(new ForceArgument());
+        arguments.add(new UnfilteredFlagsArgument());
 
         Collections.sort(arguments);
 

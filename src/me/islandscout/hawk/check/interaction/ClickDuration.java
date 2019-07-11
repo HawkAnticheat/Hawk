@@ -40,7 +40,7 @@ public class ClickDuration extends BlockDigCheck implements Cancelless {
     private Map<UUID, Long> digStartTick;
 
     public ClickDuration() {
-        super("clickduration", true, -1, 0, 0.99, 5000, "%player% failed click duration. Autoclicker? VL: %vl%", null);
+        super("clickduration", false, -1, 0, 0.99, 5000, "%player% failed click duration. Autoclicker? VL: %vl%", null);
         digStartTick = new HashMap<>();
     }
 

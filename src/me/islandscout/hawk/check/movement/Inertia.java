@@ -57,6 +57,7 @@ public class Inertia extends MovementCheck {
         if (!AdjacentBlocks.blockNearbyIsSolid(e.getTo(), true) && !wasOnGround && !onGround && !e.hasAcceptedKnockback() && !e.isTouchingBlocks() &&
                 !AdjacentBlocks.blockNearbyIsSolid(e.getTo().clone().add(0, 1, 0), true) && !p.isFlying() && !p.isInsideVehicle()) {
 
+            //setting up expected values
             double magnitudeThres;
             double prevSpeed = e.hasHitSlowdown() ? prevVector.length() * 0.6 : prevVector.length();
             if(AdjacentBlocks.blockAdjacentIsLiquid(e.getFrom()) || AdjacentBlocks.blockAdjacentIsLiquid(e.getFrom().clone().add(0, 1, 0))) {

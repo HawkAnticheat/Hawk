@@ -165,7 +165,7 @@ public class MoveEvent extends Event {
         Location extraPos = pp.getPosition().toLocation(pp.getWorld());
         extraPos.add(extraVelocity);
         float deltaY = (float) (getTo().getY() - getFrom().getY());
-        return AdjacentBlocks.onGroundReally(extraPos, extraVelocity.getY(), false, 0.001) && onGroundReally && deltaY > 0F && deltaY <= 0.6F;
+        return AdjacentBlocks.onGroundReally(extraPos, extraVelocity.getY(), false, 0.001) && onGroundReally && deltaY > 0.002F && deltaY <= 0.6F;
     }
 
     //Good thing I have MCP to figure this one out

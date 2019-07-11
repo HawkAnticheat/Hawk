@@ -53,7 +53,7 @@ public abstract class Check<E extends Event> {
     protected int cancelThreshold;
     protected int flagThreshold;
     protected final double vlPassMultiplier;
-    protected final long flagCooldown; //in milliseconds
+    protected long flagCooldown; //in milliseconds
     protected static Hawk hawk;
     protected final String permission;
     protected final String name;
@@ -220,16 +220,24 @@ public abstract class Check<E extends Event> {
         return flagThreshold > -1;
     }
 
+    public int getFlagThreshold() {
+        return flagThreshold;
+    }
+
     public void setFlagThreshold(int flagThreshold) {
         this.flagThreshold = flagThreshold;
     }
 
-    public int getCancelThreshold() {
-        return cancelThreshold;
+    public long getFlagCooldown() {
+        return flagCooldown;
     }
 
-    public int getFlagThreshold() {
-        return flagThreshold;
+    public void setFlagCooldown(int flagCooldown) {
+        this.flagCooldown = flagCooldown;
+    }
+
+    public int getCancelThreshold() {
+        return cancelThreshold;
     }
 
     public String getBypassPermission() {

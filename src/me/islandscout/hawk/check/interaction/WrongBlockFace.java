@@ -38,6 +38,7 @@ public class WrongBlockFace extends BlockInteractionCheck {
     protected void check(InteractWorldEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
         if(e.getTargetedBlockFace() == InteractWorldEvent.BlockFace.INVALID ||
+                //TODO make sure head position is not inside of block, otherwise that may set off false flags depending on your direction
                 e.getTargetedBlockFaceNormal().dot(new Location(null, 0, 0, 0, pp.getYaw(), pp.getPitch()).getDirection()) >= 0) {
             punishAndTryCancelAndBlockRespawn(pp, e);
         }

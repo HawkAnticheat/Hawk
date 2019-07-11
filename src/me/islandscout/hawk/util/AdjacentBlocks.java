@@ -238,7 +238,7 @@ public class AdjacentBlocks {
         Set<Direction> directions = new HashSet<>();
         //Don't ask why I'm subtracting 1 when the coordinate is less than 0. Beats me too.
         for(int x = (int)(min.getX() < 0 ? min.getX() - 1 : min.getX()); x <= max.getX(); x++) {
-            for(int y = (int)(min.getY() < 0 ? min.getY() - 1 : min.getY()); y <= max.getY(); y++) {
+            for(int y = (int)min.getY() - 1; y <= max.getY(); y++) { //always subtract 1 so that fences/walls can be checked
                 for(int z = (int)(min.getZ() < 0 ? min.getZ() - 1 : min.getZ()); z <= max.getZ(); z++) {
                     Block b = ServerUtils.getBlockAsync(new Location(world, x, y, z));
                     if(b != null) {
