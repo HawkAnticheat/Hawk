@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.listener;
+package me.islandscout.hawk.module.listener;
 
 import io.netty.channel.*;
 import me.islandscout.hawk.module.PacketHandler;
@@ -44,7 +44,8 @@ public class PacketListener8 extends PacketListener {
             @Override
             public void write(ChannelHandlerContext context, Object packet, ChannelPromise promise) throws Exception {
 
-                processOut(packet, p);
+                if(!processOut(packet, p))
+                    return;
 
                 super.write(context, packet, promise);
             }

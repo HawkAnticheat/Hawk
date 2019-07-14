@@ -20,20 +20,24 @@ package me.islandscout.hawk.util.packet;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
-import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
+import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
+import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
 import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.util.WrappedWatchableObject;
 import me.islandscout.hawk.util.block.BlockNMS;
 import me.islandscout.hawk.util.block.BlockNMS7;
 import net.minecraft.server.v1_7_R4.*;
 import net.minecraft.util.io.netty.buffer.Unpooled;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class PacketConverter7 {
 
@@ -62,10 +66,35 @@ public final class PacketConverter7 {
     public static org.bukkit.event.Event packetOutboundToEvent(Object packet, Player p) {
         if(packet instanceof PacketPlayOutEntityVelocity || packet instanceof PacketPlayOutExplosion)
             return packetToVelocityEvent((Packet)packet, p);
+        if(packet instanceof PacketPlayOutEntityMetadata)
+            return packetToPlayerMetadataEvent((PacketPlayOutEntityMetadata)packet, p);
         return null;
     }
 
-    public static HawkPlayerAsyncVelocityChangeEvent packetToVelocityEvent(Packet packet, Player p) {
+    private static HawkAsyncPlayerMetadataEvent packetToPlayerMetadataEvent(PacketPlayOutEntityMetadata packet, Player p) {
+        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
+        packet.b(serializer);
+        int id = serializer.readInt();
+        List metaData = DataWatcher.b(serializer);
+        if(id != p.getEntityId() || metaData == null)
+            return null;
+
+        List<WrappedWatchableObject> wrappedMetaData = new ArrayList<>();
+        for(Object object : metaData) {
+            if(object instanceof WatchableObject) {
+
+                WatchableObject wO = (WatchableObject) object;
+                WrappedWatchableObject wwO = new WrappedWatchableObject(wO.c(), wO.a(), wO.b());
+                wwO.setWatched(wO.d());
+
+                wrappedMetaData.add(wwO);
+            }
+        }
+
+        return new HawkAsyncPlayerMetadataEvent(p, wrappedMetaData);
+    }
+
+    private static HawkAsyncPlayerVelocityChangeEvent packetToVelocityEvent(Packet packet, Player p) {
         if(packet instanceof PacketPlayOutExplosion) {
             PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
             ((PacketPlayOutExplosion) packet).b(serializer);
@@ -76,7 +105,7 @@ public final class PacketConverter7 {
             Vector velocity = new Vector(x, y, z);
             if(velocity.lengthSquared() == 0)
                 return null;
-            return new HawkPlayerAsyncVelocityChangeEvent(velocity, p, true);
+            return new HawkAsyncPlayerVelocityChangeEvent(velocity, p, true);
         }
         else if(packet instanceof PacketPlayOutEntityVelocity) {
             PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
@@ -90,7 +119,7 @@ public final class PacketConverter7 {
             double z = serializer.readShort() / 8000D;
             Vector velocity = new Vector(x, y, z);
 
-            return new HawkPlayerAsyncVelocityChangeEvent(velocity, p, false);
+            return new HawkAsyncPlayerVelocityChangeEvent(velocity, p, false);
         }
         return null;
     }

@@ -262,7 +262,7 @@ public class MoveEvent extends Event {
             //then work down the list until we find something
             for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
                 Pair<Vector, Long> kb = kbs.get(kbIndex);
-                if (currTime - kb.getValue() <= ServerUtils.getPing(p) + 200) {
+                if (currTime - kb.getValue() <= ServerUtils.getPing(p) + 200) { //add 200 just in case the player's ping jumps a bit
 
                     Vector kbVelocity = kb.getKey();
                     double x = hitSlowdown ? 0.6 * kbVelocity.getX() : kbVelocity.getX();

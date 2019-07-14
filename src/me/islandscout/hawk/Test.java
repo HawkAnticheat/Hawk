@@ -18,7 +18,7 @@
 
 package me.islandscout.hawk;
 
-import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
+import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import net.minecraft.server.v1_7_R4.*;
 import net.minecraft.util.io.netty.buffer.Unpooled;
@@ -97,7 +97,7 @@ public class Test {
                     Bukkit.getScheduler().runTask(hawk, new Runnable() {
                         @Override
                         public void run() {
-                            Bukkit.getServer().getPluginManager().callEvent(new HawkPlayerAsyncVelocityChangeEvent(velocity, player, true));
+                            Bukkit.getServer().getPluginManager().callEvent(new HawkAsyncPlayerVelocityChangeEvent(velocity, player, true));
                         }
                     });
                 }
@@ -118,7 +118,7 @@ public class Test {
                     Bukkit.getScheduler().runTask(hawk, new Runnable() {
                         @Override
                         public void run() {
-                            Bukkit.getServer().getPluginManager().callEvent(new HawkPlayerAsyncVelocityChangeEvent(velocity, player, false));
+                            Bukkit.getServer().getPluginManager().callEvent(new HawkAsyncPlayerVelocityChangeEvent(velocity, player, false));
                         }
                     });
                 }

@@ -21,15 +21,16 @@ package me.islandscout.hawk.module;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
-import me.islandscout.hawk.listener.PacketListener;
-import me.islandscout.hawk.listener.PacketListener7;
-import me.islandscout.hawk.listener.PacketListener8;
+import me.islandscout.hawk.module.listener.PacketListener;
+import me.islandscout.hawk.module.listener.PacketListener7;
+import me.islandscout.hawk.module.listener.PacketListener8;
 import me.islandscout.hawk.util.ConfigHelper;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -43,7 +44,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class PacketHandler implements Listener {
 
-    //Welcome to TCP damnation.
+    //Welcome to Minecraft protocol damnation.
 
     private final int serverVersion;
     private final Hawk hawk;
@@ -94,13 +95,18 @@ public class PacketHandler implements Listener {
     }
 
     //These packets will be converted into Bukkit Events and will be broadcasted using Bukkit's event system
-    public void processOut(Object packet, Player p) {
+    public boolean processOut(Object packet, Player p) {
         org.bukkit.event.Event event = convertPacketOutboundToEvent(packet, p);
         if (event == null)
-            return;
+            return true;
 
         Bukkit.getServer().getPluginManager().callEvent(event);
 
+        if(event instanceof Cancellable) {
+            return !((Cancellable) event).isCancelled();
+        }
+
+        return true;
     }
 
     private Event convertPacketInboundToEvent(Object packet, HawkPlayer pp) {

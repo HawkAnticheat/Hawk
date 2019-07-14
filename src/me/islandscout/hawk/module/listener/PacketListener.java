@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.listener;
+package me.islandscout.hawk.module.listener;
 
 import me.islandscout.hawk.module.PacketHandler;
 import me.islandscout.hawk.util.Pair;
@@ -84,14 +84,14 @@ public abstract class PacketListener {
         return dispatchInbound(packet, p);
     }
 
-    void processOut(Object packet, Player p) {
+    boolean processOut(Object packet, Player p) {
         if(!running)
-            return;
+            return true;
         if(async) {
             addToAsyncQueue(packet, p, false);
-            return;
+            return true;
         }
-        dispatchOutbound(packet, p);
+        return dispatchOutbound(packet, p);
     }
 
     private void addToAsyncQueue(Object packet, Player p, boolean inbound) {
@@ -117,16 +117,18 @@ public abstract class PacketListener {
         return true;
     }
 
-    private void dispatchOutbound(Object packet, Player p) {
+    private boolean dispatchOutbound(Object packet, Player p) {
         try {
             for(PacketAdapter adapter : adaptersOutbound) {
                 adapter.run(packet, p);
             }
 
-            packetHandler.processOut(packet, p);
+            if (!packetHandler.processOut(packet, p))
+                return false;
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return true;
     }
 
     private void prepareAsync() {

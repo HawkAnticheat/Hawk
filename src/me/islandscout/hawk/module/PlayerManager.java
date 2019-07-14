@@ -20,7 +20,9 @@ package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.event.bukkit.HawkPlayerAsyncVelocityChangeEvent;
+import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
+import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.entity.Player;
@@ -94,8 +96,8 @@ public class PlayerManager implements Listener {
         pp.setTeleportLoc(e.getRespawnLocation());
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onVelocity(HawkPlayerAsyncVelocityChangeEvent e) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onVelocity(HawkAsyncPlayerVelocityChangeEvent e) {
         if(e.isAdditive())
             return;
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
