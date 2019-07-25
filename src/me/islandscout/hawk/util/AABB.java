@@ -103,6 +103,68 @@ public class AABB implements Cloneable {
         return null;
     }
 
+    public boolean betweenRays(Vector pos, Vector dir1, Vector dir2) {
+        if(dir1.dot(dir2) > 0.999) {
+            //Directions are very similar; do a simple ray check.
+            if(this.intersectsRay(new Ray(pos, dir2), 0, Float.MAX_VALUE) == null) {
+                return false;
+            }
+        }
+        else {
+            //check if box even collides with plane
+            Vector planeNormal = dir2.clone().crossProduct(dir1);
+            Vector[] vertices = this.getVertices();
+            boolean hitPlane = false;
+            boolean above = false;
+            boolean below = false;
+            for(Vector vertex : vertices) {
+                //Eh, what the hell. Let's move the vertices now.
+                //Imagine moving everything in this system so that the plane
+                //is at <0,0,0>. This will make it easier to compute stuff.
+                vertex.subtract(pos);
+
+                if(vertex.dot(planeNormal) > 0) {
+                    above = true;
+                }
+                else {
+                    below = true;
+                }
+                if(above && below) {
+                    hitPlane = true;
+                    break;
+                }
+            }
+            if(!hitPlane) {
+                return false;
+            }
+
+            //check if box is between both vectors
+            Vector extraDirToDirNormal = planeNormal.clone().crossProduct(dir2);
+            Vector dirToExtraDirNormal = dir1.clone().crossProduct(planeNormal);
+            boolean betweenVectors = false;
+            boolean frontOfExtraDirToDir = false;
+            boolean frontOfDirToExtraDir = false;
+            for(Vector vertex : vertices) {
+                if(!frontOfExtraDirToDir && vertex.dot(extraDirToDirNormal) >= 0) {
+                    frontOfExtraDirToDir = true;
+                }
+                if(!frontOfDirToExtraDir && vertex.dot(dirToExtraDirNormal) >= 0) {
+                    frontOfDirToExtraDir = true;
+                }
+
+                if(frontOfExtraDirToDir && frontOfDirToExtraDir) {
+                    betweenVectors = true;
+                    break;
+                }
+            }
+            if(!betweenVectors) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public void highlight(Hawk hawk, World world, double accuracy) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> {
             for (double x = min.getX(); x <= max.getX(); x += accuracy) {

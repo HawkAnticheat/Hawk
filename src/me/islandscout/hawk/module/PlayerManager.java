@@ -25,6 +25,7 @@ import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
 import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -108,4 +109,14 @@ public class PlayerManager implements Listener {
         if(pendingVelocities.size() > 20)
             pendingVelocities.remove(0);
     }
+
+    /*@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onSprintUpdateServer(HawkPlayerAsyncSprintUpdateEvent e) {
+        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
+
+        List<Pair<Boolean, Long>> pendingSprints = pp.getPendingSprintChange();
+        pendingSprints.add(new Pair<>(e.getStatus(), System.currentTimeMillis()));
+        if(pendingSprints.size() > 20)
+            pendingSprints.remove(0);
+    }*/
 }

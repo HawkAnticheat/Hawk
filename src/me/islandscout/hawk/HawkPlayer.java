@@ -88,6 +88,7 @@ public class HawkPlayer {
     private int heldItemSlot;
     private final Map<Location, ClientBlock> clientBlocks;
     private final List<Pair<Vector, Long>> pendingVelocities;
+    private final List<Pair<Boolean, Long>> pendingSprintChange;
     private final Set<Direction> boxSidesTouchingBlocks;
     private Vector waterFlowForce;
 
@@ -109,6 +110,7 @@ public class HawkPlayer {
         this.heldItemSlot = p.getInventory().getHeldItemSlot();
         clientBlocks = new ConcurrentHashMap<>();
         pendingVelocities = new ArrayList<>();
+        pendingSprintChange = new ArrayList<>();
         boxSidesTouchingBlocks = new HashSet<>();
         this.waterFlowForce = new Vector();
     }
@@ -306,6 +308,7 @@ public class HawkPlayer {
     public void incrementCurrentTick() {
         this.currentTick++;
         manageClientBlocks();
+        //handlePendingSprints();
     }
 
     public boolean isSneaking() {
@@ -504,6 +507,10 @@ public class HawkPlayer {
         return pendingVelocities;
     }
 
+    public List<Pair<Boolean, Long>> getPendingSprintChange() {
+        return pendingSprintChange;
+    }
+
     //safely kill the connection
     public void kickPlayer(String reason) {
         online = false;
@@ -515,27 +522,26 @@ public class HawkPlayer {
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.teleport(location, teleportCause), 0L);
     }
 
-    //Returns predicted location/direction of player between current and next client move
-    //Useful for predicting where a 1.7 player may be facing during an attack packet
-    public Location getPredictedLocation() {
-        Vector movement = velocity.clone();
-        Vector rotation = new Vector(deltaYaw, deltaPitch, 0);
-        double moveDelay = System.currentTimeMillis() - lastMoveTime;
-        if (moveDelay >= 100) {
-            moveDelay = 0D;
-        } else {
-            moveDelay = moveDelay / 50;
+    /*private void handlePendingSprints() {
+        if(pendingSprintChange.size() > 0) {
+            long currTime = System.currentTimeMillis();
+
+            //iterate from the most recent entry to the oldest
+            for (int i = pendingSprintChange.size() - 1; i >= 0; i--) {
+                Pair<Boolean, Long> sprint = pendingSprintChange.get(i);
+
+                if (currTime - sprint.getValue() >= ServerUtils.getPing(p)) {
+                    setSprinting(sprint.getKey());
+                    //if the player isn't moving forwards or is slowing down or is colliding horizontally,
+                    //then set sprint to false by the next tick.
+                    //oh, and this should be a special sprint only used by the hitSlowDown detection code. should
+                    //function like the default sprint except that this overrides the current state
+                    pendingSprintChange.subList(0, i + 1).clear();
+                    break;
+                }
+            }
         }
-        movement.multiply(moveDelay);
-        rotation.multiply(moveDelay);
-
-        Location loc = new Location(world, position.getX(), position.getY(), position.getZ(), yaw, pitch);
-        loc.add(movement);
-        loc.setYaw(loc.getYaw() + (float) rotation.getX());
-        loc.setPitch(loc.getPitch() + (float) rotation.getY());
-
-        return loc;
-    }
+    }*/
 
     public AABB getCollisionBox() {
         return EntityNMS.getEntityNMS(p).getCollisionBox(position);

@@ -102,7 +102,7 @@ public class FightHitbox extends EntityInteractionCheck {
         //Unfortunately, there will be false positives from 1.7 users because 1.7's hit detection isn't broken (unlike 1.8).
         //There is no effective way to stop these false positives without creating bypasses.
         if (ServerUtils.getClientVersion(attacker) == 7) {
-            attackerEyeLocation = att.getPredictedLocation().add(0, 1.62, 0);
+            attackerEyeLocation = att.getPosition().add(new Vector(0, 1.62, 0)).toLocation(att.getWorld());
         }
         else {
             attackerEyeLocation = new Location(att.getWorld(), att.getPosition().getX(), att.getPosition().getY(), att.getPosition().getZ(), att.getYaw(), att.getPitch()).clone().add(0, 1.62, 0);
@@ -112,7 +112,7 @@ public class FightHitbox extends EntityInteractionCheck {
 
         double maxReach = MAX_REACH;
         if (attacker.getGameMode() == GameMode.CREATIVE)
-            maxReach += 1.8; //MC1.7: 1.8, MC1.8: 1.5
+            maxReach += 1.9;
 
         Vector victimLocation;
         if (LAG_COMPENSATION)
