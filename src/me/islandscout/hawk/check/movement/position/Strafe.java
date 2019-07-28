@@ -24,43 +24,82 @@ import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Direction;
 import me.islandscout.hawk.util.MathPlus;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class Strafe extends MovementCheck {
 
-    //TODO improve on those inconsistent moves
-    //TODO fix jumping
     //TODO either ignore or support other frictions (water, cobwebs, lava, etc.)
 
     //This unintentionally trashes yet another handful of killauras and aimassists
 
-    private static final double THRESHOLD = 0.1;
+    private static final double THRESHOLD_GROUND = 0.1;
+    private static final double THRESHOLD_AIR = 0.3;
+
+    private final Map<UUID, Long> landingTick;
+    private final Map<UUID, Long> sprintingJumpTick;
+    private final Map<UUID, Long> lastTickOnGround;
+    private final Map<UUID, Long> lastIdleTick;
 
     public Strafe() {
-        super("strafe", false, -1, 10, 0.99, 5000, "", null);
+        super("strafe", false, -1, 5, 0.99, 5000, "", null);
+        landingTick = new HashMap<>();
+        sprintingJumpTick = new HashMap<>();
+        lastTickOnGround = new HashMap<>();
+        lastIdleTick = new HashMap<>();
     }
 
     @Override
     protected void check(MoveEvent e) {
-        if(e.hasTeleported() || e.hasAcceptedKnockback())
-            return;
-
-        if(collidingHorizontally(e))
-            return;
-
         HawkPlayer pp = e.getHawkPlayer();
-
-        if(pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow() || pp.isSneaking())
-            return;
-
         Vector moveHoriz = e.getTo().toVector().subtract(e.getFrom().toVector()).setY(0);
+        //double moveFactor = pp.isSprinting() ? 0.13 : 0.1;
+        boolean teleportBug = pp.getCurrentTick() - pp.getLastTeleportTime() < 3;
+        boolean wasOnGround = teleportBug ? e.isOnGroundReally() : pp.isOnGround();
+        boolean isOnGround = teleportBug ? e.isOnGroundReally() : e.isOnGround();
+        long ticksSinceLanding = pp.getCurrentTick() - landingTick.getOrDefault(pp.getUuid(), -10L);
+        long ticksSinceSprintJumping = pp.getCurrentTick() - sprintingJumpTick.getOrDefault(pp.getUuid(), -10L);
+        long ticksSinceOnGround = pp.getCurrentTick() - lastTickOnGround.getOrDefault(pp.getUuid(), -10L);
+        long ticksSinceIdle = pp.getCurrentTick() - lastIdleTick.getOrDefault(pp.getUuid(), pp.getCurrentTick());
+        boolean up = e.getTo().getY() > e.getFrom().getY();
+        double friction;
 
-        //crude workaround to the stupid inconsistencies in movement
-        if(moveHoriz.length() < 0.15)
-            return;
+        //LAND (instantaneous)
+        if((isOnGround && ticksSinceLanding == 1) || (ticksSinceOnGround == 1 && ticksSinceLanding == 1 && !up)) {
+            friction = 0.91;
+        }
+        //GROUND
+        else if((isOnGround && wasOnGround && ticksSinceLanding > 1) || (ticksSinceOnGround == 1 && !up && !isOnGround)) {
+            friction = 0.546;
+        }
+        //JUMP (instantaneous)
+        else if(wasOnGround && !isOnGround && up) {
+            if(pp.isSprinting()) {
+                sprintingJumpTick.put(pp.getUuid(), pp.getCurrentTick());
+            }
+            friction = 0.91;
+        }
+        //SPRINT_JUMP_POST (instantaneous)
+        else if(!wasOnGround && !isOnGround && ticksSinceSprintJumping == 1) {
+            friction = 0.546;
+        }
+        //JUMP_POST (instantaneous)
+        else if(!wasOnGround && !isOnGround && ticksSinceLanding == 2) {
+            friction = 0.546;
+        }
+        //AIR
+        else if((!((pp.hasFlyPending() && e.getPlayer().getAllowFlight()) || e.getPlayer().isFlying()) && !wasOnGround) || (!up && !isOnGround)) {
+            friction = 0.91;
+        }
+        else {
+            friction = 0.91;
+        }
 
-        double moveFactor = pp.isSprinting() ? 0.13 : 0.1;
-        double friction = e.isOnGround() ? 0.546 : 0.91;
         double dX = e.getTo().getX() - e.getFrom().getX();
         double dZ = e.getTo().getZ() - e.getFrom().getZ();
         dX /= friction;
@@ -69,22 +108,38 @@ public class Strafe extends MovementCheck {
         dZ -= pp.getVelocity().getZ();
         //Debug.broadcastMessage(MathPlus.round(dX, 6) * friction / moveFactor);
 
-        //maybe the magnitude of this vector can be used to replace inertia!
-        //maybe 0 means that you aren't pressing on a key
         Vector force = new Vector(dX, 0, dZ);
         Vector yaw = MathPlus.getDirection(e.getTo().getYaw(), 0);
 
-        //you aren't pressing a WASD key
-        if(force.length() < 0.0001)
+        //Need to return if force is too small since the client likes to set a motion
+        //component vector to 0 if it is too small. Can't check the force's component
+        //vectors since that would open a bypass i.e. running along an axis. Also, return
+        //if ticksSinceIdle is <= 2, otherwise this client behavior would set off false flags.
+        //Another check needs to analyze this behavior because this can be abused to bypass
+        //this check.
+        if(e.hasTeleported() || e.hasAcceptedKnockback() || collidingHorizontally(e) ||
+                pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow() || pp.isSneaking() ||
+                moveHoriz.length() < 0.15 || e.isJump() || ticksSinceIdle <= 2) {
+            prepareNextMove(wasOnGround, isOnGround, e, pp, pp.getCurrentTick());
             return;
+        }
 
-        boolean up = force.clone().crossProduct(yaw).dot(new Vector(0, 1, 0)) >= 0;
-        double angle = (up ? 1 : -1) * MathPlus.round(force.angle(yaw), 2);
+        //You aren't pressing a WASD key
+        if(force.lengthSquared() < 0.000001) {
+            prepareNextMove(wasOnGround, isOnGround, e, pp, pp.getCurrentTick());
+            return;
+        }
 
-        if(!isValidStrafe(angle))
+        boolean vectorDir = force.clone().crossProduct(yaw).dot(new Vector(0, 1, 0)) >= 0;
+        double angle = (vectorDir ? 1 : -1) * MathPlus.round(force.angle(yaw), 2);
+
+        if(!isValidStrafe(angle, friction)) {
             punish(pp, false, e);
+        }
         else
             reward(pp);
+
+        prepareNextMove(wasOnGround, isOnGround, e, pp, pp.getCurrentTick());
     }
 
     private boolean collidingHorizontally(MoveEvent e) {
@@ -95,9 +150,37 @@ public class Strafe extends MovementCheck {
         return false;
     }
 
-    private boolean isValidStrafe(double angle) {
+    private boolean isValidStrafe(double angle, double friction) {
+        double threshold;
+        if(friction == 0.546)
+            threshold = THRESHOLD_GROUND;
+        else
+            threshold = THRESHOLD_AIR;
         double multiple = angle / (Math.PI / 4);
-        return Math.abs(multiple - Math.floor(multiple)) <= THRESHOLD ||
-                Math.abs(multiple - Math.ceil(multiple)) <= THRESHOLD;
+        return Math.abs(multiple - Math.floor(multiple)) <= threshold ||
+                Math.abs(multiple - Math.ceil(multiple)) <= threshold;
+    }
+
+    private void prepareNextMove(boolean wasOnGround, boolean isOnGround, MoveEvent event, HawkPlayer pp, long currentTick) {
+        UUID uuid = pp.getUuid();
+        if(isOnGround) {
+            lastTickOnGround.put(uuid, currentTick);
+        }
+        //player touched the ground
+        if(!wasOnGround && event.isOnGround()) {
+            landingTick.put(uuid, currentTick);
+        }
+
+        if(!event.isUpdatePos())
+            lastIdleTick.put(uuid, currentTick);
+    }
+
+    @Override
+    public void removeData(Player p) {
+        UUID uuid = p.getUniqueId();
+        landingTick.remove(uuid);
+        sprintingJumpTick.remove(uuid);
+        lastTickOnGround.remove(uuid);
+        lastIdleTick.remove(uuid);
     }
 }
