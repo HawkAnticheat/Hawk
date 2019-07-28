@@ -22,23 +22,43 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.Debug;
+import me.islandscout.hawk.util.Direction;
 import me.islandscout.hawk.util.MathPlus;
 import org.bukkit.util.Vector;
 
-public class New1 extends MovementCheck {
+public class Strafe extends MovementCheck {
 
-    public New1() {
-        super("new1", "%player% failed new1, VL: %vl%");
+    //TODO improve on those inconsistent moves
+    //TODO fix jumping
+    //TODO either ignore or support other frictions (water, cobwebs, lava, etc.)
+
+    //This unintentionally trashes yet another handful of killauras and aimassists
+
+    private static final double THRESHOLD = 0.1;
+
+    public Strafe() {
+        super("strafe", false, -1, 10, 0.99, 5000, "", null);
     }
 
     @Override
     protected void check(MoveEvent e) {
-        //remember to check if you've just TP'd or took KB
-        //remember to only check if your speed is great enough
-        //remember, only works if you aren't sneaking or using an item
-        //remember, only works when you're pressing down on a WASD key
-        //remember to check if you're colliding horizontally
+        if(e.hasTeleported() || e.hasAcceptedKnockback())
+            return;
+
+        if(collidingHorizontally(e))
+            return;
+
         HawkPlayer pp = e.getHawkPlayer();
+
+        if(pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow() || pp.isSneaking())
+            return;
+
+        Vector moveHoriz = e.getTo().toVector().subtract(e.getFrom().toVector()).setY(0);
+
+        //crude workaround to the stupid inconsistencies in movement
+        if(moveHoriz.length() < 0.15)
+            return;
+
         double moveFactor = pp.isSprinting() ? 0.13 : 0.1;
         double friction = e.isOnGround() ? 0.546 : 0.91;
         double dX = e.getTo().getX() - e.getFrom().getX();
@@ -53,10 +73,31 @@ public class New1 extends MovementCheck {
         //maybe 0 means that you aren't pressing on a key
         Vector force = new Vector(dX, 0, dZ);
         Vector yaw = MathPlus.getDirection(e.getTo().getYaw(), 0);
-        Debug.sendToPlayer(pp.getPlayer(), "force: " + MathPlus.round(force.length(), 6));
+
+        //you aren't pressing a WASD key
+        if(force.length() < 0.0001)
+            return;
 
         boolean up = force.clone().crossProduct(yaw).dot(new Vector(0, 1, 0)) >= 0;
         double angle = (up ? 1 : -1) * MathPlus.round(force.angle(yaw), 2);
-        Debug.sendToPlayer(pp.getPlayer(), "angle: " + angle);
+
+        if(!isValidStrafe(angle))
+            punish(pp, false, e);
+        else
+            reward(pp);
+    }
+
+    private boolean collidingHorizontally(MoveEvent e) {
+        for(Direction dir : e.getBoxSidesTouchingBlocks()) {
+            if(dir == Direction.EAST || dir == Direction.NORTH || dir == Direction.SOUTH || dir == Direction.WEST)
+                return true;
+        }
+        return false;
+    }
+
+    private boolean isValidStrafe(double angle) {
+        double multiple = angle / (Math.PI / 4);
+        return Math.abs(multiple - Math.floor(multiple)) <= THRESHOLD ||
+                Math.abs(multiple - Math.ceil(multiple)) <= THRESHOLD;
     }
 }

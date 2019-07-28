@@ -100,7 +100,7 @@ public class CheckManager {
         new FightSynchronized();
         new FightMulti();
         new AimbotConvergence();
-        new New1();
+        new Strafe();
     }
 
     public void unloadChecks() {
