@@ -74,7 +74,7 @@ public final class PacketConverter8 {
         PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
         try {
             packet.b(serializer);
-            int id = serializer.readInt();
+            int id = serializer.e();
             List metaData = DataWatcher.b(serializer);
             if(id != p.getEntityId())
                 return null;

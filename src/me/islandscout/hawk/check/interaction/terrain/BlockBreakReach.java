@@ -48,7 +48,7 @@ public class BlockBreakReach extends BlockDigCheck {
         Vector max = bLoc.toVector().add(new Vector(1, 1, 1));
         AABB targetAABB = new AABB(min, max);
 
-        Vector ppPos = pp.getPosition().add(new Vector(0D, pp.isSneaking() ? 1.54F : 1.62F, 0D));
+        Vector ppPos = pp.getPosition().clone().add(new Vector(0D, pp.isSneaking() ? 1.54F : 1.62F, 0D));
 
         double maxReach = pp.getPlayer().getGameMode() == GameMode.CREATIVE ? MAX_REACH_CREATIVE : MAX_REACH;
         double dist = targetAABB.distanceToPosition(ppPos);

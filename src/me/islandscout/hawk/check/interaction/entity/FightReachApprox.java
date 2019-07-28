@@ -67,7 +67,7 @@ public class FightReachApprox extends EntityInteractionCheck {
         AABB victimAABB = EntityNMS.getEntityNMS(victimEntity).getHitbox(victimLocation.toVector());
         victimAABB.expand(0.05, 0.05, 0.05);
 
-        Vector attackerPos = att.getPosition().add(new Vector(0D, att.isSneaking() ? 1.54F : 1.62F, 0D));
+        Vector attackerPos = att.getPosition().clone().add(new Vector(0D, att.isSneaking() ? 1.54F : 1.62F, 0D));
 
         double maxReach = att.getPlayer().getGameMode() == GameMode.CREATIVE ? MAX_REACH_CREATIVE : MAX_REACH;
         double dist = victimAABB.distanceToPosition(attackerPos);

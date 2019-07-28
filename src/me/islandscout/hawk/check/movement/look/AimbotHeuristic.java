@@ -28,7 +28,7 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 /**
- * Aimbot exploits flaws in aim-bot cheats by
+ * AimbotHeuristic exploits flaws in aim-bot cheats by
  * analyzing mouse movement patterns during interaction. Although
  * easily bypassed, it catches a significant number of cheaters.
  * Caution is advised since this check may false flag during

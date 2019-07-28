@@ -45,6 +45,40 @@ public class ConfigHelper {
         return result;
     }
 
+    /*
+    public static Object getOrSetDefault(Object defaultValue, FileConfiguration config, String path, DataType dataType) {
+        Object result;
+        if (config.isSet(path)) {
+            switch (dataType) {
+                case SIGNED_INT32:
+                    result = (Integer)config.get(path);
+                    break;
+                case FLOAT64:
+                    result = ((Double)config.get(path));
+                    break;
+                case OBJECT:
+                    config.set(path, defaultValue);
+                    break;
+            }
+        } else {
+            result = defaultValue;
+            switch (dataType) {
+                case SIGNED_INT32:
+                    config.set(path, ((Number)defaultValue).intValue());
+                    break;
+                case FLOAT64:
+                    config.set(path, ((Number)defaultValue).doubleValue());
+                    break;
+                case OBJECT:
+                    config.set(path, defaultValue);
+                    break;
+            }
+
+        }
+        return result;
+    }
+    */
+
     public static List<String> getOrSetDefault(List<String> defaultValue, FileConfiguration config, String path) {
         List<String> result;
         if (config.isSet(path)) {
@@ -109,5 +143,11 @@ public class ConfigHelper {
             config.set(path, defaultValue);
         }
         return result;
+    }
+
+    public enum DataType {
+        SIGNED_INT32,
+        FLOAT64,
+        OBJECT
     }
 }

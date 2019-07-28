@@ -246,6 +246,10 @@ public class HawkPlayer {
         return position;
     }
 
+    public Vector getPositionCloned() {
+        return position.clone();
+    }
+
     public void setPosition(Vector position) {
         this.position = position;
     }

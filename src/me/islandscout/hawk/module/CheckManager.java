@@ -28,9 +28,7 @@ import me.islandscout.hawk.check.interaction.item.ItemSwitchSpeed;
 import me.islandscout.hawk.check.interaction.item.ItemUseSpeed;
 import me.islandscout.hawk.check.interaction.terrain.*;
 import me.islandscout.hawk.check.movement.*;
-import me.islandscout.hawk.check.movement.look.AimbotHeuristic;
-import me.islandscout.hawk.check.movement.look.AimbotPrecision;
-import me.islandscout.hawk.check.movement.look.InvalidPitch;
+import me.islandscout.hawk.check.movement.look.*;
 import me.islandscout.hawk.check.movement.position.*;
 import me.islandscout.hawk.check.tick.TickRate;
 import me.islandscout.hawk.event.*;
@@ -101,7 +99,8 @@ public class CheckManager {
         new ItemUseSpeed();
         new FightSynchronized();
         new FightMulti();
-        //new AimbotConvergence();
+        new AimbotConvergence();
+        new New1();
     }
 
     public void unloadChecks() {
