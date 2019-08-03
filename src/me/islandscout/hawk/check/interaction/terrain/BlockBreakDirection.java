@@ -55,10 +55,7 @@ public class BlockBreakDirection extends BlockDigCheck {
         Location bLoc = e.getBlock().getLocation();
         Vector pos = pp.getPosition().clone().add(new Vector(0, pp.isSneaking() ? 1.54 : 1.62, 0));
         Vector dir = MathPlus.getDirection(pp.getYaw(), pp.getPitch());
-        //Note: in MC 1.8, the cursor yaw is not updated per frame, but rather per tick.
-        //For ray-hitbox checks, this means that we do not need to extrapolate the yaw,
-        //but for this check it does not matter whether we do it or not.
-        Vector extraDir = MathPlus.getDirection(pp.getYaw() + pp.getDeltaYaw() * 2, pp.getPitch() + pp.getDeltaPitch() * 2); //2 is an arbitrary multiplier. Make it configurable?
+        Vector extraDir = MathPlus.getDirection(pp.getYaw() + pp.getDeltaYaw(), pp.getPitch() + pp.getDeltaPitch());
 
         switch (e.getDigAction()) {
             case START:

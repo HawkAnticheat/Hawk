@@ -103,7 +103,7 @@ public class TickRate extends MovementCheck implements Listener {
             p.sendMessage((msOffset < 0 ? (msOffset < THRESHOLD ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.BLUE) + "CLOCK DRIFT: " + MathPlus.round(-msOffset, 2) + "ms");
         }
         if (drift * 1E-6 < THRESHOLD) {
-            if(RUBBERBAND && pp.getCurrentTick() - pp.getLastTeleportTime() > 20) //Don't rubberband so often. You're already cancelling a ton of moves.
+            if(RUBBERBAND && pp.getCurrentTick() - pp.getLastTeleportSendTick() > 20) //Don't rubberband so often. You're already cancelling a ton of moves.
                 punishAndTryRubberband(pp, event, p.getLocation());
             else
                 punish(pp, true, event);

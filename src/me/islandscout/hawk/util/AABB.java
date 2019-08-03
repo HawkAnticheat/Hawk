@@ -123,15 +123,19 @@ public class AABB implements Cloneable {
                 //is at <0,0,0>. This will make it easier to compute stuff.
                 vertex.subtract(pos);
 
-                if(vertex.dot(planeNormal) > 0) {
-                    above = true;
-                }
-                else {
-                    below = true;
-                }
-                if(above && below) {
-                    hitPlane = true;
-                    break;
+                if(!hitPlane) {
+                    if (vertex.dot(planeNormal) > 0) {
+                        above = true;
+                    } else {
+                        below = true;
+                    }
+                    if (above && below) {
+                        hitPlane = true;
+                        //Yeah, don't break since we still need to move all the vertices.
+                        //This code is under if(!hitPlane) so that we don't keep
+                        //doing pointless math after we already determined that it
+                        //hit the plane.
+                    }
                 }
             }
             if(!hitPlane) {
@@ -280,5 +284,13 @@ public class AABB implements Cloneable {
         double distY = Math.max(min.getY() - vector.getY(), Math.max(0, vector.getY() - max.getY()));
         double distZ = Math.max(min.getZ() - vector.getZ(), Math.max(0, vector.getZ() - max.getZ()));
         return Math.sqrt(distX*distX + distY*distY + distZ*distZ);
+    }
+
+    @Override
+    public String toString() {
+        return "AABB{" +
+                "min=" + min +
+                ", max=" + max +
+                '}';
     }
 }

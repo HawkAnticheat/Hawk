@@ -101,6 +101,7 @@ public class CheckManager {
         new FightMulti();
         new AimbotConvergence();
         new Strafe();
+        new SyntheticMove();
     }
 
     public void unloadChecks() {

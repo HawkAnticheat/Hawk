@@ -49,7 +49,8 @@ public class HawkPlayer {
     private final Player p;
     private boolean teleporting;
     private Location teleportLoc;
-    private long lastTeleportTime;
+    private long lastTeleportSendTick;
+    private long lastTeleportAcceptTick;
     private final Hawk hawk;
 
     //Be careful when playing with these fields.
@@ -185,12 +186,20 @@ public class HawkPlayer {
         this.teleportLoc = teleportLoc;
     }
 
-    public long getLastTeleportTime() {
-        return lastTeleportTime;
+    public long getLastTeleportSendTick() {
+        return lastTeleportSendTick;
     }
 
-    public void setLastTeleportTime(long lastTeleportTime) {
-        this.lastTeleportTime = lastTeleportTime;
+    public void setLastTeleportSendTick(long lastTeleportTime) {
+        this.lastTeleportSendTick = lastTeleportTime;
+    }
+
+    public long getLastTeleportAcceptTick() {
+        return lastTeleportAcceptTick;
+    }
+
+    public void setLastTeleportAcceptTick(long lastTeleportAcceptTick) {
+        this.lastTeleportAcceptTick = lastTeleportAcceptTick;
     }
 
     public boolean isOnGround() {

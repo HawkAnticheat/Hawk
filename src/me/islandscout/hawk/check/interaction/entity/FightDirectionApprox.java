@@ -53,6 +53,11 @@ public class FightDirectionApprox extends EntityInteractionCheck {
         if (PING_LIMIT > -1 && ping > PING_LIMIT)
             return;
         Vector pos = pp.getPosition().clone().add(new Vector(0, pp.isSneaking() ? 1.54 : 1.62, 0));
+        //As I always say in math class, converting polar coordinates to rectangular coordinates is a pain in
+        //the ass. If you want to use the previous direction vector, you cannot make an accurate cut through the AABB
+        //using only the previous and extrapolated direction vectors. You'd think you could since the extrapolation
+        //on yaw and pitch is linear, but the current direction vector won't lie between the other two. Remember Non-
+        //Euclidean geometry!
         Vector dir = MathPlus.getDirection(pp.getYaw(), pp.getPitch());
         //Note: in MC 1.8, the cursor yaw is not updated per frame, but rather per tick.
         //For ray-hitbox checks, this means that we do not need to extrapolate the yaw,

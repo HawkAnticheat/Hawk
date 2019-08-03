@@ -35,7 +35,7 @@ public class AimbotConvergence extends CustomCheck {
     private Map<UUID, Vector> lastConvergencePointMap;
 
     public AimbotConvergence() {
-        super("aimbotconvergence", true, -1, 0, 0.999, 5000, "%player% is using aimbot (convergence), VL: %vl%", null);
+        super("aimbotconvergence", true, -1, 0, 0.999, 5000, "%player% may be using aimbot (convergence), VL: %vl%", null);
         this.lastConvergencePointMap = new HashMap<>();
     }
 
@@ -43,9 +43,9 @@ public class AimbotConvergence extends CustomCheck {
     protected void check(Event event) {
         if(event instanceof MoveEvent) {
             MoveEvent e = (MoveEvent) event;
-            if(!e.hasDeltaPos() || e.hasTeleported())
-                return;
             HawkPlayer pp = e.getHawkPlayer();
+            if(!e.hasDeltaPos())
+                return;
             UUID uuid = pp.getUuid();
             Vector prePos = e.getFrom().toVector().clone().subtract(pp.getVelocity()).add(new Vector(0, 1.62, 0));
             Vector postPos = e.getFrom().toVector().add(new Vector(0, 1.62, 0));
@@ -56,13 +56,13 @@ public class AimbotConvergence extends CustomCheck {
             Vector lastConvergence = lastConvergencePointMap.get(uuid);
             Vector convergence = points.getKey().add(points.getValue()).multiply(0.5);
 
-            if(lastConvergence != null) {
+            if(lastConvergence != null && pp.getCurrentTick() - pp.getLastTeleportAcceptTick() > 1) {
                 double distance = lastConvergence.distanceSquared(convergence);
                 if(!Double.isNaN(distance)) {
 
                     //Debug.broadcastMessage( distance + "");
 
-                    if(distance < 0.00000001) //one VL deserves an autoban
+                    if(distance < 0.00000001) //it only takes a few VLs to deserve an autoban
                         punish(pp, false, e);
                     else
                         reward(pp);

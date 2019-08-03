@@ -93,10 +93,11 @@ public class MoveEvent extends Event {
             if (tpLoc.getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(tpLoc) < 0.001) {
                 pp.setPositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch());
                 pp.setTeleporting(false);
+                pp.setLastTeleportAcceptTick(pp.getCurrentTick());
                 setTeleported(true);
             } else if(!pp.getPlayer().isSleeping()){
                 //Help guide the confused client back to the tp location
-                if (pp.getCurrentTick() - pp.getLastTeleportTime() > (pp.getPing() / 50) + 5) { //5 is an arbitrary constant to keep things smooth
+                if (pp.getCurrentTick() - pp.getLastTeleportSendTick() > (pp.getPing() / 50) + 5) { //5 is an arbitrary constant to keep things smooth
                     pp.teleport(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
                 }
                 return false;

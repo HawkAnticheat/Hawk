@@ -20,12 +20,9 @@ package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -77,7 +74,7 @@ public class PlayerManager implements Listener {
         pp.setTeleporting(true);
         pp.setWorld(e.getTo().getWorld());
         pp.setTeleportLoc(e.getTo());
-        pp.setLastTeleportTime(pp.getCurrentTick());
+        pp.setLastTeleportSendTick(pp.getCurrentTick());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -86,7 +83,7 @@ public class PlayerManager implements Listener {
         pp.setTeleporting(true);
         pp.setWorld(e.getPlayer().getLocation().getWorld());
         pp.setTeleportLoc(e.getPlayer().getLocation());
-        pp.setLastTeleportTime(pp.getCurrentTick());
+        pp.setLastTeleportSendTick(pp.getCurrentTick());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

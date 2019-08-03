@@ -28,6 +28,9 @@ import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPistonEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -177,4 +180,16 @@ public class LagCompensator implements Listener {
     public void getStatsTrackedPlayers() {
 
     }
+
+    /*
+    @EventHandler
+    public void pistonExtend(BlockPistonExtendEvent e) {
+
+    }
+
+    @EventHandler
+    public void pistonRetract(BlockPistonRetractEvent e) {
+
+    }
+    */
 }

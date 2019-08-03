@@ -24,7 +24,9 @@ import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Direction;
 import me.islandscout.hawk.util.MathPlus;
-import org.bukkit.ChatColor;
+import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.util.block.BlockNMS;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -47,7 +49,7 @@ public class Strafe extends MovementCheck {
     private final Map<UUID, Long> lastIdleTick;
 
     public Strafe() {
-        super("strafe", false, -1, 5, 0.99, 5000, "", null);
+        super("strafe", false, 5, 5, 0.99, 5000, "", null);
         landingTick = new HashMap<>();
         sprintingJumpTick = new HashMap<>();
         lastTickOnGround = new HashMap<>();
@@ -57,9 +59,16 @@ public class Strafe extends MovementCheck {
     @Override
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
+
+        Block footBlock = ServerUtils.getBlockAsync(pp.getPlayer().getLocation().clone().add(0, -1, 0));
+        if(footBlock == null)
+            return;
+        final float groundFriction = BlockNMS.getBlockNMS(footBlock).getSlipperiness() * 0.91F;
+        final float airFriction = 0.91F;
+
         Vector moveHoriz = e.getTo().toVector().subtract(e.getFrom().toVector()).setY(0);
         //double moveFactor = pp.isSprinting() ? 0.13 : 0.1;
-        boolean teleportBug = pp.getCurrentTick() - pp.getLastTeleportTime() < 3;
+        boolean teleportBug = pp.getCurrentTick() - pp.getLastTeleportAcceptTick() < 2;
         boolean wasOnGround = teleportBug ? e.isOnGroundReally() : pp.isOnGround();
         boolean isOnGround = teleportBug ? e.isOnGroundReally() : e.isOnGround();
         long ticksSinceLanding = pp.getCurrentTick() - landingTick.getOrDefault(pp.getUuid(), -10L);
@@ -71,33 +80,33 @@ public class Strafe extends MovementCheck {
 
         //LAND (instantaneous)
         if((isOnGround && ticksSinceLanding == 1) || (ticksSinceOnGround == 1 && ticksSinceLanding == 1 && !up)) {
-            friction = 0.91;
+            friction = airFriction;
         }
         //GROUND
         else if((isOnGround && wasOnGround && ticksSinceLanding > 1) || (ticksSinceOnGround == 1 && !up && !isOnGround)) {
-            friction = 0.546;
+            friction = groundFriction;
         }
         //JUMP (instantaneous)
         else if(wasOnGround && !isOnGround && up) {
             if(pp.isSprinting()) {
                 sprintingJumpTick.put(pp.getUuid(), pp.getCurrentTick());
             }
-            friction = 0.91;
+            friction = airFriction;
         }
         //SPRINT_JUMP_POST (instantaneous)
         else if(!wasOnGround && !isOnGround && ticksSinceSprintJumping == 1) {
-            friction = 0.546;
+            friction = groundFriction;
         }
         //JUMP_POST (instantaneous)
         else if(!wasOnGround && !isOnGround && ticksSinceLanding == 2) {
-            friction = 0.546;
+            friction = groundFriction;
         }
         //AIR
         else if((!((pp.hasFlyPending() && e.getPlayer().getAllowFlight()) || e.getPlayer().isFlying()) && !wasOnGround) || (!up && !isOnGround)) {
-            friction = 0.91;
+            friction = airFriction;
         }
         else {
-            friction = 0.91;
+            friction = airFriction;
         }
 
         double dX = e.getTo().getX() - e.getFrom().getX();
@@ -108,33 +117,36 @@ public class Strafe extends MovementCheck {
         dZ -= pp.getVelocity().getZ();
         //Debug.broadcastMessage(MathPlus.round(dX, 6) * friction / moveFactor);
 
-        Vector force = new Vector(dX, 0, dZ);
+        Vector accelDir = new Vector(dX, 0, dZ);
         Vector yaw = MathPlus.getDirection(e.getTo().getYaw(), 0);
 
-        //Need to return if force is too small since the client likes to set a motion
-        //component vector to 0 if it is too small. Can't check the force's component
-        //vectors since that would open a bypass i.e. running along an axis. Also, return
-        //if ticksSinceIdle is <= 2, otherwise this client behavior would set off false flags.
-        //Another check needs to analyze this behavior because this can be abused to bypass
-        //this check.
+        //Need to return if speed is too small since the client likes to set a motion
+        //component vector to 0 if it is too small. Can't check the accelDir's component
+        //vectors individually since that would open a bypass i.e. running along an axis.
+        //Also, return if ticksSinceIdle is <= 2, otherwise this client behavior would
+        //set off false flags. Another check needs to analyze this behavior because this
+        //can be abused to bypass this check.
         if(e.hasTeleported() || e.hasAcceptedKnockback() || collidingHorizontally(e) ||
                 pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow() || pp.isSneaking() ||
-                moveHoriz.length() < 0.15 || e.isJump() || ticksSinceIdle <= 2) {
+                moveHoriz.length() < 0.15 || e.isJump() || ticksSinceIdle <= 2 || e.isInLiquid()) {
             prepareNextMove(wasOnGround, isOnGround, e, pp, pp.getCurrentTick());
             return;
         }
 
         //You aren't pressing a WASD key
-        if(force.lengthSquared() < 0.000001) {
+        if(accelDir.lengthSquared() < 0.000001) {
             prepareNextMove(wasOnGround, isOnGround, e, pp, pp.getCurrentTick());
             return;
         }
 
-        boolean vectorDir = force.clone().crossProduct(yaw).dot(new Vector(0, 1, 0)) >= 0;
-        double angle = (vectorDir ? 1 : -1) * MathPlus.round(force.angle(yaw), 2);
+        boolean vectorDir = accelDir.clone().crossProduct(yaw).dot(new Vector(0, 1, 0)) >= 0;
+        //This dot step is necessary since Bukkit's angle implementation is broken. Sometimes the dot will
+        //lie just slightly off the domain [-1, 1] and this causes Math.acos(double) to return NaN.
+        double dot = Math.min(Math.max(accelDir.dot(yaw) / (accelDir.length() * yaw.length()), -1), 1);
+        double angle = (vectorDir ? 1 : -1) * Math.acos(dot);
 
         if(!isValidStrafe(angle, friction)) {
-            punish(pp, false, e);
+            punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
         }
         else
             reward(pp);

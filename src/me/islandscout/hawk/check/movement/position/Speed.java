@@ -102,7 +102,7 @@ public class Speed extends MovementCheck implements Listener {
         }
         if(event.hasHitSlowdown())
             lastSpeed *= 0.6;
-        boolean teleportBug = pp.getCurrentTick() - pp.getLastTeleportTime() < 3;
+        boolean teleportBug = pp.getCurrentTick() - pp.getLastTeleportAcceptTick() < 2;
         boolean wasOnGround = teleportBug ? event.isOnGroundReally() : pp.isOnGround();
         //In theory, YES, you can abuse the on ground flag. However, that won't get you far.
         //FastFall and SmallHop should patch some NCP bypasses

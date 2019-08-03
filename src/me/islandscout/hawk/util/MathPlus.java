@@ -57,6 +57,15 @@ public final class MathPlus {
     }
 
     /**
+     * Computes the angle between two vectors without ever returning
+     * NaN, unlike Bukkit's Vector#angle(Vector)
+     */
+    public static double angle(Vector a, Vector b) {
+        double dot = Math.min(Math.max(a.dot(b) / (a.length() * b.length()), -1), 1);
+        return Math.acos(dot);
+    }
+
+    /**
      * Faster implementations of the trigonometric functions
      */
     public static float sin(float radians) {
