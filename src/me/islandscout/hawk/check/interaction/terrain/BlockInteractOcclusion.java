@@ -24,7 +24,7 @@ import me.islandscout.hawk.event.InteractWorldEvent;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Placeholder;
 import me.islandscout.hawk.util.Ray;
-import me.islandscout.hawk.util.block.BlockNMS;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.util.AABB;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -46,7 +46,7 @@ public class BlockInteractOcclusion extends BlockInteractionCheck {
 
         Location bLoc = e.getTargetedBlockLocation();
         Block b = bLoc.getBlock();
-        BlockNMS bNMS = BlockNMS.getBlockNMS(b);
+        WrappedBlock bNMS = WrappedBlock.getWrappedBlock(b);
         AABB targetAABB = new AABB(bNMS.getHitBox().getMin(), bNMS.getHitBox().getMax());
 
         double distance = targetAABB.distanceToPosition(eyePos);
@@ -59,7 +59,7 @@ public class BlockInteractOcclusion extends BlockInteractionCheck {
             if (bukkitBlock.getLocation().equals(bLoc))
                 break;
 
-            BlockNMS iterBNMS = BlockNMS.getBlockNMS(bukkitBlock);
+            WrappedBlock iterBNMS = WrappedBlock.getWrappedBlock(bukkitBlock);
             AABB checkIntersection = new AABB(iterBNMS.getHitBox().getMin(), iterBNMS.getHitBox().getMax());
             Vector occludeIntersection = checkIntersection.intersectsRay(new Ray(eyePos, direction), 0, Float.MAX_VALUE);
             if (occludeIntersection != null) {

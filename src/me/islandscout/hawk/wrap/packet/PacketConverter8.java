@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.util.packet;
+package me.islandscout.hawk.wrap.packet;
 
 import io.netty.buffer.Unpooled;
 import me.islandscout.hawk.HawkPlayer;
@@ -25,8 +25,8 @@ import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.util.WrappedWatchableObject;
-import me.islandscout.hawk.util.block.BlockNMS;
-import me.islandscout.hawk.util.block.BlockNMS8;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
+import me.islandscout.hawk.wrap.block.WrappedBlock8;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
@@ -225,7 +225,7 @@ public final class PacketConverter8 {
             org.bukkit.block.Block b = ServerUtils.getBlockAsync(loc);
             if(b == null)
                 return null;
-            BlockNMS block = new BlockNMS8(b);
+            WrappedBlock block = new WrappedBlock8(b);
 
             pp.setDigging(digAction == BlockDigEvent.DigAction.START && block.getStrength() != 0);
             return new BlockDigEvent(p, pp, digAction, b, new WrappedPacket8(packet, WrappedPacket.PacketType.BLOCK_DIG));
@@ -313,8 +313,10 @@ public final class PacketConverter8 {
                 break;
         }
 
+        Vector cursorPos = new Vector(packet.d(), packet.e(), packet.f());
+
         Location placedLocation = new Location(p.getWorld(), x, y, z);
-        return new InteractWorldEvent(p, pp, placedLocation, mat, face, interactionType, new WrappedPacket8(packet, WrappedPacket.PacketType.BLOCK_PLACE));
+        return new InteractWorldEvent(p, pp, placedLocation, mat, face, cursorPos, interactionType, new WrappedPacket8(packet, WrappedPacket.PacketType.BLOCK_PLACE));
     }
 
     private static ArmSwingEvent packetToArmSwingEvent(PacketPlayInArmAnimation packet, Player p, HawkPlayer pp) {

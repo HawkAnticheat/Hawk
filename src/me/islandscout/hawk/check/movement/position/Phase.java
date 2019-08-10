@@ -22,8 +22,8 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
-import me.islandscout.hawk.util.block.BlockNMS;
-import me.islandscout.hawk.util.entity.EntityNMS;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
+import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -90,7 +90,7 @@ public class Phase extends MovementCheck {
 
         Vector moveDirection = new Vector(locTo.getX() - locFrom.getX(), locTo.getY() - locFrom.getY(), locTo.getZ() - locFrom.getZ());
 
-        AABB playerFrom = EntityNMS.getEntityNMS(p).getCollisionBox(locFrom.toVector());
+        AABB playerFrom = WrappedEntity.getWrappedEntity(p).getCollisionBox(locFrom.toVector());
         playerFrom.shrink(SIDE_EPSILON, 0, SIDE_EPSILON);
         playerFrom.getMin().setY(playerFrom.getMin().getY() + BOTTOM_EPSILON);
         playerFrom.getMax().setY(playerFrom.getMax().getY() - TOP_EPSILON);
@@ -115,7 +115,7 @@ public class Phase extends MovementCheck {
                         if (bukkitBlock == null)
                             continue;
 
-                        BlockNMS block = BlockNMS.getBlockNMS(bukkitBlock);
+                        WrappedBlock block = WrappedBlock.getWrappedBlock(bukkitBlock);
                         if (!block.isSolid())
                             continue;
 

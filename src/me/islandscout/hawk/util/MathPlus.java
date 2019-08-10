@@ -57,7 +57,7 @@ public final class MathPlus {
     }
 
     /**
-     * Computes the angle between two vectors without ever returning
+     * Returns the angle between two non-zero, finite vectors without ever returning
      * NaN, unlike Bukkit's Vector#angle(Vector)
      */
     public static double angle(Vector a, Vector b) {
@@ -66,7 +66,7 @@ public final class MathPlus {
     }
 
     /**
-     * Faster implementations of the trigonometric functions
+     * Faster implementations of trigonometric functions
      */
     public static float sin(float radians) {
         if (Hawk.getServerVersion() == 8)

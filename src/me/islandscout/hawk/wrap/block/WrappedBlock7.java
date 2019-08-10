@@ -16,27 +16,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.util.block;
+package me.islandscout.hawk.wrap.block;
 
 import me.islandscout.hawk.util.AABB;
+import me.islandscout.hawk.wrap.entity.WrappedEntity;
+import me.islandscout.hawk.wrap.entity.human.WrappedEntityHuman;
 import net.minecraft.server.v1_7_R4.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
+import org.bukkit.craftbukkit.v1_7_R4.entity.CraftHumanEntity;
 import org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BlockNMS7 extends BlockNMS {
+public class WrappedBlock7 extends WrappedBlock {
 
     private final net.minecraft.server.v1_7_R4.Block block;
 
-    public BlockNMS7(Block block) {
+    public WrappedBlock7(Block block) {
         super(block);
         net.minecraft.server.v1_7_R4.Block b = ((CraftWorld) block.getWorld()).getHandle().getType(block.getLocation().getBlockX(), block.getLocation().getBlockY(), block.getLocation().getBlockZ());
 
@@ -57,6 +61,11 @@ public class BlockNMS7 extends BlockNMS {
         Location loc = getBukkitBlock().getLocation();
         PacketPlayOutBlockChange pac = new PacketPlayOutBlockChange(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), ((CraftWorld) loc.getWorld()).getHandle());
         ((CraftPlayer) p).getHandle().playerConnection.sendPacket(pac);
+    }
+
+    @Override
+    public float getDamage(HumanEntity entity) {
+        return block.getDamage(((CraftHumanEntity)entity).getHandle(), ((CraftWorld)obBlock.getWorld()).getHandle(), obBlock.getX(), obBlock.getY(), obBlock.getZ());
     }
 
     private AABB getHitBox(net.minecraft.server.v1_7_R4.Block b, Location loc) {
@@ -115,16 +124,16 @@ public class BlockNMS7 extends BlockNMS {
 
         //this should prevent async threads from calling NMS code that actually loads chunks
         if(!Bukkit.isPrimaryThread()) {
-            if(!obcBlock.getWorld().isChunkLoaded(obcBlock.getX() >> 4, obcBlock.getZ() >> 4) ||
-                    !obcBlock.getWorld().isChunkLoaded(obcBlock.getX() + 1 >> 4, obcBlock.getZ() >> 4) ||
-                    !obcBlock.getWorld().isChunkLoaded(obcBlock.getX() - 1 >> 4, obcBlock.getZ() >> 4) ||
-                    !obcBlock.getWorld().isChunkLoaded(obcBlock.getX() >> 4, obcBlock.getZ() + 1 >> 4) ||
-                    !obcBlock.getWorld().isChunkLoaded(obcBlock.getX() >> 4, obcBlock.getZ() - 1 >> 4)) {
+            if(!obBlock.getWorld().isChunkLoaded(obBlock.getX() >> 4, obBlock.getZ() >> 4) ||
+                    !obBlock.getWorld().isChunkLoaded(obBlock.getX() + 1 >> 4, obBlock.getZ() >> 4) ||
+                    !obBlock.getWorld().isChunkLoaded(obBlock.getX() - 1 >> 4, obBlock.getZ() >> 4) ||
+                    !obBlock.getWorld().isChunkLoaded(obBlock.getX() >> 4, obBlock.getZ() + 1 >> 4) ||
+                    !obBlock.getWorld().isChunkLoaded(obBlock.getX() >> 4, obBlock.getZ() - 1 >> 4)) {
                 return vec;
             }
         }
 
-        block.a(((CraftWorld)obcBlock.getWorld()).getHandle(), obcBlock.getX(), obcBlock.getY(), obcBlock.getZ(), dummy, nmsVec);
+        block.a(((CraftWorld) obBlock.getWorld()).getHandle(), obBlock.getX(), obBlock.getY(), obBlock.getZ(), dummy, nmsVec);
         vec.setX(nmsVec.a);
         vec.setY(nmsVec.b);
         vec.setZ(nmsVec.c);

@@ -22,8 +22,8 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.util.*;
-import me.islandscout.hawk.util.block.BlockNMS;
-import me.islandscout.hawk.util.entity.EntityNMS;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
+import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -125,7 +125,7 @@ public class FightHitbox extends EntityInteractionCheck {
         Ray attackerRay = new Ray(eyePos, direction);
 
         AABB victimAABB;
-        victimAABB = EntityNMS.getEntityNMS(entity).getHitbox(victimLocation);
+        victimAABB = WrappedEntity.getWrappedEntity(entity).getHitbox(victimLocation);
         victimAABB.expand(BOX_EPSILON, BOX_EPSILON, BOX_EPSILON);
 
         Vector intersectVec3d = victimAABB.intersectsRay(attackerRay, 0, Float.MAX_VALUE);
@@ -153,7 +153,7 @@ public class FightHitbox extends EntityInteractionCheck {
                     if (bukkitBlock.getType() == Material.AIR || bukkitBlock.isLiquid())
                         continue;
 
-                    BlockNMS b = BlockNMS.getBlockNMS(bukkitBlock);
+                    WrappedBlock b = WrappedBlock.getWrappedBlock(bukkitBlock);
                     Vector intersection = b.getHitBox().intersectsRay(new Ray(attackerEyeLocation.toVector(), attackerDirection), 0, Float.MAX_VALUE);
                     if (intersection != null) {
                         if (intersection.distance(eyePos) < interDistance) {

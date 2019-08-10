@@ -22,8 +22,8 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.BlockDigEvent;
 import me.islandscout.hawk.util.Placeholder;
-import me.islandscout.hawk.util.block.BlockNMS7;
-import me.islandscout.hawk.util.block.BlockNMS8;
+import me.islandscout.hawk.wrap.block.WrappedBlock7;
+import me.islandscout.hawk.wrap.block.WrappedBlock8;
 
 import java.util.List;
 
@@ -51,9 +51,9 @@ public abstract class BlockDigCheck extends Check<BlockDigEvent> {
 
     protected void blockRespawn(HawkPlayer offender, BlockDigEvent event) {
         if (Hawk.getServerVersion() == 7) {
-            BlockNMS7.getBlockNMS(event.getBlock()).sendPacketToPlayer(offender.getPlayer());
+            WrappedBlock7.getWrappedBlock(event.getBlock()).sendPacketToPlayer(offender.getPlayer());
         } else if (Hawk.getServerVersion() == 8) {
-            BlockNMS8.getBlockNMS(event.getBlock()).sendPacketToPlayer(offender.getPlayer());
+            WrappedBlock8.getWrappedBlock(event.getBlock()).sendPacketToPlayer(offender.getPlayer());
         }
     }
 }

@@ -16,24 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.event;
+package me.islandscout.hawk.wrap.entity.human;
 
-import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.wrap.packet.WrappedPacket;
-import org.bukkit.entity.Player;
+import org.bukkit.block.Block;
 
-public class ArmSwingEvent extends Event {
+public interface WrappedEntityHuman {
 
-    private final int type;
+    boolean canHarvestBlock(Block block);
 
-    public ArmSwingEvent(Player p, HawkPlayer pp, int type, WrappedPacket packet) {
-        super(p, pp, packet);
-        this.type = type;
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    //TODO post process? Check if all swing packets are forwarded to nearby players. If this is true, we need to implement a rate limiter to mitigate network congestion.
+    /**
+     * Returns how strong the player is against the specified block at this moment
+     */
+    float getCurrentPlayerStrVsBlock(Block block, boolean flag);
 }

@@ -19,7 +19,7 @@
 package me.islandscout.hawk.util;
 
 import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.util.block.BlockNMS;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -182,7 +182,7 @@ public class AdjacentBlocks {
 
         AABB underFeet = new AABB(loc.toVector().add(new Vector(-0.3, -feetDepth, -0.3)), loc.toVector().add(new Vector(0.3, 0, 0.3)));
         for (Block block : blocks) {
-            BlockNMS bNMS = BlockNMS.getBlockNMS(block);
+            WrappedBlock bNMS = WrappedBlock.getWrappedBlock(block);
             if (block.isLiquid() || (!bNMS.isSolid() && Hawk.getServerVersion() == 8))
                 continue;
             if (bNMS.isColliding(underFeet)) {
@@ -192,7 +192,7 @@ public class AdjacentBlocks {
                     AABB topFeet = underFeet.clone();
                     topFeet.translate(new Vector(0, feetDepth + 0.00001, 0));
                     for (Block block1 : AdjacentBlocks.getBlocksInLocation(loc)) {
-                        BlockNMS bNMS1 = BlockNMS.getBlockNMS(block1);
+                        WrappedBlock bNMS1 = WrappedBlock.getWrappedBlock(block1);
                         if (block1.isLiquid() || (!bNMS1.isSolid() && Hawk.getServerVersion() == 8) || block1.getState().getData() instanceof Openable)
                             continue;
                         if (bNMS1.isColliding(topFeet))
@@ -222,7 +222,7 @@ public class AdjacentBlocks {
             if(b == null)
                 continue;
             if(hawkDefinition) {
-                if(BlockNMS.getBlockNMS(b).isSolid())
+                if(WrappedBlock.getWrappedBlock(b).isSolid())
                     return true;
             }
             else if(b.getType().isSolid())
@@ -242,7 +242,7 @@ public class AdjacentBlocks {
                 for(int z = (int)(min.getZ() < 0 ? min.getZ() - 1 : min.getZ()); z <= max.getZ(); z++) {
                     Block b = ServerUtils.getBlockAsync(new Location(world, x, y, z));
                     if(b != null) {
-                        BlockNMS bNMS = BlockNMS.getBlockNMS(b);
+                        WrappedBlock bNMS = WrappedBlock.getWrappedBlock(b);
                         for(AABB blockBox : bNMS.getCollisionBoxes()) {
                             if(blockBox.getMin().getX() > boundingBox.getMax().getX() && blockBox.getMin().getX() < bigBox.getMax().getX()) {
                                 directions.add(Direction.EAST);

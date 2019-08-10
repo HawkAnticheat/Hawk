@@ -21,10 +21,11 @@ package me.islandscout.hawk.check.interaction.terrain;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockDigCheck;
 import me.islandscout.hawk.event.BlockDigEvent;
-import me.islandscout.hawk.util.MathPlus;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Placeholder;
-import me.islandscout.hawk.util.block.BlockNMS;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -38,14 +39,7 @@ import java.util.UUID;
 
 public class BlockBreakSpeed extends BlockDigCheck {
 
-    /*
-      Conforms to 1.8 block breaking standards
-
-      No need to check if the player is using the appropriate tool, because Spigot already does that.
-      Spigot will delay the block destruction if, for example, a player uses a diamond shovel to mine stone in 2x speed.
-      Additionally, Hawk's WrongBlock check will cancelThreshold it if the player starts mining another block.
-      A player using a diamond shovel to mine stone is able to break 1.4x faster using cheats. Might need to improve this.
-    */
+    //Conforms to 1.8 block breaking standards
 
     /*TODO: Rewrite this so that it updates expected block damage every client tick, rather than
         waiting until a COMPLETE status to approximate expected time. Should be more accurate.
@@ -71,14 +65,25 @@ public class BlockBreakSpeed extends BlockDigCheck {
         }
         if (e.getDigAction() == BlockDigEvent.DigAction.COMPLETE || p.getGameMode() == GameMode.CREATIVE) {
             Block b = e.getBlock();
-            float hardness = BlockNMS.getBlockNMS(b).getStrength();
+            float hardness = WrappedBlock.getWrappedBlock(b).getStrength();
 
-            boolean harvestable = e.getBlock().getDrops(e.getPlayer().getItemInHand()).size() > 0 || e.getBlock().getDrops().size() == 0 || e.getBlock().getState().getData() instanceof Leaves;
+            Debug.broadcastMessage(e.getBlock().getType() == Material.WOOL && e.getPlayer().getItemInHand().getType() == Material.SHEARS);
+
+            boolean harvestable = e.getBlock().getDrops(e.getPlayer().getItemInHand()).size() > 0 ||
+                    e.getBlock().getDrops().size() == 0 ||
+                    e.getBlock().getState().getData() instanceof Leaves;
             double expectedTime = harvestable ? hardness * 1.5 : hardness * 5;
+
+            //patch silly stuff
+            if(e.getBlock().getType() == Material.WOOL && e.getPlayer().getItemInHand().getType() == Material.SHEARS) {
+                expectedTime /= 4;
+                expectedTime -= 0.05;
+            }
 
             int enchant = p.getItemInHand().getEnchantmentLevel(Enchantment.DIG_SPEED);
             enchant = enchant > 0 ? (enchant * enchant) + 1 : 0;
 
+            //TODO this is a really crappy way of handling tool tiers
             String name = p.getItemInHand().toString();
             if (name.contains("SPADE") || name.contains("PICKAXE") || name.contains("AXE")) {
                 if (name.contains("WOOD")) expectedTime *= 1D / (2 + enchant);
@@ -88,16 +93,23 @@ public class BlockBreakSpeed extends BlockDigCheck {
                 else if (name.contains("GOLD")) expectedTime *= 1D / (12 + enchant);
             } else expectedTime *= 1D / (enchant > 0 ? enchant : 1);
 
-            expectedTime = potionEffect(expectedTime, p);
+            //patch silly stuff
+            //TODO this is a really crappy way of handling this
+            if(e.getBlock().getType() == Material.WEB && e.getPlayer().getItemInHand().toString().contains("SWORD"))
+                expectedTime /= 15;
 
-            expectedTime = Math.round(expectedTime * 100000) / 100000D;
-            double actualTime = (pp.getCurrentTick() - interactTick.getOrDefault(p.getUniqueId(), 0L) + 1) * 0.05;
+            expectedTime = potionEffect(expectedTime, p);
+            expectedTime *= 20;
+            expectedTime = Math.round(expectedTime);
+            long actualTime = (pp.getCurrentTick() - interactTick.getOrDefault(p.getUniqueId(), 0L) + 1);
+
+            Debug.broadcastMessage(expectedTime);
 
             if (p.getGameMode() == GameMode.CREATIVE)
-                expectedTime = 0.05;
+                expectedTime = 1;
 
             if (actualTime < expectedTime || (PREVENT_SAME_TICK && pp.getCurrentTick() == interactTick.getOrDefault(p.getUniqueId(), 0L))) {
-                punishAndTryCancelAndBlockRespawn(pp, 1, e, new Placeholder("block", b.getType()), new Placeholder("time", MathPlus.round(actualTime, 2) + "s"));
+                punishAndTryCancelAndBlockRespawn(pp, 1, e, new Placeholder("block", b.getType()), new Placeholder("time", actualTime + " ticks"));
             } else {
                 reward(pp);
             }

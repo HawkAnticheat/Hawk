@@ -16,37 +16,42 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.util.block;
+package me.islandscout.hawk.wrap.block;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.AABB;
 import org.bukkit.block.Block;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-public abstract class BlockNMS {
+public abstract class WrappedBlock {
 
-    final Block obcBlock;
+    final Block obBlock;
     float strength;
     AABB hitbox;
     AABB[] collisionBoxes;
     boolean solid;
     float slipperiness;
 
-    BlockNMS(Block obcBlock) {
-        this.obcBlock = obcBlock;
+    WrappedBlock(Block obBlock) {
+        this.obBlock = obBlock;
     }
 
     public abstract Object getNMS();
 
     public abstract void sendPacketToPlayer(Player p);
 
+    //Returns the amount of damage to apply to this block at this tick,
+    //given that an entity is currently mining it.
+    public abstract float getDamage(HumanEntity entity);
+
     public float getStrength() {
         return strength;
     }
 
     public Block getBukkitBlock() {
-        return obcBlock;
+        return obBlock;
     }
 
     public AABB getHitBox() {
@@ -65,11 +70,11 @@ public abstract class BlockNMS {
         return false;
     }
 
-    public static BlockNMS getBlockNMS(Block b) {
+    public static WrappedBlock getWrappedBlock(Block b) {
         if (Hawk.getServerVersion() == 8)
-            return new BlockNMS8(b);
+            return new WrappedBlock8(b);
         else
-            return new BlockNMS7(b);
+            return new WrappedBlock7(b);
     }
 
     public float getSlipperiness() {

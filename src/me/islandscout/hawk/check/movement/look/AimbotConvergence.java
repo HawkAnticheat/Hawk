@@ -56,13 +56,15 @@ public class AimbotConvergence extends CustomCheck {
             Vector lastConvergence = lastConvergencePointMap.get(uuid);
             Vector convergence = points.getKey().add(points.getValue()).multiply(0.5);
 
-            if(lastConvergence != null && pp.getCurrentTick() - pp.getLastTeleportAcceptTick() > 1) {
+            if(lastConvergence != null &&
+                    //make sure TPs don't false this check
+                    pp.getCurrentTick() - pp.getLastTeleportAcceptTick() > ServerUtils.getPing(e.getPlayer()) / 50 + 10 &&
+                    pp.getCurrentTick() > 100) {
+
                 double distance = lastConvergence.distanceSquared(convergence);
                 if(!Double.isNaN(distance)) {
 
-                    //Debug.broadcastMessage( distance + "");
-
-                    if(distance < 0.00000001) //it only takes a few VLs to deserve an autoban
+                    if(distance < 0.00000001)
                         punish(pp, false, e);
                     else
                         reward(pp);

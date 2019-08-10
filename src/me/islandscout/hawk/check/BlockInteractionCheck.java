@@ -23,8 +23,8 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.InteractWorldEvent;
 import me.islandscout.hawk.util.Placeholder;
 import me.islandscout.hawk.util.ServerUtils;
-import me.islandscout.hawk.util.block.BlockNMS7;
-import me.islandscout.hawk.util.block.BlockNMS8;
+import me.islandscout.hawk.wrap.block.WrappedBlock7;
+import me.islandscout.hawk.wrap.block.WrappedBlock8;
 import org.bukkit.block.Block;
 
 import java.util.List;
@@ -53,12 +53,15 @@ public abstract class BlockInteractionCheck extends Check<InteractWorldEvent> {
 
     protected void blockRespawn(HawkPlayer offender, InteractWorldEvent event) {
         Block b = ServerUtils.getBlockAsync(event.getPlacedBlockLocation());
+        Block targeted = ServerUtils.getBlockAsync(event.getTargetedBlockLocation());
         if(b == null)
             return;
         if (Hawk.getServerVersion() == 7) {
-            BlockNMS7.getBlockNMS(b).sendPacketToPlayer(offender.getPlayer());
+            WrappedBlock7.getWrappedBlock(b).sendPacketToPlayer(offender.getPlayer());
+            WrappedBlock7.getWrappedBlock(targeted).sendPacketToPlayer(offender.getPlayer());
         } else if (Hawk.getServerVersion() == 8) {
-            BlockNMS8.getBlockNMS(b).sendPacketToPlayer(offender.getPlayer());
+            WrappedBlock8.getWrappedBlock(b).sendPacketToPlayer(offender.getPlayer());
+            WrappedBlock8.getWrappedBlock(targeted).sendPacketToPlayer(offender.getPlayer());
         }
     }
 }

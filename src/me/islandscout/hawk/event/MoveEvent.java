@@ -21,8 +21,8 @@ package me.islandscout.hawk.event;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
-import me.islandscout.hawk.util.block.BlockNMS;
-import me.islandscout.hawk.util.packet.WrappedPacket;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
+import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -114,50 +114,38 @@ public class MoveEvent extends Event {
     @Override
     public void postProcess() {
         pp.setLastMoveTime(System.currentTimeMillis());
-        if(isCancelled()) {
+        if(isCancelled() && getCancelLocation() != null) {
             //handle rubberband if applicable
-            if(getCancelLocation() != null) {
-                setTo(getCancelLocation());
-                pp.setTeleporting(true);
-                pp.teleport(getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
-            } else {
-                //2/17/19: well, technically this shouldn't be allowed. I did
-                //this so at least some other check such as speed can rubberband
-                //if tickrate fails. If tickrate rubberbands, that'll just spam
-                //more packets. And if someone fails tickrate then they'll just spam
-                //speed, especially if speed isn't set to rubberband.
-
-                //((MoveEvent) event).setTo(((MoveEvent) event).getFrom());
-            }
+            setTo(getCancelLocation());
+            pp.setTeleporting(true);
+            pp.teleport(getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
         }
-        //This event has passed checks; proceed to update the HawkPlayer.
-        else {
-            //handle item consumption
-            if(pp.getCurrentTick() - pp.getItemUseTick() > 31 && pp.isConsumingItem()) {
-                pp.setConsumingItem(false);
-            }
 
-            //handle swimming
-            pp.setInLiquid(isInLiquid());
-            if(pp.getCurrentTick() < 2)
-                pp.setSwimming(pp.isInLiquid());
-            long ticksSinceSwimToggle = pp.getCurrentTick() - pp.getLastInLiquidToggleTick();
-            pp.setSwimming(!pp.isFlyingClientside() && ((pp.isInLiquid() && ticksSinceSwimToggle > 0) || (!pp.isInLiquid() && ticksSinceSwimToggle < 1)));
-
-            Location to = getTo();
-            Location from = getFrom();
-            pp.setVelocity(new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ()));
-            pp.setDeltaYaw(to.getYaw() - from.getYaw());
-            pp.setDeltaPitch(to.getPitch() - from.getPitch());
-            pp.setPositionYawPitch(to.toVector(), to.getYaw(), to.getPitch());
-            pp.updateFallDistance(to);
-            pp.updateTotalAscensionSinceGround(from.getY(), to.getY());
-            pp.setOnGround(isOnGround());
-            pp.setOnGroundReally(isOnGroundReally());
-            pp.getBoxSidesTouchingBlocks().clear();
-            pp.getBoxSidesTouchingBlocks().addAll(getBoxSidesTouchingBlocks());
-            pp.setWaterFlowForce(getWaterFlowForce());
+        //handle item consumption
+        if(pp.getCurrentTick() - pp.getItemUseTick() > 31 && pp.isConsumingItem()) {
+            pp.setConsumingItem(false);
         }
+
+        //handle swimming
+        pp.setInLiquid(isInLiquid());
+        if(pp.getCurrentTick() < 2)
+            pp.setSwimming(pp.isInLiquid());
+        long ticksSinceSwimToggle = pp.getCurrentTick() - pp.getLastInLiquidToggleTick();
+        pp.setSwimming(!pp.isFlyingClientside() && ((pp.isInLiquid() && ticksSinceSwimToggle > 0) || (!pp.isInLiquid() && ticksSinceSwimToggle < 1)));
+
+        Location to = getTo();
+        Location from = getFrom();
+        pp.setVelocity(new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ()));
+        pp.setDeltaYaw(to.getYaw() - from.getYaw());
+        pp.setDeltaPitch(to.getPitch() - from.getPitch());
+        pp.setPositionYawPitch(to.toVector(), to.getYaw(), to.getPitch());
+        pp.updateFallDistance(to);
+        pp.updateTotalAscensionSinceGround(from.getY(), to.getY());
+        pp.setOnGround(isOnGround());
+        pp.setOnGroundReally(isOnGroundReally());
+        pp.getBoxSidesTouchingBlocks().clear();
+        pp.getBoxSidesTouchingBlocks().addAll(getBoxSidesTouchingBlocks());
+        pp.setWaterFlowForce(getWaterFlowForce());
     }
 
     private boolean testStep() {
@@ -177,7 +165,7 @@ public class MoveEvent extends Event {
         List<Block> blocks = liquidTest.getBlocks(p.getWorld());
         for(Block b : blocks) {
             if(Physics.liquidDefs.contains(b.getType())) {
-                Vector direction = BlockNMS.getBlockNMS(b).getFlowDirection();
+                Vector direction = WrappedBlock.getWrappedBlock(b).getFlowDirection();
                 liquids.add(new Pair<>(b, direction));
                 this.liquidTypes.add(b.getType());
             }

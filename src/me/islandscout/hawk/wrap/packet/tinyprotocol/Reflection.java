@@ -1,4 +1,4 @@
-package me.islandscout.hawk.util.packet.tinyprotocol;
+package me.islandscout.hawk.wrap.packet.tinyprotocol;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

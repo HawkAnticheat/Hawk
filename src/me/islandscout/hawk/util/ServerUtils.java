@@ -20,10 +20,9 @@ package me.islandscout.hawk.util;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.util.block.BlockNMS;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -101,7 +100,7 @@ public final class ServerUtils {
         if (loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
             ClientBlock cb = pp.getClientBlocks().get(loc);
             if (cb == null) {
-                return BlockNMS.getBlockNMS(loc.getBlock()).getCollisionBoxes();
+                return WrappedBlock.getWrappedBlock(loc.getBlock()).getCollisionBoxes();
             }
 
             AABB[] result = {null};

@@ -102,6 +102,7 @@ public class CheckManager {
         new AimbotConvergence();
         new Strafe();
         new SyntheticMove();
+        new SyntheticBlockInteract();
     }
 
     public void unloadChecks() {

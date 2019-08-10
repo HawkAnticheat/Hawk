@@ -46,11 +46,11 @@ public class SprintDirection extends MovementCheck {
         double lastSpeed = lastMove.length();
         double currSpeed = move.length();
 
-        double moveChange = move.angle(lastMove);
+        double moveChange = MathPlus.angle(move, lastMove);
         double speedChange = Math.max(lastSpeed, currSpeed) / Math.min(lastSpeed, currSpeed) - 1;
         if(Double.isInfinite(speedChange))
             speedChange = 1;
-        double value = look.angle(move) / (5 * (speedChange + moveChange) + 1);
+        double value = MathPlus.angle(look, move) / (5 * (speedChange + moveChange) + 1);
 
         if(!e.hasAcceptedKnockback()) {
             if(e.isOnGroundReally() && pp.isOnGround()) {

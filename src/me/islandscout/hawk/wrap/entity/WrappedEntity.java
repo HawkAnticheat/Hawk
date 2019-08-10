@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.util.entity;
+package me.islandscout.hawk.wrap.entity;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.AABB;
@@ -24,20 +24,20 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
-public abstract class EntityNMS {
+public abstract class WrappedEntity {
 
     AABB collisionBox;
     float collisionBorderSize;
     Location location;
 
-    EntityNMS() {
+    WrappedEntity() {
     }
 
-    public static EntityNMS getEntityNMS(Entity entity) {
+    public static WrappedEntity getWrappedEntity(Entity entity) {
         if (Hawk.getServerVersion() == 8)
-            return new EntityNMS8(entity);
+            return WrappedEntity8.getWrappedEntity(entity);
         else
-            return new EntityNMS7(entity);
+            return WrappedEntity7.getWrappedEntity(entity);
     }
 
     public AABB getCollisionBox(Vector entityPos) {

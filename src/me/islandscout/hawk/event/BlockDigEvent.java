@@ -21,9 +21,9 @@ package me.islandscout.hawk.event;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.ClientBlock;
-import me.islandscout.hawk.util.block.BlockNMS7;
-import me.islandscout.hawk.util.block.BlockNMS8;
-import me.islandscout.hawk.util.packet.WrappedPacket;
+import me.islandscout.hawk.wrap.block.WrappedBlock7;
+import me.islandscout.hawk.wrap.block.WrappedBlock8;
+import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -58,9 +58,9 @@ public class BlockDigEvent extends Event {
 
     protected void revertChangeClientside() {
         if (Hawk.getServerVersion() == 7) {
-            BlockNMS7.getBlockNMS(getBlock()).sendPacketToPlayer(pp.getPlayer());
+            WrappedBlock7.getWrappedBlock(getBlock()).sendPacketToPlayer(pp.getPlayer());
         } else if (Hawk.getServerVersion() == 8) {
-            BlockNMS8.getBlockNMS(getBlock()).sendPacketToPlayer(pp.getPlayer());
+            WrappedBlock8.getWrappedBlock(getBlock()).sendPacketToPlayer(pp.getPlayer());
         }
     }
 

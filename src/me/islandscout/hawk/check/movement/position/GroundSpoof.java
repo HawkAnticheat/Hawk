@@ -22,7 +22,7 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
-import me.islandscout.hawk.util.packet.WrappedPacket;
+import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.Location;
 
 public class GroundSpoof extends MovementCheck {

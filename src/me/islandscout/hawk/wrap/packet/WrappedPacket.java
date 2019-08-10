@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.util.packet;
+package me.islandscout.hawk.wrap.packet;
 
 public abstract class WrappedPacket {
 

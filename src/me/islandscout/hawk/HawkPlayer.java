@@ -20,7 +20,7 @@ package me.islandscout.hawk;
 
 import me.islandscout.hawk.check.Check;
 import me.islandscout.hawk.util.*;
-import me.islandscout.hawk.util.entity.EntityNMS;
+import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -34,10 +34,14 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Provides essential and additional tools to analyze players during
- * packet interception. Recommended to use this rather than
- * Bukkit's implementation. Also provides tools for the Netty
- * thread.
+ * Represents a client. Provides essential and additional tools
+ * to analyze players during packet interception. Recommended
+ * to use this rather than Bukkit's implementation.
+ *
+ * Fields here should be faithful to the client they represent
+ * as much as possible, regardless of any corrections that the
+ * anti-cheat makes to the incoming packets. Caution: that means
+ * some of these fields can be spoofed!
  */
 public class HawkPlayer {
 
@@ -557,11 +561,11 @@ public class HawkPlayer {
     }*/
 
     public AABB getCollisionBox() {
-        return EntityNMS.getEntityNMS(p).getCollisionBox(position);
+        return WrappedEntity.getWrappedEntity(p).getCollisionBox(position);
     }
 
     public AABB getHitBox() {
-        return EntityNMS.getEntityNMS(p).getHitbox(position);
+        return WrappedEntity.getWrappedEntity(p).getHitbox(position);
     }
 
     public long getCurrentValidatedTick() {

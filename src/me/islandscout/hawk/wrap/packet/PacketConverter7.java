@@ -16,17 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.util.packet;
+package me.islandscout.hawk.wrap.packet;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.util.WrappedWatchableObject;
-import me.islandscout.hawk.util.block.BlockNMS;
-import me.islandscout.hawk.util.block.BlockNMS7;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
+import me.islandscout.hawk.wrap.block.WrappedBlock7;
 import net.minecraft.server.v1_7_R4.*;
 import net.minecraft.util.io.netty.buffer.Unpooled;
 import org.bukkit.Location;
@@ -211,7 +210,7 @@ public final class PacketConverter7 {
             org.bukkit.block.Block b = ServerUtils.getBlockAsync(loc);
             if(b == null)
                 return null;
-            BlockNMS block = new BlockNMS7(b);
+            WrappedBlock block = new WrappedBlock7(b);
 
             pp.setDigging(digAction == BlockDigEvent.DigAction.START && block.getStrength() != 0);
             return new BlockDigEvent(p, pp, digAction, b, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_DIG));
@@ -297,8 +296,10 @@ public final class PacketConverter7 {
                 break;
         }
 
+        Vector cursorPos = new Vector(packet.h(), packet.i(), packet.j());
+
         Location placedLocation = new Location(p.getWorld(), x, y, z);
-        return new InteractWorldEvent(p, pp, placedLocation, mat, face, interactionType, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_PLACE));
+        return new InteractWorldEvent(p, pp, placedLocation, mat, face, cursorPos, interactionType, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_PLACE));
     }
 
     private static ArmSwingEvent packetToArmSwingEvent(PacketPlayInArmAnimation packet, Player p, HawkPlayer pp) {

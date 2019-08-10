@@ -22,6 +22,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.event.*;
+import me.islandscout.hawk.util.MathPlus;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -84,7 +85,7 @@ public class AimbotHeuristic extends CustomCheck implements Cancelless {
                 Vector currMouseMove = lastMoves.get(i);
                 double speed = currMouseMove.length();
                 double lastSpeed = lastMouseMove.length();
-                double angle = (lastSpeed != 0 && lastSpeed != 0) ? lastMouseMove.angle(currMouseMove) : 0D;
+                double angle = (lastSpeed != 0 && lastSpeed != 0) ? MathPlus.angle(lastMouseMove, currMouseMove) : 0D;
                 if(Double.isNaN(angle))
                     angle = 0D;
                 maxSpeed = Math.max(speed, maxSpeed);

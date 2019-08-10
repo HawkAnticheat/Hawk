@@ -22,14 +22,8 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockInteractionCheck;
 import me.islandscout.hawk.event.InteractWorldEvent;
 import me.islandscout.hawk.util.*;
-import me.islandscout.hawk.util.block.BlockNMS;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
 
 public class BlockInteractDirection extends BlockInteractionCheck {

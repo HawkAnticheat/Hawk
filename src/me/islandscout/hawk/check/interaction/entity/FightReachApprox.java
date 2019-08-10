@@ -22,7 +22,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.util.*;
-import me.islandscout.hawk.util.entity.EntityNMS;
+import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -64,7 +64,7 @@ public class FightReachApprox extends EntityInteractionCheck {
         else
             victimLocation = victimEntity.getLocation();
 
-        AABB victimAABB = EntityNMS.getEntityNMS(victimEntity).getHitbox(victimLocation.toVector());
+        AABB victimAABB = WrappedEntity.getWrappedEntity(victimEntity).getHitbox(victimLocation.toVector());
         victimAABB.expand(0.05, 0.05, 0.05);
 
         Vector attackerPos = att.getPosition().clone().add(new Vector(0D, att.isSneaking() ? 1.54F : 1.62F, 0D));

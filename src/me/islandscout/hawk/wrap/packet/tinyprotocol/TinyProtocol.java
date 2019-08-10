@@ -1,4 +1,4 @@
-package me.islandscout.hawk.util.packet.tinyprotocol;
+package me.islandscout.hawk.wrap.packet.tinyprotocol;
 
 /*import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
@@ -32,8 +32,8 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import me.islandscout.hawk.util.packet.tinyprotocol.Reflection.FieldAccessor;
-import me.islandscout.hawk.util.packet.tinyprotocol.Reflection.MethodInvoker;
+import me.islandscout.hawk.wrap.packet.tinyprotocol.Reflection.FieldAccessor;
+import me.islandscout.hawk.wrap.packet.tinyprotocol.Reflection.MethodInvoker;
 
 /**
  * Represents a very tiny alternative to ProtocolLib.

@@ -16,19 +16,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.util.entity;
+package me.islandscout.hawk.wrap.entity;
 
 import me.islandscout.hawk.util.AABB;
+import me.islandscout.hawk.wrap.entity.human.WrappedEntityHuman7;
 import net.minecraft.server.v1_7_R4.AxisAlignedBB;
 import org.bukkit.craftbukkit.v1_7_R4.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_7_R4.entity.CraftHumanEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
-public class EntityNMS7 extends EntityNMS {
+public class WrappedEntity7 extends WrappedEntity {
 
-    public EntityNMS7(Entity entity) {
+    protected net.minecraft.server.v1_7_R4.Entity nmsEntity;
+
+    public WrappedEntity7(Entity entity) {
         super();
-        net.minecraft.server.v1_7_R4.Entity nmsEntity = ((CraftEntity) entity).getHandle();
+        nmsEntity = ((CraftEntity) entity).getHandle();
         AxisAlignedBB bb = nmsEntity.boundingBox;
         Vector min;
         Vector max;
@@ -45,5 +49,12 @@ public class EntityNMS7 extends EntityNMS {
         //You wouldn't expect this method to be in NMS since it is used for hit scanning for the client.
         collisionBorderSize = nmsEntity.af();
         location = entity.getLocation();
+    }
+
+    public static WrappedEntity7 getWrappedEntity(Entity entity) {
+        if(entity instanceof CraftHumanEntity)
+            return new WrappedEntityHuman7(entity);
+        else
+            return new WrappedEntity7(entity);
     }
 }

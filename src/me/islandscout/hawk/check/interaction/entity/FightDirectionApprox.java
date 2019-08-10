@@ -22,7 +22,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.util.*;
-import me.islandscout.hawk.util.entity.EntityNMS;
+import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -70,7 +70,7 @@ public class FightDirectionApprox extends EntityInteractionCheck {
         else
             victimLoc = e.getEntity().getLocation();
 
-        AABB victimAABB = EntityNMS.getEntityNMS(e.getEntity()).getHitbox(victimLoc.toVector());
+        AABB victimAABB = WrappedEntity.getWrappedEntity(e.getEntity()).getHitbox(victimLoc.toVector());
         victimAABB.expand(BOX_EXPAND, BOX_EXPAND, BOX_EXPAND);
 
         if(victimAABB.betweenRays(pos, dir, extraDir)) {

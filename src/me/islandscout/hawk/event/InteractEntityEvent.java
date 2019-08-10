@@ -19,8 +19,7 @@
 package me.islandscout.hawk.event;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.util.Debug;
-import me.islandscout.hawk.util.packet.WrappedPacket;
+import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;

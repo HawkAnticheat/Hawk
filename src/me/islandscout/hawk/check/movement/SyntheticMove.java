@@ -21,7 +21,8 @@ package me.islandscout.hawk.check.movement;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.packet.WrappedPacket;
+import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.wrap.packet.WrappedPacket;
 
 /*
  * Check written by Havesta
@@ -36,22 +37,25 @@ import me.islandscout.hawk.util.packet.WrappedPacket;
  */
 public class SyntheticMove extends MovementCheck {
 
-    //Stops lazy cheaters. One VL deserves an autoban.
-
     public SyntheticMove() {
-        super("syntheticmove", true, 2, 5, 0.999, 5000, "%player% failed synthetic-move, VL: %vl%", null);
+        super("syntheticmove", true, 0, 2, 0.999, 5000, "%player% failed synthetic-move, VL: %vl%", null);
     }
 
     @Override
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
-        //Also ignore the move after the tp to fix false positives - Islandscout
-        if(pp.getCurrentTick() - pp.getLastTeleportAcceptTick() > 1) {
+        //Also ignore some moves after the tp to fix false positives.
+        //Use ping because if you send multiple TPs with the same location,
+        //and if the player stands still, hawk will register the first one
+        //accepted in the batch and ignore the succeeding ones. Add 10 ticks
+        //just to be safe. - Islandscout
+        if(pp.getCurrentTick() - pp.getLastTeleportAcceptTick() > ServerUtils.getPing(e.getPlayer()) / 50 + 10 &&
+                pp.getCurrentTick() > 100) {
             WrappedPacket packet = e.getWrappedPacket();
             switch(packet.getType()) {
                 case POSITION:
                     //We can extend the check to position packets by checking
-                    //the velocity since the last flying packet - Islandscout
+                    //the velocity since the last flying packet. - Islandscout
                     if(!e.hasDeltaPos() && pp.getVelocity().lengthSquared() > 0) {
                         punishAndTryRubberband(e.getHawkPlayer(), e, e.getPlayer().getLocation());
                     } else {

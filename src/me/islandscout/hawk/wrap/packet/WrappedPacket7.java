@@ -16,17 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.util.packet;
+package me.islandscout.hawk.wrap.packet;
 
-import io.netty.buffer.Unpooled;
-import net.minecraft.server.v1_8_R3.Packet;
-import net.minecraft.server.v1_8_R3.PacketDataSerializer;
+import net.minecraft.server.v1_7_R4.Packet;
+import net.minecraft.server.v1_7_R4.PacketDataSerializer;
+import net.minecraft.util.io.netty.buffer.Unpooled;
 
 import java.io.IOException;
 
-public class WrappedPacket8 extends WrappedPacket {
+public class WrappedPacket7 extends WrappedPacket {
 
-    public WrappedPacket8(Packet obj, PacketType type) {
+    public WrappedPacket7(Packet obj, PacketType type) {
         super(obj, type);
     }
 
@@ -35,7 +35,7 @@ public class WrappedPacket8 extends WrappedPacket {
     }
 
     public void setByte(int index, int value) {
-        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(256));
+        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
         try {
             ((Packet) packet).b(serializer); //"b" method writes to PacketDataSerializer (reads from packet)
             serializer.setByte(index, value);
@@ -46,7 +46,7 @@ public class WrappedPacket8 extends WrappedPacket {
     }
 
     public byte[] getBytes() {
-        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(256));
+        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
         try {
             ((Packet) packet).b(serializer); //"b" method writes to PacketDataSerializer (reads from packet)
         } catch (IOException e) {
@@ -55,7 +55,7 @@ public class WrappedPacket8 extends WrappedPacket {
         return serializer.array();
     }
 
-    public Object readPacket() {
+    public PacketDataSerializer readPacket() {
         PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
         try {
             ((Packet) packet).b(serializer); //"b" method writes to PacketDataSerializer (reads from packet)

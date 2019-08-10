@@ -21,11 +21,10 @@ package me.islandscout.hawk.check.movement.position;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Direction;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.ServerUtils;
-import me.islandscout.hawk.util.block.BlockNMS;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -63,7 +62,7 @@ public class Strafe extends MovementCheck {
         Block footBlock = ServerUtils.getBlockAsync(pp.getPlayer().getLocation().clone().add(0, -1, 0));
         if(footBlock == null)
             return;
-        final float groundFriction = BlockNMS.getBlockNMS(footBlock).getSlipperiness() * 0.91F;
+        final float groundFriction = WrappedBlock.getWrappedBlock(footBlock).getSlipperiness() * 0.91F;
         final float airFriction = 0.91F;
 
         Vector moveHoriz = e.getTo().toVector().subtract(e.getFrom().toVector()).setY(0);

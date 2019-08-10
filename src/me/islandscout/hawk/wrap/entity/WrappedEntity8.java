@@ -16,22 +16,34 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.util.entity;
+package me.islandscout.hawk.wrap.entity;
 
 import me.islandscout.hawk.util.AABB;
+import me.islandscout.hawk.wrap.entity.human.WrappedEntityHuman8;
 import net.minecraft.server.v1_8_R3.AxisAlignedBB;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftHumanEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
-public class EntityNMS8 extends EntityNMS {
+public class WrappedEntity8 extends WrappedEntity {
 
-    public EntityNMS8(Entity entity) {
+    protected net.minecraft.server.v1_8_R3.Entity nmsEntity;
+
+    public WrappedEntity8(Entity entity) {
         super();
-        net.minecraft.server.v1_8_R3.Entity nmsEntity = ((CraftEntity) entity).getHandle();
+        nmsEntity = ((CraftEntity) entity).getHandle();
         AxisAlignedBB bb = nmsEntity.getBoundingBox();
         collisionBox = new AABB(new Vector(bb.a, bb.b, bb.c), new Vector(bb.d, bb.e, bb.f));
         collisionBorderSize = nmsEntity.ao();
         location = entity.getLocation();
+    }
+
+    public static WrappedEntity8 getWrappedEntity(Entity entity) {
+        if(entity instanceof CraftHumanEntity)
+            return new WrappedEntityHuman8(entity);
+        else
+            return new WrappedEntity8(entity);
+
     }
 }

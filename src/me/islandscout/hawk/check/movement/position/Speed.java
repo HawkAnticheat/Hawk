@@ -136,7 +136,7 @@ public class Speed extends MovementCheck implements Listener {
             Vector waterForce = event.getWaterFlowForce().clone().setY(0).normalize().multiply(Physics.WATER_FLOW_FORCE_MULTIPLIER);
             double waterForceLength = waterForce.length();
             //you can just normalize them and do a dot product. should be faster.
-            double computedForce = MathPlus.cos(move.angle(waterForce)) * waterForceLength;
+            double computedForce = MathPlus.cos((float)MathPlus.angle(move, waterForce)) * waterForceLength;
 
             computedForce += 0.003; //add epsilon to allow room for error
 

@@ -22,6 +22,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
+import me.islandscout.hawk.util.MathPlus;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -47,7 +48,7 @@ public class Inertia extends MovementCheck {
         Vector moveVector = new Vector(e.getTo().getX() - e.getFrom().getX(), 0, e.getTo().getZ() - e.getFrom().getZ());
         Vector prevVector = pp.getVelocity().clone().setY(0);
         double horizSpeedSquared = Math.pow(e.getTo().getX() - e.getFrom().getX(), 2) + Math.pow(e.getTo().getZ() - e.getFrom().getZ(), 2);
-        double deltaAngle = moveVector.angle(prevVector);
+        double deltaAngle = MathPlus.angle(moveVector, prevVector);
         boolean onGround = e.isOnGround(); //um... is this safe?
         boolean wasOnGround = pp.isOnGround(); //um... is this safe?
         if(onGround)

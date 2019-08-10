@@ -22,9 +22,9 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.ClientBlock;
 import me.islandscout.hawk.util.ServerUtils;
-import me.islandscout.hawk.util.block.BlockNMS7;
-import me.islandscout.hawk.util.block.BlockNMS8;
-import me.islandscout.hawk.util.packet.WrappedPacket;
+import me.islandscout.hawk.wrap.block.WrappedBlock7;
+import me.islandscout.hawk.wrap.block.WrappedBlock8;
+import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -39,13 +39,15 @@ public class InteractWorldEvent extends Event {
     private final Material material;
     private final BlockFace blockFace;
     private final InteractionType interactionType;
+    private final Vector cursorPosition;
 
-    public InteractWorldEvent(Player p, HawkPlayer pp, Location location, Material material, BlockFace blockFace, InteractionType interactionType, WrappedPacket packet) {
+    public InteractWorldEvent(Player p, HawkPlayer pp, Location location, Material material, BlockFace blockFace, Vector cursorPosition, InteractionType interactionType, WrappedPacket packet) {
         super(p, pp, packet);
         this.location = location;
         this.material = material;
         this.blockFace = blockFace;
         this.interactionType = interactionType;
+        this.cursorPosition = cursorPosition;
     }
 
     @Override
@@ -70,9 +72,9 @@ public class InteractWorldEvent extends Event {
         if(b == null)
             return;
         if (Hawk.getServerVersion() == 7) {
-            BlockNMS7.getBlockNMS(b).sendPacketToPlayer(pp.getPlayer());
+            WrappedBlock7.getWrappedBlock(b).sendPacketToPlayer(pp.getPlayer());
         } else if (Hawk.getServerVersion() == 8) {
-            BlockNMS8.getBlockNMS(b).sendPacketToPlayer(pp.getPlayer());
+            WrappedBlock8.getWrappedBlock(b).sendPacketToPlayer(pp.getPlayer());
         }
     }
 
@@ -130,6 +132,10 @@ public class InteractWorldEvent extends Event {
                 return new Vector(0, 1, 0);
         }
         return null;
+    }
+
+    public Vector getCursorPositionOnTargetedBlock() {
+        return cursorPosition;
     }
 
     public enum BlockFace {

@@ -22,7 +22,7 @@ import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.entity.EntityNMS;
+import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -207,7 +207,7 @@ public class Fly extends MovementCheck implements Listener {
         int ping = ServerUtils.getPing(p);
         for(Entity entity : trackedEntities) {
             if (entity instanceof Boat) {
-                AABB boatBB = EntityNMS.getEntityNMS(entity).getCollisionBox(hawk.getLagCompensator().getHistoryLocation(ping, entity).toVector());
+                AABB boatBB = WrappedEntity.getWrappedEntity(entity).getCollisionBox(hawk.getLagCompensator().getHistoryLocation(ping, entity).toVector());
                 AABB feet = new AABB(
                         new Vector(-0.3, -0.4, -0.3).add(loc.toVector()),
                         new Vector(0.3, 0, 0.3).add(loc.toVector()));
