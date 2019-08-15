@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.util;
+package me.islandscout.hawk.wrap;
 
 /**
  * A wrapper for Minecraft's WatchableObject class

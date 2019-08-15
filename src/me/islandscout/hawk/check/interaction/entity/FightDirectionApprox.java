@@ -73,7 +73,11 @@ public class FightDirectionApprox extends EntityInteractionCheck {
         AABB victimAABB = WrappedEntity.getWrappedEntity(e.getEntity()).getHitbox(victimLoc.toVector());
         victimAABB.expand(BOX_EXPAND, BOX_EXPAND, BOX_EXPAND);
 
-        if(victimAABB.betweenRays(pos, dir, extraDir)) {
+        //this is a crappy workaround to one of the issues with AABB#betweenRays. I'll keep this here until it is rewritten.
+        Vector toVictim = victimLoc.toVector().setY(0).subtract(pos.clone().setY(0));
+        boolean behind = toVictim.clone().normalize().dot(dir.clone().setY(0).normalize()) < 0 && toVictim.lengthSquared() > victimAABB.getMax().clone().setY(0).subtract(victimAABB.getMin().clone().setY(0)).lengthSquared();
+
+        if(victimAABB.betweenRays(pos, dir, extraDir) && !behind) {
             reward(pp);
         }
         else {

@@ -46,6 +46,8 @@ public abstract class WrappedBlock {
     //given that an entity is currently mining it.
     public abstract float getDamage(HumanEntity entity);
 
+    public abstract boolean isMaterialAlwaysDestroyable();
+
     public float getStrength() {
         return strength;
     }

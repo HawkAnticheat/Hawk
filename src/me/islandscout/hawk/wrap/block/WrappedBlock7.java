@@ -68,6 +68,11 @@ public class WrappedBlock7 extends WrappedBlock {
         return block.getDamage(((CraftHumanEntity)entity).getHandle(), ((CraftWorld)obBlock.getWorld()).getHandle(), obBlock.getX(), obBlock.getY(), obBlock.getZ());
     }
 
+    @Override
+    public boolean isMaterialAlwaysDestroyable() {
+        return block.getMaterial().isAlwaysDestroyable();
+    }
+
     private AABB getHitBox(net.minecraft.server.v1_7_R4.Block b, Location loc) {
         AxisAlignedBB nmsAABB = b.a(((CraftWorld) loc.getWorld()).getHandle(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
         Vector min;

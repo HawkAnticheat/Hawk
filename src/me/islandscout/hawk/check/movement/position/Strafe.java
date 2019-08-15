@@ -21,6 +21,7 @@ package me.islandscout.hawk.check.movement.position;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Direction;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.ServerUtils;
@@ -31,11 +32,10 @@ import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class Strafe extends MovementCheck {
-
-    //TODO either ignore or support other frictions (water, cobwebs, lava, etc.)
 
     //This unintentionally trashes yet another handful of killauras and aimassists
 
@@ -108,12 +108,16 @@ public class Strafe extends MovementCheck {
             friction = airFriction;
         }
 
+        Vector prevVelocity = pp.getVelocity().clone();
+        if(e.hasHitSlowdown()) {
+            prevVelocity.multiply(0.6);
+        }
         double dX = e.getTo().getX() - e.getFrom().getX();
         double dZ = e.getTo().getZ() - e.getFrom().getZ();
         dX /= friction;
         dZ /= friction;
-        dX -= pp.getVelocity().getX();
-        dZ -= pp.getVelocity().getZ();
+        dX -= prevVelocity.getX();
+        dZ -= prevVelocity.getZ();
         //Debug.broadcastMessage(MathPlus.round(dX, 6) * friction / moveFactor);
 
         Vector accelDir = new Vector(dX, 0, dZ);
@@ -127,7 +131,8 @@ public class Strafe extends MovementCheck {
         //can be abused to bypass this check.
         if(e.hasTeleported() || e.hasAcceptedKnockback() || collidingHorizontally(e) ||
                 pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow() || pp.isSneaking() ||
-                moveHoriz.length() < 0.15 || e.isJump() || ticksSinceIdle <= 2 || e.isInLiquid()) {
+                moveHoriz.length() < 0.15 || e.isJump() || ticksSinceIdle <= 2 || e.isInLiquid() ||
+                pp.getCurrentTick() - pp.getLastVelocityAcceptTick() == 1) {
             prepareNextMove(wasOnGround, isOnGround, e, pp, pp.getCurrentTick());
             return;
         }

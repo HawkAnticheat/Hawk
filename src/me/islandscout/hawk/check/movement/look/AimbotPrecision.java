@@ -50,7 +50,7 @@ public class AimbotPrecision extends MovementCheck implements Cancelless {
     private final float PITCHRATE_LIMIT;
 
     public AimbotPrecision() {
-        super("aimbotprecision", false, -1, 5, 0.9, 5000, "%player% may be using aimbot (precision), VL: %vl%", null);
+        super("aimbotprecision", false, -1, 5, 0.9, 5000, "%player% failed aimbot (precision), VL: %vl%", null);
         SAMPLES = (int)customSetting("samples", "", 20);
         PITCHRATE_LIMIT = (float)((double)customSetting("ignorePitchrateHigherThan", "", 10D));
         this.deltaPitches = new HashMap<>();

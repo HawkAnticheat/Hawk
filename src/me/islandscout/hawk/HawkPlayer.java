@@ -86,6 +86,7 @@ public class HawkPlayer {
     private long lastInLiquidToggleTick;
     private long lastMoveTick;
     private long hitSlowdownTick;
+    private long lastVelocityAcceptTick;
     private ItemStack itemUsedForAttack;
     private double maxY;
     private double jumpedHeight;
@@ -421,6 +422,14 @@ public class HawkPlayer {
         this.hitSlowdownTick = currentTick;
     }
 
+    public long getLastVelocityAcceptTick() {
+        return lastVelocityAcceptTick;
+    }
+
+    public void updateLastVelocityAcceptTick() {
+        this.lastVelocityAcceptTick = currentTick;
+    }
+
     public boolean hasHitSlowdown() {
         return hitSlowdownTick == currentTick;
     }
@@ -438,7 +447,11 @@ public class HawkPlayer {
     }
 
     public void updateItemUsedForAttack() {
-        this.itemUsedForAttack = p.getInventory().getItem(heldItemSlot);
+        this.itemUsedForAttack = getHeldItem();
+    }
+
+    public ItemStack getHeldItem() {
+        return p.getInventory().getItem(heldItemSlot);
     }
 
     //call this before updating whether on ground or not

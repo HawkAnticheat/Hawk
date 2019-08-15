@@ -44,16 +44,7 @@ public abstract class BlockDigCheck extends Check<BlockDigEvent> {
 
     protected void punishAndTryCancelAndBlockRespawn(HawkPlayer offender, double vlAmnt, BlockDigEvent event, Placeholder... placeholders) {
         punish(offender, vlAmnt, true, event, placeholders);
-        if (offender.getVL(this) < cancelThreshold)
-            return;
-        blockRespawn(offender, event);
-    }
-
-    protected void blockRespawn(HawkPlayer offender, BlockDigEvent event) {
-        if (Hawk.getServerVersion() == 7) {
-            WrappedBlock7.getWrappedBlock(event.getBlock()).sendPacketToPlayer(offender.getPlayer());
-        } else if (Hawk.getServerVersion() == 8) {
-            WrappedBlock8.getWrappedBlock(event.getBlock()).sendPacketToPlayer(offender.getPlayer());
-        }
+        if (offender.getVL(this) >= cancelThreshold)
+            event.revertChangeClientside();
     }
 }

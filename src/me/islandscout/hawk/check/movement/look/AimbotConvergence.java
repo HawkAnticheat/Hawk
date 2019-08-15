@@ -35,7 +35,7 @@ public class AimbotConvergence extends CustomCheck {
     private Map<UUID, Vector> lastConvergencePointMap;
 
     public AimbotConvergence() {
-        super("aimbotconvergence", true, -1, 0, 0.999, 5000, "%player% may be using aimbot (convergence), VL: %vl%", null);
+        super("aimbotconvergence", true, -1, 0, 0.999, 5000, "%player% failed aimbot (convergence), VL: %vl%", null);
         this.lastConvergencePointMap = new HashMap<>();
     }
 

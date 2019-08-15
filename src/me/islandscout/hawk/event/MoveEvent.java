@@ -50,7 +50,10 @@ public class MoveEvent extends Event {
     private boolean updateRot;
     private Vector acceptedKnockback;
     private boolean failedKnockback;
-    private boolean hitSlowdown; //Idk, it's weird. Hitting while sprinting or with kb enchant will multiply horizontal speed by 0.6.
+    //Idk, it's weird. Hitting while sprinting or with kb enchant will multiply horizontal speed by 0.6.
+    //Also, movement checks utilizing hit slowdown must use this field and not the one in HawkPlayer
+    //since HawkPlayer's will always be false because HawkPlayer will tick on MoveEvent#preProcess()
+    private boolean hitSlowdown;
     private Set<Direction> boxSidesTouchingBlocks;
     private boolean inLiquid;
     private boolean jumped;
@@ -146,6 +149,8 @@ public class MoveEvent extends Event {
         pp.getBoxSidesTouchingBlocks().clear();
         pp.getBoxSidesTouchingBlocks().addAll(getBoxSidesTouchingBlocks());
         pp.setWaterFlowForce(getWaterFlowForce());
+        if(hasAcceptedKnockback())
+            pp.updateLastVelocityAcceptTick();
     }
 
     private boolean testStep() {

@@ -103,6 +103,12 @@ public class AABB implements Cloneable {
         return null;
     }
 
+    //TODO rewrite this
+    /*
+      two problems:
+      1) will almost surely return true if one of the axis of the box extends to infinity
+      2) will return true if box is large enough and is behind player
+     */
     public boolean betweenRays(Vector pos, Vector dir1, Vector dir2) {
         if(dir1.dot(dir2) > 0.999) {
             //Directions are very similar; do a simple ray check.

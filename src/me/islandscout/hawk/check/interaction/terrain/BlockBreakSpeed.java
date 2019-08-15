@@ -67,7 +67,6 @@ public class BlockBreakSpeed extends BlockDigCheck {
             Block b = e.getBlock();
             float hardness = WrappedBlock.getWrappedBlock(b).getStrength();
 
-            Debug.broadcastMessage(e.getBlock().getType() == Material.WOOL && e.getPlayer().getItemInHand().getType() == Material.SHEARS);
 
             boolean harvestable = e.getBlock().getDrops(e.getPlayer().getItemInHand()).size() > 0 ||
                     e.getBlock().getDrops().size() == 0 ||
@@ -103,7 +102,6 @@ public class BlockBreakSpeed extends BlockDigCheck {
             expectedTime = Math.round(expectedTime);
             long actualTime = (pp.getCurrentTick() - interactTick.getOrDefault(p.getUniqueId(), 0L) + 1);
 
-            Debug.broadcastMessage(expectedTime);
 
             if (p.getGameMode() == GameMode.CREATIVE)
                 expectedTime = 1;

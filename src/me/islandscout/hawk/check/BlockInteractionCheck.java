@@ -46,22 +46,7 @@ public abstract class BlockInteractionCheck extends Check<InteractWorldEvent> {
 
     protected void punishAndTryCancelAndBlockRespawn(HawkPlayer offender, double vlAmnt, InteractWorldEvent event, Placeholder... placeholders) {
         punish(offender, vlAmnt, true, event, placeholders);
-        if (offender.getVL(this) < cancelThreshold)
-            return;
-        blockRespawn(offender, event);
-    }
-
-    protected void blockRespawn(HawkPlayer offender, InteractWorldEvent event) {
-        Block b = ServerUtils.getBlockAsync(event.getPlacedBlockLocation());
-        Block targeted = ServerUtils.getBlockAsync(event.getTargetedBlockLocation());
-        if(b == null)
-            return;
-        if (Hawk.getServerVersion() == 7) {
-            WrappedBlock7.getWrappedBlock(b).sendPacketToPlayer(offender.getPlayer());
-            WrappedBlock7.getWrappedBlock(targeted).sendPacketToPlayer(offender.getPlayer());
-        } else if (Hawk.getServerVersion() == 8) {
-            WrappedBlock8.getWrappedBlock(b).sendPacketToPlayer(offender.getPlayer());
-            WrappedBlock8.getWrappedBlock(targeted).sendPacketToPlayer(offender.getPlayer());
-        }
+        if (offender.getVL(this) >= cancelThreshold)
+            event.revertChangeClientside();
     }
 }

@@ -66,7 +66,8 @@ public class CheckManager {
         new FightHitbox();
         new Phase();
         new Fly();
-        new BlockBreakSpeed();
+        //new BlockBreakSpeed();
+        new BlockBreakSpeedSurvival();
         new TickRate();
         new Inertia();
         new BlockBreakDirection();

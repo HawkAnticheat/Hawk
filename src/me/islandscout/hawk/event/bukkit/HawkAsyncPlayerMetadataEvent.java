@@ -18,7 +18,7 @@
 
 package me.islandscout.hawk.event.bukkit;
 
-import me.islandscout.hawk.util.WrappedWatchableObject;
+import me.islandscout.hawk.wrap.WrappedWatchableObject;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
