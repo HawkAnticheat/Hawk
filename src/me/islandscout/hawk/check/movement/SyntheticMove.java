@@ -44,6 +44,10 @@ public class SyntheticMove extends MovementCheck {
     @Override
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
+
+        if(pp.getPlayer().isInsideVehicle())
+            return;
+
         //Also ignore some moves after the tp to fix false positives.
         //Use ping because if you send multiple TPs with the same location,
         //and if the player stands still, hawk will register the first one
