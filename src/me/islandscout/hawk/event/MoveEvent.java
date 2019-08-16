@@ -59,6 +59,7 @@ public class MoveEvent extends Event {
     private boolean jumped;
     private boolean slimeBlockBounce;
     private boolean step;
+    private float friction;
     private Vector waterFlowForce;
     private List<Pair<Block, Vector>> liquidsAndDirections;
     private Set<Material> liquidTypes;
@@ -79,6 +80,7 @@ public class MoveEvent extends Event {
         liquidsAndDirections = testLiquids();
         inLiquid = liquidsAndDirections.size() > 0;
         jumped = testJumped();
+        friction = computeFriction();
         slimeBlockBounce = testSlimeBlockBounce();
         waterFlowForce = computeWaterFlowForce();
     }
@@ -135,6 +137,9 @@ public class MoveEvent extends Event {
             pp.setSwimming(pp.isInLiquid());
         long ticksSinceSwimToggle = pp.getCurrentTick() - pp.getLastInLiquidToggleTick();
         pp.setSwimming(!pp.isFlyingClientside() && ((pp.isInLiquid() && ticksSinceSwimToggle > 0) || (!pp.isInLiquid() && ticksSinceSwimToggle < 1)));
+
+        if(isOnGround() && !pp.isOnGround())
+            pp.updateLastLandTick();
 
         Location to = getTo();
         Location from = getFrom();
@@ -210,6 +215,18 @@ public class MoveEvent extends Event {
                 deltaY > 0 &&
                 deltaY > (prevPrevDeltaY < -0.1F ? expected - 0.003 : 0) &&
                 deltaY <= expected;
+    }
+
+    private float computeFriction() {
+        float friction = 0.91F;
+        if (pp.isOnGround() && (pp.getCurrentTick() - pp.getLastLandTick()) > 0) {
+            Vector pos = pp.getPosition();
+            Block b = ServerUtils.getBlockAsync(new Location(pp.getWorld(), pos.getX(), pos.getY() - 1, pos.getZ()));
+            if(b != null) {
+                friction *= WrappedBlock.getWrappedBlock(b).getSlipperiness();
+            }
+        }
+        return friction;
     }
 
     private Vector computeWaterFlowForce() {
@@ -418,6 +435,10 @@ public class MoveEvent extends Event {
 
     public Vector getWaterFlowForce() {
         return waterFlowForce;
+    }
+
+    public float getFriction() {
+        return friction;
     }
 
     //A proper setback system. Permits only a maximum of 1 rubberband

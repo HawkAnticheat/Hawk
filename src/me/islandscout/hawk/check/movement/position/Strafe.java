@@ -21,7 +21,6 @@ package me.islandscout.hawk.check.movement.position;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Direction;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.ServerUtils;
@@ -32,7 +31,6 @@ import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 public class Strafe extends MovementCheck {

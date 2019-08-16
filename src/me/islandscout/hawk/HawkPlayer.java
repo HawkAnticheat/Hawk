@@ -87,6 +87,7 @@ public class HawkPlayer {
     private long lastMoveTick;
     private long hitSlowdownTick;
     private long lastVelocityAcceptTick;
+    private long lastLandTick;
     private ItemStack itemUsedForAttack;
     private double maxY;
     private double jumpedHeight;
@@ -531,6 +532,14 @@ public class HawkPlayer {
 
     public void setHasMoved() {
         this.lastMoveTick = getCurrentTick();
+    }
+
+    public long getLastLandTick() {
+        return lastLandTick;
+    }
+
+    public void updateLastLandTick() {
+        this.lastLandTick = currentTick;
     }
 
     public List<Pair<Vector, Long>> getPendingVelocities() {
