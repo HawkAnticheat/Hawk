@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.wrap.packet;
+package me.islandscout.hawk.util.packet;
 
 import org.bukkit.entity.Player;
 

@@ -20,7 +20,7 @@ package me.islandscout.hawk.module.listener;
 
 import me.islandscout.hawk.module.PacketHandler;
 import me.islandscout.hawk.util.Pair;
-import me.islandscout.hawk.wrap.packet.PacketAdapter;
+import me.islandscout.hawk.util.packet.PacketAdapter;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;

@@ -21,7 +21,6 @@ package me.islandscout.hawk.module;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.ConfigHelper;
-import me.islandscout.hawk.wrap.packet.PacketAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
