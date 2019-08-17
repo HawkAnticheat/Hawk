@@ -91,23 +91,32 @@ public class MoveEvent extends Event {
         pp.incrementCurrentTick();
         if(isUpdatePos())
             pp.setHasMoved();
+
         //handle teleports
+        int elapsedTicks = (int)(pp.getCurrentTick() - pp.getLastTeleportSendTick());
         if (pp.isTeleporting()) {
             Location tpLoc = pp.getTeleportLoc();
-            //accepted teleport
             if (tpLoc.getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(tpLoc) < 0.001) {
-                pp.setPositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch());
-                pp.setTeleporting(false);
-                pp.setLastTeleportAcceptTick(pp.getCurrentTick());
-                setTeleported(true);
-            } else if(!pp.getPlayer().isSleeping()){
-                //Help guide the confused client back to the tp location
-                if (pp.getCurrentTick() - pp.getLastTeleportSendTick() > (pp.getPing() / 50) + 5) { //5 is an arbitrary constant to keep things smooth
+                //move matched teleport location
+                if(elapsedTicks > (pp.getPing() / 50) - 1) { //1 is an arbitrary constant to keep things smooth
+                    //most likely accepted teleport, unless this move is a coincidence
+                    pp.setPositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch());
+                    pp.setTeleporting(false);
+                    pp.setLastTeleportAcceptTick(pp.getCurrentTick());
+                    setTeleported(true);
+                }
+                else {
+                    return false;
+                }
+            } else if(!pp.getPlayer().isSleeping()) {
+                if (elapsedTicks > (pp.getPing() / 50) + 5) { //5 is an arbitrary constant to keep things smooth
+                    //didn't accept teleport, so help guide the confused client back to the tp location
                     pp.teleport(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
                 }
                 return false;
             }
         }
+
         //handle illegal move or discrepancy
         else if (getFrom().getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(getFrom()) > 64) {
             cancelAndSetBack(p.getLocation());

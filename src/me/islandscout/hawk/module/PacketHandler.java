@@ -25,7 +25,6 @@ import me.islandscout.hawk.module.listener.PacketListener;
 import me.islandscout.hawk.module.listener.PacketListener7;
 import me.islandscout.hawk.module.listener.PacketListener8;
 import me.islandscout.hawk.util.ConfigHelper;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
@@ -73,8 +72,6 @@ public class PacketHandler implements Listener {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean processIn(Object packet, Player p) {
         HawkPlayer pp = hawk.getHawkPlayer(p);
-
-        Debug.broadcastMessage(packet.getClass().getSimpleName());
 
         //ignore packets while player is no longer registered in Hawk
         if (!pp.isOnline())
