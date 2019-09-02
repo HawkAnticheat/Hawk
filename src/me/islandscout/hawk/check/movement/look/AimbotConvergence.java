@@ -31,6 +31,7 @@ import java.util.*;
 public class AimbotConvergence extends CustomCheck {
 
     //You better turn off your aimbot when your opponent is standing still!
+    //Flags basic aimbots that update rotation before motion updates
 
     private Map<UUID, Vector> lastConvergencePointMap;
 

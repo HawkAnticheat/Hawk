@@ -35,7 +35,8 @@ import java.util.UUID;
 
 public class Strafe extends MovementCheck {
 
-    //This unintentionally trashes yet another handful of killauras and aimassists
+    //This unintentionally trashes yet another handful of killauras and aimassists.
+    //Flags poorly implemented aimbots (i.e. aimbots implemented after the motion update in the tick stack).
 
     private static final double THRESHOLD_GROUND = 0.1;
     private static final double THRESHOLD_AIR = 0.3;

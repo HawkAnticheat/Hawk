@@ -104,6 +104,7 @@ public class CheckManager {
         new Strafe();
         new SyntheticMove();
         new SyntheticBlockInteract();
+        //new NewFly();
     }
 
     public void unloadChecks() {
