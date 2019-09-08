@@ -69,6 +69,7 @@ public class HawkPlayer {
     private float deltaYaw;
     private float deltaPitch;
     private boolean onGround;
+    private boolean prevTickOnGround;
     private boolean onGroundReally;
     private int ping;
     private short pingJitter;
@@ -214,7 +215,13 @@ public class HawkPlayer {
 
     //this should really not be public
     public void setOnGround(boolean onGround) {
+        this.prevTickOnGround = this.onGround;
         this.onGround = onGround;
+    }
+
+    //why do I need to make this???
+    public boolean wasOnGround() {
+        return prevTickOnGround;
     }
 
     public boolean isOnGroundReally() {

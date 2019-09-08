@@ -21,10 +21,7 @@ package me.islandscout.hawk.check.movement.position;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.AABB;
-import me.islandscout.hawk.util.Debug;
-import me.islandscout.hawk.util.Direction;
-import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -45,7 +42,8 @@ import java.util.UUID;
 public class NewFly extends MovementCheck {
 
     private static final float MIN_VELOCITY = 0.005F;
-    private static final int MAX_NO_MOVES = 2;
+    private static final int MAX_NO_MOVES = 8;
+    private static final float DISCREPANCY_THRESHOLD = 0.0001F;
 
     private final Map<UUID, Float> estimatedPositionMap;
     private final Map<UUID, Float> estimatedVelocityMap;
@@ -62,54 +60,73 @@ public class NewFly extends MovementCheck {
     protected void check(MoveEvent e) {
 
         HawkPlayer pp = e.getHawkPlayer();
-        float prevDY = (float) pp.getVelocity().getY();
+        Player p = e.getPlayer();
         float dY = (float) (e.getTo().getY() - e.getFrom().getY());
         boolean moved = dY != 0F;
         int noMoves = noMovesMap.getOrDefault(pp.getUuid(), 0);
         float estimatedPosition = estimatedPositionMap.getOrDefault(pp.getUuid(), (float)e.getFrom().getY());
         float prevEstimatedVelocity = estimatedVelocityMap.getOrDefault(pp.getUuid(), (float) pp.getVelocity().getY());
 
-        //TODO wtf? teleports cause false flags?
+        Debug.broadcastMessage("---");
+        Debug.broadcastMessage(dY);
 
-        if(!e.isOnGround() && !e.isJump() && !e.hasAcceptedKnockback() && !e.hasTeleported() && !e.isStep()) { //TODO validate onGround & dont forget to check when player lands & dont forget liquids & dont forget climbables & dont forget to make step check
+        if(!e.isOnGround() && !e.isJump() && !e.hasAcceptedKnockback() && !e.hasTeleported() && !e.isStep() &&
+                !p.isInsideVehicle() && !(pp.hasFlyPending() && p.getAllowFlight()) &&
+                !p.isFlying() && !pp.isSwimming() && !p.isSleeping() && !isInClimbable(e.getFrom()) && //TODO: uh oh! make sure to have a fastladder check, otherwise hackers can "pop" off them
+                !isOnBoat(p, e.getTo()) && !e.isSlimeBlockBounce()) { //TODO validate onGround & dont forget to check when player lands
 
-            //Debug.broadcastMessage("---");
-
-            //TODO handle when player hits their head on roof
-            if(pp.getBoxSidesTouchingBlocks().contains(Direction.TOP)) {
-                prevEstimatedVelocity = 0;
-                estimatedPosition = (float) e.getFrom().getY();
-            }
-
+            //count "no-moves"
             if(!moved) {
                 noMoves++;
-                //Debug.broadcastMessage(ChatColor.RED + "nomove");
+                Debug.broadcastMessage(ChatColor.RED + "nomove");
             }
             else {
                 noMoves = 0;
             }
 
-            float estimatedVelocity = (prevEstimatedVelocity - 0.08F) * 0.98F;
-            if(Math.abs(estimatedVelocity) < MIN_VELOCITY)
+            //compute next expected velocity
+            float estimatedVelocity;
+            if (AdjacentBlocks.matIsAdjacent(e.getFrom(), Material.WEB)) {
+                estimatedVelocity = -0.00392F; //TODO: find the function
+            }
+            else if(pp.isInLiquid()) { //TODO fix this. (entering liquid)
+                estimatedVelocity = (prevEstimatedVelocity * 0.98F) - 0.0784F;
+            }
+            else {
+                estimatedVelocity = (prevEstimatedVelocity - 0.08F) * 0.98F;
+            }
+
+            //add expected velocity to expected position
+            if(Math.abs(estimatedVelocity) < MIN_VELOCITY || pp.getCurrentTick() - pp.getLastTeleportAcceptTick() < 2)
                 estimatedVelocity = 0F;
-
-            //Debug.broadcastMessage(ChatColor.YELLOW + "" + estimatedVelocity);
-
             estimatedPosition += estimatedVelocity;
 
+            //check if hit head
+            boolean hitHead = e.getBoxSidesTouchingBlocks().contains(Direction.TOP);
+            boolean hasHitHead = pp.getBoxSidesTouchingBlocks().contains(Direction.TOP);
+            if(e.getTo().getY() < estimatedPosition && (hitHead && !hasHitHead)) {
+                Debug.broadcastMessage("hit head");
+                estimatedPosition = (float) e.getTo().getY();
+                estimatedVelocity = 0;
+            }
+
+            //finally, check for discrepancy
             if(moved || noMoves > MAX_NO_MOVES) {
                 float discrepancy = (float) e.getTo().getY() - estimatedPosition;
                 Debug.broadcastMessage(discrepancy);
+                if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD) {
+                    punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+                }
+                else {
+                    reward(pp);
+                }
             }
-
-            //Debug.broadcastMessage(dY);
-
 
             prevEstimatedVelocity = estimatedVelocity;
         }
         else {
             estimatedPosition = (float) e.getTo().getY();
-            prevEstimatedVelocity = e.getBoxSidesTouchingBlocks().contains(Direction.TOP) ? 0 : dY;
+            prevEstimatedVelocity = dY;
         }
 
         estimatedVelocityMap.put(pp.getUuid(), prevEstimatedVelocity);

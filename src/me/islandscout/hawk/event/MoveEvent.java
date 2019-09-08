@@ -192,7 +192,6 @@ public class MoveEvent extends Event {
         return liquids;
     }
 
-    //May return true if player is knocked up against a very low ceiling. Not sure.
     private boolean testJumped() {
         int jumpBoostLvl = 0;
         for (PotionEffect pEffect : p.getActivePotionEffects()) {
@@ -228,7 +227,7 @@ public class MoveEvent extends Event {
 
     private float computeFriction() {
         float friction = 0.91F;
-        if (pp.isOnGround() && (pp.getCurrentTick() - pp.getLastLandTick()) > 0) {
+        if (pp.wasOnGround()) {
             Vector pos = pp.getPosition();
             Block b = ServerUtils.getBlockAsync(new Location(pp.getWorld(), pos.getX(), pos.getY() - 1, pos.getZ()));
             if(b != null) {

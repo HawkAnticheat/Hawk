@@ -21,13 +21,12 @@ package me.islandscout.hawk.check.movement.position;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.MathPlus;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public class SprintDirection extends MovementCheck {
-
-    //Not the best method in the world for checking for omni-sprint, but it works.
 
     public SprintDirection() {
         super("sprintdirection", true, 0, 5, 0.999, 5000, "%player% failed sprint direction, VL %vl%", null);
@@ -35,35 +34,48 @@ public class SprintDirection extends MovementCheck {
 
     @Override
     protected void check(MoveEvent e) {
-        Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
-        if(!pp.isSprinting() || pp.isSwimming()) {
+        //TODO return if touching wall. maybe check for instantaneous collision and if they're sprinting for at least 1 tick?
+        if(!e.isUpdatePos() || pp.isSwimming() || e.hasTeleported() || e.hasAcceptedKnockback()) {
             return;
         }
-        Vector look = MathPlus.getDirection(e.getTo().getYaw(), e.getTo().getPitch()).setY(0);
-        Vector move = new Vector(e.getTo().getX() - e.getFrom().getX(), 0, e.getTo().getZ() - e.getFrom().getZ());
-        Vector lastMove = pp.getVelocity().clone().setY(0);
-        double lastSpeed = lastMove.length();
-        double currSpeed = move.length();
 
-        double moveChange = MathPlus.angle(move, lastMove);
-        double speedChange = Math.max(lastSpeed, currSpeed) / Math.min(lastSpeed, currSpeed) - 1;
-        if(Double.isInfinite(speedChange))
-            speedChange = 1;
-        double value = MathPlus.angle(look, move) / (5 * (speedChange + moveChange) + 1);
+        float yaw = e.getTo().getYaw();
+        Vector prevVelocity = pp.getVelocity().clone();
+        if(e.hasHitSlowdown()) {
+            prevVelocity.multiply(0.6);
+        }
+        double dX = e.getTo().getX() - e.getFrom().getX();
+        double dZ = e.getTo().getZ() - e.getFrom().getZ();
+        float friction = e.getFriction();
+        dX /= friction;
+        dZ /= friction;
+        if(e.isJump()) {
+            float yawRadians = yaw * 0.017453292F;
+            dX += (MathPlus.sin(yawRadians) * 0.2F);
+            dZ -= (MathPlus.cos(yawRadians) * 0.2F);
+            Debug.broadcastMessage("jump");
+        }
 
-        if(!e.hasAcceptedKnockback()) {
-            if(e.isOnGroundReally() && pp.isOnGround()) {
-                if(value > 1.0) {
-                    punishAndTryRubberband(pp, e, p.getLocation());
-                }
-            }
-            else {
-                if(value > 2) {
-                    punishAndTryRubberband(pp, e, p.getLocation());
-                }
-            }
+        //multiplier 1.7948708571637845   ????
 
+        dX -= prevVelocity.getX();
+        dZ -= prevVelocity.getZ();
+
+
+
+        Vector moveForce = new Vector(dX, 0, dZ);
+        Vector yawVec = MathPlus.getDirection(yaw, 0);
+
+        Debug.broadcastMessage("---");
+        Debug.broadcastMessage("force Z: " + moveForce.getZ());
+        Debug.broadcastMessage("move Z: " + (e.getTo().getZ() - e.getFrom().getZ()));
+
+        if(MathPlus.angle(yawVec, moveForce) > Math.PI / 4 + 0.1) { //0.1 is arbitrary. Prevents falses due to precision limitation
+            punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+        }
+        else {
+            reward(pp);
         }
     }
 }
