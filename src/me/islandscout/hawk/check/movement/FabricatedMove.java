@@ -35,10 +35,10 @@ import me.islandscout.hawk.wrap.packet.WrappedPacket;
  *  (often used in killaura, scaffold, tower and autopotion)
  *  inspired by HeroCode: https://www.youtube.com/watch?v=3MN9EkPjOZ0
  */
-public class SyntheticMove extends MovementCheck {
+public class FabricatedMove extends MovementCheck {
 
-    public SyntheticMove() {
-        super("syntheticmove", true, 0, 2, 0.999, 5000, "%player% failed synthetic-move, VL: %vl%", null);
+    public FabricatedMove() {
+        super("fabricatedmove", true, 0, 2, 0.999, 5000, "%player% failed fabricated move, VL: %vl%", null);
     }
 
     @Override

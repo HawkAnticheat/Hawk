@@ -73,7 +73,7 @@ public class NewFly extends MovementCheck {
         if(!e.isOnGround() && !e.isJump() && !e.hasAcceptedKnockback() && !e.hasTeleported() && !e.isStep() &&
                 !p.isInsideVehicle() && !(pp.hasFlyPending() && p.getAllowFlight()) &&
                 !p.isFlying() && !pp.isSwimming() && !p.isSleeping() && !isInClimbable(e.getFrom()) && //TODO: uh oh! make sure to have a fastladder check, otherwise hackers can "pop" off them
-                !isOnBoat(p, e.getTo()) && !e.isSlimeBlockBounce()) { //TODO validate onGround & dont forget to check when player lands
+                !isOnBoat(p, e.getTo()) && !e.isSlimeBlockBounce()) { //TODO validate onGround w/ GroundSpoof check & dont forget to check when player lands
 
             //count "no-moves"
             if(!moved) {

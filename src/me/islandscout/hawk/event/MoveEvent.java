@@ -192,6 +192,7 @@ public class MoveEvent extends Event {
         return liquids;
     }
 
+    //TODO Just... trust the onGround flag. Let GroundSpoof take care of the hackers. Just remember to leave a WARNING here.
     private boolean testJumped() {
         int jumpBoostLvl = 0;
         for (PotionEffect pEffect : p.getActivePotionEffects()) {

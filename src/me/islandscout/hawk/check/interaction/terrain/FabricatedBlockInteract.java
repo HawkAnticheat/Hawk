@@ -22,10 +22,10 @@ import me.islandscout.hawk.check.BlockInteractionCheck;
 import me.islandscout.hawk.event.InteractWorldEvent;
 import org.bukkit.util.Vector;
 
-public class SyntheticBlockInteract extends BlockInteractionCheck {
+public class FabricatedBlockInteract extends BlockInteractionCheck {
 
-    public SyntheticBlockInteract() {
-        super("syntheticblockinteract", true, 0, 2, 0.999, 5000, "%player% failed synthetic-block-interact, VL: %vl%", null);
+    public FabricatedBlockInteract() {
+        super("fabricatedblockinteract", true, 0, 2, 0.999, 5000, "%player% failed fabricated block interact, VL: %vl%", null);
     }
 
     @Override

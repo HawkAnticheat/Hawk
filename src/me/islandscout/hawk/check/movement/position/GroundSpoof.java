@@ -28,6 +28,7 @@ import org.bukkit.Location;
 public class GroundSpoof extends MovementCheck {
 
     //PASSED (9/13/18)
+    //TODO perhaps do a rewrite? do the dY % 1/16 == 0 thing too.
 
     private final boolean STRICT;
     private final boolean PREVENT_NOFALL;

@@ -102,8 +102,8 @@ public class CheckManager {
         new FightMulti();
         new AimbotConvergence();
         new Strafe();
-        new SyntheticMove();
-        new SyntheticBlockInteract();
+        new FabricatedMove();
+        new FabricatedBlockInteract();
         //new NewFly();
     }
 

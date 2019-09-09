@@ -21,22 +21,40 @@ package me.islandscout.hawk.check.movement.position;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.util.AdjacentBlocks;
 import me.islandscout.hawk.util.Debug;
+import me.islandscout.hawk.util.Direction;
 import me.islandscout.hawk.util.MathPlus;
-import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+
+import java.util.*;
 
 public class SprintDirection extends MovementCheck {
 
+    private Map<UUID, Long> lastSprintTickMap;
+    private Set<UUID> collisionHorizontalSet;
+
     public SprintDirection() {
         super("sprintdirection", true, 0, 5, 0.999, 5000, "%player% failed sprint direction, VL %vl%", null);
+        lastSprintTickMap = new HashMap<>();
+        collisionHorizontalSet = new HashSet<>();
     }
 
     @Override
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
-        //TODO return if touching wall. maybe check for instantaneous collision and if they're sprinting for at least 1 tick?
-        if(!e.isUpdatePos() || pp.isSwimming() || e.hasTeleported() || e.hasAcceptedKnockback()) {
+
+        //ugly
+        //check for collision. make sure player is sprinting for more than 1 tick too.
+        //TODO god, I hate this
+        boolean collisionHorizontal = AdjacentBlocks.blockAdjacentIsSolid(e.getTo()) || AdjacentBlocks.blockAdjacentIsSolid(e.getTo().clone().add(0, 1, 0)) ||
+                AdjacentBlocks.blockAdjacentIsSolid(e.getTo().clone().add(0, 1.8, 0));
+        if(!pp.isSprinting())
+            lastSprintTickMap.put(pp.getUuid(), pp.getCurrentTick());
+
+        if(pp.isSwimming() || e.hasTeleported() || e.hasAcceptedKnockback() ||
+                (collisionHorizontal && !collisionHorizontalSet.contains(pp.getUuid())) ||
+                pp.getCurrentTick() - lastSprintTickMap.getOrDefault(pp.getUuid(), pp.getCurrentTick()) < 2) {
             return;
         }
 
@@ -54,22 +72,15 @@ public class SprintDirection extends MovementCheck {
             float yawRadians = yaw * 0.017453292F;
             dX += (MathPlus.sin(yawRadians) * 0.2F);
             dZ -= (MathPlus.cos(yawRadians) * 0.2F);
-            Debug.broadcastMessage("jump");
         }
 
-        //multiplier 1.7948708571637845   ????
+        //Div by 1.7948708571637845???? What the hell are these numbers?
 
         dX -= prevVelocity.getX();
         dZ -= prevVelocity.getZ();
 
-
-
         Vector moveForce = new Vector(dX, 0, dZ);
         Vector yawVec = MathPlus.getDirection(yaw, 0);
-
-        Debug.broadcastMessage("---");
-        Debug.broadcastMessage("force Z: " + moveForce.getZ());
-        Debug.broadcastMessage("move Z: " + (e.getTo().getZ() - e.getFrom().getZ()));
 
         if(MathPlus.angle(yawVec, moveForce) > Math.PI / 4 + 0.1) { //0.1 is arbitrary. Prevents falses due to precision limitation
             punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
@@ -77,5 +88,10 @@ public class SprintDirection extends MovementCheck {
         else {
             reward(pp);
         }
+
+        if(collisionHorizontal)
+            collisionHorizontalSet.add(pp.getUuid());
+        else
+            collisionHorizontalSet.remove(pp.getUuid());
     }
 }
