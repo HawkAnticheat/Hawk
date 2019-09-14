@@ -118,7 +118,7 @@ public class Fly extends MovementCheck implements Listener {
             double epsilon = 0.03;
 
             //lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) - 0.025) * 0.8); //water function
-            if (AdjacentBlocks.matIsAdjacent(event.getTo(), Material.WEB)) {
+            if (WrappedEntity.getWrappedEntity(p).getCollisionBox(event.getFrom().toVector()).getMaterials(p.getWorld()).contains(Material.WEB)) {
                 lastDeltaY.put(p.getUniqueId(), -0.007);
                 epsilon = 0.000001;
                 if (AdjacentBlocks.onGroundReally(event.getTo().clone().add(0, -0.03, 0), -1, false, 0.02))

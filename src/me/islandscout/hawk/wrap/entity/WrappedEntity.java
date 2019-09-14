@@ -41,7 +41,7 @@ public abstract class WrappedEntity {
     }
 
     public AABB getCollisionBox(Vector entityPos) {
-        Vector move = location.toVector().subtract(entityPos).multiply(-1);
+        Vector move = entityPos.clone().subtract(location.toVector());
         AABB box = getCollisionBox().clone();
         box.translate(move);
         return box;

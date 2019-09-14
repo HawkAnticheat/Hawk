@@ -24,7 +24,9 @@ import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AABB implements Cloneable {
 
@@ -278,6 +280,23 @@ public class AABB implements Cloneable {
             }
         }
         return blocks;
+    }
+
+    public Set<Material> getMaterials(World world) {
+        Set<Material> mats = new HashSet<>();
+        for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
+            for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
+                for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
+                    Block block = ServerUtils.getBlockAsync(new Location(world, x, y, z));
+
+                    if(block == null)
+                        continue;
+
+                    mats.add(block.getType());
+                }
+            }
+        }
+        return mats;
     }
 
     /**

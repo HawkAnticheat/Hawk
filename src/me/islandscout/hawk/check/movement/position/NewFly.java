@@ -67,7 +67,7 @@ public class NewFly extends MovementCheck {
         float estimatedPosition = estimatedPositionMap.getOrDefault(pp.getUuid(), (float)e.getFrom().getY());
         float prevEstimatedVelocity = estimatedVelocityMap.getOrDefault(pp.getUuid(), (float) pp.getVelocity().getY());
 
-        //TODO false flag when sprintjumping up stairs
+        //TODO false flag when sprintjumping up stairs (fix step detection in MoveEvent?)
         //Debug.broadcastMessage("------");
         //Debug.broadcastMessage("ground " + e.isOnGround());
         //Debug.broadcastMessage("step " + e.isStep());
@@ -89,7 +89,7 @@ public class NewFly extends MovementCheck {
 
             //compute next expected velocity
             float estimatedVelocity;
-            if (AdjacentBlocks.matIsAdjacent(e.getFrom(), Material.WEB)) {
+            if (WrappedEntity.getWrappedEntity(p).getCollisionBox(e.getFrom().toVector()).getMaterials(p.getWorld()).contains(Material.WEB)) {
                 estimatedVelocity = -0.00392F; //TODO: find the function
             }
             else if(pp.isInLiquid()) { //TODO fix this. (entering liquid)
@@ -100,6 +100,8 @@ public class NewFly extends MovementCheck {
             }
 
             //add expected velocity to expected position
+            //For min velocity check, you might need to multiply by 0.98 before checking since friction
+            //is applied after moving the entity
             if(Math.abs(estimatedVelocity) < MIN_VELOCITY || pp.getCurrentTick() - pp.getLastTeleportAcceptTick() < 2)
                 estimatedVelocity = 0F;
             estimatedPosition += estimatedVelocity;
