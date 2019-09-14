@@ -25,6 +25,7 @@ import me.islandscout.hawk.util.AdjacentBlocks;
 import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Direction;
 import me.islandscout.hawk.util.MathPlus;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -35,7 +36,7 @@ public class SprintDirection extends MovementCheck {
     private Set<UUID> collisionHorizontalSet;
 
     public SprintDirection() {
-        super("sprintdirection", true, 0, 5, 0.999, 5000, "%player% failed sprint direction, VL %vl%", null);
+        super("sprintdirection", true, 5, 5, 0.999, 5000, "%player% failed sprint direction, VL %vl%", null);
         lastSprintTickMap = new HashMap<>();
         collisionHorizontalSet = new HashSet<>();
     }
@@ -44,17 +45,16 @@ public class SprintDirection extends MovementCheck {
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
 
-        //ugly
-        //check for collision. make sure player is sprinting for more than 1 tick too.
-        //TODO god, I hate this
-        boolean collisionHorizontal = AdjacentBlocks.blockAdjacentIsSolid(e.getTo()) || AdjacentBlocks.blockAdjacentIsSolid(e.getTo().clone().add(0, 1, 0)) ||
-                AdjacentBlocks.blockAdjacentIsSolid(e.getTo().clone().add(0, 1.8, 0));
+        boolean collisionHorizontal = collidingHorizontally(e);
+        Vector moveHoriz = e.getTo().toVector().subtract(e.getFrom().toVector()).setY(0);
+
         if(!pp.isSprinting())
             lastSprintTickMap.put(pp.getUuid(), pp.getCurrentTick());
 
         if(pp.isSwimming() || e.hasTeleported() || e.hasAcceptedKnockback() ||
                 (collisionHorizontal && !collisionHorizontalSet.contains(pp.getUuid())) ||
-                pp.getCurrentTick() - lastSprintTickMap.getOrDefault(pp.getUuid(), pp.getCurrentTick()) < 2) {
+                pp.getCurrentTick() - lastSprintTickMap.getOrDefault(pp.getUuid(), pp.getCurrentTick()) < 2 ||
+                moveHoriz.lengthSquared() < 0.04) {
             return;
         }
 
@@ -82,7 +82,7 @@ public class SprintDirection extends MovementCheck {
         Vector moveForce = new Vector(dX, 0, dZ);
         Vector yawVec = MathPlus.getDirection(yaw, 0);
 
-        if(MathPlus.angle(yawVec, moveForce) > Math.PI / 4 + 0.1) { //0.1 is arbitrary. Prevents falses due to precision limitation
+        if(MathPlus.angle(yawVec, moveForce) > Math.PI / 4 + 0.3) { //0.3 is arbitrary. Prevents falses due to silly stuff in game
             punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
         }
         else {
@@ -93,5 +93,19 @@ public class SprintDirection extends MovementCheck {
             collisionHorizontalSet.add(pp.getUuid());
         else
             collisionHorizontalSet.remove(pp.getUuid());
+    }
+
+    private boolean collidingHorizontally(MoveEvent e) {
+        for(Direction dir : e.getBoxSidesTouchingBlocks()) {
+            if(dir == Direction.EAST || dir == Direction.NORTH || dir == Direction.SOUTH || dir == Direction.WEST)
+                return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void removeData(Player p) {
+        lastSprintTickMap.remove(p.getUniqueId());
+        collisionHorizontalSet.remove(p.getUniqueId());
     }
 }

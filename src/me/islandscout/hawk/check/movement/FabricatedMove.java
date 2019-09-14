@@ -27,7 +27,7 @@ import me.islandscout.hawk.wrap.packet.WrappedPacket;
 /*
  * Check written by Havesta
  *
- * SyntheticMove checks if a (C05 packet) or a (C06 packet with updated POSITION) is sent by the client
+ * FabricatedMove checks if a (C05 packet) or a (C06 packet with updated POSITION) is sent by the client
  * (C06 = position and rotation changed, C04 = position changed, C05 = rotation changed)
  *  with the same rotation as he had before... that means that the player
  *  A: got teleported

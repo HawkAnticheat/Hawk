@@ -272,6 +272,13 @@ public class HawkPlayer {
         return position.clone();
     }
 
+    //Returns the predicted position of the HawkPlayer (in the case that the
+    //latest flying packet was not an update-position). It simulates player
+    //movement without user input.
+    public Vector getPositionPredicted() {
+        return null; //TODO
+    }
+
     public void setPosition(Vector position) {
         this.position = position;
     }

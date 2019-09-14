@@ -192,7 +192,6 @@ public class MoveEvent extends Event {
         return liquids;
     }
 
-    //TODO Just... trust the onGround flag. Let GroundSpoof take care of the hackers. Just remember to leave a WARNING here.
     private boolean testJumped() {
         int jumpBoostLvl = 0;
         for (PotionEffect pEffect : p.getActivePotionEffects()) {
@@ -202,11 +201,11 @@ public class MoveEvent extends Event {
             }
         }
         float initJumpVelocity = 0.42F + jumpBoostLvl * 0.1F;
-        float deltaY = (float)(getTo().getY() - getFrom().getY());
+        float deltaY = (float)(getTo().getY() - getFrom().getY()); //TODO predict where a HawkPlayer was last at if the last packet wasn't a pos update
         boolean hitCeiling = boxSidesTouchingBlocks.contains(Direction.TOP);
         boolean kbSimilarToJump = acceptedKnockback != null &&
                 (Math.abs(acceptedKnockback.getY() - initJumpVelocity) < 0.001 || hitCeiling);
-        return !kbSimilarToJump && (pp.isOnGroundReally() && !isOnGround()) && (deltaY == initJumpVelocity || hitCeiling);
+        return !kbSimilarToJump && (pp.isOnGround() && !isOnGround()) && (deltaY == initJumpVelocity || hitCeiling);
     }
 
     //Again, kudos to MCP for guiding me to the right direction
@@ -430,6 +429,8 @@ public class MoveEvent extends Event {
         return liquidTypes;
     }
 
+    //WARNING: can be spoofed (i.e. hackers can make this return true even while in mid-air)
+    //Let GroundSpoof take care of these hackers.
     public boolean isJump() {
         return jumped;
     }
@@ -446,6 +447,8 @@ public class MoveEvent extends Event {
         return waterFlowForce;
     }
 
+    //WARNING: can be spoofed (i.e. hackers can make this return ground friction while in air)
+    //Let GroundSpoof take care of these hackers.
     public float getFriction() {
         return friction;
     }

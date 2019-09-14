@@ -67,9 +67,13 @@ public class NewFly extends MovementCheck {
         float estimatedPosition = estimatedPositionMap.getOrDefault(pp.getUuid(), (float)e.getFrom().getY());
         float prevEstimatedVelocity = estimatedVelocityMap.getOrDefault(pp.getUuid(), (float) pp.getVelocity().getY());
 
-        Debug.broadcastMessage("---");
-        Debug.broadcastMessage(dY);
+        //TODO false flag when sprintjumping up stairs
+        //Debug.broadcastMessage("------");
+        //Debug.broadcastMessage("ground " + e.isOnGround());
+        //Debug.broadcastMessage("step " + e.isStep());
+        //Debug.broadcastMessage(dY);
 
+        //TODO false flag when toggling off fly
         if(!e.isOnGround() && !e.isJump() && !e.hasAcceptedKnockback() && !e.hasTeleported() && !e.isStep() &&
                 !p.isInsideVehicle() && !(pp.hasFlyPending() && p.getAllowFlight()) &&
                 !p.isFlying() && !pp.isSwimming() && !p.isSleeping() && !isInClimbable(e.getFrom()) && //TODO: uh oh! make sure to have a fastladder check, otherwise hackers can "pop" off them
@@ -78,7 +82,6 @@ public class NewFly extends MovementCheck {
             //count "no-moves"
             if(!moved) {
                 noMoves++;
-                Debug.broadcastMessage(ChatColor.RED + "nomove");
             }
             else {
                 noMoves = 0;
@@ -105,7 +108,6 @@ public class NewFly extends MovementCheck {
             boolean hitHead = e.getBoxSidesTouchingBlocks().contains(Direction.TOP);
             boolean hasHitHead = pp.getBoxSidesTouchingBlocks().contains(Direction.TOP);
             if(e.getTo().getY() < estimatedPosition && (hitHead && !hasHitHead)) {
-                Debug.broadcastMessage("hit head");
                 estimatedPosition = (float) e.getTo().getY();
                 estimatedVelocity = 0;
             }
@@ -113,7 +115,6 @@ public class NewFly extends MovementCheck {
             //finally, check for discrepancy
             if(moved || noMoves > MAX_NO_MOVES) {
                 float discrepancy = (float) e.getTo().getY() - estimatedPosition;
-                Debug.broadcastMessage(discrepancy);
                 if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD) {
                     punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
                 }
@@ -126,7 +127,12 @@ public class NewFly extends MovementCheck {
         }
         else {
             estimatedPosition = (float) e.getTo().getY();
-            prevEstimatedVelocity = dY;
+            if(e.isOnGround()) {
+                prevEstimatedVelocity = 0;
+            }
+            else {
+                prevEstimatedVelocity = dY;
+            }
         }
 
         estimatedVelocityMap.put(pp.getUuid(), prevEstimatedVelocity);
