@@ -225,10 +225,13 @@ public class MoveEvent extends Event {
                 deltaY <= expected;
     }
 
+    //Returns the friction value that affected this move
     private float computeFriction() {
+        if(pp.getCurrentTick() == 0)
+            return 1;
         float friction = 0.91F;
-        if (pp.wasOnGround()) {
-            Vector pos = pp.getPosition();
+        if (pp.wasOnGround()) { //Yes, it IS the previous move. In the tick stack, friction is applied AFTER the player has moved.
+            Vector pos = pp.getPosition().clone().subtract(pp.getVelocity());
             Block b = ServerUtils.getBlockAsync(new Location(pp.getWorld(), pos.getX(), pos.getY() - 1, pos.getZ()));
             if(b != null) {
                 friction *= WrappedBlock.getWrappedBlock(b).getSlipperiness();

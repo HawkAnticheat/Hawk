@@ -41,6 +41,8 @@ public class AimbotPrecision extends MovementCheck implements Cancelless {
     //This concept could be used to determine someone's in-game sensitivity.
     //That's pretty spoopy if you ask me.
 
+    //Inspired by https://www.spigotmc.org/threads/killaura-detection.143226/page-17#post-2821779
+
     private final Map<UUID, List<Float>> deltaPitches;
     private final Map<UUID, Float> lastDeltaPitchGCDs;
 

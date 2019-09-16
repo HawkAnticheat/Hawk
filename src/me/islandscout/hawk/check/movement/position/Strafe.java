@@ -21,14 +21,14 @@ package me.islandscout.hawk.check.movement.position;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.Debug;
-import me.islandscout.hawk.util.Direction;
-import me.islandscout.hawk.util.MathPlus;
-import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import sun.security.provider.certpath.AdjacencyList;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -62,6 +62,10 @@ public class Strafe extends MovementCheck {
         Vector prevVelocity = pp.getVelocity().clone();
         if(e.hasHitSlowdown()) {
             prevVelocity.multiply(0.6);
+        }
+
+        if(WrappedEntity.getWrappedEntity(e.getPlayer()).getCollisionBox(e.getFrom().toVector()).getMaterials(pp.getWorld()).contains(Material.SOUL_SAND)) {
+            prevVelocity.multiply(0.4);
         }
 
         if(Math.abs(prevVelocity.getX() * e.getFriction()) < 0.005) {
