@@ -39,12 +39,13 @@ public class Strafe extends MovementCheck {
     //This unintentionally trashes yet another handful of killauras and aimassists.
     //Flags poorly implemented aimbots (i.e. aimbots implemented after the motion update in the tick stack).
 
-    private static final double THRESHOLD = 0.01;
+    private final double THRESHOLD;
     private final Map<UUID, Long> lastIdleTick;
 
     public Strafe() {
         super("strafe", false, 5, 5, 0.99, 5000, "%player% failed strafe, VL: %vl%", null);
         lastIdleTick = new HashMap<>();
+        THRESHOLD = (double)customSetting("angleThreshold", "", 0.5) * Math.PI / 180;
     }
 
     @Override

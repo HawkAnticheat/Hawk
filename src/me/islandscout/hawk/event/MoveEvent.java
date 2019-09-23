@@ -23,6 +23,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -83,6 +84,8 @@ public class MoveEvent extends Event {
         friction = computeFriction();
         slimeBlockBounce = testSlimeBlockBounce();
         waterFlowForce = computeWaterFlowForce();
+        Debug.broadcastMessage("---");
+        Debug.broadcastMessage(ChatColor.YELLOW + "" + computeMaximumInputForce());
     }
 
     @Override
@@ -238,6 +241,10 @@ public class MoveEvent extends Event {
             }
         }
         return friction;
+    }
+
+    private float computeMaximumInputForce() {
+        return (float) ((pp.isOnGround() ? 0.1 : 0.02) * (pp.isSprinting() ? 1.3 : 1));
     }
 
     private Vector computeWaterFlowForce() {
