@@ -28,15 +28,15 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-public class FightDirectionApprox extends EntityInteractionCheck {
+public class EntityInteractDirection extends EntityInteractionCheck {
 
     private final int PING_LIMIT;
     private final boolean LAG_COMPENSATION;
     private final boolean CHECK_OTHER_ENTITIES;
     private final double BOX_EXPAND;
 
-    public FightDirectionApprox() {
-        super("fightdirectionapprox", true, 0, 10, 0.9, 5000, "%player% failed fight direction, VL: %vl%", null);
+    public EntityInteractDirection() {
+        super("entityinteractdirection", true, 0, 10, 0.9, 5000, "%player% failed fight direction, VL: %vl%", null);
         PING_LIMIT = (int) customSetting("pingLimit", "", -1);
         LAG_COMPENSATION = (boolean) customSetting("lagCompensation", "", true);
         CHECK_OTHER_ENTITIES = (boolean) customSetting("checkOtherEntities", "", true);

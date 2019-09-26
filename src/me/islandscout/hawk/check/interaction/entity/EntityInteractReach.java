@@ -29,7 +29,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-public class FightReachApprox extends EntityInteractionCheck {
+public class EntityInteractReach extends EntityInteractionCheck {
 
     //PASSED (6/24/2019)
 
@@ -39,8 +39,8 @@ public class FightReachApprox extends EntityInteractionCheck {
     private final boolean LAG_COMPENSATION;
     private final boolean CHECK_OTHER_ENTITIES;
 
-    public FightReachApprox() {
-        super("fightreachapprox", "%player% failed fight reach (approximate). Reach: %distance%m VL: %vl%");
+    public EntityInteractReach() {
+        super("entityinteractreach", "%player% failed fight reach (approximate). Reach: %distance%m VL: %vl%");
         MAX_REACH = (double) customSetting("maxReach", "", 3.1);
         MAX_REACH_CREATIVE = (double) customSetting("maxReachCreative", "", 5.0);
         PING_LIMIT = (int) customSetting("pingLimit", "", -1);

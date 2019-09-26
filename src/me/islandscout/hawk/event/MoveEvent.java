@@ -244,7 +244,51 @@ public class MoveEvent extends Event {
     }
 
     private float computeMaximumInputForce() {
-        return (float) ((pp.isOnGround() ? 0.1 : 0.02) * (pp.isSprinting() ? 1.3 : 1));
+        //"initForce" is the value of "strafe" or "forward" in MCP's moveEntityWithHeading(float, float) in
+        //EntityLivingBase. When the WASD keys are polled, these are either incremented or decremented by 1.
+        //Before reaching the method, the "strafe" and "forward" values are multiplied by 0.98,
+        //and if sneaking, they are also multiplied by 0.3, and if using an item, they are also multiplied by 0.2.
+        float initForce = 0.98F;
+        if(pp.isSneaking())
+            initForce *= 0.3;
+        if(pp.isConsumingItem() || pp.isPullingBow() || pp.isBlocking())
+            initForce *= 0.2;
+
+        float speedEffectMultiplier = 1;
+        for (PotionEffect effect : p.getActivePotionEffects()) {
+            if (!effect.getType().equals(PotionEffectType.SPEED))
+                continue;
+            int level = effect.getAmplifier() + 1;
+            speedEffectMultiplier += (level * 0.2F);
+        }
+        float groundMultiplier = 5 * p.getWalkSpeed() * speedEffectMultiplier;
+
+        //Skidded from MCP's moveEntityWithHeading(float, float) in EntityLivingBase
+        float multiplier;
+        if (pp.isOnGround()) {
+            //0.16277136 technically should be 0.162771336. But this is what was written in MCP.
+            //0.162771336 is not a magic number. It is 0.546^3
+            multiplier = 0.1F * 0.16277136F / (friction * friction * friction);
+            multiplier *= groundMultiplier;
+        }
+        else {
+            multiplier = 0.02F;
+        }
+
+        //Assume moving diagonally, since sometimes it's faster to move diagonally.
+        //Skidded from MCP's moveFlying(float, float, float) in Entity
+        float diagonal = (float)Math.sqrt(2 * initForce * initForce);
+        if (diagonal < 1.0F) {
+            diagonal = 1.0F;
+        }
+        //Force for each component of the diagonal vector.
+        //Division by "diagonal" pretty much normalizes it... most of the time.
+        float componentForce = initForce * multiplier / diagonal;
+
+        //now find the hypotenuse i.e. magnitude of this diagonal vector
+        float finalForce = (float)Math.sqrt(2 * componentForce * componentForce);
+
+        return (float) (finalForce * (pp.isSprinting() ? 1.3 : 1));
     }
 
     private Vector computeWaterFlowForce() {
