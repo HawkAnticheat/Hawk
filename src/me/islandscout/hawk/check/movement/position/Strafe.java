@@ -23,12 +23,10 @@ import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import sun.security.provider.certpath.AdjacencyList;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -69,10 +67,10 @@ public class Strafe extends MovementCheck {
             prevVelocity.multiply(0.4);
         }
 
-        if(Math.abs(prevVelocity.getX() * e.getFriction()) < 0.005) {
+        if(Math.abs(prevVelocity.getX() * friction) < 0.005) {
             prevVelocity.setX(0);
         }
-        if(Math.abs(prevVelocity.getZ() * e.getFriction()) < 0.005) {
+        if(Math.abs(prevVelocity.getZ() * friction) < 0.005) {
             prevVelocity.setZ(0);
         }
 

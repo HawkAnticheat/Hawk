@@ -71,6 +71,7 @@ public class HawkPlayer {
     private boolean onGround;
     private boolean prevTickOnGround;
     private boolean onGroundReally;
+    private float friction;
     private int ping;
     private short pingJitter;
     private long lastMoveTime;
@@ -562,6 +563,14 @@ public class HawkPlayer {
 
     public List<Pair<Boolean, Long>> getPendingSprintChange() {
         return pendingSprintChange;
+    }
+
+    public float getFriction() {
+        return friction;
+    }
+
+    public void setFriction(float friction) {
+        this.friction = friction;
     }
 
     //safely kill the connection

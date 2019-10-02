@@ -34,7 +34,7 @@ public class AABB implements Cloneable {
     private Vector max;
 
     public static final AABB playerCollisionBox = new AABB(new Vector(-0.3, 0, -0.3), new Vector(0.3, 1.8, 0.3));
-    public static final AABB playerWaterCollisionBox = new AABB(new Vector(-0.3, 0.4, -0.3), new Vector(0.3, 1.4, 0.3));
+    public static final AABB playerWaterCollisionBox = new AABB(new Vector(-0.299, 0.401, -0.299), new Vector(0.299, 1.399, 0.299));
     public static final AABB playerLavaCollisionBox = new AABB(new Vector(-0.2, 0.4, -0.2), new Vector(0.2, 1.4, 0.2));
 
     public AABB(Vector min, Vector max) {

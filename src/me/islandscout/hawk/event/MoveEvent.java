@@ -60,7 +60,9 @@ public class MoveEvent extends Event {
     private boolean jumped;
     private boolean slimeBlockBounce;
     private boolean step;
-    private float friction;
+    private float newFriction; //This is the friction that is used to compute this move's initial force.
+    private float oldFriction; //This is the friction that affects this move's velocity.
+    private float maxExpectedInputForce;
     private Vector waterFlowForce;
     private List<Pair<Block, Vector>> liquidsAndDirections;
     private Set<Material> liquidTypes;
@@ -81,11 +83,11 @@ public class MoveEvent extends Event {
         liquidsAndDirections = testLiquids();
         inLiquid = liquidsAndDirections.size() > 0;
         jumped = testJumped();
-        friction = computeFriction();
+        oldFriction = pp.getFriction();
+        newFriction = computeFriction();
         slimeBlockBounce = testSlimeBlockBounce();
         waterFlowForce = computeWaterFlowForce();
-        Debug.broadcastMessage("---");
-        Debug.broadcastMessage(ChatColor.YELLOW + "" + computeMaximumInputForce());
+        maxExpectedInputForce = computeMaximumInputForce();
     }
 
     @Override
@@ -166,6 +168,7 @@ public class MoveEvent extends Event {
         pp.getBoxSidesTouchingBlocks().clear();
         pp.getBoxSidesTouchingBlocks().addAll(getBoxSidesTouchingBlocks());
         pp.setWaterFlowForce(getWaterFlowForce());
+        pp.setFriction(newFriction);
         if(hasAcceptedKnockback())
             pp.updateLastVelocityAcceptTick();
     }
@@ -228,13 +231,10 @@ public class MoveEvent extends Event {
                 deltaY <= expected;
     }
 
-    //Returns the friction value that affected this move
     private float computeFriction() {
-        if(pp.getCurrentTick() == 0)
-            return 1;
         float friction = 0.91F;
-        if (pp.wasOnGround()) { //Yes, it IS the previous move. In the tick stack, friction is applied AFTER the player has moved.
-            Vector pos = pp.getPosition().clone().subtract(pp.getVelocity());
+        if (pp.isOnGround()) {
+            Vector pos = pp.getPosition();
             Block b = ServerUtils.getBlockAsync(new Location(pp.getWorld(), pos.getX(), pos.getY() - 1, pos.getZ()));
             if(b != null) {
                 friction *= WrappedBlock.getWrappedBlock(b).getSlipperiness();
@@ -251,8 +251,11 @@ public class MoveEvent extends Event {
         float initForce = 0.98F;
         if(pp.isSneaking())
             initForce *= 0.3;
-        if(pp.isConsumingItem() || pp.isPullingBow() || pp.isBlocking())
+        boolean usingItem = pp.isConsumingItem() || pp.isPullingBow() || pp.isBlocking();
+        if(usingItem)
             initForce *= 0.2;
+        boolean sprinting = pp.isSprinting() && !usingItem && !pp.isSneaking();
+        boolean flying = (pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying();
 
         float speedEffectMultiplier = 1;
         for (PotionEffect effect : p.getActivePotionEffects()) {
@@ -261,18 +264,19 @@ public class MoveEvent extends Event {
             int level = effect.getAmplifier() + 1;
             speedEffectMultiplier += (level * 0.2F);
         }
-        float groundMultiplier = 5 * p.getWalkSpeed() * speedEffectMultiplier;
 
         //Skidded from MCP's moveEntityWithHeading(float, float) in EntityLivingBase
         float multiplier;
         if (pp.isOnGround()) {
             //0.16277136 technically should be 0.162771336. But this is what was written in MCP.
             //0.162771336 is not a magic number. It is 0.546^3
-            multiplier = 0.1F * 0.16277136F / (friction * friction * friction);
+            multiplier = 0.1F * 0.16277136F / (newFriction * newFriction * newFriction);
+            float groundMultiplier = 5 * p.getWalkSpeed() * speedEffectMultiplier;
             multiplier *= groundMultiplier;
         }
         else {
-            multiplier = 0.02F;
+            float flyMultiplier = 10 * p.getFlySpeed();
+            multiplier = (flying ? 0.05F : 0.02F) * flyMultiplier;
         }
 
         //Assume moving diagonally, since sometimes it's faster to move diagonally.
@@ -288,7 +292,7 @@ public class MoveEvent extends Event {
         //now find the hypotenuse i.e. magnitude of this diagonal vector
         float finalForce = (float)Math.sqrt(2 * componentForce * componentForce);
 
-        return (float) (finalForce * (pp.isSprinting() ? 1.3 : 1));
+        return (float) (finalForce * (sprinting ? (flying ? 2 : 1.3) : 1));
     }
 
     private Vector computeWaterFlowForce() {
@@ -308,7 +312,6 @@ public class MoveEvent extends Event {
     }
 
     //This literally makes me want to punch a wall.
-    //TODO: detect w-taps heuristically to allow some unexpected hit-slowdowns. damn I hate this game
     private Vector handlePendingVelocities() {
         List<Pair<Vector, Long>> kbs = pp.getPendingVelocities();
         if (kbs.size() > 0) {
@@ -501,10 +504,15 @@ public class MoveEvent extends Event {
         return waterFlowForce;
     }
 
+    //This is the friction that affects this move's velocity.
     //WARNING: can be spoofed (i.e. hackers can make this return ground friction while in air)
     //Let GroundSpoof take care of these hackers.
     public float getFriction() {
-        return friction;
+        return oldFriction;
+    }
+
+    public float getMaxExpectedInputForce() {
+        return maxExpectedInputForce;
     }
 
     //A proper setback system. Permits only a maximum of 1 rubberband
