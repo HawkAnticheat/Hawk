@@ -64,6 +64,9 @@ public class HawkPlayer {
     private float yaw; //updated by client
     private float pitch; //updated by client
 
+    private Vector predictedPosition; //ticked by client
+    private Vector predictedVelocity;
+
     private Vector velocity;
     private Vector previousVelocity;
     private float deltaYaw;
@@ -122,6 +125,13 @@ public class HawkPlayer {
         pendingSprintChange = new ArrayList<>();
         boxSidesTouchingBlocks = new HashSet<>();
         this.waterFlowForce = new Vector();
+    }
+
+    public void tick() {
+        this.currentTick++;
+        manageClientBlocks();
+        predictNextPosition();
+        //handlePendingSprints();
     }
 
     public int getVL(Check check) {
@@ -273,21 +283,22 @@ public class HawkPlayer {
         return position.clone();
     }
 
-    //Returns the predicted position of the HawkPlayer (in the case that the
-    //latest flying packet was not an update-position). It simulates player
-    //movement without user input.
+    //Returns the predicted position of the HawkPlayer, assuming no user input.
     public Vector getPositionPredicted() {
-        return null; //TODO
+        return predictedPosition;
     }
 
     public void setPosition(Vector position) {
         this.position = position;
     }
 
-    public void setPositionYawPitch(Vector position, float yaw, float pitch) {
+    public void setPositionYawPitch(Vector position, float yaw, float pitch, boolean updatePos) {
         this.position = position;
         this.yaw = yaw;
         this.pitch = pitch;
+        if(updatePos) {
+            predictedPosition = position;
+        }
     }
 
     public float getYaw() {
@@ -337,12 +348,6 @@ public class HawkPlayer {
 
     public long getCurrentTick() {
         return currentTick;
-    }
-
-    public void incrementCurrentTick() {
-        this.currentTick++;
-        manageClientBlocks();
-        //handlePendingSprints();
     }
 
     public boolean isSneaking() {
@@ -523,6 +528,34 @@ public class HawkPlayer {
                 clientBlocks.remove(loc);
             }
         }
+    }
+
+    private void predictNextPosition() {
+        Vector move = getPredictedVelocity().clone();
+
+        if(Math.abs(move.getX()) < 0.005) {
+            move.setX(0);
+        }
+        if(Math.abs(move.getY()) < 0.005) {
+            move.setY(0);
+        }
+        if(Math.abs(move.getZ()) < 0.005) {
+            move.setZ(0);
+        }
+
+        move.setX(move.getX() * getFriction());
+        move.setY((move.getY() - 0.08) * 0.98);
+        move.setZ(move.getZ() * getFriction());
+
+        //logic for step and then collision Y
+        //logic for block collision X Z
+
+        //otherwise, logic for block collision X Z
+        //logic for block collision Y
+
+        //don't forget if sneaking
+
+        predictedPosition.add(move);
     }
 
     public Set<Direction> getBoxSidesTouchingBlocks() {

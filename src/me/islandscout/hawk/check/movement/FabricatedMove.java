@@ -41,6 +41,10 @@ public class FabricatedMove extends MovementCheck {
         super("fabricatedmove", true, 0, 2, 0.999, 5000, "%player% failed fabricated move, VL: %vl%", null);
     }
 
+    //Verify that the distance between two succeeding move packets is greater than 0.03
+    //Check if sent a suspicious no-move (edit: how are you supposed to do this? You have to guess. No, screw this.)
+    //Check if haven't sent a move in over 20 ticks
+
     @Override
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
