@@ -20,10 +20,12 @@ package me.islandscout.hawk;
 
 import me.islandscout.hawk.check.Check;
 import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -116,6 +118,8 @@ public class HawkPlayer {
         this.pitch = defaultLocation.getPitch();
         this.velocity = new Vector();
         this.previousVelocity = new Vector();
+        this.predictedPosition = defaultLocation.toVector();
+        this.predictedVelocity = new Vector();
         this.onGround = ((Entity) p).isOnGround();
         this.hawk = hawk;
         this.ping = ServerUtils.getPing(p);
@@ -130,7 +134,9 @@ public class HawkPlayer {
     public void tick() {
         this.currentTick++;
         manageClientBlocks();
-        predictNextPosition();
+        //TODO this doesn't need to be called so often
+        if(predictedVelocity.lengthSquared() > 0)
+            predictNextPosition();
         //handlePendingSprints();
     }
 
@@ -292,12 +298,22 @@ public class HawkPlayer {
         this.position = position;
     }
 
-    public void setPositionYawPitch(Vector position, float yaw, float pitch, boolean updatePos) {
+    public void updatePositionYawPitch(Vector position, float yaw, float pitch, boolean isPosUpdate) {
+        this.previousVelocity = this.velocity;
+        this.velocity = new Vector(
+                position.getX() - this.position.getX(),
+                position.getY() - this.position.getY(),
+                position.getZ() - this.position.getZ());
+        this.deltaYaw = yaw - this.yaw;
+        this.deltaPitch = pitch - this.pitch;
+
         this.position = position;
         this.yaw = yaw;
         this.pitch = pitch;
-        if(updatePos) {
-            predictedPosition = position;
+        if(isPosUpdate) {
+            predictedPosition = position.clone();
+            if(previousVelocity.lengthSquared() > 0)
+                predictedVelocity = velocity.clone();
         }
     }
 
@@ -321,9 +337,8 @@ public class HawkPlayer {
         return velocity;
     }
 
-    public void setVelocity(Vector velocity) {
-        this.previousVelocity = this.velocity;
-        this.velocity = velocity;
+    public Vector getVelocityPredicted() {
+        return predictedVelocity;
     }
 
     public Vector getPreviousVelocity() {
@@ -334,16 +349,8 @@ public class HawkPlayer {
         return deltaYaw;
     }
 
-    public void setDeltaYaw(float deltaYaw) {
-        this.deltaYaw = deltaYaw;
-    }
-
     public float getDeltaPitch() {
         return deltaPitch;
-    }
-
-    public void setDeltaPitch(float deltaPitch) {
-        this.deltaPitch = deltaPitch;
     }
 
     public long getCurrentTick() {
@@ -530,32 +537,108 @@ public class HawkPlayer {
         }
     }
 
+    //TODO shrink this code
     private void predictNextPosition() {
-        Vector move = getPredictedVelocity().clone();
+        Vector move = predictedVelocity.clone();
 
-        if(Math.abs(move.getX()) < 0.005) {
-            move.setX(0);
+        //compute new predicted motion values
+        double pdX = move.getX() * getFriction();
+        double pdY = move.getY() * 0.98;
+        double pdZ = move.getZ() * getFriction();
+
+        if(Math.abs(pdX) < 0.005) {
+            pdX = 0;
         }
-        if(Math.abs(move.getY()) < 0.005) {
-            move.setY(0);
+        if(Math.abs(pdY) < 0.005) {
+            pdY = 0;
         }
-        if(Math.abs(move.getZ()) < 0.005) {
-            move.setZ(0);
+        if(Math.abs(pdZ) < 0.005) {
+            pdZ = 0;
         }
 
-        move.setX(move.getX() * getFriction());
-        move.setY((move.getY() - 0.08) * 0.98);
-        move.setZ(move.getZ() * getFriction());
+        pdY -= -0.0784;
 
-        //logic for step and then collision Y
-        //logic for block collision X Z
+        //TODO don't forget sneaking & how it prevents you from falling off blocks
 
-        //otherwise, logic for block collision X Z
-        //logic for block collision Y
+        AABB box = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition);
+        List<Block> collidedBlocksBefore = box.getBlocks(world);
 
-        //don't forget if sneaking
+        //clipping order: X, Z, Y
+        //X
+        boolean positive = pdX > 0;
+        box.translate(new Vector(pdX, 0, 0));
+        List<Block> collidedBlocks = box.getBlocks(world);
+        collidedBlocks.removeAll(collidedBlocksBefore);
 
+        double highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+        for(Block b : collidedBlocks) {
+            WrappedBlock wb = WrappedBlock.getWrappedBlock(b);
+            for(AABB aabb : wb.getCollisionBoxes()) {
+                double point = positive ? aabb.getMin().getX() : aabb.getMax().getX();
+                if(positive && point < highestPoint)
+                    highestPoint = point;
+                else if(!positive && point > highestPoint)
+                    highestPoint = point;
+            }
+        }
+        if(Double.isFinite(highestPoint)) {
+            double invPenetrationDist = positive ? highestPoint - box.getMax().getX() : highestPoint - box.getMin().getX();
+            box.translate(new Vector(invPenetrationDist, 0, 0));
+            pdX += invPenetrationDist;
+        }
+
+        //Z
+        positive = pdZ > 0;
+        box.translate(new Vector(0, 0, pdZ));
+        collidedBlocks = box.getBlocks(world);
+        collidedBlocks.removeAll(collidedBlocksBefore);
+
+        highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+        for(Block b : collidedBlocks) {
+            WrappedBlock wb = WrappedBlock.getWrappedBlock(b);
+            for(AABB aabb : wb.getCollisionBoxes()) {
+                double point = positive ? aabb.getMin().getZ() : aabb.getMax().getZ();
+                if(positive && point < highestPoint)
+                    highestPoint = point;
+                else if(!positive && point > highestPoint)
+                    highestPoint = point;
+            }
+        }
+        if(Double.isFinite(highestPoint)) {
+            double invPenetrationDist = positive ? highestPoint - box.getMax().getZ() : highestPoint - box.getMin().getZ();
+            box.translate(new Vector(0, 0, invPenetrationDist));
+            pdZ += invPenetrationDist;
+        }
+
+        //Y
+        positive = pdY > 0;
+        box.translate(new Vector(0, pdY, 0));
+        collidedBlocks = box.getBlocks(world);
+        collidedBlocks.removeAll(collidedBlocksBefore);
+
+        highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+        for(Block b : collidedBlocks) {
+            WrappedBlock wb = WrappedBlock.getWrappedBlock(b);
+            for(AABB aabb : wb.getCollisionBoxes()) {
+                double point = positive ? aabb.getMin().getY() : aabb.getMax().getY();
+                if(positive && point < highestPoint)
+                    highestPoint = point;
+                else if(!positive && point > highestPoint)
+                    highestPoint = point;
+            }
+        }
+        if(Double.isFinite(highestPoint)) {
+            double invPenetrationDist = positive ? highestPoint - box.getMax().getY() : highestPoint - box.getMin().getY();
+            box.translate(new Vector(0, invPenetrationDist, 0));
+            pdY += invPenetrationDist;
+        }
+
+        //move predicted position
+        move.setX(pdX);
+        move.setY(pdY);
+        move.setZ(pdZ);
         predictedPosition.add(move);
+        predictedVelocity = move;
     }
 
     public Set<Direction> getBoxSidesTouchingBlocks() {

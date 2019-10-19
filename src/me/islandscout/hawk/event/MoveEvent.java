@@ -104,7 +104,7 @@ public class MoveEvent extends Event {
                 //move matched teleport location
                 if(elapsedTicks > (pp.getPing() / 50) - 1) { //1 is an arbitrary constant to keep things smooth
                     //most likely accepted teleport, unless this move is a coincidence
-                    pp.setPositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch(), true);
+                    pp.updatePositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch(), true);
                     pp.setTeleporting(false);
                     pp.setLastTeleportAcceptTick(pp.getCurrentTick());
                     setTeleported(true);
@@ -156,10 +156,7 @@ public class MoveEvent extends Event {
 
         Location to = getTo();
         Location from = getFrom();
-        pp.setVelocity(new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ()));
-        pp.setDeltaYaw(to.getYaw() - from.getYaw());
-        pp.setDeltaPitch(to.getPitch() - from.getPitch());
-        pp.setPositionYawPitch(to.toVector(), to.getYaw(), to.getPitch(), isUpdatePos());
+        pp.updatePositionYawPitch(to.toVector(), to.getYaw(), to.getPitch(), isUpdatePos());
         pp.updateFallDistance(to);
         pp.updateTotalAscensionSinceGround(from.getY(), to.getY());
         pp.setOnGround(isOnGround());
