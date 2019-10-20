@@ -97,6 +97,8 @@ public class Speed extends MovementCheck implements Listener {
 
         boolean flying = (pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying();
         boolean swimming = pp.isInLiquid(); //this needs improvement
+        //it is possible to tell if the player has pressed the jump key even if this move is "stepped" (only while sprinting)
+        boolean jump = event.isJump() || (event.isStep() && pp.isOnGround() && pp.isSprinting());
 
         float friction = event.getFriction();
         float maxForce = event.getMaxExpectedInputForce();
@@ -129,7 +131,7 @@ public class Speed extends MovementCheck implements Listener {
         //Handle other things in the game that add to velocity.
         //These affect velocity later (coincidentally, these are all addition operations)
         double handleAdders = 0;
-        if(pp.isSprinting() && event.isJump()) {
+        if(pp.isSprinting() && jump) {
             handleAdders += 0.2;
         }
         //Finally, the expected speed calculation

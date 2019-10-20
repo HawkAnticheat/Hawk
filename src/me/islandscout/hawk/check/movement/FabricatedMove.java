@@ -21,8 +21,14 @@ package me.islandscout.hawk.check.movement;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
+import org.bukkit.entity.Player;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /*
  * Check written by Havesta
@@ -37,8 +43,11 @@ import me.islandscout.hawk.wrap.packet.WrappedPacket;
  */
 public class FabricatedMove extends MovementCheck {
 
+    private final Map<UUID, Integer> flyingTicksMap;
+
     public FabricatedMove() {
         super("fabricatedmove", true, 0, 2, 0.999, 5000, "%player% failed fabricated move, VL: %vl%", null);
+        flyingTicksMap = new HashMap<>();
     }
 
     //Verify that the distance between two succeeding move packets is greater than 0.03
@@ -49,8 +58,10 @@ public class FabricatedMove extends MovementCheck {
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
 
-        if(pp.getPlayer().isInsideVehicle())
+        if(pp.getPlayer().isInsideVehicle() || e.hasTeleported()) {
+            flyingTicksMap.put(pp.getUuid(), 0);
             return;
+        }
 
         //Also ignore some moves after the tp to fix false positives.
         //Use ping because if you send multiple TPs with the same location,
@@ -59,6 +70,7 @@ public class FabricatedMove extends MovementCheck {
         //just to be safe. - Islandscout
         if(pp.getCurrentTick() - pp.getLastTeleportAcceptTick() > ServerUtils.getPing(e.getPlayer()) / 50 + 10 &&
                 pp.getCurrentTick() > 100) {
+
             WrappedPacket packet = e.getWrappedPacket();
             switch(packet.getType()) {
                 case POSITION:
@@ -85,6 +97,24 @@ public class FabricatedMove extends MovementCheck {
                     }
                     break;
             }
+
+            UUID uuid = pp.getUuid();
+            int flying = flyingTicksMap.getOrDefault(uuid, 0);
+            if(!e.isUpdatePos() && !e.isUpdateRot()) {
+                flying++;
+            }
+            else {
+                flying = 0;
+            }
+            flyingTicksMap.put(uuid, flying);
+
+            if(flying > 20)  // inspired by ToonBasic
+                punishAndTryRubberband(pp, flying - 20, e, e.getPlayer().getLocation());
         }
+    }
+
+    @Override
+    public void removeData(Player p) {
+        flyingTicksMap.remove(p.getUniqueId());
     }
 }

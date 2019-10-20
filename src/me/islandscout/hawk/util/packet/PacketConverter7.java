@@ -22,6 +22,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.WrappedWatchableObject;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
@@ -61,6 +62,12 @@ public final class PacketConverter7 {
             return packetToItemSwitchEvent((PacketPlayInHeldItemSlot) packet, p, pp);
         if (packet instanceof PacketPlayInEntityAction)
             return packetToPlayerActionEvent((PacketPlayInEntityAction) packet, p, pp);
+        if (packet instanceof PacketPlayInWindowClick)
+            return packetToWindowClickEvent((PacketPlayInWindowClick) packet, p, pp);
+        if(packet instanceof PacketPlayInClientCommand)
+            return packetToOpenWindowEvent((PacketPlayInClientCommand) packet, p, pp);
+        if(packet instanceof PacketPlayInCloseWindow)
+            return packetToCloseWindowEvent((PacketPlayInCloseWindow) packet, p, pp);
         return null;
     }
 
@@ -339,4 +346,29 @@ public final class PacketConverter7 {
         }
         return new PlayerActionEvent(p, pp, new WrappedPacket7(packet, WrappedPacket.PacketType.ENTITY_ACTION), action);
     }
+
+    //BEGIN of addition by Havesta
+    private static WindowClickEvent packetToWindowClickEvent(PacketPlayInWindowClick packet, Player p, HawkPlayer pp) {
+        // packet.b() is the item slot, 0-4 is crafting, 5-8 is armor, 9-44 is the rest of the inventory, when not in inventory clicked = -999
+
+        // Debug.broadcastMessage("a= " + packet.a() + " b= " + packet.b() + " c= " + packet.c() + " d= " + packet.d() + " e= " + packet.e() + " f= " + packet.f());
+
+        Debug.broadcastMessage("clicked");
+
+        return new WindowClickEvent(p, pp, packet.d(), new WrappedPacket7(packet, WrappedPacket.PacketType.ENTITY_ACTION));
+    }
+
+    private static OpenWindowEvent packetToOpenWindowEvent(PacketPlayInClientCommand packet, Player p, HawkPlayer pp) {
+        if(packet.c().equals(EnumClientCommand.OPEN_INVENTORY_ACHIEVEMENT)) { // sadly this works only for player inventory
+            Debug.broadcastMessage("opened");
+            return new OpenWindowEvent(p, pp, new WrappedPacket7(packet, WrappedPacket.PacketType.ENTITY_ACTION));
+        }
+        return null;
+    }
+
+    private static CloseWindowEvent packetToCloseWindowEvent(PacketPlayInCloseWindow packet, Player p, HawkPlayer pp) {
+        Debug.broadcastMessage("closed");
+        return new CloseWindowEvent(p, pp, new WrappedPacket7(packet, WrappedPacket.PacketType.ENTITY_ACTION));
+    }
+    //END of addition by Havesta
 }

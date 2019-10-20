@@ -86,6 +86,7 @@ public class HawkPlayer {
     private boolean blocking;
     private boolean pullingBow;
     private boolean consumingItem;
+    private boolean inventoryOpen;
     private boolean inLiquid;
     private boolean swimming;
     private long itemUseTick;
@@ -387,6 +388,14 @@ public class HawkPlayer {
 
     public void setPullingBow(boolean pullingBow) {
         this.pullingBow = pullingBow;
+    }
+
+    public boolean hasInventoryOpen() {
+        return inventoryOpen;
+    }
+
+    public void setInventoryOpen(boolean status) {
+        this.inventoryOpen = status;
     }
 
     public double getFallDistance() {

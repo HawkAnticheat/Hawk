@@ -171,7 +171,10 @@ public class MoveEvent extends Event {
 
     private boolean testStep() {
         Vector extraVelocity = pp.getVelocity().clone();
-        extraVelocity.setY((extraVelocity.getY() - 0.08) * 0.98);
+        if(pp.isOnGroundReally())
+            extraVelocity.setY(-0.0784);
+        else
+            extraVelocity.setY((extraVelocity.getY() - 0.08) * 0.98);
         Location extraPos = pp.getPosition().toLocation(pp.getWorld());
         extraPos.add(extraVelocity);
         float deltaY = (float) (getTo().getY() - getFrom().getY());
@@ -229,7 +232,12 @@ public class MoveEvent extends Event {
 
     private float computeFriction() {
         float friction = 0.91F;
-        if (pp.isOnGround()) {
+
+        //patch some inconsistencies
+        boolean teleportBug = pp.getCurrentTick() == pp.getLastTeleportAcceptTick();
+        boolean onGround = teleportBug ? pp.isOnGroundReally() : pp.isOnGround();
+
+        if (onGround) {
             Vector pos = pp.getPosition();
             Block b = ServerUtils.getBlockAsync(new Location(pp.getWorld(), pos.getX(), pos.getY() - 1, pos.getZ()));
             if(b != null) {
@@ -261,9 +269,13 @@ public class MoveEvent extends Event {
             speedEffectMultiplier += (level * 0.2F);
         }
 
+        //patch some inconsistencies
+        boolean teleportBug = pp.getCurrentTick() == pp.getLastTeleportAcceptTick();
+        boolean onGround = teleportBug ? pp.isOnGroundReally() : pp.isOnGround();
+
         //Skidded from MCP's moveEntityWithHeading(float, float) in EntityLivingBase
         float multiplier;
-        if (pp.isOnGround()) {
+        if (onGround) {
             //0.16277136 technically should be 0.162771336. But this is what was written in MCP.
             //0.162771336 is not a magic number. It is 0.546^3
             multiplier = 0.1F * 0.16277136F / (newFriction * newFriction * newFriction);

@@ -24,6 +24,8 @@ import me.islandscout.hawk.check.combat.*;
 import me.islandscout.hawk.check.interaction.*;
 import me.islandscout.hawk.check.interaction.entity.EntityInteractDirection;
 import me.islandscout.hawk.check.interaction.entity.EntityInteractReach;
+import me.islandscout.hawk.check.interaction.inventory.InventoryActions;
+import me.islandscout.hawk.check.movement.InventoryMove;
 import me.islandscout.hawk.check.interaction.item.ItemSwitchSpeed;
 import me.islandscout.hawk.check.interaction.item.ItemUseSpeed;
 import me.islandscout.hawk.check.interaction.terrain.*;
@@ -104,6 +106,8 @@ public class CheckManager {
         new Strafe();
         new FabricatedMove();
         new FabricatedBlockInteract();
+        //new InventoryMove();
+        new InventoryActions();
         //new NewFly();
     }
 
