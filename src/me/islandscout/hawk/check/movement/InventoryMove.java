@@ -19,19 +19,10 @@
 package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.check.MovementCheck;
-import me.islandscout.hawk.event.BlockDigEvent;
-import me.islandscout.hawk.event.CloseWindowEvent;
-import me.islandscout.hawk.event.Event;
-import me.islandscout.hawk.event.InteractEntityEvent;
-import me.islandscout.hawk.event.InteractWorldEvent;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.event.OpenWindowEvent;
-import me.islandscout.hawk.event.WindowClickEvent;
 import me.islandscout.hawk.util.Debug;
-
-import java.util.*;
+import org.bukkit.inventory.PlayerInventory;
 
 /*
  * InventoryActions check originally written by Havesta; modified, split apart, and implemented into Hawk by Islandscout
@@ -52,8 +43,7 @@ public class InventoryMove extends MovementCheck {
 
         //TODO: false flag: rotation is still possible at least 1 tick after opening inventory
         //TODO: false flag: you gotta do that TP grace period thing for this too
-        //TODO: will start false flagging if you click in an "other" inventory and then teleport before closing it
-        if((e.isUpdateRot() || pp.isSprinting() || pp.isSneaking()) && pp.hasInventoryOpen() && !e.hasTeleported()) {
+        if((e.isUpdateRot() || pp.isSprinting() || pp.isSneaking()) && pp.hasInventoryOpen() != 0 && !e.hasTeleported()) {
             punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
         }
         else {

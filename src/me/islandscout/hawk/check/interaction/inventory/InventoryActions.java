@@ -38,7 +38,7 @@ public class InventoryActions extends CustomCheck {
     @Override
     protected void check(Event e) {
         HawkPlayer pp = e.getHawkPlayer();
-        if(pp.hasInventoryOpen() && (e instanceof InteractEntityEvent || e instanceof BlockDigEvent ||
+        if(pp.hasInventoryOpen() != 0 && (e instanceof InteractEntityEvent || e instanceof BlockDigEvent ||
                 e instanceof ArmSwingEvent || e instanceof InteractWorldEvent)) {
             punish(pp, true, e);
         }

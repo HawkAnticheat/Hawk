@@ -47,6 +47,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class HawkPlayer {
 
+    //Represents a queue of commands sent from server to client. Simulates latency as it is ticked.
+    //Can be used to simulate commands that the client doesn't show any clear acknowledgement for,
+    //such as inventory window opening/closing.
+    private final List<Pair<Runnable, Long>> simulatedCmds;
+
     private final UUID uuid;
     private final Map<Check, Double> vl;
     private boolean digging;
@@ -86,7 +91,7 @@ public class HawkPlayer {
     private boolean blocking;
     private boolean pullingBow;
     private boolean consumingItem;
-    private boolean inventoryOpen;
+    private byte inventoryOpen; //0 for closed; 1 for own inventory; 2 for any other inventory
     private boolean inLiquid;
     private boolean swimming;
     private long itemUseTick;
@@ -207,6 +212,9 @@ public class HawkPlayer {
         return teleportLoc;
     }
 
+    /*TODO no no no no no... this is NOT how we handle teleports. THE MAIN THREAD SHOULD BE THE ONLY THREAD TOUCHING THIS.
+    TODO No wonder why it's so fkin difficult to do /spawn while getting rubberbanded back and forth. REDO THIS SYSTEM.
+    */
     public void setTeleportLoc(Location teleportLoc) {
         this.teleportLoc = teleportLoc;
     }
@@ -390,11 +398,11 @@ public class HawkPlayer {
         this.pullingBow = pullingBow;
     }
 
-    public boolean hasInventoryOpen() {
+    public byte hasInventoryOpen() {
         return inventoryOpen;
     }
 
-    public void setInventoryOpen(boolean status) {
+    public void setInventoryOpen(byte status) {
         this.inventoryOpen = status;
     }
 
@@ -736,11 +744,6 @@ public class HawkPlayer {
 
     public AABB getHitBox() {
         return WrappedEntity.getWrappedEntity(p).getHitbox(position);
-    }
-
-    public long getCurrentValidatedTick() {
-        //TODO
-        return 0;
     }
 
 }

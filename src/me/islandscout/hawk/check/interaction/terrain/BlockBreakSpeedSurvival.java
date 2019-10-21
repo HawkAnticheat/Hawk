@@ -69,7 +69,7 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
 
     private void tickDig(HawkPlayer pp) {
         Block target = targetBlockMap.get(pp.getUuid());
-        if(pp.isDigging() && target != null) {
+        if(pp.isDigging() && target != null && pp.getPlayer().getGameMode() == GameMode.SURVIVAL) {
             float accumulatedDamage = blockDamageCumulativeMap.getOrDefault(pp.getUuid(), 0F);
             float damage = getDamage(target, pp);
             blockDamageCumulativeMap.put(pp.getUuid(), accumulatedDamage + damage);
@@ -124,9 +124,9 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
     //(and no, I'm not talking about the "synchronized" keyword).
 
     private float getDamage(Block block, HawkPlayer pp) {
-        WrappedBlock wBlock = WrappedBlock.getWrappedBlock(block);
-        if(block == null)
+        if(block == null || ServerUtils.getBlockAsync(block.getLocation()) == null)
             return 0;
+        WrappedBlock wBlock = WrappedBlock.getWrappedBlock(block);
         float strength = wBlock.getStrength();
         return strength < 0.0F ? 0.0F : (!isDestroyableByHeldItem(wBlock, pp) ? getCurrentPlayerStrVsBlock(wBlock, false, pp) / strength / 100.0F : getCurrentPlayerStrVsBlock(wBlock, true, pp) / strength / 30.0F);
     }

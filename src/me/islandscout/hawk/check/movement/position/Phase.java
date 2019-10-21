@@ -26,14 +26,13 @@ import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.material.Openable;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * The Phase check tests collision with blocks between players'
@@ -43,7 +42,7 @@ import java.util.UUID;
  */
 public class Phase extends MovementCheck {
 
-    //TODO: False positive due to block updating inside player bounding box or if someone teleports into a block. Probably can only fix TP issue.
+    //TODO: False positive due to block updating inside player bounding box or if someone teleports into a block.
 
     //The way that this works is by geometry. Two AABBs represent the previous
     //and current position. They are inscribed within a new AABB. Then, planes
@@ -65,10 +64,14 @@ public class Phase extends MovementCheck {
     private static final double VERTICAL_DISTANCE_THRESHOLD = Math.pow(1, 2);
 
     private final Map<UUID, Location> legitLoc;
+    private final Map<UUID, Set<Pair<Location, AABB>>> trackedBlocks;
+    private final Map<UUID, Set<Location>> ignoredBlocks;
 
     public Phase() {
         super("phase", true, 0, 10, 0.995, 5000, "%player% failed phase. Moved through %block%. VL: %vl%", null);
         legitLoc = new HashMap<>();
+        trackedBlocks = new HashMap<>();
+        ignoredBlocks = new HashMap<>();
     }
 
     @Override
@@ -173,8 +176,23 @@ public class Phase extends MovementCheck {
         return (lowerPoint.getY() <= upperLine.getYatX(lowerPoint.getX()) && upperPoint.getY() >= lowerLine.getYatX(upperPoint.getX()));
     }
 
+    private Set<Location> updateTrackedBlocks(AABB aabb, World world) {
+        Set<Location> blocks = new HashSet<>();
+        for(Block b : aabb.getBlocks(world)) {
+            blocks.add(b.getLocation());
+        }
+        return blocks;
+    }
+
+    private Set<Location> pollUpdatedBlocks(AABB aabb) {
+        return null;
+    }
+
     @Override
     public void removeData(Player p) {
-        legitLoc.remove(p.getUniqueId());
+        UUID uuid = p.getUniqueId();
+        legitLoc.remove(uuid);
+        trackedBlocks.remove(uuid);
+        ignoredBlocks.remove(uuid);
     }
 }

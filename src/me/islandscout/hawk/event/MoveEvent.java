@@ -108,6 +108,11 @@ public class MoveEvent extends Event {
                     pp.setTeleporting(false);
                     pp.setLastTeleportAcceptTick(pp.getCurrentTick());
                     setTeleported(true);
+
+                    //close non-player inventory
+                    if(pp.hasInventoryOpen() == 2) {
+                        pp.setInventoryOpen((byte)0);
+                    }
                 }
                 else {
                     return false;

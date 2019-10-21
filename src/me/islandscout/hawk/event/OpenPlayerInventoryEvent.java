@@ -22,14 +22,14 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.entity.Player;
 
-public class OpenWindowEvent extends Event {
+public class OpenPlayerInventoryEvent extends Event {
 
-    public OpenWindowEvent(Player p, HawkPlayer pp, WrappedPacket wPacket) {
+    public OpenPlayerInventoryEvent(Player p, HawkPlayer pp, WrappedPacket wPacket) {
         super(p, pp, wPacket);
     }
 
     @Override
     public void postProcess() {
-        pp.setInventoryOpen(true);
+        pp.setInventoryOpen((byte)1);
     }
 }

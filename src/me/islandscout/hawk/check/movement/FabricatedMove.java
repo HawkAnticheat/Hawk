@@ -51,8 +51,6 @@ public class FabricatedMove extends MovementCheck {
     }
 
     //Verify that the distance between two succeeding move packets is greater than 0.03
-    //Check if sent a suspicious no-move (edit: how are you supposed to do this? You have to guess. No, screw this.)
-    //Check if haven't sent a move in over 20 ticks
 
     @Override
     protected void check(MoveEvent e) {
@@ -100,7 +98,7 @@ public class FabricatedMove extends MovementCheck {
 
             UUID uuid = pp.getUuid();
             int flying = flyingTicksMap.getOrDefault(uuid, 0);
-            if(!e.isUpdatePos() && !e.isUpdateRot()) {
+            if(!e.isUpdatePos()) {
                 flying++;
             }
             else {

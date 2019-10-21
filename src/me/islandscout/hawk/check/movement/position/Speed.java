@@ -39,6 +39,7 @@ public class Speed extends MovementCheck implements Listener {
     //the server handled movement?
 
     //TODO False flag with pistons
+    //TODO clamp cumulative expected distance to 0.03 if not sending a position update
 
     //Basically, this check is doing, "if your previous speed was X then your current speed must not exceed f(X)"
 
@@ -97,7 +98,7 @@ public class Speed extends MovementCheck implements Listener {
 
         boolean flying = (pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying();
         boolean swimming = pp.isInLiquid(); //this needs improvement
-        //it is possible to tell if the player has pressed the jump key even if this move is "stepped" (only while sprinting)
+        //it is possible that the player has pressed the jump key even if this move is "stepped" (only while sprinting)
         boolean jump = event.isJump() || (event.isStep() && pp.isOnGround() && pp.isSprinting());
 
         float friction = event.getFriction();

@@ -368,27 +368,29 @@ public final class PacketConverter8 {
     }
 
     //BEGIN of addition by Havesta
-    private static WindowClickEvent packetToWindowClickEvent(PacketPlayInWindowClick packet, Player p, HawkPlayer pp) {
+    private static ClickInventoryEvent packetToWindowClickEvent(PacketPlayInWindowClick packet, Player p, HawkPlayer pp) {
         // packet.b() is the item slot, 0-4 is crafting, 5-8 is armor, 9-44 is the rest of the inventory, when not in inventory clicked = -999
 
         // Debug.broadcastMessage("a= " + packet.a() + " b= " + packet.b() + " c= " + packet.c() + " d= " + packet.d() + " e= " + packet.e() + " f= " + packet.f());
 
-        Debug.broadcastMessage("clicked");
+        int windowID = packet.a();
+        int slot = packet.b();
+        int button = packet.c();
+        int mode = packet.f();
+        //perhaps get clicked ItemStack too?
 
-        return new WindowClickEvent(p, pp, packet.b(), new WrappedPacket8(packet, WrappedPacket.PacketType.ENTITY_ACTION));
+        return new ClickInventoryEvent(p, pp, slot, windowID, mode, button, new WrappedPacket8(packet, WrappedPacket.PacketType.ENTITY_ACTION));
     }
 
-    private static OpenWindowEvent packetToOpenWindowEvent(PacketPlayInClientCommand packet, Player p, HawkPlayer pp) {
+    private static OpenPlayerInventoryEvent packetToOpenWindowEvent(PacketPlayInClientCommand packet, Player p, HawkPlayer pp) {
         if(packet.a().equals(PacketPlayInClientCommand.EnumClientCommand.OPEN_INVENTORY_ACHIEVEMENT)) { // sadly this works only for player inventory
-            Debug.broadcastMessage("opened");
-            return new OpenWindowEvent(p, pp, new WrappedPacket8(packet, WrappedPacket.PacketType.ENTITY_ACTION));
+            return new OpenPlayerInventoryEvent(p, pp, new WrappedPacket8(packet, WrappedPacket.PacketType.ENTITY_ACTION));
         }
         return null;
     }
 
-    private static CloseWindowEvent packetToCloseWindowEvent(PacketPlayInCloseWindow packet, Player p, HawkPlayer pp) {
-        Debug.broadcastMessage("closed");
-        return new CloseWindowEvent(p, pp, new WrappedPacket8(packet, WrappedPacket.PacketType.ENTITY_ACTION));
+    private static CloseInventoryEvent packetToCloseWindowEvent(PacketPlayInCloseWindow packet, Player p, HawkPlayer pp) {
+        return new CloseInventoryEvent(p, pp, new WrappedPacket8(packet, WrappedPacket.PacketType.ENTITY_ACTION));
     }
     //END of addition by Havesta
 }

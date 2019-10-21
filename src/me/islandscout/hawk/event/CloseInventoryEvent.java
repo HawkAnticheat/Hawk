@@ -22,21 +22,14 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.entity.Player;
 
-public class WindowClickEvent extends Event {
+public class CloseInventoryEvent extends Event {
 
-    private int itemSlot;
-
-    public WindowClickEvent(Player p, HawkPlayer pp, int itemSlot, WrappedPacket wPacket) {
+    public CloseInventoryEvent(Player p, HawkPlayer pp, WrappedPacket wPacket) {
         super(p, pp, wPacket);
-        this.itemSlot = itemSlot;
     }
 
     @Override
     public void postProcess() {
-        pp.setInventoryOpen(true);
-    }
-
-    public int getItemSlot() {
-        return itemSlot;
+        pp.setInventoryOpen((byte)0);
     }
 }
