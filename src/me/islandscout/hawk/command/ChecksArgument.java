@@ -29,7 +29,7 @@ import java.util.List;
 public class ChecksArgument extends Argument {
 
     ChecksArgument() {
-        super("checks", "", "Provides a list of Hawk check.");
+        super("checks", "", "Provides a list of Hawk checks.");
     }
 
     @Override

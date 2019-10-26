@@ -67,12 +67,6 @@ public class NewFly extends MovementCheck {
         float estimatedPosition = estimatedPositionMap.getOrDefault(pp.getUuid(), (float)e.getFrom().getY());
         float prevEstimatedVelocity = estimatedVelocityMap.getOrDefault(pp.getUuid(), (float) pp.getVelocity().getY());
 
-        //TODO false flag when sprintjumping up stairs (fix step detection in MoveEvent?)
-        //Debug.broadcastMessage("------");
-        //Debug.broadcastMessage("ground " + e.isOnGround());
-        //Debug.broadcastMessage("step " + e.isStep());
-        //Debug.broadcastMessage(dY);
-
         //TODO false flag when toggling off fly
         if(!e.isOnGround() && !e.isJump() && !e.hasAcceptedKnockback() && !e.hasTeleported() && !e.isStep() &&
                 !p.isInsideVehicle() && !(pp.hasFlyPending() && p.getAllowFlight()) &&
@@ -100,8 +94,6 @@ public class NewFly extends MovementCheck {
             }
 
             //add expected velocity to expected position
-            //For min velocity check, you might need to multiply by 0.98 before checking since friction
-            //is applied after moving the entity
             if(Math.abs(estimatedVelocity) < MIN_VELOCITY || pp.getCurrentTick() - pp.getLastTeleportAcceptTick() < 2)
                 estimatedVelocity = 0F;
             estimatedPosition += estimatedVelocity;

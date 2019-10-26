@@ -23,6 +23,7 @@ import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import org.bukkit.entity.Player;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -112,7 +113,9 @@ public abstract class PacketListener {
             if (!packetHandler.processIn(packet, p))
                 return false;
         } catch (Exception e) {
+            printPacketErrorInformation(packet, p);
             e.printStackTrace();
+            return false;
         }
         return true;
     }
@@ -126,7 +129,9 @@ public abstract class PacketListener {
             if (!packetHandler.processOut(packet, p))
                 return false;
         } catch (Exception e) {
+            printPacketErrorInformation(packet, p);
             e.printStackTrace();
+            return false;
         }
         return true;
     }
@@ -172,6 +177,24 @@ public abstract class PacketListener {
             }
         });
         hawkAsyncCheckThread.setName("Hawk Async Check Thread");
+    }
+
+    private void printPacketErrorInformation(Object packet, Player p) {
+        String packetName = packet.getClass().getSimpleName();
+        System.err.println("Hawk: An error occurred while processing " + packetName + " for " + p.getName());
+        System.err.println("This " + packetName + "'s fields:");
+        for (Field field : packet.getClass().getDeclaredFields()) {
+            field.setAccessible(true);
+            Object value = null;
+            try {
+                value = field.get(packet);
+            } catch (IllegalAccessException ex) {
+                ex.printStackTrace();
+            }
+            if (value != null) {
+                System.err.println("    " + field.getType() + ", " + field.getName() + " = " + value);
+            }
+        }
     }
 
     public void addAdapterInbound(PacketAdapter runnable) {

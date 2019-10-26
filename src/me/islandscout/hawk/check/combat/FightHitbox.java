@@ -105,10 +105,10 @@ public class FightHitbox extends EntityInteractionCheck {
             attackerEyeLocation = att.getPosition().clone().add(new Vector(0, 1.62, 0)).toLocation(att.getWorld());
         }
         else {
-            attackerEyeLocation = new Location(att.getWorld(), att.getPosition().getX(), att.getPosition().getY(), att.getPosition().getZ(), att.getYaw(), att.getPitch()).clone().add(0, 1.62, 0);
+            attackerEyeLocation = new Location(att.getWorld(), att.getPosition().getX(), att.getPosition().getY(), att.getPosition().getZ()).clone().add(0, 1.62, 0);
         }
 
-        Vector attackerDirection = attackerEyeLocation.getDirection();
+        Vector attackerDirection = MathPlus.getDirection(att.getYaw(), att.getPitch());
 
         double maxReach = MAX_REACH;
         if (attacker.getGameMode() == GameMode.CREATIVE)

@@ -50,7 +50,7 @@ public class HawkPlayer {
     //Represents a queue of commands sent from server to client. Simulates latency as it is ticked.
     //Can be used to simulate commands that the client doesn't show any clear acknowledgement for,
     //such as inventory window opening/closing.
-    private final List<Pair<Runnable, Long>> simulatedCmds;
+    //private final List<Pair<Runnable, Long>> simulatedCmds;
 
     private final UUID uuid;
     private final Map<Check, Double> vl;
