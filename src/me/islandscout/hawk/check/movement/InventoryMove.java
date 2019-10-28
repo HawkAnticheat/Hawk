@@ -21,8 +21,6 @@ package me.islandscout.hawk.check.movement;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.Debug;
-import org.bukkit.inventory.PlayerInventory;
 
 /*
  * InventoryActions check originally written by Havesta; modified, split apart, and implemented into Hawk by Islandscout

@@ -19,14 +19,12 @@
 package me.islandscout.hawk.util;
 
 import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class AABB implements Cloneable {
 
@@ -177,6 +175,12 @@ public class AABB implements Cloneable {
         return true;
     }
 
+    public boolean containsPoint(Vector point) {
+        return point.getX() >= min.getX() && point.getX() <= max.getX() &&
+                point.getY() >= min.getY() && point.getY() <= max.getY() &&
+                point.getZ() >= min.getZ() && point.getZ() <= max.getZ();
+    }
+
     public void highlight(Hawk hawk, World world, double accuracy) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> {
             for (double x = min.getX(); x <= max.getX(); x += accuracy) {
@@ -267,9 +271,9 @@ public class AABB implements Cloneable {
 
     public List<Block> getBlocks(World world) {
         List<Block> blocks = new ArrayList<>();
-        for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
-            for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
-                for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
+        for (int x = (int)Math.floor(min.getX()); x < (int)Math.ceil(max.getX()); x++) {
+            for (int y = (int)Math.floor(min.getY()); y < (int)Math.ceil(max.getY()); y++) {
+                for (int z = (int)Math.floor(min.getZ()); z < (int)Math.ceil(max.getZ()); z++) {
                     Block block = ServerUtils.getBlockAsync(new Location(world, x, y, z));
 
                     if(block == null)
@@ -284,9 +288,9 @@ public class AABB implements Cloneable {
 
     public Set<Material> getMaterials(World world) {
         Set<Material> mats = new HashSet<>();
-        for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
-            for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
-                for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
+        for (int x = (int)Math.floor(min.getX()); x < (int)Math.ceil(max.getX()); x++) {
+            for (int y = (int)Math.floor(min.getY()); y < (int)Math.ceil(max.getY()); y++) {
+                for (int z = (int)Math.floor(min.getZ()); z < (int)Math.ceil(max.getZ()); z++) {
                     Block block = ServerUtils.getBlockAsync(new Location(world, x, y, z));
 
                     if(block == null)
@@ -297,6 +301,20 @@ public class AABB implements Cloneable {
             }
         }
         return mats;
+    }
+
+    public List<AABB> getBlockAABBs(World world) {
+        List<AABB> aabbs = new ArrayList<>();
+        List<Block> blocks = getBlocks(world);
+        for(Block b : blocks) {
+            AABB[] bAABBs = WrappedBlock.getWrappedBlock(b).getCollisionBoxes();
+            for(AABB aabb : bAABBs) {
+                if(this.isColliding(aabb)) {
+                    aabbs.add(aabb);
+                }
+            }
+        }
+        return aabbs;
     }
 
     /**
@@ -317,5 +335,19 @@ public class AABB implements Cloneable {
                 "min=" + min +
                 ", max=" + max +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AABB aabb = (AABB) o;
+        return Objects.equals(min, aabb.min) &&
+                Objects.equals(max, aabb.max);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(min, max);
     }
 }

@@ -40,6 +40,8 @@ public class MultiAction extends CustomCheck {
                 event instanceof BlockDigEvent))
             return;
         HawkPlayer pp = event.getHawkPlayer();
+        //TODO verify that you aren't sprinting while you're sneaking
+        //TODO verify that you aren't using something while sprinting
         if(pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow()) {
             punish(pp, 1, true, event);
         }

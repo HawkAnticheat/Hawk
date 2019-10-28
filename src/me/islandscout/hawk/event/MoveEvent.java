@@ -110,6 +110,7 @@ public class MoveEvent extends Event {
                     setTeleported(true);
 
                     //close non-player inventory
+                    //TODO This isn't necessary since there is a window close packet that is sent to the client
                     if(pp.hasInventoryOpen() == 2) {
                         pp.setInventoryOpen((byte)0);
                     }
@@ -131,6 +132,7 @@ public class MoveEvent extends Event {
             cancelAndSetBack(p.getLocation());
             return false;
         }
+        pp.updateIgnoredBlockCollisions(getTo().toVector(), hasTeleported());
         return true;
     }
 

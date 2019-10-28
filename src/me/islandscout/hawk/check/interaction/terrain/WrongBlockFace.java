@@ -21,7 +21,12 @@ package me.islandscout.hawk.check.interaction.terrain;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockInteractionCheck;
 import me.islandscout.hawk.event.InteractWorldEvent;
-import org.bukkit.Location;
+import me.islandscout.hawk.util.AABB;
+import me.islandscout.hawk.util.MathPlus;
+import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
+import org.bukkit.block.Block;
+import org.bukkit.util.Vector;
 
 /** This check prevents players from interacting on
  * unavailable locations on blocks. Players must be
@@ -37,9 +42,22 @@ public class WrongBlockFace extends BlockInteractionCheck {
     @Override
     protected void check(InteractWorldEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
-        //TODO make sure head position is not inside of block, otherwise that may set off false flags depending on your direction
-        if(e.getTargetedBlockFaceNormal().dot(new Location(null, 0, 0, 0, pp.getYaw(), pp.getPitch()).getDirection()) >= 0) {
+
+        Block b = ServerUtils.getBlockAsync(e.getTargetedBlockLocation());
+        AABB hitbox;
+        if(b != null) {
+            hitbox = WrappedBlock.getWrappedBlock(b).getHitBox();
+        }
+        else {
+            hitbox = new AABB(new Vector(), new Vector());
+        }
+
+        if(e.getTargetedBlockFaceNormal().dot(MathPlus.getDirection(pp.getYaw(), pp.getPitch())) >= 0 &&
+            !hitbox.containsPoint(pp.getHeadPosition())) {
             punishAndTryCancelAndBlockRespawn(pp, e);
+        }
+        else {
+            reward(pp);
         }
     }
 }

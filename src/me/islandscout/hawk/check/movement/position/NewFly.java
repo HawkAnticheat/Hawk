@@ -23,15 +23,12 @@ import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -40,6 +37,29 @@ import java.util.Set;
 import java.util.UUID;
 
 public class NewFly extends MovementCheck {
+
+    //WATER (if inWater):
+    //move Y position by dY
+    //SEND POSITION UPDATE
+    //update inWater
+    //dY *= 0.8
+    //dY -= 0.02
+
+    //LAVA (if in lava):
+    //move Y position by dY
+    //dY *= 0.5
+    //dY -= 0.02
+
+    //AIR:
+    //if inWeb, dY *= 0.05
+    //if kb, dY = kb_Y
+    //if jump, dY = 0.42
+    //move Y position by dY
+    //if inWeb, dY = 0
+    //SEND POSITION UPDATE
+    //test for block collision (update inWeb status, cactus damage, soulsand velocity multiplier, etc)
+    //dY -= 0.08
+    //dY *= 0.98
 
     private static final float MIN_VELOCITY = 0.005F;
     private static final int MAX_NO_MOVES = 8;
@@ -66,6 +86,7 @@ public class NewFly extends MovementCheck {
         int noMoves = noMovesMap.getOrDefault(pp.getUuid(), 0);
         float estimatedPosition = estimatedPositionMap.getOrDefault(pp.getUuid(), (float)e.getFrom().getY());
         float prevEstimatedVelocity = estimatedVelocityMap.getOrDefault(pp.getUuid(), (float) pp.getVelocity().getY());
+        Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(e.getFrom().toVector()).getMaterials(pp.getWorld());
 
         //TODO false flag when toggling off fly
         if(!e.isOnGround() && !e.isJump() && !e.hasAcceptedKnockback() && !e.hasTeleported() && !e.isStep() &&
@@ -83,7 +104,7 @@ public class NewFly extends MovementCheck {
 
             //compute next expected velocity
             float estimatedVelocity;
-            if (WrappedEntity.getWrappedEntity(p).getCollisionBox(e.getFrom().toVector()).getMaterials(p.getWorld()).contains(Material.WEB)) {
+            if (touchedBlocks.contains(Material.WEB)) {
                 estimatedVelocity = -0.00392F; //TODO: find the function
             }
             else if(pp.isInLiquid()) { //TODO fix this. (entering liquid)
@@ -121,7 +142,7 @@ public class NewFly extends MovementCheck {
         }
         else {
             estimatedPosition = (float) e.getTo().getY();
-            if(e.isOnGround()) {
+            if(e.isOnGround() || (e.getBoxSidesTouchingBlocks().contains(Direction.TOP) && dY > 0)) {
                 prevEstimatedVelocity = 0;
             }
             else {

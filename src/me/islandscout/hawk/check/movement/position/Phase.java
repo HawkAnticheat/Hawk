@@ -26,7 +26,6 @@ import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.material.Openable;
@@ -60,18 +59,14 @@ public class Phase extends MovementCheck {
     //too big, and you may have a gap for bypasses
     //too small, and you may have false positives
     //optimal threshold < (block depth + 0.6) - (2 * SIDE_EPSILON)
-    private static final double HORIZONTAL_DISTANCE_THRESHOLD = Math.pow(0.6, 2);
+    private static final double HORIZONTAL_DISTANCE_THRESHOLD = Math.pow(0.4, 2);
     private static final double VERTICAL_DISTANCE_THRESHOLD = Math.pow(1, 2);
 
     private final Map<UUID, Location> legitLoc;
-    private final Map<UUID, Set<Pair<Location, AABB>>> trackedBlocks;
-    private final Map<UUID, Set<Location>> ignoredBlocks;
 
     public Phase() {
         super("phase", true, 0, 10, 0.995, 5000, "%player% failed phase. Moved through %block%. VL: %vl%", null);
         legitLoc = new HashMap<>();
-        trackedBlocks = new HashMap<>();
-        ignoredBlocks = new HashMap<>();
     }
 
     @Override
@@ -107,13 +102,21 @@ public class Phase extends MovementCheck {
         AABB selection = bigBox.clone();
         selection.getMin().setY(selection.getMin().getY() - 0.6);
 
+        Set<Location> ignored = pp.getIgnoredBlockCollisions();
+
         GameMode gm = p.getGameMode();
         if(gm == GameMode.SURVIVAL || gm == GameMode.ADVENTURE || gm == GameMode.CREATIVE) {
             for (int x = selection.getMin().getBlockX(); x <= selection.getMax().getBlockX(); x++) {
                 for (int y = selection.getMin().getBlockY(); y <= selection.getMax().getBlockY(); y++) {
                     for (int z = selection.getMin().getBlockZ(); z <= selection.getMax().getBlockZ(); z++) {
 
-                        Block bukkitBlock = ServerUtils.getBlockAsync(new Location(locTo.getWorld(), x, y, z));
+                        Location blockLoc = new Location(locTo.getWorld(), x, y, z);
+
+                        //Skip block if it updated within player AABB
+                        if(ignored.contains(blockLoc))
+                            continue;
+
+                        Block bukkitBlock = ServerUtils.getBlockAsync(blockLoc);
 
                         if (bukkitBlock == null)
                             continue;
@@ -176,23 +179,9 @@ public class Phase extends MovementCheck {
         return (lowerPoint.getY() <= upperLine.getYatX(lowerPoint.getX()) && upperPoint.getY() >= lowerLine.getYatX(upperPoint.getX()));
     }
 
-    private Set<Location> updateTrackedBlocks(AABB aabb, World world) {
-        Set<Location> blocks = new HashSet<>();
-        for(Block b : aabb.getBlocks(world)) {
-            blocks.add(b.getLocation());
-        }
-        return blocks;
-    }
-
-    private Set<Location> pollUpdatedBlocks(AABB aabb) {
-        return null;
-    }
-
     @Override
     public void removeData(Player p) {
         UUID uuid = p.getUniqueId();
         legitLoc.remove(uuid);
-        trackedBlocks.remove(uuid);
-        ignoredBlocks.remove(uuid);
     }
 }

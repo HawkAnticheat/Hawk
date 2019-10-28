@@ -142,6 +142,26 @@ public final class MathPlus {
         return mean(array);
     }
 
+    public static double range(double[] data) {
+        double high = Double.NEGATIVE_INFINITY;
+        double low = Double.POSITIVE_INFINITY;
+        for(Double num : data) {
+            if(num > high)
+                high = num;
+            if(num < low)
+                low = num;
+        }
+        return high - low;
+    }
+
+    public static double range(List<Double> data) {
+        double[] array = new double[data.size()];
+        for(int i = 0; i < array.length; i++) {
+            array[i] = data.get(i);
+        }
+        return range(array);
+    }
+
     public static float derivative(MathFunction func, double x) {
         double h = (x * 1E-8);
         return (float)((func.func(x + h) - func.func(x))/h);

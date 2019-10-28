@@ -23,6 +23,7 @@ import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -111,6 +112,8 @@ public class HawkPlayer {
     private final List<Pair<Boolean, Long>> pendingSprintChange;
     private final Set<Direction> boxSidesTouchingBlocks;
     private Vector waterFlowForce;
+    private Map<Location, List<AABB>> trackedBlockCollisions;
+    private Set<Location> ignoredBlockCollisions;
 
     HawkPlayer(Player p, Hawk hawk) {
         this.uuid = p.getUniqueId();
@@ -135,6 +138,8 @@ public class HawkPlayer {
         pendingSprintChange = new ArrayList<>();
         boxSidesTouchingBlocks = new HashSet<>();
         this.waterFlowForce = new Vector();
+        trackedBlockCollisions = new HashMap<>();
+        ignoredBlockCollisions = new HashSet<>();
     }
 
     public void tick() {
@@ -143,7 +148,6 @@ public class HawkPlayer {
         //TODO this doesn't need to be called so often
         if(predictedVelocity.lengthSquared() > 0)
             predictNextPosition();
-        //handlePendingSprints();
     }
 
     public int getVL(Check check) {
@@ -292,6 +296,12 @@ public class HawkPlayer {
 
     public Vector getPosition() {
         return position;
+    }
+
+    public Vector getHeadPosition() {
+        Vector add = new Vector(0, 0, 0);
+        add.setY(isSneaking() ? 1.54 : 1.62);
+        return position.clone().add(add);
     }
 
     public Vector getPositionCloned() {
@@ -573,33 +583,33 @@ public class HawkPlayer {
             pdZ = 0;
         }
 
-        pdY -= -0.0784;
+        pdY += -0.0784;
 
         //TODO don't forget sneaking & how it prevents you from falling off blocks
 
         AABB box = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition);
-        List<Block> collidedBlocksBefore = box.getBlocks(world);
+        AABB preBox = box.clone();
+        preBox.expand(-0.0001, -0.0001, -0.0001);
+        List<AABB> collidedBlocksBefore = preBox.getBlockAABBs(world);
 
         //clipping order: X, Z, Y
         //X
+        box.expand(-0.00000001, -0.00000001, -0.00000001);
         boolean positive = pdX > 0;
         box.translate(new Vector(pdX, 0, 0));
-        List<Block> collidedBlocks = box.getBlocks(world);
+        List<AABB> collidedBlocks = box.getBlockAABBs(world);
         collidedBlocks.removeAll(collidedBlocksBefore);
 
         double highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-        for(Block b : collidedBlocks) {
-            WrappedBlock wb = WrappedBlock.getWrappedBlock(b);
-            for(AABB aabb : wb.getCollisionBoxes()) {
-                double point = positive ? aabb.getMin().getX() : aabb.getMax().getX();
-                if(positive && point < highestPoint)
-                    highestPoint = point;
-                else if(!positive && point > highestPoint)
-                    highestPoint = point;
-            }
+        for(AABB aabb : collidedBlocks) {
+            double point = positive ? aabb.getMin().getX() : aabb.getMax().getX();
+            if(positive && point < highestPoint)
+                highestPoint = point;
+            else if(!positive && point > highestPoint)
+                highestPoint = point;
         }
         if(Double.isFinite(highestPoint)) {
-            double invPenetrationDist = positive ? highestPoint - box.getMax().getX() : highestPoint - box.getMin().getX();
+            double invPenetrationDist = positive ? highestPoint - box.getMax().getX() - 0.00000001 : highestPoint - box.getMin().getX() + 0.00000001;
             box.translate(new Vector(invPenetrationDist, 0, 0));
             pdX += invPenetrationDist;
         }
@@ -607,22 +617,19 @@ public class HawkPlayer {
         //Z
         positive = pdZ > 0;
         box.translate(new Vector(0, 0, pdZ));
-        collidedBlocks = box.getBlocks(world);
+        collidedBlocks = box.getBlockAABBs(world);
         collidedBlocks.removeAll(collidedBlocksBefore);
 
         highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-        for(Block b : collidedBlocks) {
-            WrappedBlock wb = WrappedBlock.getWrappedBlock(b);
-            for(AABB aabb : wb.getCollisionBoxes()) {
-                double point = positive ? aabb.getMin().getZ() : aabb.getMax().getZ();
-                if(positive && point < highestPoint)
-                    highestPoint = point;
-                else if(!positive && point > highestPoint)
-                    highestPoint = point;
-            }
+        for(AABB aabb : collidedBlocks) {
+            double point = positive ? aabb.getMin().getZ() : aabb.getMax().getZ();
+            if(positive && point < highestPoint)
+                highestPoint = point;
+            else if(!positive && point > highestPoint)
+                highestPoint = point;
         }
         if(Double.isFinite(highestPoint)) {
-            double invPenetrationDist = positive ? highestPoint - box.getMax().getZ() : highestPoint - box.getMin().getZ();
+            double invPenetrationDist = positive ? highestPoint - box.getMax().getZ() - 0.00000001 : highestPoint - box.getMin().getZ() + 0.00000001;
             box.translate(new Vector(0, 0, invPenetrationDist));
             pdZ += invPenetrationDist;
         }
@@ -630,22 +637,19 @@ public class HawkPlayer {
         //Y
         positive = pdY > 0;
         box.translate(new Vector(0, pdY, 0));
-        collidedBlocks = box.getBlocks(world);
+        collidedBlocks = box.getBlockAABBs(world);
         collidedBlocks.removeAll(collidedBlocksBefore);
 
         highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-        for(Block b : collidedBlocks) {
-            WrappedBlock wb = WrappedBlock.getWrappedBlock(b);
-            for(AABB aabb : wb.getCollisionBoxes()) {
-                double point = positive ? aabb.getMin().getY() : aabb.getMax().getY();
-                if(positive && point < highestPoint)
-                    highestPoint = point;
-                else if(!positive && point > highestPoint)
-                    highestPoint = point;
-            }
+        for(AABB aabb : collidedBlocks) {
+            double point = positive ? aabb.getMin().getY() : aabb.getMax().getY();
+            if(positive && point < highestPoint)
+                highestPoint = point;
+            else if(!positive && point > highestPoint)
+                highestPoint = point;
         }
         if(Double.isFinite(highestPoint)) {
-            double invPenetrationDist = positive ? highestPoint - box.getMax().getY() : highestPoint - box.getMin().getY();
+            double invPenetrationDist = positive ? highestPoint - box.getMax().getY() - 0.00000001 : highestPoint - box.getMin().getY() + 0.00000001;
             box.translate(new Vector(0, invPenetrationDist, 0));
             pdY += invPenetrationDist;
         }
@@ -656,6 +660,64 @@ public class HawkPlayer {
         move.setZ(pdZ);
         predictedPosition.add(move);
         predictedVelocity = move;
+    }
+
+    public void updateIgnoredBlockCollisions(Vector position, boolean teleported) {
+        AABB bbox = WrappedEntity.getWrappedEntity(p).getCollisionBox(position);
+        bbox.expand(-0.0001, -0.0001, -0.0001);
+
+        if(teleported) {
+            Set<Location> ignored = new HashSet<>();
+            for(Block b : bbox.getBlocks(world)) {
+                Location loc = b.getLocation();
+                for(AABB aabb : WrappedBlock.getWrappedBlock(b).getCollisionBoxes()) {
+                    if(aabb.isColliding(bbox)) {
+                        ignored.add(loc);
+                        break;
+                    }
+                }
+            }
+            ignoredBlockCollisions = ignored;
+        }
+        else {
+            Map<Location, List<AABB>> blocksInBBOld = trackedBlockCollisions;
+            Map<Location, List<AABB>> blocksInBBNew = new HashMap<>();
+            for(Block b : bbox.getBlocks(world)) {
+                Location loc = b.getLocation();
+                List<AABB> aabbs = Arrays.asList(WrappedBlock.getWrappedBlock(b).getCollisionBoxes());
+                blocksInBBNew.put(loc, aabbs);
+            }
+            Set<Location> ignored = new HashSet<>();
+            for(Location entry : blocksInBBNew.keySet()) {
+                if (blocksInBBOld.containsKey(entry) && !blocksInBBOld.get(entry).equals(blocksInBBNew.get(entry))) {
+                    for(AABB aabb : blocksInBBNew.get(entry)) {
+                        if(aabb.isColliding(bbox)) {
+                            ignored.add(entry);
+                            break;
+                        }
+                    }
+                }
+            }
+            trackedBlockCollisions = blocksInBBNew;
+            Set<Location> ignoredOld = ignoredBlockCollisions;
+            for(Location loc : ignoredOld) {
+                Block b = ServerUtils.getBlockAsync(loc);
+                if(b == null)
+                    continue;
+                for(AABB aabb : WrappedBlock.getWrappedBlock(b).getCollisionBoxes()) {
+                    if(aabb.isColliding(bbox)) {
+                        ignored.add(loc);
+                        break;
+                    }
+                }
+            }
+            ignoredBlockCollisions = ignored;
+        }
+    }
+
+    //Get locations of blocks that had their AABB updated within the player's AABB
+    public Set<Location> getIgnoredBlockCollisions() {
+        return ignoredBlockCollisions;
     }
 
     public Set<Direction> getBoxSidesTouchingBlocks() {

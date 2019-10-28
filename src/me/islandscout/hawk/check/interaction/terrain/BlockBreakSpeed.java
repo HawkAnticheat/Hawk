@@ -21,7 +21,6 @@ package me.islandscout.hawk.check.interaction.terrain;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockDigCheck;
 import me.islandscout.hawk.event.BlockDigEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Placeholder;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import org.bukkit.GameMode;
