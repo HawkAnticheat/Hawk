@@ -45,7 +45,7 @@ public class FightSpeedConsistency extends EntityInteractionCheck implements Can
     private final Map<UUID, List<Long>> deltaTimes;
 
     public FightSpeedConsistency() {
-        super("fightspeedconsistency", true, -1, 3, 0.99, 5000, "%player% failed click consistency. Autoclicker? VL: %vl%", null);
+        super("fightspeedconsistency", false, -1, 3, 0.99, 5000, "%player% failed click consistency. Autoclicker? VL: %vl%", null);
         MIN_CPS = (double)customSetting("checkAboveCPS", "", 10D);
         SAMPLES = (int)customSetting("samples", "", 5);
         SAMPLE_SIZE = (int)customSetting("sampleSize", "", 20);
