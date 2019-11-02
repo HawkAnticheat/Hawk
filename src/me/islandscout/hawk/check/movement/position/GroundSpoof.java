@@ -19,9 +19,11 @@
 package me.islandscout.hawk.check.movement.position;
 
 import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.Location;
 
@@ -30,18 +32,23 @@ public class GroundSpoof extends MovementCheck {
     //PASSED (9/13/18)
     //TODO perhaps do a rewrite? do the dY % 1/16 == 0 thing too.
 
-    private final boolean STRICT;
-    private final boolean PREVENT_NOFALL;
-
     public GroundSpoof() {
-        super("groundspoof", true, -1, 3, 0.995, 5000, "%player% failed ground spoof. VL: %vl%", null);
-        STRICT = (boolean) customSetting("strict", "", false);
-        PREVENT_NOFALL = (boolean) customSetting("preventNoFall", "", true);
+        super("groundspoof", true, 0, 3, 0.995, 5000, "%player% failed ground spoof. VL: %vl%", null);
     }
 
     @Override
     protected void check(MoveEvent event) {
-        if (!event.isOnGroundReally()) {
+        HawkPlayer pp = event.getHawkPlayer();
+        if(event.isOnGround() && !event.isOnGroundReally() && event.isOnClientBlock() == null) {
+            Debug.broadcastMessage(event.getTo().getY());
+            punishAndTryRubberband(pp, event, event.getPlayer().getLocation());
+        }
+        else {
+            reward(pp);
+        }
+
+        //COMPLETELY UNNECESSARY
+        /*if (!event.isOnGroundReally()) {
             if (event.isOnGround()) {
 
                 //This tolerance allows for a bypass (which is caught by other movement checks).
@@ -61,10 +68,10 @@ public class GroundSpoof extends MovementCheck {
             } else {
                 reward(event.getHawkPlayer());
             }
-        }
+        }*/
     }
 
-    //TODO: hmm... perhaps do this after all checks??? (prevent any conflicts from happening)
+    /*
     private void setNotOnGround(MoveEvent e) {
         WrappedPacket packet = e.getWrappedPacket();
         if (Hawk.getServerVersion() == 7) {
@@ -96,5 +103,5 @@ public class GroundSpoof extends MovementCheck {
                     packet.setByte(32, 0);
             }
         }
-    }
+    }*/
 }

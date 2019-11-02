@@ -63,6 +63,7 @@ public class NewFly extends MovementCheck {
 
     private static final float MIN_VELOCITY = 0.005F;
     private static final int MAX_NO_MOVES = 8;
+    private static final double NO_MOVE_THRESHOLD = 0.03;
     private static final float DISCREPANCY_THRESHOLD = 0.0001F;
 
     private final Map<UUID, Float> estimatedPositionMap;
@@ -128,7 +129,7 @@ public class NewFly extends MovementCheck {
             }
 
             //finally, check for discrepancy
-            if(moved || noMoves > MAX_NO_MOVES) {
+            if(moved || noMoves > MAX_NO_MOVES) { //TODO also check if the distance between the last known position and the current expected position > 0.03
                 float discrepancy = (float) e.getTo().getY() - estimatedPosition;
                 if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD) {
                     punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
