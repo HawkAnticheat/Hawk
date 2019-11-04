@@ -19,8 +19,13 @@
 package me.islandscout.hawk.check.combat;
 
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.check.Cancelless;
+import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.check.EntityInteractionCheck;
+import me.islandscout.hawk.check.MovementCheck;
+import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.InteractEntityEvent;
+import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
@@ -30,8 +35,13 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * The hit detection in Minecraft is mostly determined by the client,
@@ -40,29 +50,36 @@ import org.bukkit.util.Vector;
  * blocks from the target entity). This poses a problem for players and
  * server owners since players can modify the client to manipulate hit
  * detection and allow for cheating when in combat with other players.
- * <p>
- * Hawk’s hitbox checking aims to prevent cheating during player vs.
+ *
+ * Hawk’s hitbox checking aims to detect cheating during player vs.
  * player combat by validating hits on the server. When the server
  * receives an interaction packet from the client, Hawk gets the client’s
- * last known position, extrapolating if necessary, and uses it to
- * perform a ray-trace test on the victim’s hitbox. Before the ray-trace
- * test begins, though, Hawk must factor in latency by rewinding the
- * victim’s hitbox to an appropriate time based on the client’s ping
- * latency. To accomplish this, Hawk keeps a history of players’
- * positions and timestamps in a table and it retrieves a position that
- * best approximates where it appeared to the client when the client
- * attacked it. Hawk then performs the ray-trace test to determine
- * whether the client landed the hit or not. Although the system may
- * produce false positives with clients on unstable connections, it is a
- * fair tradeoff between user experience and cheat prevention.
- * <p>
- * Please disable flags and punishing commands for this check. Treat this
- * check as if it isn't a real check, but rather a hit registration
- * system. There will be false positives.
+ * last known position and next direction, and uses it to perform a ray
+ * trace test on the victim’s hitbox. Before the ray-trace test begins,
+ * though, Hawk must factor in latency by rewinding the victim’s hitbox
+ * to an appropriate time based on the client’s ping latency. To
+ * accomplish this, Hawk keeps a history of players’ positions and
+ * timestamps in a table and it retrieves a position that best
+ * approximates where it appeared to the client when the client attacked
+ * it. Hawk then performs the ray-trace test to determine whether the
+ * client landed the hit or not. Although the system may produce false
+ * positives with clients on unstable connections, it is a fair tradeoff
+ * between user experience and cheat prevention.
+ *
+ * In most cases, the client uses the current frame's yaw and pitch to
+ * compute the direction vector for the attack hit-scan. Because this is
+ * before the motion update in the tick stack, the directions that the
+ * client sends to the server lag about 50ms behind. This can result in
+ * false positives since the directions are not sync'd. It's better to
+ * wait until the next move packet comes so that the direction defined
+ * by this move is chronologically much closer to the direction used for
+ * attacking client-side. This reduces false positives.
+ *
+ * For realtime protection, it's best to use the EntityInteractDirection
+ * check. It actively enforces directions, but it extrapolates the
+ * yaw/pitch because of how the client hit-scanning works.
  */
-public class FightHitbox extends EntityInteractionCheck {
-
-    //PASSED: (9/30/18)
+public class FightHitbox extends CustomCheck implements Cancelless {
 
     private final double MAX_REACH;
     private final int PING_LIMIT;
@@ -74,6 +91,8 @@ public class FightHitbox extends EntityInteractionCheck {
     private final boolean CHECK_BOX_INTERSECTION;
     private final double BOX_EPSILON = 0.05;
 
+    private Map<UUID, InteractEntityEvent> lastInteractionMap;
+
     public FightHitbox() {
         super("fighthitbox", false, 5, 10000, 0.95, 5000, "%player% failed combat hitbox. %type% VL: %vl%", null);
         CHECK_BOX_INTERSECTION = (boolean) customSetting("checkBoxIntersection", "", true);
@@ -84,9 +103,39 @@ public class FightHitbox extends EntityInteractionCheck {
         PING_LIMIT = (int) customSetting("pingLimit", "", -1);
         DEBUG_HITBOX = (boolean) customSetting("hitbox", "debug", false);
         DEBUG_RAY = (boolean) customSetting("ray", "debug", false);
+        lastInteractionMap = new HashMap<>();
     }
 
-    protected void check(InteractEntityEvent e) {
+    @Override
+    protected void check(Event event) {
+        if(event instanceof InteractEntityEvent)
+            processHit((InteractEntityEvent)event);
+        else if(event instanceof MoveEvent) {
+            InteractEntityEvent interactEntityEvent = lastInteractionMap.get(event.getHawkPlayer().getUuid());
+            if(interactEntityEvent != null) {
+                MoveEvent move = (MoveEvent) event;
+
+                float yaw;
+                float pitch;
+                //In 1.8, the yaw of the cursor is updated in a tick-by-tick basis.
+                if(ServerUtils.getClientVersion(move.getPlayer()) == 8) {
+                    yaw = event.getHawkPlayer().getYaw();
+                } else {
+                    yaw = move.getTo().getYaw();
+                }
+                pitch = move.getTo().getPitch();
+
+                processDirection(interactEntityEvent, yaw, pitch);
+            }
+            lastInteractionMap.put(event.getHawkPlayer().getUuid(), null);
+        }
+    }
+
+    private void processHit(InteractEntityEvent e) {
+        lastInteractionMap.put(e.getHawkPlayer().getUuid(), e);
+    }
+
+    private void processDirection(InteractEntityEvent e, float yaw, float pitch) {
         Entity entity = e.getEntity();
         if (!(entity instanceof Player) && !CHECK_OTHER_ENTITIES)
             return;
@@ -96,19 +145,8 @@ public class FightHitbox extends EntityInteractionCheck {
             return;
 
         HawkPlayer att = e.getHawkPlayer();
-        Location attackerEyeLocation;
-
-        //Extrapolate last position. (For 1.7 clients ONLY)
-        //Unfortunately, there will be false positives from 1.7 users because 1.7's hit detection isn't broken (unlike 1.8).
-        //There is no effective way to stop these false positives without creating bypasses.
-        if (ServerUtils.getClientVersion(attacker) == 7) {
-            attackerEyeLocation = att.getPosition().clone().add(new Vector(0, 1.62, 0)).toLocation(att.getWorld());
-        }
-        else {
-            attackerEyeLocation = new Location(att.getWorld(), att.getPosition().getX(), att.getPosition().getY(), att.getPosition().getZ()).clone().add(0, 1.62, 0);
-        }
-
-        Vector attackerDirection = MathPlus.getDirection(att.getYaw(), att.getPitch());
+        Location attackerEyeLocation = att.getPosition().clone().add(new Vector(0, 1.62, 0)).toLocation(att.getWorld());
+        Vector attackerDirection = MathPlus.getDirection(yaw, pitch);
 
         double maxReach = MAX_REACH;
         if (attacker.getGameMode() == GameMode.CREATIVE)
@@ -116,6 +154,7 @@ public class FightHitbox extends EntityInteractionCheck {
 
         Vector victimLocation;
         if (LAG_COMPENSATION)
+            //No need to add 50ms; the move and attack are already chronologically so close together
             victimLocation = hawk.getLagCompensator().getHistoryLocation(ping, e.getEntity()).toVector();
         else
             victimLocation = e.getEntity().getLocation().toVector();
@@ -170,5 +209,10 @@ public class FightHitbox extends EntityInteractionCheck {
         }
 
         reward(att); //reward player
+    }
+
+    @Override
+    public void removeData(Player p) {
+        lastInteractionMap.remove(p.getUniqueId());
     }
 }

@@ -46,6 +46,7 @@ public class InteractEntityEvent extends Event {
         //We won't ignore if it's cancelled because otherwise that would set off
         //movement false flags regarding the hit slowdown mechanic. (Look at the
         //MoveEvent class for more information.)
+        pp.updateLastEntityInteractTick();
         if(/*!isCancelled() && */getInteractAction() == InteractAction.ATTACK) {
             pp.updateItemUsedForAttack();
             if(getEntity() instanceof Player) {

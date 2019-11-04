@@ -97,6 +97,7 @@ public class HawkPlayer {
     private boolean swimming;
     private long itemUseTick;
     private long lastAttackedPlayerTick;
+    private long lastEntityInteractTick;
     private long lastInLiquidToggleTick;
     private long lastMoveTick;
     private long hitSlowdownTick;
@@ -463,6 +464,14 @@ public class HawkPlayer {
 
     public void updateLastAttackedPlayerTick() {
         this.lastAttackedPlayerTick = currentTick;
+    }
+
+    public long getLastEntityInteractTick() {
+        return lastEntityInteractTick;
+    }
+
+    public void updateLastEntityInteractTick() {
+        this.lastEntityInteractTick = currentTick;
     }
 
     public long getLastInLiquidToggleTick() {

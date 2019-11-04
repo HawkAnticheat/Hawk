@@ -41,7 +41,7 @@ public class Strafe extends MovementCheck {
     private final Map<UUID, Long> lastIdleTick;
 
     public Strafe() {
-        super("strafe", false, 5, 5, 0.99, 5000, "%player% failed strafe, VL: %vl%", null);
+        super("strafe", true, 5, 5, 0.99, 5000, "%player% failed strafe, VL: %vl%", null);
         lastIdleTick = new HashMap<>();
         THRESHOLD = (double)customSetting("angleThreshold", "", 0.5) * Math.PI / 180;
     }
@@ -63,6 +63,7 @@ public class Strafe extends MovementCheck {
             prevVelocity.multiply(0.6);
         }
 
+        //TODO ladders and vines
         if(WrappedEntity.getWrappedEntity(e.getPlayer()).getCollisionBox(e.getFrom().toVector()).getMaterials(pp.getWorld()).contains(Material.SOUL_SAND)) {
             prevVelocity.multiply(0.4);
         }
