@@ -32,8 +32,13 @@ public class GroundSpoof extends MovementCheck {
     //PASSED (9/13/18)
     //TODO perhaps do a rewrite? do the dY % 1/16 == 0 thing too.
 
+    private final boolean STRICT;
+    private final boolean PREVENT_NOFALL;
+
     public GroundSpoof() {
-        super("groundspoof", true, 0, 3, 0.995, 5000, "%player% failed ground spoof. VL: %vl%", null);
+        super("groundspoof", true, -1, 3, 0.995, 5000, "%player% failed ground spoof. VL: %vl%", null);
+        STRICT = (boolean) customSetting("strict", "", false);
+        PREVENT_NOFALL = (boolean) customSetting("preventNoFall", "", true);
     }
 
     @Override
@@ -92,5 +97,6 @@ public class GroundSpoof extends MovementCheck {
                     packet.setByte(32, 0);
             }
         }
-    }*/
+    }
 }
+
