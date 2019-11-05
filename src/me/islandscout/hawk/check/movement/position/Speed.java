@@ -104,7 +104,7 @@ public class Speed extends MovementCheck implements Listener {
         float friction = event.getFriction();
         float maxForce = event.getMaxExpectedInputForce();
 
-        //It's the previous location. Block collision is done after moving the entity.
+        //It represents the previous location. Block collision is done after moving the entity.
         Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(event.getFrom().toVector()).getMaterials(pp.getWorld());
 
         //handle any pending knockbacks

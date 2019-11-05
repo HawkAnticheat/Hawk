@@ -43,7 +43,7 @@ import java.util.*;
  * regeneration or eating, movement speed, "lag-switching",
  * anti-potion, etc. Tickrate just alerts and prevents this.
  * It can detect at least a 3% increase in tickrate frequency
- * under default settings.
+ * almost immediately under default settings.
  */
 public class TickRate extends MovementCheck implements Listener {
 

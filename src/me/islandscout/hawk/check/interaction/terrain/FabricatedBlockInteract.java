@@ -40,7 +40,9 @@ public class FabricatedBlockInteract extends BlockInteractionCheck {
         //Disable these for now; currently there is no efficient way to get block hitboxes.
         //boolean onFace = false;
         for(double value : new double[] {cursorPos.getX(), cursorPos.getY(), cursorPos.getZ()}) {
-            if(value % 0.0625 != 0 || value > 1 || value < 0) {
+            //Unnecessary to do "value % 0.0625 != 0" because the position is actually
+            //stored as 3 bytes, not floats. Each represents a multiple of 1/16 of an axis.
+            if(value > 1 || value < 0) {
                 fail(e);
                 return;
             }

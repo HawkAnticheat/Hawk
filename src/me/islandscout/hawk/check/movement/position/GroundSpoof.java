@@ -38,17 +38,7 @@ public class GroundSpoof extends MovementCheck {
 
     @Override
     protected void check(MoveEvent event) {
-        HawkPlayer pp = event.getHawkPlayer();
-        if(event.isOnGround() && !event.isOnGroundReally() && event.isOnClientBlock() == null) {
-            Debug.broadcastMessage(event.getTo().getY());
-            punishAndTryRubberband(pp, event, event.getPlayer().getLocation());
-        }
-        else {
-            reward(pp);
-        }
-
-        //COMPLETELY UNNECESSARY
-        /*if (!event.isOnGroundReally()) {
+        if (!event.isOnGroundReally()) {
             if (event.isOnGround()) {
 
                 //This tolerance allows for a bypass (which is caught by other movement checks).
@@ -56,7 +46,7 @@ public class GroundSpoof extends MovementCheck {
                 //Unfortunately, this issue is caused by how movement works in Minecraft, and cannot be fixed easily.
                 Location checkLoc = event.getFrom().clone();
                 checkLoc.setY(event.getTo().getY());
-                if(!STRICT && AdjacentBlocks.onGroundReally(checkLoc, -1, false, 0.02))
+                if (!STRICT && AdjacentBlocks.onGroundReally(checkLoc, -1, false, 0.02))
                     return;
 
                 if (event.isOnClientBlock() == null) {
@@ -68,10 +58,9 @@ public class GroundSpoof extends MovementCheck {
             } else {
                 reward(event.getHawkPlayer());
             }
-        }*/
+        }
     }
 
-    /*
     private void setNotOnGround(MoveEvent e) {
         WrappedPacket packet = e.getWrappedPacket();
         if (Hawk.getServerVersion() == 7) {
