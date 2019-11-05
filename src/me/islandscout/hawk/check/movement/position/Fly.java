@@ -121,7 +121,7 @@ public class Fly extends MovementCheck implements Listener {
             if (WrappedEntity.getWrappedEntity(p).getCollisionBox(event.getFrom().toVector()).getMaterials(p.getWorld()).contains(Material.WEB)) {
                 lastDeltaY.put(p.getUniqueId(), -0.007);
                 epsilon = 0.000001;
-                if (AdjacentBlocks.onGroundReally(event.getTo().clone().add(0, -0.03, 0), -1, false, 0.02))
+                if (AdjacentBlocks.onGroundReally(event.getTo().clone().add(0, -0.03, 0), -1, false, 0.02, pp))
                     return;
             } else if(!pp.isInLiquid() && event.isInLiquid()) {
                 //entering liquid
@@ -146,7 +146,7 @@ public class Fly extends MovementCheck implements Listener {
                 if (deltaY < 0) {
                     Location checkLoc = event.getFrom().clone();
                     checkLoc.setY(event.getTo().getY());
-                    if (AdjacentBlocks.onGroundReally(checkLoc, deltaY, false, 0.02)) {
+                    if (AdjacentBlocks.onGroundReally(checkLoc, deltaY, false, 0.02, pp)) {
                         onGroundStuff(p);
                         return;
                     }
@@ -154,7 +154,7 @@ public class Fly extends MovementCheck implements Listener {
                     checkLoc.setY(event.getFrom().getY());
                     checkLoc.setX(checkLoc.getX() - (event.getTo().getX() - event.getFrom().getX()));
                     checkLoc.setZ(checkLoc.getZ() - (event.getTo().getZ() - event.getFrom().getZ()));
-                    if (AdjacentBlocks.onGroundReally(checkLoc, deltaY, false, 0.02)) {
+                    if (AdjacentBlocks.onGroundReally(checkLoc, deltaY, false, 0.02, pp)) {
                         onGroundStuff(p);
                         return;
                     }
@@ -181,7 +181,7 @@ public class Fly extends MovementCheck implements Listener {
                 stupidMoves.put(p.getUniqueId(), 0);
 
             //handle stupid moves, because the client tends to want to jump a little late if you jump off the edge of a block
-            if (stupidMoves.getOrDefault(p.getUniqueId(), 0) >= STUPID_MOVES || (deltaY > 0 && AdjacentBlocks.onGroundReally(event.getFrom(), -1, true, 0.02)))
+            if (stupidMoves.getOrDefault(p.getUniqueId(), 0) >= STUPID_MOVES || (deltaY > 0 && AdjacentBlocks.onGroundReally(event.getFrom(), -1, true, 0.02, pp)))
                 //falling now
                 inAir.add(p.getUniqueId());
             stupidMoves.put(p.getUniqueId(), stupidMoves.getOrDefault(p.getUniqueId(), 0) + 1);

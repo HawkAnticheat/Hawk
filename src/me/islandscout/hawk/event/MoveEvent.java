@@ -70,7 +70,7 @@ public class MoveEvent extends Event {
     public MoveEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet, boolean updatePos, boolean updateRot) {
         super(p, pp, packet);
         toLocation = update;
-        onGroundReally = AdjacentBlocks.onGroundReally(update, update.getY() - getFrom().getY(), true, 0.02);
+        onGroundReally = AdjacentBlocks.onGroundReally(update, update.getY() - getFrom().getY(), true, 0.02, pp);
         this.updatePos = updatePos;
         this.updateRot = updateRot;
         this.onGround = onGround;
@@ -185,7 +185,7 @@ public class MoveEvent extends Event {
         Location extraPos = pp.getPosition().toLocation(pp.getWorld());
         extraPos.add(extraVelocity);
         float deltaY = (float) (getTo().getY() - getFrom().getY());
-        return AdjacentBlocks.onGroundReally(extraPos, extraVelocity.getY(), false, 0.001) && onGroundReally && deltaY > 0.002F && deltaY <= 0.6F;
+        return AdjacentBlocks.onGroundReally(extraPos, extraVelocity.getY(), false, 0.001, pp) && onGroundReally && deltaY > 0.002F && deltaY <= 0.6F;
     }
 
     //Good thing I have MCP to figure this one out

@@ -39,7 +39,7 @@ public class FastFall extends MovementCheck {
     @Override
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
-        if(AdjacentBlocks.onGroundReally(new Location(pp.getWorld(), pp.getPosition().getX(), pp.getPosition().getY(), pp.getPosition().getZ()), -1, false, 0.001) ||
+        if(AdjacentBlocks.onGroundReally(new Location(pp.getWorld(), pp.getPosition().getX(), pp.getPosition().getY(), pp.getPosition().getZ()), -1, false, 0.001, pp) ||
                 e.hasTeleported() || e.getPlayer().isFlying() || e.hasAcceptedKnockback() || pp.getPlayer().isSleeping() || pp.isSwimming())
             return;
         double deltaY = e.getTo().getY() - e.getFrom().getY();

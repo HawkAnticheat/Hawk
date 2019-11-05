@@ -23,7 +23,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.Location;
 
@@ -43,6 +42,7 @@ public class GroundSpoof extends MovementCheck {
 
     @Override
     protected void check(MoveEvent event) {
+        HawkPlayer pp = event.getHawkPlayer();
         if (!event.isOnGroundReally()) {
             if (event.isOnGround()) {
 
@@ -51,17 +51,17 @@ public class GroundSpoof extends MovementCheck {
                 //Unfortunately, this issue is caused by how movement works in Minecraft, and cannot be fixed easily.
                 Location checkLoc = event.getFrom().clone();
                 checkLoc.setY(event.getTo().getY());
-                if (!STRICT && AdjacentBlocks.onGroundReally(checkLoc, -1, false, 0.02))
+                if (!STRICT && AdjacentBlocks.onGroundReally(checkLoc, -1, false, 0.02, pp))
                     return;
 
                 if (event.isOnClientBlock() == null) {
-                    punishAndTryRubberband(event.getHawkPlayer(), event, event.getPlayer().getLocation());
+                    punishAndTryRubberband(pp, event, event.getPlayer().getLocation());
                     if (PREVENT_NOFALL)
                         setNotOnGround(event);
                 }
 
             } else {
-                reward(event.getHawkPlayer());
+                reward(pp);
             }
         }
     }

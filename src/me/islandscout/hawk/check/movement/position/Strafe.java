@@ -41,7 +41,7 @@ public class Strafe extends MovementCheck {
     private final Map<UUID, Long> lastIdleTick;
 
     public Strafe() {
-        super("strafe", true, 5, 5, 0.99, 5000, "%player% failed strafe, VL: %vl%", null);
+        super("strafe", false, 5, 5, 0.99, 5000, "%player% failed strafe, VL: %vl%", null);
         lastIdleTick = new HashMap<>();
         THRESHOLD = (double)customSetting("angleThreshold", "", 0.5) * Math.PI / 180;
     }

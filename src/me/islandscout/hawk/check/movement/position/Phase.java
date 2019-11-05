@@ -41,8 +41,6 @@ import java.util.*;
  */
 public class Phase extends MovementCheck {
 
-    //TODO: False positive due to block updating inside player bounding box or if someone teleports into a block.
-
     //The way that this works is by geometry. Two AABBs represent the previous
     //and current position. They are inscribed within a new AABB. Then, planes
     //will cut through this AABB along the inscribed AABBs to form a tesseract.

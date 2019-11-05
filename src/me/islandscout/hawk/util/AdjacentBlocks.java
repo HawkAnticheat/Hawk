@@ -19,6 +19,7 @@
 package me.islandscout.hawk.util;
 
 import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -157,13 +158,14 @@ public class AdjacentBlocks {
      * @param yVelocity      Y-velocity
      * @param ignoreInGround return false if location is inside something
      * @param feetDepth Don't set this too low. The client doesn't like to send moves unless they are significant enough.
+     * @param hawkPlayer
      * @return boolean
      */
     //TODO: this still needs to get optimized. Replace List with Set
     //TODO: Pleaaaaaase fix this when jumping onto edges of blocks
     //if not sure what your velocity is, just put -1 for velocity
     //if you just want to check for location, just put -1 for velocity
-    public static boolean onGroundReally(Location loc, double yVelocity, boolean ignoreInGround, double feetDepth) {
+    public static boolean onGroundReally(Location loc, double yVelocity, boolean ignoreInGround, double feetDepth, HawkPlayer hawkPlayer) {
         if (yVelocity > 0.5625) //allows stepping up short blocks, but not full blocks
             return false;
         //If too low, this might set off fly false flags when jumping on edge of blocks.
@@ -174,7 +176,7 @@ public class AdjacentBlocks {
         Block prevBlock = null;
         for (int i = blocks.size() - 1; i >= 0; i--) {
             Block currBlock = blocks.get(i);
-            if (currBlock.equals(prevBlock)) {
+            if (currBlock.equals(prevBlock) || hawkPlayer.getIgnoredBlockCollisions().contains(currBlock.getLocation())) {
                 blocks.remove(i);
             }
             prevBlock = currBlock;
@@ -193,7 +195,9 @@ public class AdjacentBlocks {
                     topFeet.translate(new Vector(0, feetDepth + 0.00001, 0));
                     for (Block block1 : AdjacentBlocks.getBlocksInLocation(loc)) {
                         WrappedBlock bNMS1 = WrappedBlock.getWrappedBlock(block1);
-                        if (block1.isLiquid() || (!bNMS1.isSolid() && Hawk.getServerVersion() == 8) || block1.getState().getData() instanceof Openable)
+                        if (block1.isLiquid() || (!bNMS1.isSolid() && Hawk.getServerVersion() == 8) ||
+                                block1.getState().getData() instanceof Openable ||
+                                hawkPlayer.getIgnoredBlockCollisions().contains(block1.getLocation()))
                             continue;
                         if (bNMS1.isColliding(topFeet))
                             return false;
