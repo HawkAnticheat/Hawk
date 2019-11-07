@@ -18,6 +18,7 @@
 
 package me.islandscout.hawk.module.listener;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.module.PacketHandler;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.packet.PacketAdapter;
@@ -181,7 +182,8 @@ public abstract class PacketListener {
 
     private void printPacketErrorInformation(Object packet, Player p) {
         String packetName = packet.getClass().getSimpleName();
-        System.err.println("Hawk: An error occurred while processing " + packetName + " for " + p.getName());
+        System.err.println("Hawk (version " + Hawk.BUILD_NAME + ") has encountered an error while processing " + packetName + " for " + p.getName());
+        System.err.println("The packet was dropped to prevent possible exploitation.");
         System.err.println("This " + packetName + "'s fields:");
         for (Field field : packet.getClass().getDeclaredFields()) {
             field.setAccessible(true);

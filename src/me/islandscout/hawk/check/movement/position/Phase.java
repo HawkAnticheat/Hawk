@@ -56,7 +56,7 @@ public class Phase extends MovementCheck {
     //Maximum distance per move for ignoring whitelisted blocks
     //too big, and you may have a gap for bypasses
     //too small, and you may have false positives
-    //optimal threshold < (block depth + 0.6) - (2 * SIDE_EPSILON)
+    //optimal threshold < (block depth + 0.6) - (2 * NMS_SIDE_EPSILON)
     private static final double HORIZONTAL_DISTANCE_THRESHOLD = Math.pow(0.4, 2);
     private static final double VERTICAL_DISTANCE_THRESHOLD = Math.pow(1, 2);
 
@@ -98,7 +98,7 @@ public class Phase extends MovementCheck {
         AABB bigBox = new AABB(minBigBox, maxBigBox);
 
         AABB selection = bigBox.clone();
-        selection.getMin().setY(selection.getMin().getY() - 0.6);
+        selection.getMin().setY(selection.getMin().getY() - 0.6); //we need to grab blocks below us too, such as fences
 
         Set<Location> ignored = pp.getIgnoredBlockCollisions();
 
@@ -111,7 +111,7 @@ public class Phase extends MovementCheck {
                         Location blockLoc = new Location(locTo.getWorld(), x, y, z);
 
                         //Skip block if it updated within player AABB
-                        if(ignored.contains(blockLoc))
+                        if(ignored.contains(blockLoc) && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD && distanceSquared <= VERTICAL_DISTANCE_THRESHOLD)
                             continue;
 
                         Block bukkitBlock = ServerUtils.getBlockAsync(blockLoc);

@@ -269,6 +269,7 @@ public class AABB implements Cloneable {
         max.add(compliment);
     }
 
+    //Blocks that barely touch don't count
     public List<Block> getBlocks(World world) {
         List<Block> blocks = new ArrayList<>();
         for (int x = (int)Math.floor(min.getX()); x < (int)Math.ceil(max.getX()); x++) {
@@ -286,6 +287,7 @@ public class AABB implements Cloneable {
         return blocks;
     }
 
+    //Blocks that barely touch don't count
     public Set<Material> getMaterials(World world) {
         Set<Material> mats = new HashSet<>();
         for (int x = (int)Math.floor(min.getX()); x < (int)Math.ceil(max.getX()); x++) {
@@ -303,6 +305,7 @@ public class AABB implements Cloneable {
         return mats;
     }
 
+    //Blocks that barely touch don't count
     public List<AABB> getBlockAABBs(World world) {
         List<AABB> aabbs = new ArrayList<>();
         List<Block> blocks = getBlocks(world);
