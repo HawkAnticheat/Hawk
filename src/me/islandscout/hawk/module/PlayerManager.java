@@ -21,12 +21,16 @@ package me.islandscout.hawk.module;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.util.Vector;
 
@@ -107,13 +111,34 @@ public class PlayerManager implements Listener {
             pendingVelocities.remove(0);
     }
 
-    /*@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onSprintUpdateServer(HawkPlayerAsyncSprintUpdateEvent e) {
-        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void blah(InventoryOpenEvent e) {
+        HumanEntity hE = e.getPlayer();
+        if(!(hE instanceof Player))
+            return;
 
-        List<Pair<Boolean, Long>> pendingSprints = pp.getPendingSprintChange();
-        pendingSprints.add(new Pair<>(e.getStatus(), System.currentTimeMillis()));
-        if(pendingSprints.size() > 20)
-            pendingSprints.remove(0);
-    }*/
+        HawkPlayer pp = hawk.getHawkPlayer((Player) hE);
+        pp.sendSimulatedAction(new Runnable() {
+            @Override
+            public void run() {
+                pp.setBlocking(false);
+                pp.setInventoryOpen((byte)2);
+            }
+        });
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void blah(InventoryCloseEvent e) {
+        HumanEntity hE = e.getPlayer();
+        if(!(hE instanceof Player))
+            return;
+
+        HawkPlayer pp = hawk.getHawkPlayer((Player) hE);
+        pp.sendSimulatedAction(new Runnable() {
+            @Override
+            public void run() {
+                pp.setInventoryOpen((byte)0);
+            }
+        });
+    }
 }

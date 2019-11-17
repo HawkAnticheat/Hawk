@@ -23,7 +23,6 @@ import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -35,6 +34,7 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Represents a client. Provides essential and additional tools
@@ -51,7 +51,7 @@ public class HawkPlayer {
     //Represents a queue of commands sent from server to client. Simulates latency as it is ticked.
     //Can be used to simulate commands that the client doesn't show any clear acknowledgement for,
     //such as inventory window opening/closing.
-    //private final List<Pair<Runnable, Long>> simulatedCmds;
+    private final List<Pair<Runnable, Long>> simulatedCmds;
 
     private final UUID uuid;
     private final Map<Check, Double> vl;
@@ -110,7 +110,6 @@ public class HawkPlayer {
     private int heldItemSlot;
     private final Map<Location, ClientBlock> clientBlocks;
     private final List<Pair<Vector, Long>> pendingVelocities;
-    private final List<Pair<Boolean, Long>> pendingSprintChange;
     private final Set<Direction> boxSidesTouchingBlocks;
     private Vector waterFlowForce;
     private Map<Location, List<AABB>> trackedBlockCollisions;
@@ -136,16 +135,17 @@ public class HawkPlayer {
         this.heldItemSlot = p.getInventory().getHeldItemSlot();
         clientBlocks = new ConcurrentHashMap<>();
         pendingVelocities = new ArrayList<>();
-        pendingSprintChange = new ArrayList<>();
         boxSidesTouchingBlocks = new HashSet<>();
         this.waterFlowForce = new Vector();
         trackedBlockCollisions = new HashMap<>();
         ignoredBlockCollisions = new HashSet<>();
+        simulatedCmds = new CopyOnWriteArrayList<>();
     }
 
     public void tick() {
         this.currentTick++;
         manageClientBlocks();
+        executeTasks();
         //TODO this doesn't need to be called so often
         if(predictedVelocity.lengthSquared() > 0)
             predictNextPosition();
@@ -765,10 +765,6 @@ public class HawkPlayer {
         return pendingVelocities;
     }
 
-    public List<Pair<Boolean, Long>> getPendingSprintChange() {
-        return pendingSprintChange;
-    }
-
     public float getFriction() {
         return friction;
     }
@@ -788,26 +784,23 @@ public class HawkPlayer {
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.teleport(location, teleportCause), 0L);
     }
 
-    /*private void handlePendingSprints() {
-        if(pendingSprintChange.size() > 0) {
-            long currTime = System.currentTimeMillis();
+    //This method simulates the reaction of the client by a server packet.
+    //This is accomplished by simulating latency.
+    //This can be used to simulate sprint-update or inventory-open packets
+    public void sendSimulatedAction(Runnable action) {
+        simulatedCmds.add(new Pair<>(action, System.currentTimeMillis()));
+    }
 
-            //iterate from the most recent entry to the oldest
-            for (int i = pendingSprintChange.size() - 1; i >= 0; i--) {
-                Pair<Boolean, Long> sprint = pendingSprintChange.get(i);
-
-                if (currTime - sprint.getValue() >= ServerUtils.getPing(p)) {
-                    setSprinting(sprint.getKey());
-                    //if the player isn't moving forwards or is slowing down or is colliding horizontally,
-                    //then set sprint to false by the next tick.
-                    //oh, and this should be a special sprint only used by the hitSlowDown detection code. should
-                    //function like the default sprint except that this overrides the current state
-                    pendingSprintChange.subList(0, i + 1).clear();
-                    break;
-                }
-            }
+    private void executeTasks() {
+        if(simulatedCmds.size() == 0)
+            return;
+        int ping = ServerUtils.getPing(p);
+        long currTime = System.currentTimeMillis();
+        while(simulatedCmds.size() > 0 && currTime - simulatedCmds.get(0).getValue() >= ping) {
+            simulatedCmds.get(0).getKey().run();
+            simulatedCmds.remove(0);
         }
-    }*/
+    }
 
     public AABB getCollisionBox() {
         return WrappedEntity.getWrappedEntity(p).getCollisionBox(position);

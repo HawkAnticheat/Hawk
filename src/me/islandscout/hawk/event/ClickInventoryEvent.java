@@ -37,13 +37,6 @@ public class ClickInventoryEvent extends Event {
         this.button = button;
     }
 
-    @Override
-    public void postProcess() {
-        if(pp.hasInventoryOpen() != 1) {
-            pp.setInventoryOpen((byte)2);
-        }
-    }
-
     public int getSlot() {
         return slot;
     }

@@ -100,26 +100,21 @@ public class MoveEvent extends Event {
         int elapsedTicks = (int)(pp.getCurrentTick() - pp.getLastTeleportSendTick());
         if (pp.isTeleporting()) {
             Location tpLoc = pp.getTeleportLoc();
+            int ping = ServerUtils.getPing(p);
             if (tpLoc.getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(tpLoc) < 0.001) {
                 //move matched teleport location
-                if(elapsedTicks > (pp.getPing() / 50) - 1) { //1 is an arbitrary constant to keep things smooth
+                if(elapsedTicks > (ping / 50) - 1) { //1 is an arbitrary constant to keep things smooth
                     //most likely accepted teleport, unless this move is a coincidence
                     pp.updatePositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch(), true);
                     pp.setTeleporting(false);
                     pp.setLastTeleportAcceptTick(pp.getCurrentTick());
                     setTeleported(true);
-
-                    //close non-player inventory
-                    //TODO This isn't necessary since there is a window close packet that is sent to the client
-                    if(pp.hasInventoryOpen() == 2) {
-                        pp.setInventoryOpen((byte)0);
-                    }
                 }
                 else {
                     return false;
                 }
             } else if(!pp.getPlayer().isSleeping()) {
-                if (elapsedTicks > (pp.getPing() / 50) + 5) { //5 is an arbitrary constant to keep things smooth
+                if (elapsedTicks > (ping / 50) + 5) { //5 is an arbitrary constant to keep things smooth
                     //didn't accept teleport, so help guide the confused client back to the tp location
                     pp.teleport(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
                 }
