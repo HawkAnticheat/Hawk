@@ -63,7 +63,7 @@ public class Strafe extends MovementCheck {
             prevVelocity.multiply(0.6);
         }
 
-        //TODO ladders and vines
+        //TODO ladders, vines, moving water
         if(WrappedEntity.getWrappedEntity(e.getPlayer()).getCollisionBox(e.getFrom().toVector()).getMaterials(pp.getWorld()).contains(Material.SOUL_SAND)) {
             prevVelocity.multiply(0.4);
         }

@@ -28,6 +28,9 @@ import me.islandscout.hawk.event.InteractWorldEvent;
 public class MultiAction extends CustomCheck {
 
     //I think 1.7 clients can punch blocks while eating/blocking. I might need to look into this.
+    //TODO verify that you aren't sprinting while you're sneaking
+    //TODO verify that you aren't using something while sprinting
+    //TODO verify that you aren't placing blocks while digging
 
     public MultiAction() {
         super("multiaction", false, 0, 10, 0.95, 5000, "%player% failed multi-action, VL: %vl%", null);
@@ -40,8 +43,6 @@ public class MultiAction extends CustomCheck {
                 event instanceof BlockDigEvent))
             return;
         HawkPlayer pp = event.getHawkPlayer();
-        //TODO verify that you aren't sprinting while you're sneaking
-        //TODO verify that you aren't using something while sprinting
         if(pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow()) {
             punish(pp, 1, true, event);
         }

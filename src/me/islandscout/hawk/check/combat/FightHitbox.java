@@ -89,7 +89,7 @@ public class FightHitbox extends CustomCheck implements Cancelless {
     private final boolean DEBUG_RAY;
     private final boolean CHECK_OCCLUSION;
     private final boolean CHECK_BOX_INTERSECTION;
-    private final double BOX_EPSILON = 0.05;
+    private final double BOX_EPSILON = 0.005;
 
     private Map<UUID, InteractEntityEvent> lastInteractionMap;
 

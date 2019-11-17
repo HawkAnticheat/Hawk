@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-public class NewFly extends MovementCheck {
+public class Gravity extends MovementCheck {
 
     //WATER (if inWater):
     //move Y position by dY
@@ -70,8 +70,8 @@ public class NewFly extends MovementCheck {
     private final Map<UUID, Float> estimatedVelocityMap;
     private final Map<UUID, Integer> noMovesMap;
 
-    public NewFly() {
-        super("newfly", "&7%player% failed fly, VL: %vl%");
+    public Gravity() {
+        super("gravity", "&7%player% failed gravity, VL: %vl%");
         estimatedPositionMap = new HashMap<>();
         estimatedVelocityMap = new HashMap<>();
         noMovesMap = new HashMap<>();

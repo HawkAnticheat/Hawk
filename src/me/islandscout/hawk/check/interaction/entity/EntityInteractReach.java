@@ -65,7 +65,6 @@ public class EntityInteractReach extends EntityInteractionCheck {
             victimLocation = victimEntity.getLocation();
 
         AABB victimAABB = WrappedEntity.getWrappedEntity(victimEntity).getHitbox(victimLocation.toVector());
-        victimAABB.expand(0.05, 0.05, 0.05);
 
         Vector attackerPos = att.getPosition().clone().add(new Vector(0D, att.isSneaking() ? 1.54F : 1.62F, 0D));
 

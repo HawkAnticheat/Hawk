@@ -19,4 +19,24 @@
 package me.islandscout.hawk.check.tick;
 
 public class TickOrder {
+
+    //BEGIN TICK
+    //send arm swing
+    //send attack
+    //move
+    //send move packet
+    //END TICK
+    //WAIT
+
+
+
+    //send sprint/sneak update
+    //send block place
+    //send block break
+    //send item switch
+    //send item use
+    //send item drop
+
+
+    //After receiving a move packet, the next packet must not be received in less than 6ms
 }
