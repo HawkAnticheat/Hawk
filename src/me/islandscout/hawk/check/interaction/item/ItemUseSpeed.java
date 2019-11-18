@@ -41,6 +41,10 @@ public class ItemUseSpeed extends CustomCheck {
         if(!(e instanceof InteractItemEvent)) {
             return;
         }
+        InteractItemEvent.Type type = ((InteractItemEvent) e).getType();
+        if(type == InteractItemEvent.Type.DROP_HELD_ITEM || type == InteractItemEvent.Type.DROP_HELD_ITEM_STACK) {
+            return;
+        }
         HawkPlayer pp = e.getHawkPlayer();
         UUID uuid = pp.getUuid();
         long currTick = pp.getCurrentTick();

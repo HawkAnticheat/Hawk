@@ -41,6 +41,7 @@ public class InventoryActions extends CustomCheck {
         if(pp.hasInventoryOpen() != 0 && (e instanceof InteractEntityEvent || e instanceof BlockDigEvent ||
                 e instanceof ArmSwingEvent || e instanceof InteractWorldEvent)) {
             punish(pp, true, e);
+            //TODO After failing several times, there's a chance that they could be legit, but the inventory state is glitched. Close the player's inventory.
         }
         else {
             reward(pp);

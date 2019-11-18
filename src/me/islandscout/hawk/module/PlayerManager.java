@@ -122,6 +122,7 @@ public class PlayerManager implements Listener {
             @Override
             public void run() {
                 pp.setBlocking(false);
+                pp.setPullingBow(false);
                 pp.setInventoryOpen((byte)2);
             }
         });
