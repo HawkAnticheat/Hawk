@@ -12,12 +12,14 @@ permissions:
   hawk.admin:
     description: Allows one to be considered an administrator to Hawk
     default: op
-  hawk.cmd.*:
-    description: Allows one to perform any Hawk command
-    default: op
   hawk.cmd:
     description: Allows one to access help menu and GUI
     default: op
+  hawk.cmd.*:
+    description: Allows one to perform any Hawk command
+    default: op
+    children:
+      hawk.cmd: true
   hawk.notify:
     description: Allows one to recieve Hawk notifications
     default: op
