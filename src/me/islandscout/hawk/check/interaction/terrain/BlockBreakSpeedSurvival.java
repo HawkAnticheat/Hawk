@@ -98,7 +98,7 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
                 double vl = Math.min((speedFactor - 1) * 10, 10);
                 Block b = e.getBlock();
                 punish(pp, vl, true, e, new Placeholder("block", b.getType()), new Placeholder("speed", MathPlus.round(speedFactor, 2) + "x"));
-                e.revertChangeClientside();
+                e.resync();
             }
             else {
                 reward(pp);

@@ -539,6 +539,12 @@ public class MoveEvent extends Event {
     }
 
     @Override
+    public void resync() {
+        pp.setTeleporting(true);
+        pp.setTeleportLoc(p.getLocation());
+    }
+
+    @Override
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
         if(!cancelled) {

@@ -18,12 +18,9 @@
 
 package me.islandscout.hawk.check;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.BlockDigEvent;
 import me.islandscout.hawk.util.Placeholder;
-import me.islandscout.hawk.wrap.block.WrappedBlock7;
-import me.islandscout.hawk.wrap.block.WrappedBlock8;
 
 import java.util.List;
 
@@ -45,6 +42,6 @@ public abstract class BlockDigCheck extends Check<BlockDigEvent> {
     protected void punishAndTryCancelAndBlockRespawn(HawkPlayer offender, double vlAmnt, BlockDigEvent event, Placeholder... placeholders) {
         punish(offender, vlAmnt, true, event, placeholders);
         if (offender.getVL(this) >= cancelThreshold)
-            event.revertChangeClientside();
+            event.resync();
     }
 }

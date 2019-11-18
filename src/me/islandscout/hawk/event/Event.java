@@ -42,7 +42,6 @@ public abstract class Event {
 
     //to be implemented by other Events
     public void postProcess() {
-
     }
 
     public boolean isCancelled() {
@@ -51,6 +50,10 @@ public abstract class Event {
 
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
+    }
+
+    //Forces a reconciliation. Syncs the client to the server's game state for this particular action.
+    public void resync() {
     }
 
     public Player getPlayer() {

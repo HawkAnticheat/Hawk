@@ -21,7 +21,6 @@ package me.islandscout.hawk.event;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.ClientBlock;
-import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.block.WrappedBlock7;
 import me.islandscout.hawk.wrap.block.WrappedBlock8;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
@@ -43,7 +42,7 @@ public class BlockDigEvent extends Event {
     @Override
     public boolean preProcess() {
         if(pp.isTeleporting()) {
-            revertChangeClientside();
+            resync();
             return false;
         }
         return true;
@@ -57,7 +56,8 @@ public class BlockDigEvent extends Event {
         }
     }
 
-    public void revertChangeClientside() {
+    @Override
+    public void resync() {
         if (Hawk.getServerVersion() == 7) {
             WrappedBlock7.getWrappedBlock(getBlock()).sendPacketToPlayer(pp.getPlayer());
         } else if (Hawk.getServerVersion() == 8) {

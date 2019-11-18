@@ -53,7 +53,7 @@ public class InteractWorldEvent extends Event {
     @Override
     public boolean preProcess() {
         if(pp.isTeleporting()) {
-            revertChangeClientside();
+            resync();
             return false;
         }
         return true;
@@ -67,7 +67,8 @@ public class InteractWorldEvent extends Event {
         }
     }
 
-    public void revertChangeClientside() {
+    @Override
+    public void resync() {
         Block b = ServerUtils.getBlockAsync(getPlacedBlockLocation());
         Block targeted = ServerUtils.getBlockAsync(getTargetedBlockLocation());
         if(b == null || targeted == null)

@@ -18,14 +18,9 @@
 
 package me.islandscout.hawk.check;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.InteractWorldEvent;
 import me.islandscout.hawk.util.Placeholder;
-import me.islandscout.hawk.util.ServerUtils;
-import me.islandscout.hawk.wrap.block.WrappedBlock7;
-import me.islandscout.hawk.wrap.block.WrappedBlock8;
-import org.bukkit.block.Block;
 
 import java.util.List;
 
@@ -47,6 +42,6 @@ public abstract class BlockInteractionCheck extends Check<InteractWorldEvent> {
     protected void punishAndTryCancelAndBlockRespawn(HawkPlayer offender, double vlAmnt, InteractWorldEvent event, Placeholder... placeholders) {
         punish(offender, vlAmnt, true, event, placeholders);
         if (offender.getVL(this) >= cancelThreshold)
-            event.revertChangeClientside();
+            event.resync();
     }
 }
