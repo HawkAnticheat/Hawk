@@ -125,7 +125,7 @@ public class LagCompensator implements Listener {
     //Uses linear interpolation to get the best location
     public Location getHistoryLocation(int rewindMillisecs, Entity entity) {
         List<Pair<Location, Long>> times = trackedEntities.get(entity);
-        if (times == null) {
+        if (times == null || times.size() == 0) {
             return entity.getLocation();
         }
         long currentTime = System.currentTimeMillis();
@@ -145,7 +145,7 @@ public class LagCompensator implements Listener {
                 return before;
             }
         }
-        return entity.getLocation(); //can't find a suitable position
+        return times.get(0).getKey().clone(); //ran out of historical data; return oldest entry
     }
 
     private void processPosition(Entity entity) {

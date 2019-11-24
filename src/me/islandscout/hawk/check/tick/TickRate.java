@@ -53,8 +53,8 @@ public class TickRate extends MovementCheck implements Listener {
     private final boolean DEBUG;
     private final double THRESHOLD;
     private final long MAX_CATCHUP_TIME;
-    private final double CALIBRATE_SLOWER;
-    private final double CALIBRATE_FASTER;
+    private final double MIN_RATE;
+    private final double MAX_RATE;
     private final boolean RUBBERBAND;
     private final boolean RESET_DRIFT_ON_FAIL;
     private final int WARM_UP;
@@ -64,11 +64,11 @@ public class TickRate extends MovementCheck implements Listener {
         prevNanoTime = new HashMap<>();
         clockDrift = new HashMap<>();
         lastBigTeleportTime = new HashMap<>();
-        THRESHOLD = -(int) customSetting("clockDriftThresholdMillis", "", 30);
-        MAX_CATCHUP_TIME = 1000000 * (int) customSetting("maxCatchupTimeMillis", "", 500);
+        THRESHOLD = -(int) customSetting("clockDriftThresholdMillis", "", 50);
+        MAX_CATCHUP_TIME = 1000000 * (int) customSetting("maxCatchupTimeMillis", "", 1000);
         DEBUG = (boolean) customSetting("debug", "", false);
-        CALIBRATE_SLOWER = 1 - (double) customSetting("calibrateSlower", "", 0.003);
-        CALIBRATE_FASTER = 1 - (double) customSetting("calibrateFaster", "", 0.03);
+        MIN_RATE = (50 - (50 / (double)customSetting("minRateMultiplier", "", 0.995))) / 1E-6;
+        MAX_RATE = (50 - (50 / (double)customSetting("maxRateMultiplier", "", 1.005))) / 1E-6;
         RUBBERBAND = (boolean)customSetting("rubberband", "", true);
         RESET_DRIFT_ON_FAIL = (boolean)customSetting("resetDriftOnFail", "", false);
         WARM_UP = (int)customSetting("ignoreTicksAfterLongTeleport", "", 150) - 1;
@@ -94,6 +94,11 @@ public class TickRate extends MovementCheck implements Listener {
             return;
         }
 
+        //if drift > 0, then player's clock is behind
+        //if drift < 0, then player's clock is ahead
+        //Debug messages have drift multiplied by -1 so,
+        //drift > 0: clock is ahead
+        //drift < 0: clock is behind
         long drift = clockDrift.getOrDefault(p.getUniqueId(), 0L);
         drift += timeElapsed - 50000000L;
         if (drift > MAX_CATCHUP_TIME)
@@ -112,9 +117,9 @@ public class TickRate extends MovementCheck implements Listener {
         } else
             reward(pp);
         if (drift < 0)
-            drift *= CALIBRATE_FASTER;
+            drift = (long) Math.min(0, drift + MAX_RATE);
         else
-            drift *= CALIBRATE_SLOWER;
+            drift = (long) Math.max(0, drift + MIN_RATE);
         clockDrift.put(p.getUniqueId(), drift);
     }
 

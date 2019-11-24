@@ -46,7 +46,7 @@ public class InventoryActions extends CustomCheck {
         }
         else if(pp.hasInventoryOpen() == 0 && e instanceof ClickInventoryEvent) {
             punish(pp, true, e);
-            e.getPlayer().updateInventory();
+            e.resync();
         }
         else {
             reward(pp);

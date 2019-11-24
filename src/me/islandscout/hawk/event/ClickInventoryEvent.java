@@ -37,6 +37,11 @@ public class ClickInventoryEvent extends Event {
         this.button = button;
     }
 
+    @Override
+    public void resync() {
+        p.updateInventory();
+    }
+
     public int getSlot() {
         return slot;
     }
