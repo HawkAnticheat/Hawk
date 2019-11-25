@@ -60,11 +60,8 @@ public class Phase extends MovementCheck {
     private static final double HORIZONTAL_DISTANCE_THRESHOLD = Math.pow(0.4, 2);
     private static final double VERTICAL_DISTANCE_THRESHOLD = Math.pow(1, 2);
 
-    private final Map<UUID, Location> legitLoc;
-
     public Phase() {
         super("phase", true, 0, 10, 0.995, 5000, "%player% failed phase. Moved through %block%. VL: %vl%", null);
-        legitLoc = new HashMap<>();
     }
 
     @Override
@@ -73,9 +70,6 @@ public class Phase extends MovementCheck {
         Location locFrom = event.getFrom();
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
-        if (!legitLoc.containsKey(p.getUniqueId()))
-            legitLoc.put(p.getUniqueId(), p.getLocation().clone());
-        Location setback = legitLoc.get(p.getUniqueId());
         double distanceSquared = locFrom.distanceSquared(locTo);
 
         //this stops an NPE
@@ -137,7 +131,7 @@ public class Phase extends MovementCheck {
                             boolean zCollide = collides2d(test.getMin().getX(), test.getMax().getX(), test.getMin().getY(), test.getMax().getY(), playerFrom.getMin().getX(), playerFrom.getMax().getX(), playerFrom.getMin().getY(), playerFrom.getMax().getY(), moveDirection.getX(), moveDirection.getY());
                             if (xCollide && yCollide && zCollide) {
                                 punish(pp, false, event, new Placeholder("block", bukkitBlock.getType()));
-                                tryRubberband(event, setback);
+                                tryRubberband(event, p.getLocation());
                                 return;
                             }
                         }
@@ -146,9 +140,6 @@ public class Phase extends MovementCheck {
             }
         }
 
-        if (!AdjacentBlocks.blockAdjacentIsSolid(p.getLocation()) && !AdjacentBlocks.blockAdjacentIsSolid(p.getLocation().clone().add(0, 1, 0))) {
-            legitLoc.put(p.getUniqueId(), p.getLocation().clone());
-        }
         reward(pp);
     }
 
@@ -175,11 +166,5 @@ public class Phase extends MovementCheck {
         Line lowerLine = new Line(height, slope);
         Line upperLine = new Line(height2, slope);
         return (lowerPoint.getY() <= upperLine.getYatX(lowerPoint.getX()) && upperPoint.getY() >= lowerLine.getYatX(upperPoint.getX()));
-    }
-
-    @Override
-    public void removeData(Player p) {
-        UUID uuid = p.getUniqueId();
-        legitLoc.remove(uuid);
     }
 }

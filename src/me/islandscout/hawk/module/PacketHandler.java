@@ -69,7 +69,6 @@ public class PacketHandler implements Listener {
     }
 
     //These packets will be converted into Hawk Events for verification by checks
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean processIn(Object packet, Player p) {
         HawkPlayer pp = hawk.getHawkPlayer(p);
 

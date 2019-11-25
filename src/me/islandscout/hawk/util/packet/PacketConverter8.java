@@ -23,7 +23,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.WrappedWatchableObject;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
@@ -74,8 +73,8 @@ public final class PacketConverter8 {
     public static org.bukkit.event.Event packetOutboundToEvent(Object packet, Player p) {
         if(packet instanceof PacketPlayOutEntityVelocity || packet instanceof PacketPlayOutExplosion)
             return packetToVelocityEvent((Packet)packet, p);
-        //if(packet instanceof PacketPlayOutEntityMetadata)
-            //return packetToPlayerMetadataEvent((PacketPlayOutEntityMetadata)packet, p);
+        if(packet instanceof PacketPlayOutEntityMetadata)
+            return packetToPlayerMetadataEvent((PacketPlayOutEntityMetadata)packet, p);
         return null;
     }
 

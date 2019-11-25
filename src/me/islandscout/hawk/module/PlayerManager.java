@@ -20,10 +20,12 @@ package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
 import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.wrap.WrappedWatchableObject;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -112,7 +114,7 @@ public class PlayerManager implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void blah(InventoryOpenEvent e) {
+    public void onInventoryOpenServerSide(InventoryOpenEvent e) {
         HumanEntity hE = e.getPlayer();
         if(!(hE instanceof Player))
             return;
@@ -129,7 +131,7 @@ public class PlayerManager implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void blah(InventoryCloseEvent e) {
+    public void onInventoryCloseServerSide(InventoryCloseEvent e) {
         HumanEntity hE = e.getPlayer();
         if(!(hE instanceof Player))
             return;
@@ -141,5 +143,36 @@ public class PlayerManager implements Listener {
                 pp.setInventoryOpen((byte)0);
             }
         });
+    }
+
+    //@EventHandler
+    public void sendMetadataEvent(HawkAsyncPlayerMetadataEvent e) {
+        List<WrappedWatchableObject> objects = e.getMetaData();
+        for(WrappedWatchableObject object : objects) {
+            if(object.getIndex() == 0) {
+                Player p = e.getPlayer();
+                HawkPlayer pp = hawk.getHawkPlayer(p);
+                byte status = (byte)object.getObject();
+
+                //bitmask
+                if((status & 16) == 16) {
+
+                } else {
+
+                }
+                if((status & 8) == 8) {
+
+                } else {
+
+                }
+                if((status & 2) == 2) {
+
+                } else {
+
+                }
+
+                break;
+            }
+        }
     }
 }

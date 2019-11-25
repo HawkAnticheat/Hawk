@@ -39,17 +39,13 @@ public class Speed extends MovementCheck implements Listener {
     //the server handled movement?
 
     //TODO False flag with pistons
-    //TODO clamp cumulative expected distance to 0.03 if not sending a position update
 
     //Basically, this check is doing, "if your previous speed was X then your current speed must not exceed f(X)"
 
     private static final double EPSILON = 0.000001;
     //Now what we can do is predict how far a player could have travelled
-    //if the move doesn't have a deltaPos due to insignificance. It might reduce false-
-    //positives, but it might make the check more vulnerable to abuse since players can
-    //send a bunch of non-deltaPos moves, and then send one with a great deltaPos. To
-    //other players, this may look like teleportation or some sort of lag switch.
-    private static final long MAX_NO_MOVES = 9;
+    //if the move doesn't have a deltaPos due to insignificance.
+    private static final double MAX_NO_MOVE_DISTANCE = 0.03;
     private final double DISCREPANCY_THRESHOLD;
     private final double VL_FAIL_DISCREPANCY_FACTOR;
     private final boolean RESET_DISCREPANCY_ON_FAIL;
@@ -79,10 +75,15 @@ public class Speed extends MovementCheck implements Listener {
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
 
+        int noMoves = noMovesMap.getOrDefault(p.getUniqueId(), 0);
         double lastSpeed;
         double speed;
         if(event.isUpdatePos()) {
             lastSpeed = prevSpeed.getOrDefault(p.getUniqueId(), 0D);
+            if(noMoves > 0) {
+                //Players don't update position unless they've moved at least 0.03 blocks (or if 20 ticks passed)
+                lastSpeed = Math.min(lastSpeed, MAX_NO_MOVE_DISTANCE);
+            }
             speed = MathPlus.distance2d(event.getTo().getX() - event.getFrom().getX(), event.getTo().getZ() - event.getFrom().getZ());
         }
         else {
@@ -90,7 +91,6 @@ public class Speed extends MovementCheck implements Listener {
             lastSpeed = speed;
         }
 
-        int noMoves = noMovesMap.getOrDefault(p.getUniqueId(), 0);
         if(event.isUpdatePos())
             noMoves = 0;
         else
@@ -192,7 +192,7 @@ public class Speed extends MovementCheck implements Listener {
         //The move might have not been significant enough, so we need
         //to prepare for when the client decides it's time to update
         //position.
-        else if(noMoves <= MAX_NO_MOVES){
+        else {
             lastNegativeDiscrepancies.put(p.getUniqueId(), discrepancy.value);
             negativeDiscrepanciesCumulative.put(p.getUniqueId(), negativeDiscrepanciesCumulative.getOrDefault(p.getUniqueId(), 0D) + speed);
         }
