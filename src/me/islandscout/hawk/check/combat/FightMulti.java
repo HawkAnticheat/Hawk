@@ -30,29 +30,18 @@ import java.util.UUID;
 
 public class FightMulti extends EntityInteractionCheck {
 
-    private final Map<UUID, Long> lastHitTime; //in client ticks
-
     public FightMulti() {
-        super("fightmulti", "%player% failed fight multi, VL %vl%");
-        lastHitTime = new HashMap<>();
+        super("fightmulti", true, 0, 5, 0.999, 5000, "%player% failed fight multi, VL %vl%", null);
     }
 
     @Override
     protected void check(InteractEntityEvent e) {
-        if(e.getInteractAction() != InteractAction.ATTACK)
-            return;
         HawkPlayer pp = e.getHawkPlayer();
-        if(pp.getCurrentTick() == lastHitTime.getOrDefault(pp.getUuid(), -1L)) {
+        if(pp.getEntitiesInteractedInThisTick().size() > 0 && !pp.getEntitiesInteractedInThisTick().contains(e.getEntity())) {
             punish(pp, true, e);
         }
         else {
             reward(pp);
         }
-        lastHitTime.put(pp.getUuid(), pp.getCurrentTick());
-    }
-
-    @Override
-    public void removeData(Player p) {
-        lastHitTime.remove(p.getUniqueId());
     }
 }

@@ -47,6 +47,7 @@ public class InteractEntityEvent extends Event {
         //movement false flags regarding the hit slowdown mechanic. (Look at the
         //MoveEvent class for more information.)
         pp.updateLastEntityInteractTick();
+        pp.addEntityToEntitiesInteractedInThisTick(entity);
         if(/*!isCancelled() && */getInteractAction() == InteractAction.ATTACK) {
             pp.updateItemUsedForAttack();
             if(getEntity() instanceof Player) {

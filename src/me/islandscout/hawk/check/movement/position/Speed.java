@@ -182,7 +182,7 @@ public class Speed extends MovementCheck implements Listener {
                 punishAndTryRubberband(pp, discrepancy.value * VL_FAIL_DISCREPANCY_FACTOR, event, p.getLocation());
                 if(RESET_DISCREPANCY_ON_FAIL)
                     discrepancies.put(p.getUniqueId(), 0D);
-                if(RELEASE_ITEM_OVER_VL > -1 && pp.getVL(this) > RELEASE_ITEM_OVER_VL)
+                if(RELEASE_ITEM_OVER_VL > -1 && (pp.isPullingBow() || pp.isConsumingItem()) && pp.getVL(this) > RELEASE_ITEM_OVER_VL)
                     pp.releaseItem();
             }
             else {

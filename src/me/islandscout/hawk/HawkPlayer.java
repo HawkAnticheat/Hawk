@@ -117,6 +117,7 @@ public class HawkPlayer {
     private Map<Location, List<AABB>> trackedBlockCollisions;
     private Set<Location> ignoredBlockCollisions;
     private List<Pair<MetaData, Long>> metaDataUpdates;
+    private Set<Entity> entitiesInteractedInThisTick;
 
     HawkPlayer(Player p, Hawk hawk) {
         this.uuid = p.getUniqueId();
@@ -144,6 +145,7 @@ public class HawkPlayer {
         ignoredBlockCollisions = new HashSet<>();
         simulatedCmds = new CopyOnWriteArrayList<>();
         metaDataUpdates = new CopyOnWriteArrayList<>();
+        entitiesInteractedInThisTick = new HashSet<>();
     }
 
     public void tick() {
@@ -151,6 +153,7 @@ public class HawkPlayer {
         manageClientBlocks();
         executeTasks();
         cleanUpOldMetaDataUpdates();
+        entitiesInteractedInThisTick.clear();
         //TODO this doesn't need to be called so often
         if(predictedVelocity.lengthSquared() > 0)
             predictNextPosition();
@@ -836,6 +839,14 @@ public class HawkPlayer {
         while(metaDataUpdates.size() > 0 && currTime - metaDataUpdates.get(0).getValue() > 2000) {
             metaDataUpdates.remove(0);
         }
+    }
+
+    public Set<Entity> getEntitiesInteractedInThisTick() {
+        return entitiesInteractedInThisTick;
+    }
+
+    public void addEntityToEntitiesInteractedInThisTick(Entity entity) {
+        entitiesInteractedInThisTick.add(entity);
     }
 
     public AABB getCollisionBox() {
