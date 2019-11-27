@@ -43,4 +43,9 @@ public class WrappedEntityHuman7 extends WrappedEntity7 implements WrappedEntity
         net.minecraft.server.v1_7_R4.Block b = (net.minecraft.server.v1_7_R4.Block) obj;
         return ((EntityHuman) nmsEntity).a(b, flag);
     }
+
+    @Override
+    public void releaseItem() {
+        ((EntityHuman) nmsEntity).bA();
+    }
 }

@@ -21,7 +21,9 @@ package me.islandscout.hawk;
 import me.islandscout.hawk.check.Check;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
+import me.islandscout.hawk.wrap.entity.MetaData;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
+import me.islandscout.hawk.wrap.entity.human.WrappedEntityHuman;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -114,6 +116,7 @@ public class HawkPlayer {
     private Vector waterFlowForce;
     private Map<Location, List<AABB>> trackedBlockCollisions;
     private Set<Location> ignoredBlockCollisions;
+    private List<Pair<MetaData, Long>> metaDataUpdates;
 
     HawkPlayer(Player p, Hawk hawk) {
         this.uuid = p.getUniqueId();
@@ -140,12 +143,14 @@ public class HawkPlayer {
         trackedBlockCollisions = new HashMap<>();
         ignoredBlockCollisions = new HashSet<>();
         simulatedCmds = new CopyOnWriteArrayList<>();
+        metaDataUpdates = new CopyOnWriteArrayList<>();
     }
 
     public void tick() {
         this.currentTick++;
         manageClientBlocks();
         executeTasks();
+        cleanUpOldMetaDataUpdates();
         //TODO this doesn't need to be called so often
         if(predictedVelocity.lengthSquared() > 0)
             predictNextPosition();
@@ -784,6 +789,16 @@ public class HawkPlayer {
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.teleport(location, teleportCause), 0L);
     }
 
+    //safely force player to release item (bow, consumable, or sword blocking)
+    public void releaseItem() {
+        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> ((WrappedEntityHuman)WrappedEntity.getWrappedEntity(p)).releaseItem());
+        sendSimulatedAction(() -> {
+            setBlocking(false);
+            setPullingBow(false);
+            setConsumingItem(false);
+        });
+    }
+
     //This method simulates the reaction of the client by a server packet.
     //This is accomplished by simulating latency.
     //This can be used to simulate sprint-update or inventory-open packets
@@ -799,6 +814,27 @@ public class HawkPlayer {
         while(simulatedCmds.size() > 0 && currTime - simulatedCmds.get(0).getValue() >= ping) {
             simulatedCmds.get(0).getKey().run();
             simulatedCmds.remove(0);
+        }
+    }
+
+    public void addMetaDataUpdate(MetaData metaData) {
+        metaDataUpdates.add(new Pair<>(metaData, System.currentTimeMillis()));
+        //in case something happens, let's not hog memory...
+        if(metaDataUpdates.size() > 200) {
+            metaDataUpdates.remove(0);
+        }
+    }
+
+    public List<Pair<MetaData, Long>> getMetaDataUpdates() {
+        return metaDataUpdates;
+    }
+
+    private void cleanUpOldMetaDataUpdates() {
+        if(metaDataUpdates.size() == 0)
+            return;
+        long currTime = System.currentTimeMillis();
+        while(metaDataUpdates.size() > 0 && currTime - metaDataUpdates.get(0).getValue() > 2000) {
+            metaDataUpdates.remove(0);
         }
     }
 

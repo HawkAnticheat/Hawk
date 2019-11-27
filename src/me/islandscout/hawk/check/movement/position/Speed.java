@@ -49,6 +49,7 @@ public class Speed extends MovementCheck implements Listener {
     private final double DISCREPANCY_THRESHOLD;
     private final double VL_FAIL_DISCREPANCY_FACTOR;
     private final boolean RESET_DISCREPANCY_ON_FAIL;
+    private final int RELEASE_ITEM_OVER_VL;
     private final boolean DEBUG;
 
     private final Map<UUID, Double> prevSpeed;
@@ -67,6 +68,7 @@ public class Speed extends MovementCheck implements Listener {
         DISCREPANCY_THRESHOLD = (double) customSetting("discrepancyThreshold", "", 0.1D);
         VL_FAIL_DISCREPANCY_FACTOR = (double) customSetting("vlFailDiscrepancyFactor", "", 10D);
         RESET_DISCREPANCY_ON_FAIL = (boolean) customSetting("resetDiscrepancyOnFail", "", true);
+        RELEASE_ITEM_OVER_VL = (int) customSetting("releaseItemOverVl", "", 4);
         DEBUG = (boolean) customSetting("debug", "", false);
     }
 
@@ -180,6 +182,8 @@ public class Speed extends MovementCheck implements Listener {
                 punishAndTryRubberband(pp, discrepancy.value * VL_FAIL_DISCREPANCY_FACTOR, event, p.getLocation());
                 if(RESET_DISCREPANCY_ON_FAIL)
                     discrepancies.put(p.getUniqueId(), 0D);
+                if(RELEASE_ITEM_OVER_VL > -1 && pp.getVL(this) > RELEASE_ITEM_OVER_VL)
+                    pp.releaseItem();
             }
             else {
                 reward(pp);

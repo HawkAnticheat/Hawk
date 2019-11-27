@@ -22,6 +22,7 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
+import me.islandscout.hawk.wrap.entity.MetaData;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -257,7 +258,23 @@ public class MoveEvent extends Event {
         float initForce = 0.98F;
         if(pp.isSneaking())
             initForce *= 0.3;
-        boolean usingItem = pp.isConsumingItem() || pp.isPullingBow() || pp.isBlocking();
+
+        //Handle meta-data updates sent from server. Damn it, Mojang. >:(
+        boolean consumingOrBow = pp.isConsumingItem() || pp.isPullingBow();
+        long currTime = System.currentTimeMillis();
+        int ping = ServerUtils.getPing(p) + 100;
+        for(Pair<MetaData, Long> metaDataPair : pp.getMetaDataUpdates()) {
+            //Ideally it would be +/-50ms leniency, but let's do +/-100ms just because of network jitter.
+            if(Math.abs(metaDataPair.getValue() + ping - currTime) < 100) {
+                MetaData metaData = metaDataPair.getKey();
+                if(metaData.getType() == MetaData.Type.USE_ITEM && !metaData.getValue()) {
+                    consumingOrBow = false;
+                    break;
+                }
+            }
+        }
+
+        boolean usingItem = consumingOrBow || pp.isBlocking();
         if(usingItem)
             initForce *= 0.2;
         boolean sprinting = pp.isSprinting() && !usingItem && !pp.isSneaking();

@@ -26,6 +26,7 @@ import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.WrappedWatchableObject;
+import me.islandscout.hawk.wrap.entity.MetaData;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -119,6 +120,8 @@ public class PlayerManager implements Listener {
         if(!(hE instanceof Player))
             return;
 
+        //Fixes issues regarding the client not releasing item usage when a server inventory is opened.
+        //Consumables may not have this issue.
         HawkPlayer pp = hawk.getHawkPlayer((Player) hE);
         pp.sendSimulatedAction(new Runnable() {
             @Override
@@ -145,7 +148,7 @@ public class PlayerManager implements Listener {
         });
     }
 
-    //@EventHandler
+    @EventHandler
     public void sendMetadataEvent(HawkAsyncPlayerMetadataEvent e) {
         List<WrappedWatchableObject> objects = e.getMetaData();
         for(WrappedWatchableObject object : objects) {
@@ -156,20 +159,20 @@ public class PlayerManager implements Listener {
 
                 //bitmask
                 if((status & 16) == 16) {
-
+                    pp.addMetaDataUpdate(new MetaData(MetaData.Type.USE_ITEM, true));
                 } else {
-
+                    pp.addMetaDataUpdate(new MetaData(MetaData.Type.USE_ITEM, false));
                 }
                 if((status & 8) == 8) {
-
+                    pp.addMetaDataUpdate(new MetaData(MetaData.Type.SPRINT, true));
                 } else {
-
+                    pp.addMetaDataUpdate(new MetaData(MetaData.Type.SPRINT, false));
                 }
-                if((status & 2) == 2) {
-
+                /*if((status & 2) == 2) {
+                    pp.addMetaDataUpdate(new MetaData(MetaData.Type.SNEAK, true));
                 } else {
-
-                }
+                    pp.addMetaDataUpdate(new MetaData(MetaData.Type.SNEAK, false));
+                }*/
 
                 break;
             }

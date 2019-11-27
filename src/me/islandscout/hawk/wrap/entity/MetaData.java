@@ -16,18 +16,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.wrap.entity.human;
+package me.islandscout.hawk.wrap.entity;
 
-import org.bukkit.block.Block;
+public class MetaData {
 
-public interface WrappedEntityHuman {
+    private Type type;
+    private boolean value;
 
-    boolean canHarvestBlock(Block block);
+    public MetaData(Type type, boolean value) {
+        this.type = type;
+        this.value = value;
+    }
 
-    /**
-     * Returns how strong the player is against the specified block at this moment
-     */
-    float getCurrentPlayerStrVsBlock(Block block, boolean flag);
+    public Type getType() {
+        return type;
+    }
 
-    void releaseItem();
+    public boolean getValue() {
+        return value;
+    }
+
+    public enum Type {
+        USE_ITEM,
+        SPRINT,
+        SNEAK
+    }
 }
