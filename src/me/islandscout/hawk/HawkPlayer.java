@@ -118,6 +118,7 @@ public class HawkPlayer {
     private Set<Location> ignoredBlockCollisions;
     private List<Pair<MetaData, Long>> metaDataUpdates;
     private Set<Entity> entitiesInteractedInThisTick;
+    private List<Double> lastPings;
 
     HawkPlayer(Player p, Hawk hawk) {
         this.uuid = p.getUniqueId();
@@ -146,6 +147,7 @@ public class HawkPlayer {
         simulatedCmds = new CopyOnWriteArrayList<>();
         metaDataUpdates = new CopyOnWriteArrayList<>();
         entitiesInteractedInThisTick = new HashSet<>();
+        lastPings = new CopyOnWriteArrayList<>();
     }
 
     public void tick() {
@@ -277,14 +279,15 @@ public class HawkPlayer {
 
     public void setPing(int ping) {
         this.ping = ping;
+        this.lastPings.add((double)ping);
+        if(lastPings.size() > 10) {
+            lastPings.remove(0);
+        }
+        pingJitter = (short)MathPlus.range(lastPings);
     }
 
     public short getPingJitter() {
         return pingJitter;
-    }
-
-    public void setPingJitter(short pingJitter) {
-        this.pingJitter = pingJitter;
     }
 
     public long getLastMoveTime() {

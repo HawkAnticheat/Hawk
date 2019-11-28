@@ -43,7 +43,7 @@ public class PingArgument extends Argument {
             HawkPlayer pp = hawk.getHawkPlayer(target);
             int ping = ServerUtils.getPing(target);
             ChatColor pingColor = pingZoneColor(ping);
-            ChatColor jitterColor = pingZoneColor(Math.abs(pp.getPingJitter()));
+            ChatColor jitterColor = pingZoneColor(4 * pp.getPingJitter());
             sender.sendMessage(ChatColor.GOLD + target.getName() + "'s ping: " + pingColor + "" + ping + "ms");
             sender.sendMessage(ChatColor.GOLD + target.getName() + "'s jitter: " + jitterColor + "" + pp.getPingJitter() + "ms");
             sender.sendMessage(ChatColor.GOLD + target.getName() + "'s ping zone: " + pingColor + "" + ping / 50);
@@ -55,7 +55,7 @@ public class PingArgument extends Argument {
             HawkPlayer pp = hawk.getHawkPlayer((Player) sender);
             int ping = ServerUtils.getPing((Player) sender);
             ChatColor pingColor = pingZoneColor(ping);
-            ChatColor jitterColor = pingZoneColor(Math.abs(pp.getPingJitter()));
+            ChatColor jitterColor = pingZoneColor(4 * pp.getPingJitter());
             sender.sendMessage(ChatColor.GOLD + "Your ping: " + pingColor + "" + ping + "ms");
             sender.sendMessage(ChatColor.GOLD + "Your jitter: " + jitterColor + "" + pp.getPingJitter() + "ms");
             sender.sendMessage(ChatColor.GOLD + "Your ping zone: " + pingColor + "" + ping / 50);

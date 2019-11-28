@@ -51,8 +51,6 @@ public class PlayerManager implements Listener {
             public void run() {
                 for(HawkPlayer pp : hawk.getHawkPlayers()) {
                     Player p = pp.getPlayer();
-                    int newPing = ServerUtils.getPing(p);
-                    pp.setPingJitter((short) (newPing - pp.getPing()));
                     pp.setPing(ServerUtils.getPing(p));
                 }
             }
