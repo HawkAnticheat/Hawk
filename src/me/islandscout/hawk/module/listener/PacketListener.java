@@ -31,6 +31,7 @@ import java.util.List;
 
 public abstract class PacketListener {
 
+    protected final Hawk hawk;
     private boolean running;
     private final PacketHandler packetHandler;
     private List<PacketAdapter> adaptersInbound;
@@ -40,11 +41,12 @@ public abstract class PacketListener {
     private Thread hawkAsyncCheckThread;
     private List<Pair<Pair<Object, Player>, Boolean>> asyncQueuedPackets; //<<packet, player>, inbound>
 
-    PacketListener(PacketHandler packetHandler, boolean async) {
+    PacketListener(PacketHandler packetHandler, boolean async, Hawk hawk) {
         this.packetHandler = packetHandler;
         this.adaptersInbound = new ArrayList<>();
         this.adaptersOutbound = new ArrayList<>();
         this.async = async;
+        this.hawk = hawk;
         if(async) {
             prepareAsync();
         }
@@ -64,15 +66,6 @@ public abstract class PacketListener {
                 hawkAsyncCheckThread.notify();
             }
         }
-        removeAll();
-    }
-
-    abstract void add(Player p);
-
-    abstract void removeAll();
-
-    public void addListener(Player p) {
-        add(p);
     }
 
     //returns false if not async and packet fails checks
@@ -182,7 +175,8 @@ public abstract class PacketListener {
 
     private void printPacketErrorInformation(Object packet, Player p) {
         String packetName = packet.getClass().getSimpleName();
-        System.err.println("Hawk (version " + Hawk.BUILD_NAME + ") has encountered an error while processing " + packetName + " for " + p.getName());
+        String pName = p == null ? "(NULL)" : "\"" + p.getName() + "\"";
+        System.err.println("Hawk (version " + Hawk.BUILD_NAME + ") has encountered an error while processing " + packetName + " for player " + pName);
         System.err.println("The packet was dropped to prevent possible exploitation.");
         System.err.println("This " + packetName + "'s fields:");
         for (Field field : packet.getClass().getDeclaredFields()) {
@@ -197,6 +191,7 @@ public abstract class PacketListener {
                 System.err.println("    " + field.getType() + ", " + field.getName() + " = " + value);
             }
         }
+        System.err.println("The stacktrace leading to the error is printed below:");
     }
 
     public void addAdapterInbound(PacketAdapter runnable) {
@@ -222,4 +217,6 @@ public abstract class PacketListener {
     public boolean isRunning() {
         return running;
     }
+
+    public abstract int getProtocolVersion(Player player);
 }

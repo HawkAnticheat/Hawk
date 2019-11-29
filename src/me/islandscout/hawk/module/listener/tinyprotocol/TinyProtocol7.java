@@ -1,13 +1,22 @@
-package me.islandscout.hawk.util.packet.tinyprotocol;
+/*
+ * This file is part of Hawk Anticheat.
+ * Copyright (C) 2018 Hawk Development Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
-/*import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelPromise;*/
+package me.islandscout.hawk.module.listener.tinyprotocol;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,8 +41,8 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import me.islandscout.hawk.util.packet.tinyprotocol.Reflection.FieldAccessor;
-import me.islandscout.hawk.util.packet.tinyprotocol.Reflection.MethodInvoker;
+import me.islandscout.hawk.module.listener.tinyprotocol.Reflection.FieldAccessor;
+import me.islandscout.hawk.module.listener.tinyprotocol.Reflection.MethodInvoker;
 
 /**
  * Represents a very tiny alternative to ProtocolLib.
@@ -43,8 +52,8 @@ import me.islandscout.hawk.util.packet.tinyprotocol.Reflection.MethodInvoker;
  * @author Kristian
  */
 
-//https://bukkit.org/threads/packet-listener-any-way-to-create-it-before-player-login.268120/
-public abstract class TinyProtocol {
+//Protocol version number lookup method from DeprecatedLuke's version of TinyProtocol
+public abstract class TinyProtocol7 {
     private static final AtomicInteger ID = new AtomicInteger(0);
 
     // Used in order to lookup a channel
@@ -62,10 +71,14 @@ public abstract class TinyProtocol {
 
     // Packets we have to intercept
     private static final Class<?> PACKET_LOGIN_IN_START = Reflection.getMinecraftClass("PacketLoginInStart");
+    private static final Class<?> PACKET_HANDSHAKING_IN_SET_PROTOCOL = Reflection.getMinecraftClass("PacketHandshakingInSetProtocol");
     private static final FieldAccessor<GameProfile> getGameProfile = Reflection.getField(PACKET_LOGIN_IN_START, GameProfile.class, 0);
+    private static final FieldAccessor<Integer> protocolId = Reflection.getField(PACKET_HANDSHAKING_IN_SET_PROTOCOL, int.class, 0);
+    private static final FieldAccessor<Enum> protocolType = Reflection.getField(PACKET_HANDSHAKING_IN_SET_PROTOCOL, Enum.class, 0);
 
-    // Speedup channel lookup
+    // Speedup channel/protocol lookup
     private Map<String, Channel> channelLookup = new MapMaker().weakValues().makeMap();
+    private Map<Channel, Integer> protocolLookup = new MapMaker().weakKeys().makeMap();
     private Listener listener;
 
     // Channels that have already been removed
@@ -93,7 +106,7 @@ public abstract class TinyProtocol {
      *
      * @param plugin - the plugin.
      */
-    public TinyProtocol(final Plugin plugin) {
+    public TinyProtocol7(final Plugin plugin) {
         this.plugin = plugin;
 
         // Compute handler name
@@ -405,6 +418,20 @@ public abstract class TinyProtocol {
         return channel;
     }
 
+    public int getProtocolVersion(Player player) {
+        Channel channel = channelLookup.get(player.getName());
+
+        // Lookup channel again
+        if (channel == null) {
+            Object connection = getConnection.get(getPlayerHandle.invoke(player));
+            Object manager = getManager.get(connection);
+
+            channelLookup.put(player.getName(), channel = getChannel.get(manager));
+        }
+
+        return protocolLookup.get(channel);
+    }
+
     /**
      * Uninject a specific player.
      *
@@ -519,6 +546,10 @@ public abstract class TinyProtocol {
             if (PACKET_LOGIN_IN_START.isInstance(packet)) {
                 GameProfile profile = getGameProfile.get(packet);
                 channelLookup.put(profile.getName(), channel);
+            } else if (PACKET_HANDSHAKING_IN_SET_PROTOCOL.isInstance(packet)) {
+                if (protocolType.get(packet).name().equalsIgnoreCase("LOGIN")) {
+                    protocolLookup.put(channel, protocolId.get(packet));
+                }
             }
         }
     }

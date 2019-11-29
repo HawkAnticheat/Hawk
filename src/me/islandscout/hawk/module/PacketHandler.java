@@ -135,20 +135,14 @@ public class PacketHandler implements Listener {
     }
 
     public void startListener() {
-        try {
-            if (serverVersion == 7) {
-                packetListener = new PacketListener7(this, async);
-                hawk.getLogger().info("Using NMS 1.7_R4 NIO for packet interception.");
-            } else if (serverVersion == 8) {
-                packetListener = new PacketListener8(this, async);
-                hawk.getLogger().info("Using NMS 1.8_R3 NIO for packet interception.");
-            } else {
-                warnConsole(hawk);
-                return;
-            }
-        } catch (NoClassDefFoundError e) {
-            e.printStackTrace();
-            hawk.disable();
+        if (serverVersion == 7) {
+            packetListener = new PacketListener7(this, async, hawk);
+            hawk.getLogger().info("Using TinyProtocol for packet interception.");
+        } else if (serverVersion == 8) {
+            packetListener = new PacketListener8(this, async, hawk);
+            hawk.getLogger().info("Using TinyProtocol for packet interception.");
+        } else {
+            warnConsole(hawk);
             return;
         }
         packetListener.enable();
@@ -165,26 +159,9 @@ public class PacketHandler implements Listener {
         hawk.disable();
     }
 
-    public void killListener() {
+    public void stopListener() {
         if(packetListener != null)
             packetListener.disable();
-    }
-
-    public void setupListenerForOnlinePlayers() {
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            hawk.getHawkPlayer(p).setOnline(true);
-            setupListenerForPlayer(p);
-        }
-    }
-
-    private void setupListenerForPlayer(Player p) {
-        if(packetListener != null)
-            packetListener.addListener(p);
-    }
-
-    @EventHandler
-    public void onJoin(PlayerJoinEvent e) {
-        setupListenerForPlayer(e.getPlayer());
     }
 
     public void addPacketAdapterInbound(PacketAdapter adapter) {

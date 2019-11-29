@@ -40,24 +40,6 @@ public final class ServerUtils {
         return -1;
     }
 
-    //ONLY WORKS ON SPIGOT #1649 OR DERIVATIVES
-    public static int getClientVersion(Player p) {
-        if (Hawk.getServerVersion() == 7) {
-            int protocol = ((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer) p).getHandle().playerConnection.networkManager.getVersion();
-            if (protocol == 47)
-                return 8;
-            else if (protocol == 5)
-                return 7;
-            /*
-            If above causes issues for people not running 1.7.10, try this:
-
-            Integer ver = (Integer)channel.attr(protocolVersion).get();
-            return ver != null ? ver.intValue() : 5;
-             */
-        }
-        return 8;
-    }
-
     public static double getTps() {
         if (Hawk.getServerVersion() == 8)
             return net.minecraft.server.v1_8_R3.MinecraftServer.getServer().recentTps[0];

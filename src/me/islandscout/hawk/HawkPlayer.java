@@ -119,6 +119,7 @@ public class HawkPlayer {
     private List<Pair<MetaData, Long>> metaDataUpdates;
     private Set<Entity> entitiesInteractedInThisTick;
     private List<Double> lastPings;
+    private int clientVersion;
 
     HawkPlayer(Player p, Hawk hawk) {
         this.uuid = p.getUniqueId();
@@ -148,6 +149,7 @@ public class HawkPlayer {
         metaDataUpdates = new CopyOnWriteArrayList<>();
         entitiesInteractedInThisTick = new HashSet<>();
         lastPings = new CopyOnWriteArrayList<>();
+        clientVersion = hawk.getPacketHandler().getPacketListener().getProtocolVersion(p) == 47 ? 8 : 7;
     }
 
     public void tick() {
@@ -860,4 +862,7 @@ public class HawkPlayer {
         return WrappedEntity.getWrappedEntity(p).getHitbox(position);
     }
 
+    public int getClientVersion() {
+        return clientVersion;
+    }
 }

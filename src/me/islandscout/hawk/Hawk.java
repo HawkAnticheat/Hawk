@@ -123,7 +123,6 @@ public class Hawk extends JavaPlugin {
         checkManager.loadChecks();
         packetHandler = new PacketHandler(this);
         packetHandler.startListener();
-        packetHandler.setupListenerForOnlinePlayers();
         mouseRecorder = new MouseRecorder(this);
 
         registerCommand();
@@ -134,7 +133,7 @@ public class Hawk extends JavaPlugin {
     public void unloadModules() {
         getLogger().info("Unloading modules...");
         if(packetHandler != null)
-            packetHandler.killListener();
+            packetHandler.stopListener();
         getCommand("hawk").setExecutor(null);
         HandlerList.unregisterAll(this);
         if(guiManager != null)

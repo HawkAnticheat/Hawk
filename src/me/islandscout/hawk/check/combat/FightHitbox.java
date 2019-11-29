@@ -118,7 +118,7 @@ public class FightHitbox extends CustomCheck implements Cancelless {
                 float yaw;
                 float pitch;
                 //In 1.8, the yaw of the cursor is updated in a tick-by-tick basis.
-                if(ServerUtils.getClientVersion(move.getPlayer()) == 8) {
+                if(event.getHawkPlayer().getClientVersion() == 8) {
                     yaw = event.getHawkPlayer().getYaw();
                 } else {
                     yaw = move.getTo().getYaw();

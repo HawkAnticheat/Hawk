@@ -40,24 +40,24 @@ public class DevArgument extends Argument {
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        sender.sendMessage("Server ver.: " + Bukkit.getVersion());
-        sender.sendMessage("Bukkit ver.: " + Bukkit.getBukkitVersion());
+        sender.sendMessage("Server version: " + Bukkit.getVersion());
+        sender.sendMessage("Bukkit version: " + Bukkit.getBukkitVersion());
         String nmsPackage = "";
         if (Hawk.getServerVersion() == 8)
             nmsPackage = net.minecraft.server.v1_8_R3.MinecraftServer.class.getPackage().getName();
         else if (Hawk.getServerVersion() == 7)
             nmsPackage = net.minecraft.server.v1_7_R4.MinecraftServer.class.getPackage().getName();
-        sender.sendMessage("NMS ver.: " + nmsPackage.substring(nmsPackage.lastIndexOf(".") + 1));
-        sender.sendMessage("Hawk ver.: " + Hawk.BUILD_NAME);
+        sender.sendMessage("NMS version: " + nmsPackage.substring(nmsPackage.lastIndexOf(".") + 1));
+        sender.sendMessage("Hawk version: " + Hawk.BUILD_NAME);
         boolean async = hawk.getPacketHandler().getPacketListener().isAsync();
         sender.sendMessage("Async checking: " + (async ? ChatColor.RED + "" : "") + async);
         sender.sendMessage("Java info: " + System.getProperty("java.version") + "; " + System.getProperty("java.vm.vendor") + "; " + System.getProperty("java.vm.name"));
         if (sender instanceof Player) {
-            int clientVer = ServerUtils.getClientVersion((Player) sender);
-            sender.sendMessage("Possible client ver.: 1." + clientVer + ".x");
+            int clientVer = hawk.getHawkPlayer((Player) sender).getClientVersion();
+            sender.sendMessage("Client version: 1." + clientVer + ".x");
             sender.sendMessage("Ping: " + ServerUtils.getPing((Player) sender) + "ms");
         } else {
-            sender.sendMessage("Possible client ver.: N/A");
+            sender.sendMessage("Client version: N/A");
             sender.sendMessage("Ping: N/A");
         }
         sender.sendMessage("TPS: " + ServerUtils.getTps());
