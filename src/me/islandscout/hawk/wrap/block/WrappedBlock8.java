@@ -94,7 +94,7 @@ public class WrappedBlock8 extends WrappedBlock {
                 b.getType() == org.bukkit.Material.CARPET || matData instanceof Ladder ||
                 b.getType() == Material.REDSTONE_COMPARATOR || b.getType() == Material.REDSTONE_COMPARATOR_ON ||
                 b.getType() == Material.REDSTONE_COMPARATOR_OFF || b.getType() == Material.SOIL ||
-                b.getType() == Material.WATER_LILY || b.getType() == Material.SNOW) {
+                b.getType() == Material.WATER_LILY || b.getType() == Material.SNOW || b.getType() == Material.COCOA) {
             reallySolid = true;
         }
         return reallySolid;
