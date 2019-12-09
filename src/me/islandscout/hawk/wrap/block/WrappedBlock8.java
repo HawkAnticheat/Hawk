@@ -91,7 +91,7 @@ public class WrappedBlock8 extends WrappedBlock {
         if (matData instanceof Sign || matData instanceof Banner)
             reallySolid = false;
         else if (matData instanceof FlowerPot || matData instanceof Diode || matData instanceof Skull ||
-                b.getType() == org.bukkit.Material.CARPET || matData instanceof Ladder ||
+                b.getType() == Material.CARPET || matData instanceof Ladder ||
                 b.getType() == Material.REDSTONE_COMPARATOR || b.getType() == Material.REDSTONE_COMPARATOR_ON ||
                 b.getType() == Material.REDSTONE_COMPARATOR_OFF || b.getType() == Material.SOIL ||
                 b.getType() == Material.WATER_LILY || b.getType() == Material.SNOW || b.getType() == Material.COCOA) {

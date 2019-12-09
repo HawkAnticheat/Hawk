@@ -51,6 +51,7 @@ public class PacketHandler implements Listener {
     private PacketListener packetListener;
     private List<HawkEventListener> hawkEventListeners;
     private final boolean async;
+    //TODO protocol version number support (some mode, which enabled will enable that special code, but prevent reloads)
 
     public PacketHandler(Hawk hawk) {
         this.serverVersion = Hawk.getServerVersion();
