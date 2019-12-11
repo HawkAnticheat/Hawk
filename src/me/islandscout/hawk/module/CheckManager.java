@@ -64,12 +64,12 @@ public class CheckManager {
 
     //initialize checks
     public void loadChecks() {
+        new TickRate();
         new FightHitbox();
         new Phase();
         new Fly();
-        //new BlockBreakSpeed();
+        //new NewFly();
         new BlockBreakSpeedSurvival();
-        new TickRate();
         new Inertia();
         new BlockBreakDirection();
         new WrongBlock();
@@ -107,7 +107,6 @@ public class CheckManager {
         new FabricatedBlockInteract();
         //new InventoryMove();
         new InventoryActions();
-        //new NewFly();
     }
 
     public void unloadChecks() {

@@ -100,7 +100,8 @@ public class TickRate extends MovementCheck implements Listener {
         //drift > 0: clock is ahead
         //drift < 0: clock is behind
         long drift = clockDrift.getOrDefault(p.getUniqueId(), 0L);
-        drift += timeElapsed - 50000000L;
+        long delta = timeElapsed - 50000000L;
+        drift += delta;
         if (drift > MAX_CATCHUP_TIME)
             drift = MAX_CATCHUP_TIME;
         if (DEBUG) {
