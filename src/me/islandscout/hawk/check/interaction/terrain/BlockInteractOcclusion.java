@@ -46,7 +46,7 @@ public class BlockInteractOcclusion extends BlockInteractionCheck {
 
         Location bLoc = e.getTargetedBlockLocation();
         Block b = bLoc.getBlock();
-        WrappedBlock bNMS = WrappedBlock.getWrappedBlock(b);
+        WrappedBlock bNMS = WrappedBlock.getWrappedBlock(b, pp.getClientVersion());
         AABB targetAABB = new AABB(bNMS.getHitBox().getMin(), bNMS.getHitBox().getMax());
 
         double distance = targetAABB.distanceToPosition(eyePos);
@@ -59,7 +59,7 @@ public class BlockInteractOcclusion extends BlockInteractionCheck {
             if (bukkitBlock.getLocation().equals(bLoc))
                 break;
 
-            WrappedBlock iterBNMS = WrappedBlock.getWrappedBlock(bukkitBlock);
+            WrappedBlock iterBNMS = WrappedBlock.getWrappedBlock(bukkitBlock, pp.getClientVersion());
             AABB checkIntersection = new AABB(iterBNMS.getHitBox().getMin(), iterBNMS.getHitBox().getMax());
             Vector occludeIntersection = checkIntersection.intersectsRay(new Ray(eyePos, direction), 0, Float.MAX_VALUE);
             if (occludeIntersection != null) {

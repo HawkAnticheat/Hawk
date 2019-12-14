@@ -612,14 +612,14 @@ public class HawkPlayer {
         AABB box = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition);
         AABB preBox = box.clone();
         preBox.expand(-0.0001, -0.0001, -0.0001);
-        List<AABB> collidedBlocksBefore = preBox.getBlockAABBs(world);
+        List<AABB> collidedBlocksBefore = preBox.getBlockAABBs(world, getClientVersion());
 
         //clipping order: X, Z, Y
         //X
         box.expand(-0.00000001, -0.00000001, -0.00000001);
         boolean positive = pdX > 0;
         box.translate(new Vector(pdX, 0, 0));
-        List<AABB> collidedBlocks = box.getBlockAABBs(world);
+        List<AABB> collidedBlocks = box.getBlockAABBs(world, getClientVersion());
         collidedBlocks.removeAll(collidedBlocksBefore);
 
         double highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
@@ -639,7 +639,7 @@ public class HawkPlayer {
         //Z
         positive = pdZ > 0;
         box.translate(new Vector(0, 0, pdZ));
-        collidedBlocks = box.getBlockAABBs(world);
+        collidedBlocks = box.getBlockAABBs(world, getClientVersion());
         collidedBlocks.removeAll(collidedBlocksBefore);
 
         highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
@@ -659,7 +659,7 @@ public class HawkPlayer {
         //Y
         positive = pdY > 0;
         box.translate(new Vector(0, pdY, 0));
-        collidedBlocks = box.getBlockAABBs(world);
+        collidedBlocks = box.getBlockAABBs(world, getClientVersion());
         collidedBlocks.removeAll(collidedBlocksBefore);
 
         highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
@@ -692,7 +692,7 @@ public class HawkPlayer {
             Set<Location> ignored = new HashSet<>();
             for(Block b : bbox.getBlocks(world)) {
                 Location loc = b.getLocation();
-                for(AABB aabb : WrappedBlock.getWrappedBlock(b).getCollisionBoxes()) {
+                for(AABB aabb : WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes()) {
                     if(aabb.isColliding(bbox)) {
                         ignored.add(loc);
                         break;
@@ -706,7 +706,7 @@ public class HawkPlayer {
             Map<Location, List<AABB>> blocksInBBNew = new HashMap<>();
             for(Block b : bbox.getBlocks(world)) {
                 Location loc = b.getLocation();
-                List<AABB> aabbs = Arrays.asList(WrappedBlock.getWrappedBlock(b).getCollisionBoxes());
+                List<AABB> aabbs = Arrays.asList(WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes());
                 blocksInBBNew.put(loc, aabbs);
             }
             Set<Location> ignored = new HashSet<>();
@@ -726,7 +726,7 @@ public class HawkPlayer {
                 Block b = ServerUtils.getBlockAsync(loc);
                 if(b == null)
                     continue;
-                for(AABB aabb : WrappedBlock.getWrappedBlock(b).getCollisionBoxes()) {
+                for(AABB aabb : WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes()) {
                     if(aabb.isColliding(bbox)) {
                         ignored.add(loc);
                         break;

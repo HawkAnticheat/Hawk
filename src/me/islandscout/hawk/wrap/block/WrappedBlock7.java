@@ -19,8 +19,6 @@
 package me.islandscout.hawk.wrap.block;
 
 import me.islandscout.hawk.util.AABB;
-import me.islandscout.hawk.wrap.entity.WrappedEntity;
-import me.islandscout.hawk.wrap.entity.human.WrappedEntityHuman;
 import net.minecraft.server.v1_7_R4.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -40,8 +38,8 @@ public class WrappedBlock7 extends WrappedBlock {
 
     private final net.minecraft.server.v1_7_R4.Block block;
 
-    public WrappedBlock7(Block block) {
-        super(block);
+    public WrappedBlock7(Block block, int clientVersion) {
+        super(block, clientVersion);
         net.minecraft.server.v1_7_R4.Block b = ((CraftWorld) block.getWorld()).getHandle().getType(block.getLocation().getBlockX(), block.getLocation().getBlockY(), block.getLocation().getBlockZ());
 
         strength = b.f(null, 0, 0, 0);
@@ -93,7 +91,12 @@ public class WrappedBlock7 extends WrappedBlock {
         //define boxes for funny blocks
         if (b instanceof BlockCarpet) {
             AABB[] aabbarr = new AABB[1];
-            aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0, 1)));
+            if(clientVersion == 7) {
+                aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0, 1)));
+            }
+            else {
+                aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0.0625, 1)));
+            }
             return aabbarr;
         }
 

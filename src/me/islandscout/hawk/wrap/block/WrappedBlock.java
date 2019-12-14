@@ -33,9 +33,11 @@ public abstract class WrappedBlock {
     AABB[] collisionBoxes;
     boolean solid;
     float slipperiness;
+    int clientVersion;
 
-    WrappedBlock(Block obBlock) {
+    WrappedBlock(Block obBlock, int clientVersion) {
         this.obBlock = obBlock;
+        this.clientVersion = clientVersion;
     }
 
     public abstract Object getNMS();
@@ -72,11 +74,11 @@ public abstract class WrappedBlock {
         return false;
     }
 
-    public static WrappedBlock getWrappedBlock(Block b) {
+    public static WrappedBlock getWrappedBlock(Block b, int clientVersion) {
         if (Hawk.getServerVersion() == 8)
-            return new WrappedBlock8(b);
+            return new WrappedBlock8(b, clientVersion);
         else
-            return new WrappedBlock7(b);
+            return new WrappedBlock7(b, clientVersion);
     }
 
     public float getSlipperiness() {

@@ -18,7 +18,6 @@
 
 package me.islandscout.hawk.module;
 
-import com.comphenix.protocol.ProtocolLibrary;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;

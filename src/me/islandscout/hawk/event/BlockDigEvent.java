@@ -59,9 +59,9 @@ public class BlockDigEvent extends Event {
     @Override
     public void resync() {
         if (Hawk.getServerVersion() == 7) {
-            WrappedBlock7.getWrappedBlock(getBlock()).sendPacketToPlayer(pp.getPlayer());
+            WrappedBlock7.getWrappedBlock(getBlock(), pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
         } else if (Hawk.getServerVersion() == 8) {
-            WrappedBlock8.getWrappedBlock(getBlock()).sendPacketToPlayer(pp.getPlayer());
+            WrappedBlock8.getWrappedBlock(getBlock(), pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
         }
     }
 

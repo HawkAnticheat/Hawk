@@ -233,7 +233,7 @@ public final class PacketConverter8 {
             org.bukkit.block.Block b = ServerUtils.getBlockAsync(loc);
             if(b == null)
                 return null;
-            WrappedBlock block = new WrappedBlock8(b);
+            WrappedBlock block = new WrappedBlock8(b, pp.getClientVersion());
 
             pp.setDigging(digAction == BlockDigEvent.DigAction.START && block.getStrength() != 0);
             return new BlockDigEvent(p, pp, digAction, b, new WrappedPacket8(packet, WrappedPacket.PacketType.BLOCK_DIG));

@@ -43,7 +43,7 @@ public class SwimVertical extends MovementCheck {
         HawkPlayer pp = e.getHawkPlayer();
         double currentDeltaY = MathPlus.round(e.getTo().getY() - e.getFrom().getY(), 6);
         //TODO: optimize
-        Set<Direction> boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(e.getFrom().toVector().add(new Vector(-0.299, 0.001, -0.299)), e.getFrom().toVector().add(new Vector(0.299, 1.799, 0.299))), e.getFrom().getWorld(), 0.1);
+        Set<Direction> boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(e.getFrom().toVector().add(new Vector(-0.299, 0.001, -0.299)), e.getFrom().toVector().add(new Vector(0.299, 1.799, 0.299))), e.getFrom().getWorld(), 0.1, pp.getClientVersion());
 
         boolean readyToExit = boxSidesTouchingBlocks.size() > 0 && !e.isInLiquid() && pp.isInLiquid();
         boolean exiting = readyToExit && currentDeltaY == 0.34;

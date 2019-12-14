@@ -64,7 +64,7 @@ public class BlockBreakSpeed extends BlockDigCheck {
         }
         if (e.getDigAction() == BlockDigEvent.DigAction.COMPLETE || p.getGameMode() == GameMode.CREATIVE) {
             Block b = e.getBlock();
-            float hardness = WrappedBlock.getWrappedBlock(b).getStrength();
+            float hardness = WrappedBlock.getWrappedBlock(b, pp.getClientVersion()).getStrength();
 
 
             boolean harvestable = e.getBlock().getDrops(e.getPlayer().getItemInHand()).size() > 0 ||

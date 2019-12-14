@@ -46,7 +46,7 @@ public class WrongBlockFace extends BlockInteractionCheck {
         Block b = ServerUtils.getBlockAsync(e.getTargetedBlockLocation());
         AABB hitbox;
         if(b != null) {
-            hitbox = WrappedBlock.getWrappedBlock(b).getHitBox();
+            hitbox = WrappedBlock.getWrappedBlock(b, pp.getClientVersion()).getHitBox();
         }
         else {
             hitbox = new AABB(new Vector(), new Vector());

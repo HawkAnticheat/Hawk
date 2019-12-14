@@ -21,8 +21,6 @@ package me.islandscout.hawk.check.combat;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.check.CustomCheck;
-import me.islandscout.hawk.check.EntityInteractionCheck;
-import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.event.MoveEvent;
@@ -35,7 +33,6 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
 
@@ -192,7 +189,7 @@ public class FightHitbox extends CustomCheck implements Cancelless {
                     if (bukkitBlock.getType() == Material.AIR || bukkitBlock.isLiquid())
                         continue;
 
-                    WrappedBlock b = WrappedBlock.getWrappedBlock(bukkitBlock);
+                    WrappedBlock b = WrappedBlock.getWrappedBlock(bukkitBlock, att.getClientVersion());
                     Vector intersection = b.getHitBox().intersectsRay(new Ray(attackerEyeLocation.toVector(), attackerDirection), 0, Float.MAX_VALUE);
                     if (intersection != null) {
                         if (intersection.distance(eyePos) < interDistance) {

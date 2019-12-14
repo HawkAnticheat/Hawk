@@ -39,8 +39,8 @@ public class WrappedBlock8 extends WrappedBlock {
 
     private final net.minecraft.server.v1_8_R3.Block block;
 
-    public WrappedBlock8(Block block) {
-        super(block);
+    public WrappedBlock8(Block block, int clientVersion) {
+        super(block, clientVersion);
         BlockPosition.MutableBlockPosition bPos = new BlockPosition.MutableBlockPosition();
         bPos.c(block.getX(), block.getY(), block.getZ());
         IBlockData data = ((CraftWorld) block.getWorld()).getHandle().getType(bPos);
@@ -105,7 +105,13 @@ public class WrappedBlock8 extends WrappedBlock {
         //define boxes for funny blocks
         if (b instanceof BlockCarpet) {
             AABB[] aabbarr = new AABB[1];
-            aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0.0625, 1)));
+            if(clientVersion == 8) {
+                aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0.0625, 1)));
+            }
+            else {
+                aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0, 1)));
+            }
+
             return aabbarr;
         }
         if (b instanceof BlockSnow && data.get(BlockSnow.LAYERS) == 1) {

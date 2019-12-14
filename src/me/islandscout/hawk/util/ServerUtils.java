@@ -42,6 +42,10 @@ public final class ServerUtils {
     }
 
     public static int getProtocolVersion(Player p) {
+        //if pLib installed
+        //do that crap
+        //otherwise, if server is on 1_7_R4, do the playerConnection stuff
+        //otherwise return protocol corresponding w/ this server version
         return ProtocolLibrary.getProtocolManager().getProtocolVersion(p);
     }
 
@@ -87,7 +91,7 @@ public final class ServerUtils {
         if (loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
             ClientBlock cb = pp.getClientBlocks().get(loc);
             if (cb == null) {
-                return WrappedBlock.getWrappedBlock(loc.getBlock()).getCollisionBoxes();
+                return WrappedBlock.getWrappedBlock(loc.getBlock(), pp.getClientVersion()).getCollisionBoxes();
             }
 
             AABB[] result = {null};

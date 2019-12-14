@@ -18,6 +18,7 @@
 
 package me.islandscout.hawk.wrap.itemstack;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
@@ -34,7 +35,7 @@ public class WrappedItemStack8 extends WrappedItemStack {
     @Override
     public float getDestroySpeed(Block obbBlock) {
         net.minecraft.server.v1_8_R3.Block block =
-                (net.minecraft.server.v1_8_R3.Block) WrappedBlock.getWrappedBlock(obbBlock).getNMS();
+                (net.minecraft.server.v1_8_R3.Block) WrappedBlock.getWrappedBlock(obbBlock, Hawk.getServerVersion()).getNMS();
         if(itemStack == null)
             return 1F;
         return itemStack.a(block);
@@ -43,7 +44,7 @@ public class WrappedItemStack8 extends WrappedItemStack {
     @Override
     public boolean canDestroySpecialBlock(Block obbBlock) {
         net.minecraft.server.v1_8_R3.Block block =
-                (net.minecraft.server.v1_8_R3.Block) WrappedBlock.getWrappedBlock(obbBlock).getNMS();
+                (net.minecraft.server.v1_8_R3.Block) WrappedBlock.getWrappedBlock(obbBlock, Hawk.getServerVersion()).getNMS();
         if(itemStack == null)
             return false;
         return itemStack.b(block);

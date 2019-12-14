@@ -113,7 +113,7 @@ public class Phase extends MovementCheck {
                         if (bukkitBlock == null)
                             continue;
 
-                        WrappedBlock block = WrappedBlock.getWrappedBlock(bukkitBlock);
+                        WrappedBlock block = WrappedBlock.getWrappedBlock(bukkitBlock, pp.getClientVersion());
                         if (!block.isSolid())
                             continue;
 

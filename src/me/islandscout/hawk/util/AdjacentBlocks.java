@@ -158,14 +158,14 @@ public class AdjacentBlocks {
      * @param yVelocity      Y-velocity
      * @param ignoreInGround return false if location is inside something
      * @param feetDepth Don't set this too low. The client doesn't like to send moves unless they are significant enough.
-     * @param hawkPlayer
+     * @param pp
      * @return boolean
      */
     //TODO: this still needs to get optimized. Replace List with Set
     //TODO: Pleaaaaaase fix this when jumping onto edges of blocks
     //if not sure what your velocity is, just put -1 for velocity
     //if you just want to check for location, just put -1 for velocity
-    public static boolean onGroundReally(Location loc, double yVelocity, boolean ignoreInGround, double feetDepth, HawkPlayer hawkPlayer) {
+    public static boolean onGroundReally(Location loc, double yVelocity, boolean ignoreInGround, double feetDepth, HawkPlayer pp) {
         if (yVelocity > 0.5625) //allows stepping up short blocks, but not full blocks
             return false;
         //If too low, this might set off fly false flags when jumping on edge of blocks.
@@ -176,7 +176,7 @@ public class AdjacentBlocks {
         Block prevBlock = null;
         for (int i = blocks.size() - 1; i >= 0; i--) {
             Block currBlock = blocks.get(i);
-            if (currBlock.equals(prevBlock) || hawkPlayer.getIgnoredBlockCollisions().contains(currBlock.getLocation())) {
+            if (currBlock.equals(prevBlock) || pp.getIgnoredBlockCollisions().contains(currBlock.getLocation())) {
                 blocks.remove(i);
             }
             prevBlock = currBlock;
@@ -184,7 +184,7 @@ public class AdjacentBlocks {
 
         AABB underFeet = new AABB(loc.toVector().add(new Vector(-0.3, -feetDepth, -0.3)), loc.toVector().add(new Vector(0.3, 0, 0.3)));
         for (Block block : blocks) {
-            WrappedBlock bNMS = WrappedBlock.getWrappedBlock(block);
+            WrappedBlock bNMS = WrappedBlock.getWrappedBlock(block, pp.getClientVersion());
             if (block.isLiquid() || (!bNMS.isSolid() && Hawk.getServerVersion() == 8))
                 continue;
             if (bNMS.isColliding(underFeet)) {
@@ -194,10 +194,10 @@ public class AdjacentBlocks {
                     AABB topFeet = underFeet.clone();
                     topFeet.translate(new Vector(0, feetDepth + 0.00001, 0));
                     for (Block block1 : AdjacentBlocks.getBlocksInLocation(loc)) {
-                        WrappedBlock bNMS1 = WrappedBlock.getWrappedBlock(block1);
+                        WrappedBlock bNMS1 = WrappedBlock.getWrappedBlock(block1, pp.getClientVersion());
                         if (block1.isLiquid() || (!bNMS1.isSolid() && Hawk.getServerVersion() == 8) ||
                                 block1.getState().getData() instanceof Openable ||
-                                hawkPlayer.getIgnoredBlockCollisions().contains(block1.getLocation()))
+                                pp.getIgnoredBlockCollisions().contains(block1.getLocation()))
                             continue;
                         if (bNMS1.isColliding(topFeet))
                             return false;
@@ -226,7 +226,7 @@ public class AdjacentBlocks {
             if(b == null)
                 continue;
             if(hawkDefinition) {
-                if(WrappedBlock.getWrappedBlock(b).isSolid())
+                if(WrappedBlock.getWrappedBlock(b, Hawk.getServerVersion()).isSolid())
                     return true;
             }
             else if(b.getType().isSolid())
@@ -235,18 +235,18 @@ public class AdjacentBlocks {
         return false;
     }
 
-    public static Set<Direction> checkTouchingBlock(AABB boundingBox, World world, double borderSize) {
+    public static Set<Direction> checkTouchingBlock(AABB boundingBox, World world, double borderSize, int clientVersion) {
         AABB bigBox = boundingBox.clone();
         Vector min = bigBox.getMin().add(new Vector(-borderSize, -borderSize, -borderSize));
         Vector max = bigBox.getMax().add(new Vector(borderSize, borderSize, borderSize));
         Set<Direction> directions = new HashSet<>();
-        //Don't ask why I'm subtracting 1 when the coordinate is less than 0. Beats me too.
+        //The coordinates should be floored, but this works too.
         for(int x = (int)(min.getX() < 0 ? min.getX() - 1 : min.getX()); x <= max.getX(); x++) {
             for(int y = (int)min.getY() - 1; y <= max.getY(); y++) { //always subtract 1 so that fences/walls can be checked
                 for(int z = (int)(min.getZ() < 0 ? min.getZ() - 1 : min.getZ()); z <= max.getZ(); z++) {
                     Block b = ServerUtils.getBlockAsync(new Location(world, x, y, z));
                     if(b != null) {
-                        WrappedBlock bNMS = WrappedBlock.getWrappedBlock(b);
+                        WrappedBlock bNMS = WrappedBlock.getWrappedBlock(b, clientVersion);
                         for(AABB blockBox : bNMS.getCollisionBoxes()) {
                             if(blockBox.getMin().getX() > boundingBox.getMax().getX() && blockBox.getMin().getX() < bigBox.getMax().getX()) {
                                 directions.add(Direction.EAST);

@@ -126,7 +126,7 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
     private float getDamage(Block block, HawkPlayer pp) {
         if(block == null || ServerUtils.getBlockAsync(block.getLocation()) == null)
             return 0;
-        WrappedBlock wBlock = WrappedBlock.getWrappedBlock(block);
+        WrappedBlock wBlock = WrappedBlock.getWrappedBlock(block, pp.getClientVersion());
         float strength = wBlock.getStrength();
         return strength < 0.0F ? 0.0F : (!isDestroyableByHeldItem(wBlock, pp) ? getCurrentPlayerStrVsBlock(wBlock, false, pp) / strength / 100.0F : getCurrentPlayerStrVsBlock(wBlock, true, pp) / strength / 30.0F);
     }

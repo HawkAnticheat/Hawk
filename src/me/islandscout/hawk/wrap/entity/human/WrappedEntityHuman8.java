@@ -18,6 +18,7 @@
 
 package me.islandscout.hawk.wrap.entity.human;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity8;
 import net.minecraft.server.v1_8_R3.EntityHuman;
@@ -32,14 +33,14 @@ public class WrappedEntityHuman8 extends WrappedEntity8 implements WrappedEntity
 
     @Override
     public boolean canHarvestBlock(Block block) {
-        Object obj = WrappedBlock.getWrappedBlock(block).getNMS();
+        Object obj = WrappedBlock.getWrappedBlock(block, Hawk.getServerVersion()).getNMS();
         net.minecraft.server.v1_8_R3.Block b = (net.minecraft.server.v1_8_R3.Block) obj;
         return ((EntityHuman) nmsEntity).b(b);
     }
 
     @Override
     public float getCurrentPlayerStrVsBlock(Block block, boolean flag) {
-        Object obj = WrappedBlock.getWrappedBlock(block).getNMS();
+        Object obj = WrappedBlock.getWrappedBlock(block, Hawk.getServerVersion()).getNMS();
         net.minecraft.server.v1_8_R3.Block b = (net.minecraft.server.v1_8_R3.Block) obj;
         return ((EntityHuman) nmsEntity).a(b);
     }

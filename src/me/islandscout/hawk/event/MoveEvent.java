@@ -78,7 +78,7 @@ public class MoveEvent extends Event {
         this.liquidTypes = new HashSet<>();
         this.step = testStep();
         hitSlowdown = pp.hasHitSlowdown();
-        boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld(), 0.0001);
+        boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld(), 0.0001, pp.getClientVersion());
         acceptedKnockback = handlePendingVelocities();
         liquidsAndDirections = testLiquids();
         inLiquid = liquidsAndDirections.size() > 0;
@@ -192,7 +192,7 @@ public class MoveEvent extends Event {
         List<Block> blocks = liquidTest.getBlocks(p.getWorld());
         for(Block b : blocks) {
             if(Physics.liquidDefs.contains(b.getType())) {
-                Vector direction = WrappedBlock.getWrappedBlock(b).getFlowDirection();
+                Vector direction = WrappedBlock.getWrappedBlock(b, pp.getClientVersion()).getFlowDirection();
                 liquids.add(new Pair<>(b, direction));
                 this.liquidTypes.add(b.getType());
             }
@@ -244,7 +244,7 @@ public class MoveEvent extends Event {
             Vector pos = pp.getPosition();
             Block b = ServerUtils.getBlockAsync(new Location(pp.getWorld(), pos.getX(), pos.getY() - 1, pos.getZ()));
             if(b != null) {
-                friction *= WrappedBlock.getWrappedBlock(b).getSlipperiness();
+                friction *= WrappedBlock.getWrappedBlock(b, pp.getClientVersion()).getSlipperiness();
             }
         }
         return friction;
