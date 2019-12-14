@@ -149,7 +149,7 @@ public class HawkPlayer {
         metaDataUpdates = new CopyOnWriteArrayList<>();
         entitiesInteractedInThisTick = new HashSet<>();
         lastPings = new CopyOnWriteArrayList<>();
-        clientVersion = hawk.getPacketHandler().getPacketListener().getProtocolVersion(p) == 47 ? 8 : 7;
+        clientVersion = ServerUtils.getProtocolVersion(p) == 47 ? 8 : 7;
     }
 
     public void tick() {
@@ -864,5 +864,9 @@ public class HawkPlayer {
 
     public int getClientVersion() {
         return clientVersion;
+    }
+
+    public void setClientVersion(int protocolVersion) {
+        clientVersion = protocolVersion == 47 ? 8 : 7;
     }
 }

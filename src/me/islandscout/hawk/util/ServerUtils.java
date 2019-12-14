@@ -18,6 +18,7 @@
 
 package me.islandscout.hawk.util;
 
+import com.comphenix.protocol.ProtocolLibrary;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
@@ -38,6 +39,10 @@ public final class ServerUtils {
         if (Hawk.getServerVersion() == 7)
             return ((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer) p).getHandle().ping;
         return -1;
+    }
+
+    public static int getProtocolVersion(Player p) {
+        return ProtocolLibrary.getProtocolManager().getProtocolVersion(p);
     }
 
     public static double getTps() {

@@ -18,65 +18,77 @@
 
 package me.islandscout.hawk.module.listener;
 
-import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.module.PacketHandler;
-import me.islandscout.hawk.module.listener.tinyprotocol.TinyProtocol7;
-import net.minecraft.util.io.netty.channel.Channel;
+import net.minecraft.util.io.netty.channel.ChannelDuplexHandler;
+import net.minecraft.util.io.netty.channel.ChannelHandlerContext;
+import net.minecraft.util.io.netty.channel.ChannelPromise;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
+import java.lang.reflect.Field;
 
 public class PacketListener7 extends PacketListener {
 
-    private TinyProtocol7 tP;
-
-    public PacketListener7(PacketHandler packetHandler, boolean async, Hawk hawk) {
-        super(packetHandler, async, hawk);
+    public PacketListener7(PacketHandler packetHandler, boolean async) {
+        super(packetHandler, async);
     }
 
-    @Override
-    public void enable() {
-        tP = new TinyProtocol7(hawk) {
-
+    public void add(Player p) {
+        ChannelDuplexHandler channelDuplexHandler = new ChannelDuplexHandler() {
             @Override
-            public Object onPacketInAsync(Player sender, Channel channel, Object packet) {
+            public void channelRead(ChannelHandlerContext context, Object packet) throws Exception {
 
-                if(sender == null) {
-                    return super.onPacketInAsync(null, channel, packet);
-                }
+                if(!processIn(packet, p))
+                    return;
 
-                if(!processIn(packet, sender))
-                    return null;
-
-                return super.onPacketInAsync(sender, channel, packet);
+                super.channelRead(context, packet);
             }
 
             @Override
-            public Object onPacketOutAsync(Player reciever, Channel channel, Object packet) {
+            public void write(ChannelHandlerContext context, Object packet, ChannelPromise promise) throws Exception {
 
-                if(reciever == null) {
-                    return super.onPacketInAsync(null, channel, packet);
-                }
+                if(!processOut(packet, p))
+                    return;
 
-                if(!processOut(packet, reciever))
-                    return null;
-
-                return super.onPacketOutAsync(reciever, channel, packet);
+                super.write(context, packet, promise);
             }
-
         };
-        super.enable();
-    }
-
-    @Override
-    public void disable() {
-        if(tP != null) {
-            tP.close();
-            tP = null;
+        try {
+            Field channelField = ((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer) p).getHandle().playerConnection.networkManager.getClass().getDeclaredField("m");
+            channelField.setAccessible(true);
+            net.minecraft.util.io.netty.channel.Channel channel = (net.minecraft.util.io.netty.channel.Channel) channelField.get(((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer) p).getHandle().playerConnection.networkManager);
+            channelField.setAccessible(false);
+            net.minecraft.util.io.netty.channel.ChannelPipeline pipeline = channel.pipeline();
+            if (pipeline == null)
+                return;
+            String handlerName = "hawk_packet_processor";
+            if (pipeline.get(handlerName) != null)
+                pipeline.remove(handlerName);
+            pipeline.addBefore("packet_handler", handlerName, channelDuplexHandler);
+        } catch (ReflectiveOperationException | SecurityException e) {
+            e.printStackTrace();
         }
-        super.disable();
     }
 
-    @Override
-    public int getProtocolVersion(Player player) {
-        return tP.getProtocolVersion(player);
+    public void removeAll() {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            try {
+                Field channelField = ((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer) p).getHandle().playerConnection.networkManager.getClass().getDeclaredField("m");
+                channelField.setAccessible(true);
+                net.minecraft.util.io.netty.channel.Channel channel = (net.minecraft.util.io.netty.channel.Channel) channelField.get(((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer) p).getHandle().playerConnection.networkManager);
+                channelField.setAccessible(false);
+                net.minecraft.util.io.netty.channel.ChannelPipeline pipeline = channel.pipeline();
+                String handlerName = "hawk_packet_processor";
+                if (pipeline.get(handlerName) != null)
+                    pipeline.remove(handlerName);
+                //old. Should probably use this since it might have to do with concurrency safety
+                /*channel.eventLoop().submit(() -> {
+                    channel.pipeline().remove("hawk" + p.getName());
+                    return null;
+                });*/
+            } catch (ReflectiveOperationException | SecurityException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

@@ -18,11 +18,11 @@
 
 package me.islandscout.hawk.module;
 
+import com.comphenix.protocol.ProtocolLibrary;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.WrappedWatchableObject;
@@ -57,11 +57,17 @@ public class PlayerManager implements Listener {
         }, 40);
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onLogin(PlayerLoginEvent e) {
         Player p = e.getPlayer();
         hawk.addProfile(p); //This line is necessary since it must get called BEFORE hawk listens to the player's packets
         hawk.getHawkPlayer(p).setOnline(true);
+    }
+
+    //Set protocol version
+    @EventHandler
+    public void onJoin(PlayerJoinEvent e) {
+        hawk.getHawkPlayer(e.getPlayer()).setClientVersion(ServerUtils.getProtocolVersion(e.getPlayer()));
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

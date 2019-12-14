@@ -123,6 +123,7 @@ public class Hawk extends JavaPlugin {
         checkManager.loadChecks();
         packetHandler = new PacketHandler(this);
         packetHandler.startListener();
+        packetHandler.setupListenerForOnlinePlayers();
         mouseRecorder = new MouseRecorder(this);
 
         registerCommand();
