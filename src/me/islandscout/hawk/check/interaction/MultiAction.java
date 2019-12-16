@@ -20,17 +20,10 @@ package me.islandscout.hawk.check.interaction;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.CustomCheck;
-import me.islandscout.hawk.event.BlockDigEvent;
-import me.islandscout.hawk.event.Event;
-import me.islandscout.hawk.event.InteractEntityEvent;
-import me.islandscout.hawk.event.InteractWorldEvent;
+import me.islandscout.hawk.event.*;
+import me.islandscout.hawk.util.Debug;
 
 public class MultiAction extends CustomCheck {
-
-    //I think 1.7 clients can punch blocks while eating/blocking. I might need to look into this.
-    //TODO verify that you aren't sprinting while you're sneaking
-    //TODO verify that you aren't using something while sprinting
-    //TODO verify that you aren't placing blocks while digging
 
     public MultiAction() {
         super("multiaction", false, 0, 10, 0.95, 5000, "%player% failed multi-action, VL: %vl%", null);
@@ -40,11 +33,30 @@ public class MultiAction extends CustomCheck {
     protected void check(Event event) {
         if(!(event instanceof InteractEntityEvent ||
                 event instanceof InteractWorldEvent ||
-                event instanceof BlockDigEvent))
+                event instanceof BlockDigEvent ||
+                event instanceof InteractItemEvent))
             return;
+
         HawkPlayer pp = event.getHawkPlayer();
-        if(pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow()) {
+
+        //interacting while using item
+        if(!(event instanceof InteractItemEvent) && pp.getClientVersion() == 8 &&
+                (pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow())) {
+            Debug.broadcastMessage("A");
             punish(pp, 1, true, event);
+            event.resync();
+        }
+        //interacting while digging
+        else if(pp.isDigging() && !(event instanceof BlockDigEvent && ((BlockDigEvent) event).getDigAction() != BlockDigEvent.DigAction.START)) {
+            Debug.broadcastMessage("B");
+            punish(pp, 1, true, event);
+            event.resync();
+        }
+        //sprint while sneaking
+        else if(pp.isSprinting() && pp.isSneaking()) {
+            Debug.broadcastMessage("C");
+            punish(pp, 1, true, event);
+            event.resync();
         }
         else {
             reward(pp);

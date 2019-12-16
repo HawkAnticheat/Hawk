@@ -45,6 +45,7 @@ public class EntityInteractDirection extends EntityInteractionCheck {
 
     @Override
     protected void check(InteractEntityEvent e) {
+        Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
         Entity victimEntity = e.getEntity();
         if (!(victimEntity instanceof Player) && !CHECK_OTHER_ENTITIES)
@@ -52,7 +53,14 @@ public class EntityInteractDirection extends EntityInteractionCheck {
         int ping = ServerUtils.getPing(e.getPlayer());
         if (PING_LIMIT > -1 && ping > PING_LIMIT)
             return;
-        Vector pos = pp.getPosition().clone().add(new Vector(0, pp.isSneaking() ? 1.54 : 1.62, 0));
+        Vector pos;
+        if(pp.isInVehicle()) {
+            pos = hawk.getLagCompensator().getHistoryLocation(ping, p).toVector();
+            pos.setY(pos.getY() + p.getEyeHeight());
+        }
+        else {
+            pos = pp.getHeadPosition();
+        }
         //As I always say in math class, converting polar coordinates to rectangular coordinates is a pain in
         //the ass. If you want to use the previous direction vector, you cannot make an accurate cut through the AABB
         //using only the previous and extrapolated direction vectors. You'd think you could since the extrapolation

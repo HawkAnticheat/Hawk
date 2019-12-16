@@ -24,8 +24,6 @@ import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.WrappedWatchableObject;
-import me.islandscout.hawk.wrap.block.WrappedBlock;
-import me.islandscout.hawk.wrap.block.WrappedBlock7;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import me.islandscout.hawk.wrap.packet.WrappedPacket7;
 import net.minecraft.server.v1_7_R4.*;
@@ -218,9 +216,7 @@ public final class PacketConverter7 {
             org.bukkit.block.Block b = ServerUtils.getBlockAsync(loc);
             if(b == null)
                 return null;
-            WrappedBlock block = new WrappedBlock7(b, pp.getClientVersion());
 
-            pp.setDigging(digAction == BlockDigEvent.DigAction.START && block.getStrength() != 0);
             return new BlockDigEvent(p, pp, digAction, b, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_DIG));
         }
         ItemStack item = p.getInventory().getItem(pp.getHeldItemSlot());

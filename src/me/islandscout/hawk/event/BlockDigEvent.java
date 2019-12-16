@@ -21,6 +21,7 @@ package me.islandscout.hawk.event;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.ClientBlock;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.block.WrappedBlock7;
 import me.islandscout.hawk.wrap.block.WrappedBlock8;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
@@ -50,6 +51,7 @@ public class BlockDigEvent extends Event {
 
     @Override
     public void postProcess() {
+        pp.setDigging(digAction == BlockDigEvent.DigAction.START && WrappedBlock.getWrappedBlock(block, pp.getClientVersion()).getStrength() != 0);
         if (!isCancelled() && getDigAction() == BlockDigEvent.DigAction.COMPLETE) {
             ClientBlock clientBlock = new ClientBlock(pp.getCurrentTick(), Material.AIR);
             pp.addClientBlock(getBlock().getLocation(), clientBlock);

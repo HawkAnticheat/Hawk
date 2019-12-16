@@ -27,6 +27,7 @@ import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
+import org.bukkit.entity.Player;
 
 /** This check prevents players from interacting on
  * unavailable locations on blocks. Players must be
@@ -52,8 +53,18 @@ public class WrongBlockFace extends BlockInteractionCheck {
             hitbox = new AABB(new Vector(), new Vector());
         }
 
+        Vector headPos;
+        if(pp.isInVehicle()) {
+            Player p = e.getPlayer();
+            headPos = hawk.getLagCompensator().getHistoryLocation(ServerUtils.getPing(p), p).toVector();
+            headPos.setY(headPos.getY() + p.getEyeHeight());
+        }
+        else {
+            headPos = pp.getHeadPosition();
+        }
+
         if(e.getTargetedBlockFaceNormal().dot(MathPlus.getDirection(pp.getYaw(), pp.getPitch())) >= 0 &&
-            !hitbox.containsPoint(pp.getHeadPosition())) {
+            !hitbox.containsPoint(headPos)) {
             punishAndTryCancelAndBlockRespawn(pp, e);
         }
         else {

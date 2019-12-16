@@ -24,9 +24,11 @@ import me.islandscout.hawk.event.InteractWorldEvent;
 import me.islandscout.hawk.util.AABB;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Placeholder;
+import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
+import org.bukkit.entity.Player;
 
 public class BlockInteractReach extends BlockInteractionCheck {
 
@@ -41,6 +43,7 @@ public class BlockInteractReach extends BlockInteractionCheck {
 
     @Override
     protected void check(InteractWorldEvent e) {
+        Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
 
         Location bLoc = e.getTargetedBlockLocation();
@@ -48,7 +51,14 @@ public class BlockInteractReach extends BlockInteractionCheck {
         Vector max = bLoc.toVector().add(new Vector(1, 1, 1));
         AABB targetAABB = new AABB(min, max);
 
-        Vector ppPos = pp.getPosition().clone().add(new Vector(0D, pp.isSneaking() ? 1.54F : 1.62F, 0D));
+        Vector ppPos;
+        if(pp.isInVehicle()) {
+            ppPos = hawk.getLagCompensator().getHistoryLocation(ServerUtils.getPing(p), p).toVector();
+            ppPos.setY(ppPos.getY() + p.getEyeHeight());
+        }
+        else {
+            ppPos = pp.getHeadPosition();
+        }
 
         double maxReach = pp.getPlayer().getGameMode() == GameMode.CREATIVE ? MAX_REACH_CREATIVE : MAX_REACH;
         double dist = targetAABB.distanceToPosition(ppPos);

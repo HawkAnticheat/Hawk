@@ -56,6 +56,7 @@ public class EntityInteractReach extends EntityInteractionCheck {
         int ping = ServerUtils.getPing(e.getPlayer());
         if (PING_LIMIT > -1 && ping > PING_LIMIT)
             return;
+        Player p = e.getPlayer();
         HawkPlayer att = e.getHawkPlayer();
 
         Location victimLocation;
@@ -66,7 +67,14 @@ public class EntityInteractReach extends EntityInteractionCheck {
 
         AABB victimAABB = WrappedEntity.getWrappedEntity(victimEntity).getHitbox(victimLocation.toVector());
 
-        Vector attackerPos = att.getPosition().clone().add(new Vector(0D, att.isSneaking() ? 1.54F : 1.62F, 0D));
+        Vector attackerPos;
+        if(att.isInVehicle()) {
+            attackerPos = hawk.getLagCompensator().getHistoryLocation(ServerUtils.getPing(p), p).toVector();
+            attackerPos.setY(attackerPos.getY() + p.getEyeHeight());
+        }
+        else {
+            attackerPos = att.getHeadPosition();
+        }
 
         double maxReach = att.getPlayer().getGameMode() == GameMode.CREATIVE ? MAX_REACH_CREATIVE : MAX_REACH;
         double dist = victimAABB.distanceToPosition(attackerPos);

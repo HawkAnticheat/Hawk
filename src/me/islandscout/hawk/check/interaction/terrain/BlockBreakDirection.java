@@ -49,7 +49,14 @@ public class BlockBreakDirection extends BlockDigCheck {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
         Location bLoc = e.getBlock().getLocation();
-        Vector pos = pp.getPosition().clone().add(new Vector(0, pp.isSneaking() ? 1.54 : 1.62, 0));
+        Vector pos;
+        if(pp.isInVehicle()) {
+            pos = hawk.getLagCompensator().getHistoryLocation(ServerUtils.getPing(p), p).toVector();
+            pos.setY(pos.getY() + p.getEyeHeight());
+        }
+        else {
+            pos = pp.getHeadPosition();
+        }
         Vector dir = MathPlus.getDirection(pp.getYaw(), pp.getPitch());
         Vector extraDir = MathPlus.getDirection(pp.getYaw() + pp.getDeltaYaw(), pp.getPitch() + pp.getDeltaPitch());
 

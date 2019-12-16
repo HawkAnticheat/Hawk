@@ -104,7 +104,7 @@ public class Hawk extends JavaPlugin {
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, hawkSyncTaskScheduler, 0L, 1L);
 
         profiles = new ConcurrentHashMap<>();
-        getServer().getPluginManager().registerEvents(new PlayerManager(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerEventListener(this), this);
         sqlModule = new SQLModule(this);
         sqlModule.createTableIfNotExists();
         commandExecutor = new CommandExecutor(this);

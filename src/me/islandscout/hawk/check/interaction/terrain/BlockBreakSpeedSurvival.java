@@ -61,7 +61,7 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
 
     @Override
     protected void check(Event event) {
-        if(event instanceof MoveEvent)
+        if(event instanceof MoveEvent && event.getHawkPlayer().isDigging())
             tickDig(event.getHawkPlayer());
         else if(event instanceof BlockDigEvent)
             checkEvent((BlockDigEvent) event);
@@ -69,7 +69,7 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
 
     private void tickDig(HawkPlayer pp) {
         Block target = targetBlockMap.get(pp.getUuid());
-        if(pp.isDigging() && target != null && pp.getPlayer().getGameMode() == GameMode.SURVIVAL) {
+        if(target != null && pp.getPlayer().getGameMode() == GameMode.SURVIVAL) {
             float accumulatedDamage = blockDamageCumulativeMap.getOrDefault(pp.getUuid(), 0F);
             float damage = getDamage(target, pp);
             blockDamageCumulativeMap.put(pp.getUuid(), accumulatedDamage + damage);

@@ -22,6 +22,7 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.WrappedWatchableObject;
@@ -34,15 +35,17 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
+import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.util.Vector;
 
 import java.util.List;
 
-public class PlayerManager implements Listener {
+public class PlayerEventListener implements Listener {
 
     private final Hawk hawk;
 
-    public PlayerManager(Hawk hawk) {
+    public PlayerEventListener(Hawk hawk) {
         this.hawk = hawk;
 
         hawk.getHawkSyncTaskScheduler().addRepeatingTask(new Runnable() {
@@ -179,6 +182,32 @@ public class PlayerManager implements Listener {
 
                 break;
             }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void vehicleEnter(VehicleEnterEvent e) {
+        if(e.getEntered() instanceof Player) {
+            HawkPlayer pp = hawk.getHawkPlayer((Player)e.getEntered());
+            pp.sendSimulatedAction(new Runnable() {
+                @Override
+                public void run() {
+                    pp.setInVehicle(true);
+                }
+            });
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void vehicleExit(VehicleExitEvent e) {
+        if(e.getExited() instanceof Player) {
+            HawkPlayer pp = hawk.getHawkPlayer((Player)e.getExited());
+            pp.sendSimulatedAction(new Runnable() {
+                @Override
+                public void run() {
+                    pp.setInVehicle(false);
+                }
+            });
         }
     }
 }

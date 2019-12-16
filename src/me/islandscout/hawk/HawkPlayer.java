@@ -25,6 +25,7 @@ import me.islandscout.hawk.wrap.entity.MetaData;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import me.islandscout.hawk.wrap.entity.human.WrappedEntityHuman;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -97,6 +98,7 @@ public class HawkPlayer {
     private byte inventoryOpen; //0 for closed; 1 for own inventory; 2 for any other inventory
     private boolean inLiquid;
     private boolean swimming;
+    private boolean inVehicle;
     private long itemUseTick;
     private long lastAttackedPlayerTick;
     private long lastEntityInteractTick;
@@ -192,7 +194,7 @@ public class HawkPlayer {
     }
 
     public boolean isDigging() {
-        return digging;
+        return digging && p.getGameMode() != GameMode.CREATIVE;
     }
 
     //this should really not be public
@@ -308,10 +310,12 @@ public class HawkPlayer {
         this.world = world;
     }
 
+    //currently doesn't support when in vehicle
     public Vector getPosition() {
         return position;
     }
 
+    //currently doesn't support when in vehicle
     public Vector getHeadPosition() {
         Vector add = new Vector(0, 0, 0);
         add.setY(isSneaking() ? 1.54 : 1.62);
@@ -868,5 +872,13 @@ public class HawkPlayer {
 
     public void setClientVersion(int protocolVersion) {
         clientVersion = protocolVersion == 47 ? 8 : 7;
+    }
+
+    public boolean isInVehicle() {
+        return inVehicle;
+    }
+
+    public void setInVehicle(boolean inVehicle) {
+        this.inVehicle = inVehicle;
     }
 }
