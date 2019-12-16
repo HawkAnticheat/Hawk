@@ -42,19 +42,12 @@ public class MultiAction extends CustomCheck {
         //interacting while using item
         if(!(event instanceof InteractItemEvent) && pp.getClientVersion() == 8 &&
                 (pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow())) {
-            Debug.broadcastMessage("A");
             punish(pp, 1, true, event);
             event.resync();
         }
         //interacting while digging
-        else if(pp.isDigging() && !(event instanceof BlockDigEvent && ((BlockDigEvent) event).getDigAction() != BlockDigEvent.DigAction.START)) {
-            Debug.broadcastMessage("B");
-            punish(pp, 1, true, event);
-            event.resync();
-        }
-        //sprint while sneaking
-        else if(pp.isSprinting() && pp.isSneaking()) {
-            Debug.broadcastMessage("C");
+        else if(pp.getClientVersion() == 8 && pp.isDigging() &&
+                !(event instanceof BlockDigEvent && ((BlockDigEvent) event).getDigAction() != BlockDigEvent.DigAction.START)) {
             punish(pp, 1, true, event);
             event.resync();
         }

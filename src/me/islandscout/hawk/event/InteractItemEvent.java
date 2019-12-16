@@ -19,6 +19,7 @@
 package me.islandscout.hawk.event;
 
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -43,8 +44,8 @@ public class InteractItemEvent extends Event {
         if (!isCancelled()) {
             Material mat = getItemStack().getType();
             if(getType() == InteractItemEvent.Type.START_USE_ITEM) {
-                if((mat.isEdible() && p.getFoodLevel() < 20 && p.getGameMode() != GameMode.CREATIVE) ||
-                        //TODO: Fix IllegalArgumentException when consuming water bottles
+                if((mat.isEdible() && p.getGameMode() != GameMode.CREATIVE) ||
+                        (mat == Material.POTION && getItemStack().getDurability() == 0) || //water bottles
                         (mat == Material.POTION && !Potion.fromItemStack(getItemStack()).isSplash())) {
                     pp.setConsumingItem(true);
                 }
@@ -56,8 +57,8 @@ public class InteractItemEvent extends Event {
                 }
             }
             else if(getType() == InteractItemEvent.Type.RELEASE_USE_ITEM) {
-                if((mat.isEdible() && p.getFoodLevel() < 20 && p.getGameMode() != GameMode.CREATIVE) ||
-                        //TODO: Fix IllegalArgumentException when consuming water bottles
+                if((mat.isEdible() && p.getGameMode() != GameMode.CREATIVE) ||
+                        (mat == Material.POTION && getItemStack().getDurability() == 0) || //water bottles
                         (mat == Material.POTION && !Potion.fromItemStack(getItemStack()).isSplash())) {
                     pp.setConsumingItem(false);
                 }
