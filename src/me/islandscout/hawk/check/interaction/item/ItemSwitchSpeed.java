@@ -23,6 +23,7 @@ import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.event.InteractWorldEvent;
 import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.ItemSwitchEvent;
+import org.bukkit.entity.Player;
 
 import java.util.*;
 
@@ -66,5 +67,12 @@ public class ItemSwitchSpeed extends CustomCheck implements Cancelless {
         }
 
         lastSwitchTicks.put(pp.getUuid(), pp.getCurrentTick());
+    }
+
+    @Override
+    public void removeData(Player p) {
+        UUID uuid = p.getUniqueId();
+        lastSwitchTicks.remove(uuid);
+        usedSomething.remove(uuid);
     }
 }

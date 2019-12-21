@@ -25,8 +25,6 @@ import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.WrappedWatchableObject;
-import me.islandscout.hawk.wrap.block.WrappedBlock;
-import me.islandscout.hawk.wrap.block.WrappedBlock8;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import me.islandscout.hawk.wrap.packet.WrappedPacket8;
 import net.minecraft.server.v1_8_R3.*;
@@ -203,7 +201,7 @@ public final class PacketConverter8 {
     private static Event packetToDigEvent(PacketPlayInBlockDig packet, Player p, HawkPlayer pp) {
         PacketPlayInBlockDig.EnumPlayerDigType digType = packet.c();
         BlockDigEvent.DigAction digAction = null;
-        InteractItemEvent.Type interactAction = null;
+        InteractItemEvent.Action interactAction = null;
         switch (digType) {
             case START_DESTROY_BLOCK:
                 digAction = BlockDigEvent.DigAction.START;
@@ -215,13 +213,13 @@ public final class PacketConverter8 {
                 digAction = BlockDigEvent.DigAction.COMPLETE;
                 break;
             case RELEASE_USE_ITEM:
-                interactAction = InteractItemEvent.Type.RELEASE_USE_ITEM;
+                interactAction = InteractItemEvent.Action.RELEASE_USE_ITEM;
                 break;
             case DROP_ITEM:
-                interactAction = InteractItemEvent.Type.DROP_HELD_ITEM;
+                interactAction = InteractItemEvent.Action.DROP_HELD_ITEM;
                 break;
             case DROP_ALL_ITEMS:
-                interactAction = InteractItemEvent.Type.DROP_HELD_ITEM_STACK;
+                interactAction = InteractItemEvent.Action.DROP_HELD_ITEM_STACK;
                 break;
             default:
                 return null;
@@ -286,7 +284,7 @@ public final class PacketConverter8 {
             ItemStack item = p.getInventory().getItem(pp.getHeldItemSlot());
             if(item == null)
                 return null;
-            return new InteractItemEvent(p, pp, item, InteractItemEvent.Type.START_USE_ITEM, new WrappedPacket8(packet, WrappedPacket.PacketType.BLOCK_PLACE));
+            return new InteractItemEvent(p, pp, item, InteractItemEvent.Action.START_USE_ITEM, new WrappedPacket8(packet, WrappedPacket.PacketType.BLOCK_PLACE));
         }
 
         switch (packet.getFace()) {

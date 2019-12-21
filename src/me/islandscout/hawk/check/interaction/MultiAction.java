@@ -22,11 +22,14 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.event.*;
 import me.islandscout.hawk.util.Debug;
+import me.islandscout.hawk.util.Pair;
+import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.wrap.entity.MetaData;
 
 public class MultiAction extends CustomCheck {
 
     public MultiAction() {
-        super("multiaction", false, 0, 10, 0.95, 5000, "%player% failed multi-action, VL: %vl%", null);
+        super("multiaction", true, 0, 10, 0.95, 5000, "%player% failed multi-action, VL: %vl%", null);
     }
 
     @Override
@@ -41,7 +44,7 @@ public class MultiAction extends CustomCheck {
 
         //interacting while using item
         if(!(event instanceof InteractItemEvent) && pp.getClientVersion() == 8 &&
-                (pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow())) {
+                (pp.isBlocking() || pp.isConsumingOrPullingBowMetadataIncluded())) {
             punish(pp, 1, true, event);
             event.resync();
         }

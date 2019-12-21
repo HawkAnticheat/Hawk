@@ -24,6 +24,7 @@ import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.MetaData;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -43,12 +44,12 @@ public class MoveEvent extends Event {
     //Position events will not pass through checks if the player is teleporting.
 
     private final boolean onGround;
-    private final boolean onGroundReally;
+    private boolean onGroundReally;
     private boolean teleported;
     private Location toLocation;
     private Location cancelLocation;
-    private boolean updatePos;
-    private boolean updateRot;
+    private final boolean updatePos;
+    private final boolean updateRot;
     private Vector acceptedKnockback;
     private boolean failedKnockback;
     //Idk, it's weird. Hitting while sprinting or with kb enchant will multiply horizontal speed by 0.6.
@@ -65,18 +66,22 @@ public class MoveEvent extends Event {
     private float maxExpectedInputForce;
     private Vector waterFlowForce;
     private List<Pair<Block, Vector>> liquidsAndDirections;
-    private Set<Material> liquidTypes;
+    private final Set<Material> liquidTypes;
     //No, don't compute a delta vector during instantiation since it won't respond to teleports.
 
     public MoveEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet, boolean updatePos, boolean updateRot) {
         super(p, pp, packet);
         toLocation = update;
-        onGroundReally = AdjacentBlocks.onGroundReally(update, update.getY() - getFrom().getY(), true, 0.02, pp);
         this.updatePos = updatePos;
         this.updateRot = updateRot;
         this.onGround = onGround;
         this.liquidTypes = new HashSet<>();
-        this.step = testStep();
+    }
+
+    @Override
+    public boolean preProcess() {
+        onGroundReally = AdjacentBlocks.onGroundReally(getTo(), getTo().getY() - getFrom().getY(), true, 0.02, pp);
+        step = testStep();
         hitSlowdown = pp.hasHitSlowdown();
         boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld(), 0.0001, pp.getClientVersion());
         acceptedKnockback = handlePendingVelocities();
@@ -88,10 +93,7 @@ public class MoveEvent extends Event {
         slimeBlockBounce = testSlimeBlockBounce();
         waterFlowForce = computeWaterFlowForce();
         maxExpectedInputForce = computeMaximumInputForce();
-    }
 
-    @Override
-    public boolean preProcess() {
         setTeleported(false);
         pp.tick();
         if(isUpdatePos())
@@ -143,7 +145,7 @@ public class MoveEvent extends Event {
         }
 
         //handle item consumption
-        if(pp.getCurrentTick() - pp.getItemUseTick() > 31 && pp.isConsumingItem()) {
+        if(pp.getItemConsumeTicks() > 31 && pp.isConsumingItem()) {
             pp.setConsumingItem(false);
         }
 
@@ -259,22 +261,7 @@ public class MoveEvent extends Event {
         if(pp.isSneaking())
             initForce *= 0.3;
 
-        //Handle meta-data updates sent from server. Damn it, Mojang. >:(
-        boolean consumingOrBow = pp.isConsumingItem() || pp.isPullingBow();
-        long currTime = System.currentTimeMillis();
-        int ping = ServerUtils.getPing(p) + 100;
-        for(Pair<MetaData, Long> metaDataPair : pp.getMetaDataUpdates()) {
-            //Ideally it would be +/-50ms leniency, but let's do +/-100ms just because of network jitter.
-            if(Math.abs(metaDataPair.getValue() + ping - currTime) < 100) {
-                MetaData metaData = metaDataPair.getKey();
-                if(metaData.getType() == MetaData.Type.USE_ITEM && !metaData.getValue()) {
-                    consumingOrBow = false;
-                    break;
-                }
-            }
-        }
-
-        boolean usingItem = consumingOrBow || pp.isBlocking();
+        boolean usingItem = pp.isConsumingOrPullingBowMetadataIncluded() || pp.isBlocking();
         if(usingItem)
             initForce *= 0.2;
         boolean sprinting = pp.isSprinting() && !usingItem && !pp.isSneaking();

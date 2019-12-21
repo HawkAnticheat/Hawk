@@ -112,6 +112,7 @@ public class HawkPlayer {
     private double jumpedHeight;
     private long flyPendingTime;
     private int heldItemSlot;
+    private int itemConsumeTicks;
     private final Map<Location, ClientBlock> clientBlocks;
     private final List<Pair<Vector, Long>> pendingVelocities;
     private final Set<Direction> boxSidesTouchingBlocks;
@@ -163,6 +164,8 @@ public class HawkPlayer {
         //TODO this doesn't need to be called so often
         if(predictedVelocity.lengthSquared() > 0)
             predictNextPosition();
+        if(consumingItem)
+            itemConsumeTicks++;
     }
 
     public int getVL(Check check) {
@@ -416,6 +419,8 @@ public class HawkPlayer {
 
     public void setBlocking(boolean blocking) {
         this.blocking = blocking;
+        if(blocking)
+            itemUseTick = currentTick;
     }
 
     public boolean isPullingBow() {
@@ -424,6 +429,8 @@ public class HawkPlayer {
 
     public void setPullingBow(boolean pullingBow) {
         this.pullingBow = pullingBow;
+        if(pullingBow)
+            itemUseTick = currentTick;
     }
 
     public byte hasInventoryOpen() {
@@ -454,6 +461,8 @@ public class HawkPlayer {
         this.consumingItem = consumingItem;
         if(consumingItem)
             itemUseTick = currentTick;
+        else
+            itemConsumeTicks = 0;
     }
 
     public boolean isInLiquid() {
@@ -471,7 +480,7 @@ public class HawkPlayer {
         return (p.getAllowFlight() && hasFlyPending()) || p.isFlying();
     }
 
-    public long getItemUseTick() {
+    public long getLastItemUseTick() {
         return itemUseTick;
     }
 
@@ -880,5 +889,28 @@ public class HawkPlayer {
 
     public void setInVehicle(boolean inVehicle) {
         this.inVehicle = inVehicle;
+    }
+
+    public int getItemConsumeTicks() {
+        return itemConsumeTicks;
+    }
+
+    //Dedicated method for approximating whether a player is consuming or charging bow.
+    //Factors in meta-data updates sent from server. Damn it, Mojang. >:(
+    public boolean isConsumingOrPullingBowMetadataIncluded() {
+        boolean consumingOrBow = isConsumingItem() || isPullingBow();
+        long currTime = System.currentTimeMillis();
+        int ping = ServerUtils.getPing(p) + 100;
+        for(Pair<MetaData, Long> metaDataPair : getMetaDataUpdates()) {
+            //Ideally it would be +/-50ms leniency, but let's do +/-100ms just because of network jitter.
+            if(Math.abs(metaDataPair.getValue() + ping - currTime) < 100) {
+                MetaData metaData = metaDataPair.getKey();
+                if(metaData.getType() == MetaData.Type.USE_ITEM && !metaData.getValue()) {
+                    consumingOrBow = false;
+                    break;
+                }
+            }
+        }
+        return consumingOrBow;
     }
 }

@@ -19,7 +19,6 @@
 package me.islandscout.hawk.event;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -30,57 +29,48 @@ import org.bukkit.potion.Potion;
 
 public class InteractItemEvent extends Event {
 
-    private final InteractItemEvent.Type type;
-    private final ItemStack itemStack;
+    private final Action action;
+    private final ItemStack itemStack; //cannot be spoofed; determined server-side based on the slot the client says they're on
 
-    public InteractItemEvent(Player p, HawkPlayer pp, ItemStack itemStack, InteractItemEvent.Type type, WrappedPacket wPacket) {
+    public InteractItemEvent(Player p, HawkPlayer pp, ItemStack itemStack, Action action, WrappedPacket wPacket) {
         super(p, pp, wPacket);
-        this.type = type;
+        this.action = action;
         this.itemStack = itemStack;
     }
 
     @Override
     public void postProcess() {
-        if (!isCancelled()) {
-            Material mat = getItemStack().getType();
-            if(getType() == InteractItemEvent.Type.START_USE_ITEM) {
-                if((mat.isEdible() && p.getGameMode() != GameMode.CREATIVE) ||
-                        (mat == Material.POTION && getItemStack().getDurability() == 0) || //water bottles
-                        (mat == Material.POTION && !Potion.fromItemStack(getItemStack()).isSplash())) {
-                    pp.setConsumingItem(true);
-                }
-                if(EnchantmentTarget.WEAPON.includes(mat)) {
-                    pp.setBlocking(true);
-                }
-                if(mat == Material.BOW && (p.getInventory().contains(Material.ARROW) || p.getGameMode() == GameMode.CREATIVE)) {
-                    pp.setPullingBow(true);
-                }
+        Material mat = getItemStack().getType();
+        boolean gapple = mat == Material.GOLDEN_APPLE && getItemStack().getDurability() == 1;
+        if(action == Action.START_USE_ITEM) {
+            if((mat.isEdible() && (p.getFoodLevel() < 20 || gapple) && p.getGameMode() != GameMode.CREATIVE) ||
+                    (mat == Material.POTION && getItemStack().getDurability() == 0) || //water bottles
+                    (mat == Material.POTION && !Potion.fromItemStack(getItemStack()).isSplash())) {
+                pp.setConsumingItem(true);
             }
-            else if(getType() == InteractItemEvent.Type.RELEASE_USE_ITEM) {
-                if((mat.isEdible() && p.getGameMode() != GameMode.CREATIVE) ||
-                        (mat == Material.POTION && getItemStack().getDurability() == 0) || //water bottles
-                        (mat == Material.POTION && !Potion.fromItemStack(getItemStack()).isSplash())) {
-                    pp.setConsumingItem(false);
-                }
-                if(EnchantmentTarget.WEAPON.includes(mat)) {
-                    pp.setBlocking(false);
-                }
-                if(mat == Material.BOW && (p.getInventory().contains(Material.ARROW) || p.getGameMode() == GameMode.CREATIVE)) {
-                    pp.setPullingBow(false);
-                }
+            if(EnchantmentTarget.WEAPON.includes(mat)) {
+                pp.setBlocking(true);
             }
+            if(mat == Material.BOW && (p.getInventory().contains(Material.ARROW) || p.getGameMode() == GameMode.CREATIVE)) {
+                pp.setPullingBow(true);
+            }
+        }
+        else if(action == Action.RELEASE_USE_ITEM || action == Action.DROP_HELD_ITEM || action == Action.DROP_HELD_ITEM_STACK) {
+            pp.setConsumingItem(false);
+            pp.setBlocking(false);
+            pp.setPullingBow(false);
         }
     }
 
-    public Type getType() {
-        return type;
+    public Action getAction() {
+        return action;
     }
 
     public ItemStack getItemStack() {
         return itemStack;
     }
 
-    public enum Type {
+    public enum Action {
         START_USE_ITEM,
         RELEASE_USE_ITEM,
         DROP_HELD_ITEM_STACK,

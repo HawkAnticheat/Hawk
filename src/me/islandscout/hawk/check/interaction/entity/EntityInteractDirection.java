@@ -36,7 +36,7 @@ public class EntityInteractDirection extends EntityInteractionCheck {
     private final double BOX_EXPAND;
 
     public EntityInteractDirection() {
-        super("entityinteractdirection", true, 0, 10, 0.9, 5000, "%player% failed fight direction, VL: %vl%", null);
+        super("entityinteractdirection", true, 0, 10, 0.9, 5000, "%player% failed entity interact direction, VL: %vl%", null);
         PING_LIMIT = (int) customSetting("pingLimit", "", -1);
         LAG_COMPENSATION = (boolean) customSetting("lagCompensation", "", true);
         CHECK_OTHER_ENTITIES = (boolean) customSetting("checkOtherEntities", "", true);

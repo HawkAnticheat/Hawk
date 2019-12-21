@@ -21,6 +21,7 @@ package me.islandscout.hawk.check.movement;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.entity.Player;
@@ -48,8 +49,6 @@ public class FabricatedMove extends MovementCheck {
         super("fabricatedmove", true, 0, 2, 0.999, 5000, "%player% failed fabricated move, VL: %vl%", null);
         flyingTicksMap = new HashMap<>();
     }
-
-    //Verify that the distance between two succeeding move packets is greater than 0.03
 
     @Override
     protected void check(MoveEvent e) {
@@ -97,6 +96,12 @@ public class FabricatedMove extends MovementCheck {
 
             UUID uuid = pp.getUuid();
             int flying = flyingTicksMap.getOrDefault(uuid, 0);
+
+            //moved less than 0.03
+            if(e.isUpdatePos() && flying == 0 && e.getTo().distanceSquared(e.getFrom()) < 0.00089) {
+                punishAndTryRubberband(e.getHawkPlayer(), e, e.getPlayer().getLocation());
+            }
+
             if(!e.isUpdatePos()) {
                 flying++;
             }
@@ -105,8 +110,10 @@ public class FabricatedMove extends MovementCheck {
             }
             flyingTicksMap.put(uuid, flying);
 
-            if(flying > 20)  // inspired by ToonBasic
+            //sent more than 20 flying packets in succession
+            if(flying > 20) {  // inspired by ToonBasic
                 punishAndTryRubberband(pp, flying - 20, e, e.getPlayer().getLocation());
+            }
         }
     }
 

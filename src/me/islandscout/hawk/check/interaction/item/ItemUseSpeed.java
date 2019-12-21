@@ -22,6 +22,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.InteractItemEvent;
+import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,8 +42,8 @@ public class ItemUseSpeed extends CustomCheck {
         if(!(e instanceof InteractItemEvent)) {
             return;
         }
-        InteractItemEvent.Type type = ((InteractItemEvent) e).getType();
-        if(type == InteractItemEvent.Type.DROP_HELD_ITEM || type == InteractItemEvent.Type.DROP_HELD_ITEM_STACK) {
+        InteractItemEvent.Action action = ((InteractItemEvent) e).getAction();
+        if(action == InteractItemEvent.Action.DROP_HELD_ITEM || action == InteractItemEvent.Action.DROP_HELD_ITEM_STACK) {
             return;
         }
         HawkPlayer pp = e.getHawkPlayer();
@@ -55,5 +56,10 @@ public class ItemUseSpeed extends CustomCheck {
             reward(pp);
         }
         lastEventTick.put(uuid, pp.getCurrentTick());
+    }
+
+    @Override
+    public void removeData(Player p) {
+        lastEventTick.remove(p.getUniqueId());
     }
 }

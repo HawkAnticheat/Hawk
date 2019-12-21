@@ -65,6 +65,7 @@ public class Hawk extends JavaPlugin {
     public static final String BASE_PERMISSION = "hawk";
     public static String BUILD_NAME;
     public static String FLAG_CLICK_COMMAND;
+    public static boolean USING_PLIB;
     public static final String NO_PERMISSION = ChatColor.RED + "You do not have permission \"%s\" to perform this action.";
     private boolean sendJSONMessages;
     private boolean playSoundOnFlag;
@@ -87,6 +88,8 @@ public class Hawk extends JavaPlugin {
 
     public void loadModules() {
         getLogger().info("Loading modules...");
+
+        USING_PLIB = getServer().getPluginManager().isPluginEnabled("ProtocolLib");
 
         new File(plugin.getDataFolder().getAbsolutePath()).mkdirs();
         messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));

@@ -40,7 +40,7 @@ public class EntityInteractReach extends EntityInteractionCheck {
     private final boolean CHECK_OTHER_ENTITIES;
 
     public EntityInteractReach() {
-        super("entityinteractreach", "%player% failed fight reach (approximate). Reach: %distance%m VL: %vl%");
+        super("entityinteractreach", "%player% failed entity interact reach. Reach: %distance%m VL: %vl%");
         MAX_REACH = (double) customSetting("maxReach", "", 3.1);
         MAX_REACH_CREATIVE = (double) customSetting("maxReachCreative", "", 5.0);
         PING_LIMIT = (int) customSetting("pingLimit", "", -1);

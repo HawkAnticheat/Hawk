@@ -187,7 +187,7 @@ public final class PacketConverter7 {
     private static Event packetToDigEvent(PacketPlayInBlockDig packet, Player p, HawkPlayer pp) {
         int status = packet.g();
         BlockDigEvent.DigAction digAction = null;
-        InteractItemEvent.Type interactAction = null;
+        InteractItemEvent.Action interactAction = null;
         switch (status) {
             case 0:
                 digAction = BlockDigEvent.DigAction.START;
@@ -199,13 +199,13 @@ public final class PacketConverter7 {
                 digAction = BlockDigEvent.DigAction.COMPLETE;
                 break;
             case 3:
-                interactAction = InteractItemEvent.Type.DROP_HELD_ITEM_STACK;
+                interactAction = InteractItemEvent.Action.DROP_HELD_ITEM_STACK;
                 break;
             case 4:
-                interactAction = InteractItemEvent.Type.DROP_HELD_ITEM;
+                interactAction = InteractItemEvent.Action.DROP_HELD_ITEM;
                 break;
             case 5:
-                interactAction = InteractItemEvent.Type.RELEASE_USE_ITEM;
+                interactAction = InteractItemEvent.Action.RELEASE_USE_ITEM;
                 break;
             default:
                 return new BadEvent(p, pp, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_DIG));
@@ -267,7 +267,7 @@ public final class PacketConverter7 {
             ItemStack item = p.getInventory().getItem(pp.getHeldItemSlot());
             if(item == null)
                 return null;
-            return new InteractItemEvent(p, pp, item, InteractItemEvent.Type.START_USE_ITEM, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_PLACE));
+            return new InteractItemEvent(p, pp, item, InteractItemEvent.Action.START_USE_ITEM, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_PLACE));
         }
 
         switch (packet.getFace()) {
