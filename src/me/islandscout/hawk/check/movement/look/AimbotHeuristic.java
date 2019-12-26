@@ -22,6 +22,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.event.*;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.MathPlus;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -81,7 +82,7 @@ public class AimbotHeuristic extends CustomCheck implements Cancelless {
             double maxSpeed = 0D;
             double maxAngle = 0D;
             for(int i = 1; i < lastMoves.size(); i++) {
-                Vector lastMouseMove = lastMoves.get(0);
+                Vector lastMouseMove = lastMoves.get(i - 1);
                 Vector currMouseMove = lastMoves.get(i);
                 double speed = currMouseMove.length();
                 double lastSpeed = lastMouseMove.length();
@@ -93,15 +94,15 @@ public class AimbotHeuristic extends CustomCheck implements Cancelless {
                 maxAngle = Math.max(angle, maxAngle);
 
                 //stutter
-                if(maxSpeed - minSpeed > 4 && minSpeed < 0.01 && maxAngle < 0.1 /*&& lastSpeed > 1*/) { //this lastSpeed check eliminates a false positive
+                if(maxSpeed - minSpeed > 4 && minSpeed < 0.01 && maxAngle < 0.1 && lastSpeed > 1) { //this lastSpeed check eliminates a false positive
                     punishEm(pp, e);
                 }
                 //twitching or zig zags
-                else if(speed > 20 && lastSpeed > 20 && angle > 2.25) {
+                else if(speed > 20 && lastSpeed > 20 && angle > 2.86) {
                     punishEm(pp, e);
                 }
                 //jump discontinuity
-                else if(speed - lastSpeed < -30) {  //TODO: & angle must be greater than X
+                else if(speed - lastSpeed < -30 && angle > 0.8) {
                     punishEm(pp, e);
                 }
                 else {
