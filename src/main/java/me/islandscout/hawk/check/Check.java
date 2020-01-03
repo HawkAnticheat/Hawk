@@ -30,6 +30,7 @@ import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
@@ -138,6 +139,7 @@ public abstract class Check<E extends Event> {
             return;
         if (pp.getVL(this) < flagThreshold)
             return;
+
         lastFlagTimes.put(offender.getUniqueId(), System.currentTimeMillis());
         String flag = this.flag;
         double tps = MathPlus.round(ServerUtils.getTps(), 2);
@@ -147,14 +149,27 @@ public abstract class Check<E extends Event> {
 
         for (Placeholder placeholder : placeholders)
             flag = flag.replace("%" + placeholder.getKey() + "%", placeholder.getValue().toString());
-        broadcastMessage(flag, violation);
-        logToConsole(flag);
-        logToFile(flag);
+
+        final String finalFlag = flag;
+        new BukkitRunnable() {
+            public void run() {
+                HawkFlagEvent event = new HawkFlagEvent(violation);
+                Bukkit.getServer().getPluginManager().callEvent(event);
+
+                if(!event.isCancelled()) {
+                    //Running asynchronous so flagging does not cause lag on check thread.
+                    Hawk.getPlugin().getExecutorThread().execute(() -> {
+                        broadcastMessage(finalFlag, violation);
+                        logToConsole(finalFlag);
+                        logToFile(finalFlag);
 
 
-        if (hawk.getSQLModule().isRunning())
-            hawk.getSQLModule().addToBuffer(violation);
-        Bukkit.getScheduler().runTask(hawk, () -> Bukkit.getServer().getPluginManager().callEvent(new HawkFlagEvent(violation)));
+                        if (hawk.getSQLModule().isRunning())
+                            hawk.getSQLModule().addToBuffer(violation);
+                    });
+                }
+            }
+        }.runTask(Hawk.getPlugin());
     }
 
     private void broadcastMessage(String message, Violation violation) {

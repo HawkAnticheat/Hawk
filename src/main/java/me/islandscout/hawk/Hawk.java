@@ -18,6 +18,7 @@
 
 package me.islandscout.hawk;
 
+import lombok.Getter;
 import me.islandscout.hawk.command.HawkCommand;
 import me.islandscout.hawk.module.*;
 import me.islandscout.hawk.util.ConfigHelper;
@@ -36,6 +37,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Hawk extends JavaPlugin {
 
@@ -45,7 +48,9 @@ public class Hawk extends JavaPlugin {
 
     private CheckManager checkManager;
     private SQLModule sqlModule;
-    private Hawk plugin;
+
+    @Getter
+    private static Hawk plugin;
     private PacketHandler packetHandler;
     private ViolationLogger violationLogger;
     private FileConfiguration messages;
@@ -60,6 +65,8 @@ public class Hawk extends JavaPlugin {
     private HawkSyncTaskScheduler hawkSyncTaskScheduler;
     private CommandExecutor commandExecutor;
     private Map<UUID, HawkPlayer> profiles;
+    @Getter
+    private ExecutorService executorThread;
     private static int SERVER_VERSION;
     public static String FLAG_PREFIX;
     public static final String BASE_PERMISSION = "hawk";
@@ -91,6 +98,7 @@ public class Hawk extends JavaPlugin {
 
         USING_PLIB = getServer().getPluginManager().isPluginEnabled("ProtocolLib");
 
+        executorThread = Executors.newSingleThreadExecutor();
         new File(plugin.getDataFolder().getAbsolutePath()).mkdirs();
         messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
         checksConfig = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "checks.yml"));
@@ -136,6 +144,7 @@ public class Hawk extends JavaPlugin {
 
     public void unloadModules() {
         getLogger().info("Unloading modules...");
+        executorThread.shutdown();
         if(packetHandler != null)
             packetHandler.stopListener();
         getCommand("hawk").setExecutor(null);

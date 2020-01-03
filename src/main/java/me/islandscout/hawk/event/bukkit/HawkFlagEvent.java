@@ -18,30 +18,28 @@
 
 package me.islandscout.hawk.event.bukkit;
 
+import lombok.Getter;
+import lombok.Setter;
 import me.islandscout.hawk.util.Violation;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class HawkFlagEvent extends Event {
+@Getter
+public class HawkFlagEvent extends Event implements Cancellable {
 
-    private static final HandlerList handlers = new HandlerList();
+    private static final HandlerList handlersList = new HandlerList();
     private final Violation violation;
+    @Setter
+    private boolean cancelled;
 
     public HawkFlagEvent(Violation violation) {
         super();
         this.violation = violation;
     }
 
-    public Violation getViolation() {
-        return violation;
-    }
-
     public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    public static HandlerList getHandlerList() {
-        return handlers;
+        return handlersList;
     }
 
 }
