@@ -1,6 +1,6 @@
 name: Hawk
 main: me.islandscout.hawk.Hawk
-version: BETA 1912
+version: ${project.version}
 author: Islandscout
 description: An anticheat system
 website: https://github.com/HawkAnticheat/Hawk

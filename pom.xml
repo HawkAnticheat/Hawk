@@ -6,7 +6,7 @@
 
     <groupId>me.islandscout.hawk</groupId>
     <artifactId>Hawk</artifactId>
-    <version>BETA 1912</version>
+    <version>BETA 1913</version>
 
     <repositories>
         <repository>
@@ -27,6 +27,12 @@
                 </configuration>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
     </build>
 
     <dependencies>
