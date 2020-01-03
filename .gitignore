@@ -1,11 +1,7 @@
 *.class
-
 *.log
-
 *.ctxt
-
 .mtj.tmp/
-
 .idea/*
 .idea/
 
@@ -16,8 +12,8 @@
 *.zip
 *.tar.gz
 *.rar
-
 *.iml
-
-
 hs_err_pid*
+target/**
+.idea/**
+
