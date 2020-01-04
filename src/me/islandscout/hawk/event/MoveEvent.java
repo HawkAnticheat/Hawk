@@ -506,6 +506,7 @@ public class MoveEvent extends Event {
         return jumped;
     }
 
+    //this can be trusted
     public boolean isStep() {
         return step;
     }

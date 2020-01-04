@@ -235,7 +235,7 @@ public class HawkPlayer {
     }
 
     /*TODO no no no no no... this is NOT how we handle teleports. THE MAIN THREAD SHOULD BE THE ONLY THREAD TOUCHING THIS.
-    TODO No wonder why it's so fkin difficult to do /spawn while getting rubberbanded back and forth. REDO THIS SYSTEM.
+     No wonder why it's so fkin difficult to do /spawn while getting rubberbanded back and forth. REDO THIS SYSTEM.
     */
     public void setTeleportLoc(Location teleportLoc) {
         this.teleportLoc = teleportLoc;
@@ -687,6 +687,46 @@ public class HawkPlayer {
             double invPenetrationDist = positive ? highestPoint - box.getMax().getY() - 0.00000001 : highestPoint - box.getMin().getY() + 0.00000001;
             box.translate(new Vector(0, invPenetrationDist, 0));
             pdY += invPenetrationDist;
+        }
+
+        //crude way of handling sneaking
+        boolean sneakHalt;
+        if(sneaking) {
+            Vector min = predictedPosition.clone().add(new Vector(-0.3, -0.001, -0.3));
+            Vector max = predictedPosition.clone().add(new Vector(0.3, 0, 0.3));
+            AABB feet = new AABB(min, max);
+            boolean wasOnGround = feet.getBlockAABBs(world, clientVersion).size() > 0;
+
+            feet.translate(new Vector(pdX, pdY, pdZ));
+            boolean isOnGround = feet.getBlockAABBs(world, clientVersion).size() > 0;
+
+            if(wasOnGround && !isOnGround) {
+                //use max.getY() to save a clone()
+                Vector check = new Vector(pdX, max.getY() - 1, pdZ);
+                Block checkBlock = ServerUtils.getBlockAsync(check.toLocation(world));
+                if(checkBlock == null) {
+                    sneakHalt = true;
+                }
+                else {
+                    sneakHalt = true;
+                    for(AABB aabb : WrappedBlock.getWrappedBlock(checkBlock, clientVersion).getCollisionBoxes()) {
+                        if(aabb.containsPoint(check)) {
+                            sneakHalt = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            else {
+                sneakHalt = false;
+            }
+        }
+        else {
+            sneakHalt = false;
+        }
+        if(sneakHalt) {
+            predictedVelocity = new Vector(0, 0, 0);
+            return;
         }
 
         //move predicted position

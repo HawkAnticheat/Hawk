@@ -46,7 +46,6 @@ public class LagCompensator implements Listener {
     //measuring latency.
 
     private final Map<Entity, List<Pair<Location, Long>>> trackedEntities;
-    //TODO lag compensate server-side player stats (flying, effects, speed)
     private final int historySize;
     private final int pingOffset;
     private final boolean DEBUG;

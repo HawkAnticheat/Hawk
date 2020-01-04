@@ -149,7 +149,7 @@ public class AdjacentBlocks {
     /**
      * Checks if the location is on ground. Good replacement for Entity#isOnGround()
      * since that flag can be spoofed by the client. Hawk's definition of being on
-     * ground: yVelocity must not exceed 0.5625, player's feet must not be inside
+     * ground: yVelocity must not exceed 0.6, player's feet must not be inside
      * a solid block's AABB, and there must be at least 1 solid block AABB collision
      * with the AABB defining the thin area below the location (represents below the
      * player's feet).
@@ -162,13 +162,11 @@ public class AdjacentBlocks {
      * @return boolean
      */
     //TODO: this still needs to get optimized. Replace List with Set
-    //TODO: Pleaaaaaase fix this when jumping onto edges of blocks
     //if not sure what your velocity is, just put -1 for velocity
     //if you just want to check for location, just put -1 for velocity
     public static boolean onGroundReally(Location loc, double yVelocity, boolean ignoreInGround, double feetDepth, HawkPlayer pp) {
-        if (yVelocity > 0.5625) //allows stepping up short blocks, but not full blocks
+        if (yVelocity > 0.6) //allows stepping up short blocks, but not full blocks
             return false;
-        //If too low, this might set off fly false flags when jumping on edge of blocks.
         Location check = loc.clone();
         List<Block> blocks = new ArrayList<>();
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check));
