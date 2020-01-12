@@ -76,7 +76,7 @@ public class Hawk extends JavaPlugin {
         BUILD_NAME = getDescription().getVersion();
         setServerVersion();
         loadModules();
-        getLogger().info("Hawk Anticheat has been enabled. Copyright (C) 2015-2020 Hawk Development Team.");
+        getLogger().info("Hawk Anticheat has been enabled. Copyright (C) 2018-2020 Hawk Development Team.");
     }
 
     @Override
