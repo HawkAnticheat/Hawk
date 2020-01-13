@@ -600,6 +600,7 @@ public class HawkPlayer {
     }
 
     //TODO shrink this code
+    //TODO TEST BEFORE RELEASING 2001
     private void predictNextPosition() {
         Vector move = predictedVelocity.clone();
 
@@ -618,9 +619,8 @@ public class HawkPlayer {
             pdZ = 0;
         }
 
+        //TODO make sure they aren't flying
         pdY += -0.0784;
-
-        //TODO don't forget sneaking & how it prevents you from falling off blocks
 
         AABB box = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition);
         AABB preBox = box.clone();

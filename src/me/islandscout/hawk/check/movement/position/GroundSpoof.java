@@ -40,7 +40,15 @@ public class GroundSpoof extends MovementCheck {
     @Override
     protected void check(MoveEvent event) {
         HawkPlayer pp = event.getHawkPlayer();
-        if (!event.isStep() && !event.isOnGroundReally()) {
+
+        boolean onGroundReally;
+        if(event.isUpdatePos()) {
+            onGroundReally = event.isOnGroundReally();
+        } else {
+            onGroundReally = AdjacentBlocks.onGroundReally(pp.getPositionPredicted().toLocation(pp.getWorld()), pp.getVelocityPredicted().getY(), true, 0.001, pp);
+        }
+
+        if (!event.isStep() && !onGroundReally) {
             if (event.isOnGround()) {
 
                 //Must also check position before, because in the client, Y is clipped first.

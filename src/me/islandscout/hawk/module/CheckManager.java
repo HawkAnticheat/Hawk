@@ -67,8 +67,9 @@ public class CheckManager {
         new TickRate();
         new FightHitbox();
         new Phase();
-        new Fly();
-        //new NewFly();
+        //new Fly();
+        new Gravity();
+        new Step();
         new BlockBreakSpeedSurvival();
         new Inertia();
         new BlockBreakDirection();
@@ -90,8 +91,8 @@ public class CheckManager {
         new ItemSwitchSpeed();
         new ActionToggleSpeed();
         new Speed();
-        new SmallHop();
-        new FastFall();
+        //new SmallHop();
+        //new FastFall();
         new MultiAction();
         new SprintDirection();
         new SwimVertical();
