@@ -126,10 +126,8 @@ public class Strafe extends MovementCheck {
     }
 
     private boolean isValidStrafe(double angle) {
-        double threshold = THRESHOLD;
         double multiple = angle / (Math.PI / 4);
-        return Math.abs(multiple - Math.floor(multiple)) <= threshold ||
-                Math.abs(multiple - Math.ceil(multiple)) <= threshold;
+        return Math.abs(multiple - Math.round(multiple)) <= THRESHOLD;
     }
 
     private void prepareNextMove(MoveEvent event, HawkPlayer pp, long currentTick) {

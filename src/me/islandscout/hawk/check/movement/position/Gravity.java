@@ -89,8 +89,6 @@ public class Gravity extends MovementCheck {
         float prevEstimatedVelocity = estimatedVelocityMap.getOrDefault(pp.getUuid(), (float) pp.getVelocity().getY());
         Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(e.getFrom().toVector()).getMaterials(pp.getWorld());
 
-        Debug.broadcastMessage(e.isOnGround() + " " + e.getTo().getY());
-
         //TODO false flag when toggling off fly
         if(!e.isOnGround() && !e.isJump() && !e.hasAcceptedKnockback() && !e.hasTeleported() && !e.isStep() &&
                 !p.isInsideVehicle() && !(pp.hasFlyPending() && p.getAllowFlight()) &&
