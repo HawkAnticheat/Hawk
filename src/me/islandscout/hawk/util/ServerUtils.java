@@ -22,6 +22,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
+import me.islandscout.superping.SuperPingLib;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -34,6 +35,8 @@ public final class ServerUtils {
     }
 
     public static int getPing(Player p) {
+        if(Hawk.USING_SPING)
+            return SuperPingLib.getPing(p);
         if (Hawk.getServerVersion() == 8)
             return ((org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer) p).getHandle().ping;
         if (Hawk.getServerVersion() == 7)
