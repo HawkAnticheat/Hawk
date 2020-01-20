@@ -195,7 +195,16 @@ public final class PacketConverter8 {
         if (nmsEntity == null) return null; //interacting with a non-existent entity
         org.bukkit.entity.Entity entity = nmsEntity.getBukkitEntity();
 
-        return new InteractEntityEvent(p, pp, action, entity, new WrappedPacket8(packet, WrappedPacket.PacketType.USE_ENTITY));
+        Vector hitVec;
+        Vec3D vec = packet.b();
+        if(vec != null) {
+            hitVec = new Vector(vec.a, vec.b, vec.c);
+        }
+        else {
+            hitVec = null;
+        }
+
+        return new InteractEntityEvent(p, pp, action, entity, hitVec, new WrappedPacket8(packet, WrappedPacket.PacketType.USE_ENTITY));
     }
 
     private static Event packetToDigEvent(PacketPlayInBlockDig packet, Player p, HawkPlayer pp) {

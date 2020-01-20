@@ -181,7 +181,7 @@ public final class PacketConverter7 {
         if (nmsEntity == null)
             return new BadEvent(p, pp, new WrappedPacket7(packet, WrappedPacket.PacketType.USE_ENTITY)); //interacting with a non-existent entity
         org.bukkit.entity.Entity entity = nmsEntity.getBukkitEntity();
-        return new InteractEntityEvent(p, pp, action, entity, new WrappedPacket7(packet, WrappedPacket.PacketType.USE_ENTITY));
+        return new InteractEntityEvent(p, pp, action, entity, null, new WrappedPacket7(packet, WrappedPacket.PacketType.USE_ENTITY));
     }
 
     private static Event packetToDigEvent(PacketPlayInBlockDig packet, Player p, HawkPlayer pp) {

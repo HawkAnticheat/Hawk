@@ -29,7 +29,7 @@ import me.islandscout.hawk.wrap.entity.MetaData;
 public class MultiAction extends CustomCheck {
 
     public MultiAction() {
-        super("multiaction", true, 0, 10, 0.95, 5000, "%player% failed multi-action, VL: %vl%", null);
+        super("multiaction", false, 0, 10, 0.95, 5000, "%player% failed multi-action, VL: %vl%", null);
     }
 
     @Override

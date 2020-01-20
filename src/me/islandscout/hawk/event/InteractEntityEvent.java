@@ -24,16 +24,19 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 public class InteractEntityEvent extends Event {
 
     private final InteractAction interactAction;
     private final Entity entity;
+    private final Vector intersectVector;
 
-    public InteractEntityEvent(Player p, HawkPlayer pp, InteractAction action, Entity entity, WrappedPacket packet) {
+    public InteractEntityEvent(Player p, HawkPlayer pp, InteractAction action, Entity entity, Vector intersectVector, WrappedPacket packet) {
         super(p, pp, packet);
         interactAction = action;
         this.entity = entity;
+        this.intersectVector = intersectVector;
     }
 
     @Override
@@ -66,5 +69,9 @@ public class InteractEntityEvent extends Event {
 
     public Entity getEntity() {
         return entity;
+    }
+
+    public Vector getIntersectVector() {
+        return intersectVector;
     }
 }
