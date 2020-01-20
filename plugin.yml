@@ -4,7 +4,7 @@ version: BETA 2001 (DEV)
 author: Islandscout
 description: An anticheat system
 website: https://github.com/HawkAnticheat/Hawk
-softdepend: [ProtocolLib, SuperPing]
+softdepend: [ProtocolLib]
 commands:
     hawk:
         description: Basic information about Hawk Anticheat
