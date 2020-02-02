@@ -43,6 +43,7 @@ import java.util.List;
 public class MouseRecorder {
 
     //TODO: Handle teleportation!!!
+    //This is a mess.
 
     private Hawk hawk;
     private final float RESOLUTION;
@@ -131,11 +132,11 @@ public class MouseRecorder {
     private void renderClicks(Graphics2D g, MouseRecorderListener listener) {
         g.setColor(new Color(0F, 1F, 0F, 0.4F));
         Pair<Float, Float> currCoord = new Pair<>(listener.origin);
-        for(int i = 0; i < listener.vectors.size(); i++) {
+        for(int i = 0; i < listener.motions.size(); i++) {
             float x1 = currCoord.getKey();
             float y1 = currCoord.getValue();
-            float x2 = x1 + listener.vectors.get(i).getKey();
-            float y2 = y1 + listener.vectors.get(i).getValue();
+            float x2 = x1 + listener.motions.get(i).getKey();
+            float y2 = y1 + listener.motions.get(i).getValue();
 
             if(listener.clicks.contains(i)) {
                 g.fillOval((int)((x1 - CLICK_DOT_RADIUS) * RESOLUTION), (int)((y1 - CLICK_DOT_RADIUS) * RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION));
@@ -158,7 +159,7 @@ public class MouseRecorder {
         g.setColor(new Color(0F, 0F, 1F, 0.8F)); //starting marker color
         g.fillOval((int)((listener.origin.getKey() - CLICK_DOT_RADIUS) * RESOLUTION), (int)((listener.origin.getValue() - CLICK_DOT_RADIUS) * RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION));
         Pair<Float, Float> currCoord = new Pair<>(listener.origin);
-        for(Pair<Float, Float> vector : listener.vectors) {
+        for(Pair<Float, Float> vector : listener.motions) {
             float distance = (float)MathPlus.distance2d(vector.getKey(), vector.getValue());
             g.setColor(new Color(1F, 1 / (0.3F * distance + 1), 1 / (0.3F * distance + 1), (float)Math.max(1 / (0.2F * distance + 1), 0.004)));
 
@@ -187,17 +188,12 @@ public class MouseRecorder {
         }
     }
 
-    //This is a good example of one of the things I don't like about my coding style.
-    //This listener registers itself into the Bukkit and Hawk event system,
-    //unregisters itself from the Hawk event system, and can pass itself through
-    //MouseRecorder's render method. It's compact, but confusing.
-    //Hey, at least it is not like static abuse.
     private class MouseRecorderListener implements HawkEventListener, Listener {
 
         private Player target;
         private CommandSender admin;
         private Pair<Float, Float> origin;
-        private List<Pair<Float, Float>> vectors;
+        private List<Pair<Float, Float>> motions;
         private List<Integer> clicks;
         private List<Integer> teleports;
         private int moves;
@@ -206,7 +202,7 @@ public class MouseRecorder {
         MouseRecorderListener(CommandSender admin, Player target, float time) {
             this.target = target;
             this.admin = admin;
-            vectors = new ArrayList<>();
+            motions = new ArrayList<>();
             clicks = new ArrayList<>();
             teleports = new ArrayList<>();
             this.moves = (time == 0 ? (int)(DEFAULT_TIME * 20) : (int)(time * 20));
@@ -221,11 +217,11 @@ public class MouseRecorder {
                     MoveEvent posE = (MoveEvent)e;
                     float deltaYaw = posE.getTo().getYaw() - posE.getFrom().getYaw();
                     float deltaPitch = posE.getTo().getPitch() - posE.getFrom().getPitch();
-                    int size = vectors.size();
+                    int size = motions.size();
                     if(size < moves) {
                         if (size == 0)
                             origin = new Pair<>(posE.getFrom().getYaw(), posE.getFrom().getPitch());
-                        vectors.add(new Pair<>(deltaYaw, deltaPitch));
+                        motions.add(new Pair<>(deltaYaw, deltaPitch));
                         if(size % 40 == 0 && admin != null) {
                             admin.sendMessage(ChatColor.GOLD + "Recording progress for " + target.getName() + ": " + MathPlus.round((float)size / moves * 100, 2) + "%");
                         }
@@ -239,7 +235,7 @@ public class MouseRecorder {
                     }
                 }
                 else if(e instanceof InteractEntityEvent && ((InteractEntityEvent) e).getInteractAction() == InteractAction.ATTACK) {
-                    clicks.add(vectors.size());
+                    clicks.add(motions.size());
                 }
             }
         }

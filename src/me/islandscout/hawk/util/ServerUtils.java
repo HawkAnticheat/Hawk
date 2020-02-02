@@ -22,7 +22,6 @@ import com.comphenix.protocol.ProtocolLibrary;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
-import me.islandscout.superping.SuperPingLib;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.block.Block;

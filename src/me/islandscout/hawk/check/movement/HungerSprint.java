@@ -19,6 +19,16 @@
 package me.islandscout.hawk.check.movement;
 
 import me.islandscout.hawk.check.CustomCheck;
+import me.islandscout.hawk.event.Event;
 
 public class HungerSprint extends CustomCheck {
+
+    public HungerSprint() {
+        super("hungersprint", "%player% failed hunger-sprint, VL: %vl%");
+    }
+
+    @Override
+    protected void check(Event e) {
+
+    }
 }
