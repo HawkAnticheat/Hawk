@@ -50,29 +50,29 @@ public class PacketListener8 extends PacketListener {
                 super.write(context, packet, promise);
             }
         };
-        ChannelPipeline pipeline;
-        pipeline = ((CraftPlayer) p).getHandle().playerConnection.networkManager.channel.pipeline();
+        Channel channel = ((CraftPlayer) p).getHandle().playerConnection.networkManager.channel;
+        ChannelPipeline pipeline = channel.pipeline();
         if (pipeline == null)
             return;
         String handlerName = "hawk_packet_processor";
-        if (pipeline.get(handlerName) != null)
-            pipeline.remove(handlerName);
-        pipeline.addBefore("packet_handler", handlerName, channelDuplexHandler);
+        channel.eventLoop().submit(() -> {
+            if(pipeline.get(handlerName) != null)
+                pipeline.remove(handlerName);
+            pipeline.addBefore("packet_handler", handlerName, channelDuplexHandler);
+            return null;
+        });
     }
 
     public void removeAll() {
         for (Player p : Bukkit.getOnlinePlayers()) {
             Channel channel = ((CraftPlayer) p).getHandle().playerConnection.networkManager.channel;
-
             ChannelPipeline pipeline = channel.pipeline();
             String handlerName = "hawk_packet_processor";
-            if (pipeline.get(handlerName) != null)
-                pipeline.remove(handlerName);
-            //old. Should probably use this since it might have to do with concurrency safety
-            /*channel.eventLoop().submit(() -> {
-                channel.pipeline().remove("hawk" + p.getName());
+            channel.eventLoop().submit(() -> {
+                if(pipeline.get(handlerName) != null)
+                    pipeline.remove(handlerName);
                 return null;
-            });*/
+            });
         }
     }
 }

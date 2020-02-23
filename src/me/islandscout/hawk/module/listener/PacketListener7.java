@@ -62,9 +62,12 @@ public class PacketListener7 extends PacketListener {
             if (pipeline == null)
                 return;
             String handlerName = "hawk_packet_processor";
-            if (pipeline.get(handlerName) != null)
-                pipeline.remove(handlerName);
-            pipeline.addBefore("packet_handler", handlerName, channelDuplexHandler);
+            channel.eventLoop().submit(() -> {
+                if(pipeline.get(handlerName) != null)
+                    pipeline.remove(handlerName);
+                pipeline.addBefore("packet_handler", handlerName, channelDuplexHandler);
+                return null;
+            });
         } catch (ReflectiveOperationException | SecurityException e) {
             e.printStackTrace();
         }
@@ -79,13 +82,11 @@ public class PacketListener7 extends PacketListener {
                 channelField.setAccessible(false);
                 net.minecraft.util.io.netty.channel.ChannelPipeline pipeline = channel.pipeline();
                 String handlerName = "hawk_packet_processor";
-                if (pipeline.get(handlerName) != null)
-                    pipeline.remove(handlerName);
-                //old. Should probably use this since it might have to do with concurrency safety
-                /*channel.eventLoop().submit(() -> {
-                    channel.pipeline().remove("hawk" + p.getName());
+                channel.eventLoop().submit(() -> {
+                    if(pipeline.get(handlerName) != null)
+                        pipeline.remove(handlerName);
                     return null;
-                });*/
+                });
             } catch (ReflectiveOperationException | SecurityException e) {
                 e.printStackTrace();
             }
