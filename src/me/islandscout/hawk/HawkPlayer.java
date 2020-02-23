@@ -45,7 +45,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * to use this rather than Bukkit's implementation.
  *
  * Fields here should be faithful to the client they represent
- * as much as possible, regardless of any corrections that the
+ * as much as possible, regardless of any modifications that the
  * anti-cheat makes to the incoming packets. Caution: that means
  * some of these fields can be spoofed!
  */
@@ -95,10 +95,13 @@ public class HawkPlayer {
     private boolean blocking;
     private boolean pullingBow;
     private boolean consumingItem;
-    private byte inventoryOpen; //0 for closed; 1 for own inventory; 2 for any other inventory
+    private byte inventoryOpen; //0 for closed; 1 for own inventory; 2 for any other inventory. Updated by server & client
     private boolean inLiquid;
     private boolean swimming;
-    private boolean inVehicle;
+    private boolean inVehicle; //updated by server
+    private boolean allowedToFly; //updated by server
+    private boolean flying; //updated by server and client
+    private boolean inCreative; //updated by server
     private long itemUseTick;
     private long lastAttackedPlayerTick;
     private long lastEntityInteractTick;
@@ -153,6 +156,17 @@ public class HawkPlayer {
         entitiesInteractedInThisTick = new HashSet<>();
         lastPings = new CopyOnWriteArrayList<>();
         clientVersion = ServerUtils.getProtocolVersion(p) == 47 ? 8 : 7;
+
+        //do this a little later since these values are a little slow
+        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, new Runnable() {
+            @Override
+            public void run() {
+                allowedToFly = p.getAllowFlight();
+                flying = p.isFlying();
+                inCreative = p.getGameMode() == GameMode.CREATIVE;
+            }
+        });
+
     }
 
     public void tick() {
@@ -952,5 +966,31 @@ public class HawkPlayer {
             }
         }
         return consumingOrBow;
+    }
+
+    public boolean isAllowedToFly() {
+        return allowedToFly;
+    }
+
+    public void setAllowedToFly(boolean allowedToFly) {
+        this.allowedToFly = allowedToFly;
+    }
+
+    public boolean isFlying() {
+        return flying;
+    }
+
+    public void setFlying(boolean flying) {
+        if(!isAllowedToFly() && flying)
+            return;
+        this.flying = flying;
+    }
+
+    public boolean isInCreative() {
+        return inCreative;
+    }
+
+    public void setInCreative(boolean inCreative) {
+        this.inCreative = inCreative;
     }
 }

@@ -21,6 +21,7 @@ package me.islandscout.hawk.util.packet;
 import io.netty.buffer.Unpooled;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
+import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerAbilitiesEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
 import me.islandscout.hawk.util.ServerUtils;
@@ -73,6 +74,29 @@ public final class PacketConverter8 {
             return packetToVelocityEvent((Packet)packet, p);
         if(packet instanceof PacketPlayOutEntityMetadata)
             return packetToPlayerMetadataEvent((PacketPlayOutEntityMetadata)packet, p);
+        if(packet instanceof PacketPlayOutAbilities)
+            return packetToPlayerAbilitiesOutEvent((PacketPlayOutAbilities) packet, p);
+        return null;
+    }
+
+    private static HawkAsyncPlayerAbilitiesEvent packetToPlayerAbilitiesOutEvent(PacketPlayOutAbilities packet, Player p) {
+        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
+        try {
+            packet.b(serializer);
+            byte mask = serializer.readByte();
+            boolean invulnerable = (mask & 1) > 0;
+            boolean flying = (mask & 2) > 0;
+            boolean allowedToFly = (mask & 4) > 0;
+            boolean creativeMode = (mask & 8) > 0;
+            float flySpeed = serializer.readFloat();
+            float walkSpeed = serializer.readFloat();
+
+            return new HawkAsyncPlayerAbilitiesEvent(p, invulnerable, allowedToFly, flying, creativeMode, flySpeed, walkSpeed);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
         return null;
     }
 

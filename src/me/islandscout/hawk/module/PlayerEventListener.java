@@ -20,9 +20,9 @@ package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerAbilitiesEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.WrappedWatchableObject;
@@ -209,5 +209,18 @@ public class PlayerEventListener implements Listener {
                 }
             });
         }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void abilitiesServerSide(HawkAsyncPlayerAbilitiesEvent e) {
+        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
+        pp.sendSimulatedAction(new Runnable() {
+            @Override
+            public void run() {
+                pp.setAllowedToFly(e.isAllowedToFly());
+                pp.setFlying(e.isFlying());
+                pp.setInCreative(e.isCreativeMode());
+            }
+        });
     }
 }

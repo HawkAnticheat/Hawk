@@ -20,6 +20,7 @@ package me.islandscout.hawk.util.packet;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
+import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerAbilitiesEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
 import me.islandscout.hawk.util.ServerUtils;
@@ -73,7 +74,19 @@ public final class PacketConverter7 {
             return packetToVelocityEvent((Packet)packet, p);
         if(packet instanceof PacketPlayOutEntityMetadata)
             return packetToPlayerMetadataEvent((PacketPlayOutEntityMetadata)packet, p);
+        if(packet instanceof PacketPlayOutAbilities)
+            return packetToPlayerAbilitiesOutEvent((PacketPlayOutAbilities) packet, p);
         return null;
+    }
+
+    private static HawkAsyncPlayerAbilitiesEvent packetToPlayerAbilitiesOutEvent(PacketPlayOutAbilities packet, Player p) {
+        boolean invulnerable = packet.c();
+        boolean allowedToFly = packet.e();
+        boolean creativeMode = packet.f();
+        boolean flying = packet.d();
+        float flySpeed = packet.g();
+        float walkSpeed = packet.h();
+        return new HawkAsyncPlayerAbilitiesEvent(p, invulnerable, allowedToFly, flying, creativeMode, flySpeed, walkSpeed);
     }
 
     private static HawkAsyncPlayerMetadataEvent packetToPlayerMetadataEvent(PacketPlayOutEntityMetadata packet, Player p) {

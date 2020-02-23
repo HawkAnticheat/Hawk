@@ -22,6 +22,11 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.entity.Player;
 
+/**
+ * The vanilla client sends this packet when the player starts/stops
+ * flying with the Flags parameter changed accordingly. All other parameters
+ * are ignored by the vanilla server. (Wiki.vg)
+ **/
 public class AbilitiesEvent extends Event {
 
     private final boolean flying;
@@ -36,6 +41,7 @@ public class AbilitiesEvent extends Event {
         if (!isCancelled() && isFlying()) {
             pp.setFlyPendingTime(System.currentTimeMillis());
         }
+        pp.setFlying(flying);
     }
 
     public boolean isFlying() {
