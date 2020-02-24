@@ -98,7 +98,7 @@ public class Speed extends MovementCheck implements Listener {
         else
             noMoves++;
 
-        boolean flying = (pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying();
+        boolean flying = pp.isFlying();
         boolean swimming = pp.isInLiquid(); //this needs improvement
         //it is possible that the player has pressed the jump key even if this move is "stepped" (only while sprinting)
         boolean jump = event.isJump() || (event.isStep() && pp.isOnGround() && pp.isSprinting());

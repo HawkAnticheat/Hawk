@@ -51,7 +51,7 @@ public class SwimVertical extends MovementCheck {
             reward(pp);
         }
 
-        else if(pp.isSwimming() && !e.hasTeleported() && !e.isOnGroundReally() && !pp.isFlyingClientside() && !e.hasAcceptedKnockback()) {
+        else if(pp.isSwimming() && !e.hasTeleported() && !e.isOnGroundReally() && !pp.isFlying() && !e.hasAcceptedKnockback()) {
             //TODO: when you're getting pushed down by water, your terminal velocity is < 0.1 when going up, thus bypass when swimming up
             if(Math.abs(currentDeltaY) >= 0.1) {
                 //i check when it is >= 0.1 because this game is broken

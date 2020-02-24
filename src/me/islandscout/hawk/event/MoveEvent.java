@@ -154,7 +154,7 @@ public class MoveEvent extends Event {
         if(pp.getCurrentTick() < 2)
             pp.setSwimming(pp.isInLiquid());
         long ticksSinceSwimToggle = pp.getCurrentTick() - pp.getLastInLiquidToggleTick();
-        pp.setSwimming(!pp.isFlyingClientside() && ((pp.isInLiquid() && ticksSinceSwimToggle > 0) || (!pp.isInLiquid() && ticksSinceSwimToggle < 1)));
+        pp.setSwimming(!pp.isFlying() && ((pp.isInLiquid() && ticksSinceSwimToggle > 0) || (!pp.isInLiquid() && ticksSinceSwimToggle < 1)));
 
         if(isOnGround() && !pp.isOnGround())
             pp.updateLastLandTick();
@@ -265,7 +265,7 @@ public class MoveEvent extends Event {
         if(usingItem)
             initForce *= 0.2;
         boolean sprinting = pp.isSprinting() && !usingItem && !pp.isSneaking();
-        boolean flying = (pp.hasFlyPending() && p.getAllowFlight()) || p.isFlying();
+        boolean flying = pp.isFlying();
 
         float speedEffectMultiplier = 1;
         for (PotionEffect effect : p.getActivePotionEffects()) {
@@ -317,7 +317,7 @@ public class MoveEvent extends Event {
                 finalForce.add(liquid.getValue());
             }
         }
-        if(finalForce.lengthSquared() > 0 && !pp.isFlyingClientside()) {
+        if(finalForce.lengthSquared() > 0 && !pp.isFlying()) {
             finalForce.normalize();
             finalForce.multiply(Physics.WATER_FLOW_FORCE_MULTIPLIER);
             return finalForce;
@@ -341,7 +341,7 @@ public class MoveEvent extends Event {
                     continue;
                 speedPotMultiplier = 1 + (effect.getAmplifier() + 1 * 0.2);
             }
-            boolean flying          = p.isFlying();
+            boolean flying          = pp.isFlying();
             double sprintMultiplier = flying ? (pp.isSprinting() ? 2 : 1) : (pp.isSprinting() ? 1.3 : 1);
             double weirdConstant    = (jump && pp.isSprinting() ? 0.2518462 : (pp.isSwimming() ? 0.0196 : 0.098)); //(pp.isOnGround() ? 0.098 : (flying ? 0.049 : 0.0196));
             double baseMultiplier   = flying ? (10 * p.getFlySpeed()) : (5 * p.getWalkSpeed() * speedPotMultiplier);

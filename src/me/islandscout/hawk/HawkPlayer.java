@@ -490,6 +490,7 @@ public class HawkPlayer {
         }
     }
 
+    @Deprecated
     public boolean isFlyingClientside() {
         return (p.getAllowFlight() && hasFlyPending()) || p.isFlying();
     }

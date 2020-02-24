@@ -101,7 +101,7 @@ public class Fly extends MovementCheck implements Listener {
         double deltaY = event.getTo().getY() - event.getFrom().getY();
         if (pp.hasFlyPending() && p.getAllowFlight())
             return;
-        if (!event.isOnGroundReally() && !p.isFlying() && !p.isInsideVehicle() && !pp.isSwimming() && !p.isSleeping() &&
+        if (!event.isOnGroundReally() && !pp.isFlying() && !p.isInsideVehicle() && !pp.isSwimming() && !p.isSleeping() &&
                 !isInClimbable(event.getTo()) && !isOnBoat(p, event.getTo())) {
 
             if (!inAir.contains(p.getUniqueId()) && deltaY > 0)

@@ -56,7 +56,7 @@ public class Inertia extends MovementCheck {
         long ticksSinceGround = pp.getCurrentTick() - lastTickOnGround.getOrDefault(p.getUniqueId(), -1L);
 
         if (!AdjacentBlocks.blockNearbyIsSolid(e.getTo(), true) && !wasOnGround && !onGround && !e.hasAcceptedKnockback() && !e.isTouchingBlocks() &&
-                !AdjacentBlocks.blockNearbyIsSolid(e.getTo().clone().add(0, 1, 0), true) && !p.isFlying() && !p.isInsideVehicle()) {
+                !AdjacentBlocks.blockNearbyIsSolid(e.getTo().clone().add(0, 1, 0), true) && !pp.isFlying() && !p.isInsideVehicle()) {
 
             //setting up expected values
             double magnitudeThres;
