@@ -89,9 +89,9 @@ public class Gravity extends MovementCheck {
         float prevEstimatedVelocity = estimatedVelocityMap.getOrDefault(pp.getUuid(), (float) pp.getVelocity().getY());
         Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(e.getFrom().toVector()).getMaterials(pp.getWorld());
 
-        //TODO false flag when toggling off fly
+        //TODO false flag when toggling off fly. Fly lasts one tick longer.
         if(!e.isOnGround() && !e.isJump() && !e.hasAcceptedKnockback() && !e.hasTeleported() && !e.isStep() &&
-                !p.isInsideVehicle() && !(pp.hasFlyPending() && p.getAllowFlight()) &&
+                !p.isInsideVehicle() &&
                 !pp.isFlying() && !pp.isSwimming() && !p.isSleeping() && !isInClimbable(e.getFrom()) && //TODO: uh oh! make sure to have a fastladder check, otherwise hackers can "pop" off them
                 !isOnBoat(p, e.getTo()) && !e.isSlimeBlockBounce()) { //TODO validate onGround w/ GroundSpoof check & dont forget to check when player lands
 

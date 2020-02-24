@@ -634,8 +634,8 @@ public class HawkPlayer {
             pdZ = 0;
         }
 
-        //TODO make sure they aren't flying
-        pdY += -0.0784;
+        if(!isFlying())
+            pdY += -0.0784;
 
         AABB box = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition);
         AABB preBox = box.clone();

@@ -212,7 +212,14 @@ public class MoveEvent extends Event {
         }
         float initJumpVelocity = 0.42F + jumpBoostLvl * 0.1F;
         float deltaY = (float)(getTo().getY() - getFrom().getY()); //TODO predict where a HawkPlayer was last at if the last packet wasn't a pos update
-        boolean hitCeiling = boxSidesTouchingBlocks.contains(Direction.TOP);
+
+        //Change by Havesta to more accurately handle Y collision
+        Vector pos = getFrom().toVector().setY(getTo().getY());
+        AABB collisionBox = AABB.playerCollisionBox.clone();
+        collisionBox.expand(-0.000001, -0.000001, -0.000001);
+        collisionBox.translate(pos);
+        boolean hitCeiling = AdjacentBlocks.checkTouchingBlock(collisionBox, getTo().getWorld(), 0.0001, pp.getClientVersion()).contains(Direction.TOP);
+
         boolean kbSimilarToJump = acceptedKnockback != null &&
                 (Math.abs(acceptedKnockback.getY() - initJumpVelocity) < 0.001 || hitCeiling);
         return !kbSimilarToJump && (pp.isOnGround() && !isOnGround()) && (deltaY == initJumpVelocity || hitCeiling);
