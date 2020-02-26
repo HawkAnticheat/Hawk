@@ -34,7 +34,7 @@ public class InvalidPitch extends MovementCheck {
     protected void check(MoveEvent event) {
         if (!event.hasDeltaRot())
             return;
-        if (event.getTo().getPitch() < -90 || event.getTo().getPitch() > 90)
+        if (Math.abs(event.getTo().getPitch()) > 90)
             punishAndTryRubberband(event.getHawkPlayer(), event, event.getPlayer().getLocation());
         else
             reward(event.getHawkPlayer());
