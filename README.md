@@ -11,4 +11,4 @@ Download JAR here: https://www.spigotmc.org/resources/hawk-anticheat-mc-1-7-10-1
 
 Discord: https://discord.gg/rQGb5DV
 
-Multi-version compatibility: I've been getting suggestions from users wanting me to update Hawk to later versions of Minecraft. I won't. If you're a developer, good news: I'll soon write a wiki page covering what needs to be changed and the problems that you will encounter.
+Multi-version compatibility: I've been getting suggestions from users wanting me to update Hawk to later versions of Minecraft. I won't. If you're a developer, good news: here's a wiki page covering what needs to be changed and the problems that you will encounter. https://github.com/HawkAnticheat/Hawk/wiki/Updating-Hawk
