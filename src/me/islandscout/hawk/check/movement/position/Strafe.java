@@ -44,7 +44,7 @@ public class Strafe extends MovementCheck {
     public Strafe() {
         super("strafe", false, 5, 5, 0.99, 5000, "%player% failed strafe, VL: %vl%", null);
         lastIdleTick = new HashMap<>();
-        THRESHOLD = (double)customSetting("angleThreshold", "", 0.5) * Math.PI / 180;
+        THRESHOLD = Math.toRadians((double)customSetting("yawErrorThreshold", "", 0.5));
     }
 
     @Override
@@ -128,8 +128,9 @@ public class Strafe extends MovementCheck {
     }
 
     private boolean isValidStrafe(double angle) {
-        double multiple = angle / (Math.PI / 4);
-        return Math.abs(multiple - Math.round(multiple)) <= THRESHOLD;
+        double modulo = (angle % (Math.PI / 4)) * (4 / Math.PI); //scaled so that legit values should be close to either 0 or +/-1
+        double error = Math.abs(modulo - Math.round(modulo));
+        return error <= THRESHOLD; //in radians
     }
 
     private void prepareNextMove(MoveEvent event, HawkPlayer pp, long currentTick) {
