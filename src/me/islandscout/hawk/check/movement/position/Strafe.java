@@ -129,7 +129,7 @@ public class Strafe extends MovementCheck {
 
     private boolean isValidStrafe(double angle) {
         double modulo = (angle % (Math.PI / 4)) * (4 / Math.PI); //scaled so that legit values should be close to either 0 or +/-1
-        double error = Math.abs(modulo - Math.round(modulo));
+        double error = Math.abs(modulo - Math.round(modulo)) * (Math.PI / 4); //compute error (and then scale back to radians)
         return error <= THRESHOLD; //in radians
     }
 
