@@ -30,6 +30,7 @@ import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class Strafe extends MovementCheck {
@@ -63,8 +64,8 @@ public class Strafe extends MovementCheck {
             prevVelocity.multiply(0.6);
         }
 
-        //TODO ladders, vines, moving water
-        if(WrappedEntity.getWrappedEntity(e.getPlayer()).getCollisionBox(e.getFrom().toVector()).getMaterials(pp.getWorld()).contains(Material.SOUL_SAND)) {
+        Set<Material> collidedMats = WrappedEntity.getWrappedEntity(e.getPlayer()).getCollisionBox(e.getFrom().toVector()).getMaterials(pp.getWorld());
+        if(collidedMats.contains(Material.SOUL_SAND)) {
             prevVelocity.multiply(0.4);
         }
 
@@ -94,7 +95,8 @@ public class Strafe extends MovementCheck {
         if(e.hasTeleported() || e.hasAcceptedKnockback() || collidingHorizontally(e) ||
                 pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow() || pp.isSneaking() ||
                 moveHoriz.length() < 0.15 || e.isJump() || ticksSinceIdle <= 2 || e.isInLiquid() ||
-                pp.getCurrentTick() - pp.getLastVelocityAcceptTick() == 1) {
+                pp.getCurrentTick() - pp.getLastVelocityAcceptTick() == 1 || collidedMats.contains(Material.LADDER) ||
+                collidedMats.contains(Material.VINE)) {
             prepareNextMove(e, pp, pp.getCurrentTick());
             return;
         }

@@ -23,6 +23,8 @@ import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.Direction;
 import me.islandscout.hawk.util.MathPlus;
+import me.islandscout.hawk.wrap.entity.WrappedEntity;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -49,10 +51,12 @@ public class SprintDirection extends MovementCheck {
         if(!pp.isSprinting())
             lastSprintTickMap.put(pp.getUuid(), pp.getCurrentTick());
 
+        Set<Material> collidedMats = WrappedEntity.getWrappedEntity(e.getPlayer()).getCollisionBox(e.getFrom().toVector()).getMaterials(pp.getWorld());
         if(pp.isSwimming() || e.hasTeleported() || e.hasAcceptedKnockback() ||
                 (collisionHorizontal && !collisionHorizontalSet.contains(pp.getUuid())) ||
                 pp.getCurrentTick() - lastSprintTickMap.getOrDefault(pp.getUuid(), pp.getCurrentTick()) < 2 ||
-                moveHoriz.lengthSquared() < 0.04) {
+                moveHoriz.lengthSquared() < 0.04 || collidedMats.contains(Material.LADDER) ||
+                collidedMats.contains(Material.VINE)) {
             return;
         }
 

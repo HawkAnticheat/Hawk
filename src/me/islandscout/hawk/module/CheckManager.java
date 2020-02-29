@@ -108,6 +108,7 @@ public class CheckManager {
         new FabricatedBlockInteract();
         //new InventoryMove();
         new InventoryActions();
+        //new AimbotExperimental();
     }
 
     public void unloadChecks() {

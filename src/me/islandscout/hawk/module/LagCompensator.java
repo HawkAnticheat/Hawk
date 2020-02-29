@@ -147,6 +147,46 @@ public class LagCompensator implements Listener {
         return times.get(0).getKey().clone(); //ran out of historical data; return oldest entry
     }
 
+    public Vector getHistoryVelocity(int rewindMillisecs, Entity entity) {
+        List<Pair<Location, Long>> times = trackedEntities.get(entity);
+        if (times == null || times.size() == 0) {
+            return new Vector(0, 0, 0);
+        }
+        long currentTime = System.currentTimeMillis();
+        int rewindTime = rewindMillisecs + pingOffset; //player a + avg processing time.
+        for (int i = times.size() - 1; i >= 0; i--) { //loop backwards
+            int elapsedTime = (int) (currentTime - times.get(i).getValue());
+            if (elapsedTime >= rewindTime) {
+                if (i == times.size() - 1) {
+                    return new Vector(0, 0, 0);
+                }
+                Location before = times.get(i).getKey();
+                Location after = times.get(i + 1).getKey();
+                return after.toVector().subtract(before.toVector());
+            }
+        }
+        return new Vector(0, 0, 0); //ran out of historical data; return oldest entry
+    }
+
+    public Location getHistoryLocationNoLerp(int rewindMillisecs, Entity entity) {
+        List<Pair<Location, Long>> times = trackedEntities.get(entity);
+        if (times == null || times.size() == 0) {
+            return entity.getLocation();
+        }
+        long currentTime = System.currentTimeMillis();
+        int rewindTime = rewindMillisecs + pingOffset; //player a + avg processing time.
+        for (int i = times.size() - 1; i >= 0; i--) { //loop backwards
+            int elapsedTime = (int) (currentTime - times.get(i).getValue());
+            if (elapsedTime >= rewindTime) {
+                if (i == times.size() - 1) {
+                    return times.get(i).getKey();
+                }
+                return times.get(i).getKey().clone();
+            }
+        }
+        return times.get(0).getKey().clone(); //ran out of historical data; return oldest entry
+    }
+
     private void processPosition(Entity entity) {
         List<Pair<Location, Long>> times = trackedEntities.getOrDefault(entity, new ArrayList<>());
         long currTime = System.currentTimeMillis();
