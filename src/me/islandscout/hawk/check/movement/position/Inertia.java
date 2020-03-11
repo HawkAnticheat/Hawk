@@ -34,11 +34,8 @@ public class Inertia extends MovementCheck {
 
     //"Inertia is a property of matter... Bill, Bill, Bill..."
 
-    private Map<UUID, Long> lastTickOnGround;
-
     public Inertia() {
         super("inertia", true, -1, 5, 0.995, 5000, "%player% failed inertia, VL: %vl%", null);
-        lastTickOnGround = new HashMap<>();
     }
 
     @Override
@@ -51,9 +48,6 @@ public class Inertia extends MovementCheck {
         double deltaAngle = MathPlus.angle(moveVector, prevVector);
         boolean onGround = e.isOnGround(); //um... is this safe?
         boolean wasOnGround = pp.isOnGround(); //um... is this safe?
-        if(onGround)
-            lastTickOnGround.put(p.getUniqueId(), pp.getCurrentTick());
-        long ticksSinceGround = pp.getCurrentTick() - lastTickOnGround.getOrDefault(p.getUniqueId(), -1L);
 
         if (!AdjacentBlocks.blockNearbyIsSolid(e.getTo(), true) && !wasOnGround && !onGround && !e.hasAcceptedKnockback() && !e.isTouchingBlocks() &&
                 !AdjacentBlocks.blockNearbyIsSolid(e.getTo().clone().add(0, 1, 0), true) && !pp.isFlying() && !p.isInsideVehicle()) {
@@ -64,10 +58,8 @@ public class Inertia extends MovementCheck {
             if(AdjacentBlocks.blockAdjacentIsLiquid(e.getFrom()) || AdjacentBlocks.blockAdjacentIsLiquid(e.getFrom().clone().add(0, 1, 0))) {
                 magnitudeThres = 0; //screw it
             }
-            else if(ticksSinceGround == 2) {
-                magnitudeThres = 0.546 * prevSpeed - 0.026001;
-            } else {
-                magnitudeThres = 0.91 * prevSpeed - 0.026001;
+            else {
+                magnitudeThres = e.getFriction() * prevSpeed - 0.026001;
             }
 
             //angle check

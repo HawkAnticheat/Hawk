@@ -154,12 +154,32 @@ public final class MathPlus {
         return high - low;
     }
 
-    public static double range(List<Double> data) {
+    public static double range(List data) {
         double[] array = new double[data.size()];
         for(int i = 0; i < array.length; i++) {
-            array[i] = data.get(i);
+            array[i] = ((Number)data.get(i)).doubleValue();
         }
         return range(array);
+    }
+
+    public static double min(List data) {
+        double min = Double.MAX_VALUE;
+        for (Object datum : data) {
+            double value = ((Number) datum).doubleValue();
+            if (value < min)
+                min = value;
+        }
+        return min;
+    }
+
+    public static double max(List data) {
+        double max = -Double.MAX_VALUE;
+        for (Object datum : data) {
+            double value = ((Number) datum).doubleValue();
+            if (value > max)
+                max = value;
+        }
+        return max;
     }
 
     public static float derivative(MathFunction func, double x) {
