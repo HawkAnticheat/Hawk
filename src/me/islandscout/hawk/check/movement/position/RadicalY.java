@@ -6,7 +6,7 @@ import me.islandscout.hawk.event.MoveEvent;
 public class RadicalY extends MovementCheck {
 
     public RadicalY() {
-        super("echeck", "%player% failed E, VL: %vl%");
+        super("radicaly", "%player% failed radical-Y, VL: %vl%");
     }
 
     @Override
@@ -16,7 +16,9 @@ public class RadicalY extends MovementCheck {
         //screenshot of a post on the Hypixel forum. Whatever tf "radical y"
         //is supposed to mean is beyond me. Hawk has it, though!
 
-        //if(MathPlus.isRadical(e.getTo().getY()))
+        //if(MathPlus.isRadical(e.getTo().getY())) {
         //  e.getPlayer().setBanned(true);
+        //  e.getPlayer().kickPlayer("The 1980s is too rad for you, punk ass.");
+        //}
     }
 }
