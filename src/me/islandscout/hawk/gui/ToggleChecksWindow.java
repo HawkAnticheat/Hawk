@@ -63,7 +63,7 @@ public class ToggleChecksWindow extends Window {
             };
         }
 
-        elements[54] = new Element(Material.WOOD_DOOR, ChatColor.RED + "Return to Main Menu") {
+        elements[53] = new Element(Material.WOOD_DOOR, ChatColor.RED + "Return to Main Menu") {
             @Override
             public void doAction(Player p, Hawk hawk) {
                 hawk.getGuiManager().sendWindow(p, new MainMenuWindow(hawk, p));
