@@ -28,18 +28,14 @@ import org.bukkit.block.Block;
 import org.bukkit.material.Openable;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class AdjacentBlocks {
 
     //loop horizontally around nearby blocks about the size of a player's collision box
-    //TODO: optimize this? Replace this List with a Set.
-    public static List<Block> getBlocksInLocation(Location loc) {
+    public static Set<Block> getBlocksInLocation(Location loc) {
         Location check = loc.clone();
-        List<Block> blocks = new ArrayList<>();
+        Set<Block> blocks = new HashSet<>();
         blocks.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         blocks.add(ServerUtils.getBlockAsync(check.add(0.3, 0, 0)));
         blocks.add(ServerUtils.getBlockAsync(check.add(0, 0, -0.3)));
@@ -48,13 +44,15 @@ public class AdjacentBlocks {
         blocks.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
         blocks.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         blocks.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
-        Block prevBlock = null;
-        for (int i = blocks.size() - 1; i >= 0; i--) {
-            Block currBlock = blocks.get(i);
-            if (currBlock == null || currBlock.getType() == Material.AIR || (currBlock.equals(prevBlock))) {
-                blocks.remove(i);
+
+        Block previousBlock = null;
+        Iterator<Block> blockIterator = blocks.iterator();
+        while (blockIterator.hasNext()) {
+            Block currentBlock = blockIterator.next();
+            if (currentBlock == null || currentBlock.getType() == Material.AIR || (currentBlock.equals(previousBlock))) {
+                blockIterator.remove();
             }
-            prevBlock = currBlock;
+            previousBlock = currentBlock;
         }
         return blocks;
     }
@@ -71,10 +69,10 @@ public class AdjacentBlocks {
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         for (Block b : sample) {
-            if(b == null)
+            if (b == null)
                 continue;
-            for(Material mat : materials) {
-                if(b.getType() == mat)
+            for (Material mat : materials) {
+                if (b.getType() == mat)
                     return true;
             }
         }
@@ -157,27 +155,28 @@ public class AdjacentBlocks {
      * @param loc            Test location
      * @param yVelocity      Y-velocity
      * @param ignoreInGround return false if location is inside something
-     * @param feetDepth Don't set this too low. The client doesn't like to send moves unless they are significant enough.
+     * @param feetDepth      Don't set this too low. The client doesn't like to send moves unless they are significant enough.
      * @param pp
      * @return boolean
      */
-    //TODO: this still needs to get optimized. Replace List with Set
     //if not sure what your velocity is, just put -1 for velocity
     //if you just want to check for location, just put -1 for velocity
     public static boolean onGroundReally(Location loc, double yVelocity, boolean ignoreInGround, double feetDepth, HawkPlayer pp) {
         if (yVelocity > 0.6) //allows stepping up short blocks, but not full blocks
             return false;
         Location check = loc.clone();
-        List<Block> blocks = new ArrayList<>();
+        Set<Block> blocks = new HashSet<>();
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check));
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, -1, 0)));
+
         Block prevBlock = null;
-        for (int i = blocks.size() - 1; i >= 0; i--) {
-            Block currBlock = blocks.get(i);
-            if (currBlock.equals(prevBlock) || pp.getIgnoredBlockCollisions().contains(currBlock.getLocation())) {
-                blocks.remove(i);
+        Iterator<Block> blockIterator = blocks.iterator();
+        while (blockIterator.hasNext()){
+            Block currentBlock = blockIterator.next();
+            if (currentBlock.equals(prevBlock) || pp.getIgnoredBlockCollisions().contains(currentBlock.getLocation())){
+                blockIterator.remove();
             }
-            prevBlock = currBlock;
+            prevBlock = currentBlock;
         }
 
         AABB underFeet = new AABB(loc.toVector().add(new Vector(-0.3, -feetDepth, -0.3)), loc.toVector().add(new Vector(0.3, 0, 0.3)));
@@ -221,13 +220,12 @@ public class AdjacentBlocks {
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 1)));
         sample.add(ServerUtils.getBlockAsync(check.add(0, 0, 1)));
         for (Block b : sample) {
-            if(b == null)
+            if (b == null)
                 continue;
-            if(hawkDefinition) {
-                if(WrappedBlock.getWrappedBlock(b, Hawk.getServerVersion()).isSolid())
+            if (hawkDefinition) {
+                if (WrappedBlock.getWrappedBlock(b, Hawk.getServerVersion()).isSolid())
                     return true;
-            }
-            else if(b.getType().isSolid())
+            } else if (b.getType().isSolid())
                 return true;
         }
         return false;
@@ -239,29 +237,29 @@ public class AdjacentBlocks {
         Vector max = bigBox.getMax().add(new Vector(borderSize, borderSize, borderSize));
         Set<Direction> directions = new HashSet<>();
         //The coordinates should be floored, but this works too.
-        for(int x = (int)(min.getX() < 0 ? min.getX() - 1 : min.getX()); x <= max.getX(); x++) {
-            for(int y = (int)min.getY() - 1; y <= max.getY(); y++) { //always subtract 1 so that fences/walls can be checked
-                for(int z = (int)(min.getZ() < 0 ? min.getZ() - 1 : min.getZ()); z <= max.getZ(); z++) {
+        for (int x = (int) (min.getX() < 0 ? min.getX() - 1 : min.getX()); x <= max.getX(); x++) {
+            for (int y = (int) min.getY() - 1; y <= max.getY(); y++) { //always subtract 1 so that fences/walls can be checked
+                for (int z = (int) (min.getZ() < 0 ? min.getZ() - 1 : min.getZ()); z <= max.getZ(); z++) {
                     Block b = ServerUtils.getBlockAsync(new Location(world, x, y, z));
-                    if(b != null) {
+                    if (b != null) {
                         WrappedBlock bNMS = WrappedBlock.getWrappedBlock(b, clientVersion);
-                        for(AABB blockBox : bNMS.getCollisionBoxes()) {
-                            if(blockBox.getMin().getX() > boundingBox.getMax().getX() && blockBox.getMin().getX() < bigBox.getMax().getX()) {
+                        for (AABB blockBox : bNMS.getCollisionBoxes()) {
+                            if (blockBox.getMin().getX() > boundingBox.getMax().getX() && blockBox.getMin().getX() < bigBox.getMax().getX()) {
                                 directions.add(Direction.EAST);
                             }
-                            if(blockBox.getMin().getY() > boundingBox.getMax().getY() && blockBox.getMin().getY() < bigBox.getMax().getY()) {
+                            if (blockBox.getMin().getY() > boundingBox.getMax().getY() && blockBox.getMin().getY() < bigBox.getMax().getY()) {
                                 directions.add(Direction.TOP);
                             }
-                            if(blockBox.getMin().getZ() > boundingBox.getMax().getZ() && blockBox.getMin().getZ() < bigBox.getMax().getZ()) {
+                            if (blockBox.getMin().getZ() > boundingBox.getMax().getZ() && blockBox.getMin().getZ() < bigBox.getMax().getZ()) {
                                 directions.add(Direction.SOUTH);
                             }
-                            if(blockBox.getMax().getX() > bigBox.getMin().getX() && blockBox.getMax().getX() < boundingBox.getMin().getX()) {
+                            if (blockBox.getMax().getX() > bigBox.getMin().getX() && blockBox.getMax().getX() < boundingBox.getMin().getX()) {
                                 directions.add(Direction.WEST);
                             }
-                            if(blockBox.getMax().getY() > bigBox.getMin().getY() && blockBox.getMax().getY() < boundingBox.getMin().getY()) {
+                            if (blockBox.getMax().getY() > bigBox.getMin().getY() && blockBox.getMax().getY() < boundingBox.getMin().getY()) {
                                 directions.add(Direction.BOTTOM);
                             }
-                            if(blockBox.getMax().getZ() > bigBox.getMin().getZ() && blockBox.getMax().getZ() < boundingBox.getMin().getZ()) {
+                            if (blockBox.getMax().getZ() > bigBox.getMin().getZ() && blockBox.getMax().getZ() < boundingBox.getMin().getZ()) {
                                 directions.add(Direction.NORTH);
                             }
                         }
