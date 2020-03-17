@@ -31,11 +31,12 @@ import java.util.List;
 
 public class ToggleChecksWindow extends Window {
 
-    //TODO: Place a "back" option in this window
+    //TODO: Paginate this menu (door code wont work w/ 54 checks)
 
     public ToggleChecksWindow(Hawk hawk, Player p) {
         super(hawk, p, ((hawk.getCheckManager().getChecks().size() - 1) / 9) + 1, ChatColor.GOLD + "Toggle checks");
         List<Check> list = hawk.getCheckManager().getChecks();
+
         for (int i = 0; i < list.size(); i++) {
             ItemStack status;
             String display = list.get(i).getName();
@@ -60,8 +61,15 @@ public class ToggleChecksWindow extends Window {
                     hawk.getGuiManager().sendWindow(p, window);
                 }
             };
-
-            prepareInventory();
         }
+
+        elements[54] = new Element(Material.WOOD_DOOR, ChatColor.RED + "Return to Main Menu") {
+            @Override
+            public void doAction(Player p, Hawk hawk) {
+                hawk.getGuiManager().sendWindow(p, new MainMenuWindow(hawk, p));
+            }
+        };
+
+        prepareInventory();
     }
 }
