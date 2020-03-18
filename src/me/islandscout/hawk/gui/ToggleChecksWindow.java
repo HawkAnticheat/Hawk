@@ -31,10 +31,10 @@ import java.util.List;
 
 public class ToggleChecksWindow extends Window {
 
-    //TODO: Paginate this menu (door code wont work w/ 54 checks)
+    //TODO: Paginate this menu. Max checks per page should be 45 so that we can leave one row for page actions.
 
     public ToggleChecksWindow(Hawk hawk, Player p) {
-        super(hawk, p, ((hawk.getCheckManager().getChecks().size() - 1) / 9) + 1, ChatColor.GOLD + "Toggle checks");
+        super(hawk, p, 6, ChatColor.GOLD + "Toggle checks");
         List<Check> list = hawk.getCheckManager().getChecks();
 
         for (int i = 0; i < list.size(); i++) {
