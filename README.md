@@ -1,5 +1,5 @@
 # Hawk
-Hawk Anticheat ver. BETA 2002 (DEV)
+Hawk Anticheat ver. BETA 2003 (DEV)
 
 Hawk is a Spigot server anticheat plugin designed to detect and prevent abuse of the Minecraft protocol. Hawk does not require any dependencies, since it relies on Spigot, Netty, and NMS code. Hawk runs on Spigot/PaperSpigot 1.7_R4 and 1.8_R3 servers.
 

@@ -38,6 +38,8 @@ public class Strafe extends MovementCheck {
     //This unintentionally trashes yet another handful of killauras and aimassists.
     //Flags poorly implemented aimbots (i.e. aimbots implemented after the motion update in the tick stack).
 
+    //TODO false flag when you "bounce" (touch momentarily, i.e. 1 tick) against a block
+
     private final double THRESHOLD;
     private final Map<UUID, Long> lastIdleTick;
 

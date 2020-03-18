@@ -100,6 +100,7 @@ public class MoveEvent extends Event {
             pp.setHasMoved();
 
         //handle teleports
+        Vector lastPos = pp.getPosition(); //set this now, because HawkPlayer#getPosition() will change after teleport
         int elapsedTicks = (int)(pp.getCurrentTick() - pp.getLastTeleportSendTick());
         if (pp.isTeleporting()) {
             Location tpLoc = pp.getTeleportLoc();
@@ -130,7 +131,8 @@ public class MoveEvent extends Event {
             cancelAndSetBack(p.getLocation());
             return false;
         }
-        pp.updateIgnoredBlockCollisions(getTo().toVector(), hasTeleported());
+
+        pp.updateIgnoredBlockCollisions(getTo().toVector(), lastPos, hasTeleported());
         return true;
     }
 

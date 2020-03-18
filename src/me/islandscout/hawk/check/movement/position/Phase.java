@@ -58,7 +58,7 @@ public class Phase extends MovementCheck {
     //too small, and you may have false positives
     //optimal threshold < (block depth + 0.6) - (2 * NMS_SIDE_EPSILON)
     private static final double HORIZONTAL_DISTANCE_THRESHOLD = Math.pow(0.4, 2);
-    private static final double VERTICAL_DISTANCE_THRESHOLD = Math.pow(1, 2);
+    private static final double VERTICAL_DISTANCE_THRESHOLD = 1;
 
     public Phase() {
         super("phase", true, 0, 10, 0.995, 5000, "%player% failed phase. Moved through %block%. VL: %vl%", null);
@@ -77,6 +77,7 @@ public class Phase extends MovementCheck {
             return;
 
         double horizDistanceSquared = Math.pow(locTo.getX() - locFrom.getX(), 2) + Math.pow(locTo.getZ() - locFrom.getZ(), 2);
+        double vertDistance = Math.abs(locTo.getY() - locFrom.getY());
 
         Vector moveDirection = new Vector(locTo.getX() - locFrom.getX(), locTo.getY() - locFrom.getY(), locTo.getZ() - locFrom.getZ());
 
@@ -95,6 +96,7 @@ public class Phase extends MovementCheck {
         selection.getMin().setY(selection.getMin().getY() - 0.6); //we need to grab blocks below us too, such as fences
 
         Set<Location> ignored = pp.getIgnoredBlockCollisions();
+        ignored.clear(); //TODO remove this line when you get ignored-blocks fixed
 
         GameMode gm = p.getGameMode();
         if(gm == GameMode.SURVIVAL || gm == GameMode.ADVENTURE || gm == GameMode.CREATIVE) {
@@ -104,8 +106,8 @@ public class Phase extends MovementCheck {
 
                         Location blockLoc = new Location(locTo.getWorld(), x, y, z);
 
-                        //Skip block if it updated within player AABB
-                        if(ignored.contains(blockLoc) && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD && distanceSquared <= VERTICAL_DISTANCE_THRESHOLD)
+                        //Skip block if it updated within player AABB (only if they move slowly)
+                        if(ignored.contains(blockLoc) && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD && vertDistance <= VERTICAL_DISTANCE_THRESHOLD)
                             continue;
 
                         Block bukkitBlock = ServerUtils.getBlockAsync(blockLoc);
@@ -117,7 +119,7 @@ public class Phase extends MovementCheck {
                         if (!block.isSolid())
                             continue;
 
-                        if (bukkitBlock.getState().getData() instanceof Openable && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD && distanceSquared <= VERTICAL_DISTANCE_THRESHOLD) {
+                        if (bukkitBlock.getState().getData() instanceof Openable && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD && vertDistance <= VERTICAL_DISTANCE_THRESHOLD) {
                             continue;
                         }
 

@@ -78,6 +78,9 @@ public class HawkPlayer {
     private Vector predictedPosition; //ticked by client
     private Vector predictedVelocity;
 
+    private Map<Location, List<AABB>> trackedBlockCollisions; //Private. Used to update ignoredBlockCollisions.
+    private Set<Location> ignoredBlockCollisions; //is accessible via getter
+
     private Vector velocity;
     private Vector previousVelocity;
     private float deltaYaw;
@@ -120,8 +123,6 @@ public class HawkPlayer {
     private final List<Pair<Vector, Long>> pendingVelocities;
     private final Set<Direction> boxSidesTouchingBlocks;
     private Vector waterFlowForce;
-    private Map<Location, List<AABB>> trackedBlockCollisions;
-    private Set<Location> ignoredBlockCollisions;
     private List<Pair<MetaData, Long>> metaDataUpdates;
     private Set<Entity> entitiesInteractedInThisTick;
     private List<Double> lastPings;
@@ -752,31 +753,66 @@ public class HawkPlayer {
         predictedVelocity = move;
     }
 
-    public void updateIgnoredBlockCollisions(Vector position, boolean teleported) {
-        AABB bbox = WrappedEntity.getWrappedEntity(p).getCollisionBox(position);
-        bbox.expand(-0.0001, -0.0001, -0.0001);
+    //Handles block AABB updates and teleportations to assist collision-based checks
+    public void updateIgnoredBlockCollisions(Vector to, Vector from, boolean teleported) {
+        final double expand = -0.0001; //TODO perhaps make this equal to NMS's margin to prevent bypasses via /sethome abuse?
+        AABB bbox = WrappedEntity.getWrappedEntity(p).getCollisionBox(to);
+        bbox.expand(expand, expand, expand);
 
+        //handle teleportation into a block
         if(teleported) {
-            Set<Location> ignored = new HashSet<>();
+            AABB lastbbox = WrappedEntity.getWrappedEntity(p).getCollisionBox(from);
+            lastbbox.expand(expand, expand, expand);
+
+            //add new entries
+            Set<Location> addIgnored = new HashSet<>();
             for(Block b : bbox.getBlocks(world)) {
-                Location loc = b.getLocation();
                 for(AABB aabb : WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes()) {
-                    if(aabb.isColliding(bbox)) {
-                        ignored.add(loc);
+                    if(aabb.isColliding(bbox) && !aabb.isColliding(lastbbox)) { //Must enter an AABB. This patches a Phase bypass.
+                        addIgnored.add(b.getLocation());
                         break;
                     }
                 }
             }
-            ignoredBlockCollisions = ignored;
+
+            //remove old entries
+            Set<Location> removeIgnored = new HashSet<>();
+            for(Location loc : ignoredBlockCollisions) {
+                Block b = ServerUtils.getBlockAsync(loc);
+                if(b == null) {
+                    removeIgnored.add(loc);
+                    continue;
+                }
+
+                boolean colliding = false;
+                for(AABB aabb : WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes()) {
+                    if(aabb.isColliding(bbox)) {
+                        colliding = true;
+                        break;
+                    }
+                }
+
+                if(!colliding) {
+                    removeIgnored.add(loc);
+                }
+            }
+
+            ignoredBlockCollisions.removeAll(removeIgnored);
+            ignoredBlockCollisions.addAll(addIgnored);
         }
+
+        //handle AABB updates within player bounds
+        //TODO Phase false when player moves out of block
+        //TODO snapshot nearby blocks or make 90% of checks sync to avoid concurrency problems
         else {
-            Map<Location, List<AABB>> blocksInBBOld = trackedBlockCollisions;
             Map<Location, List<AABB>> blocksInBBNew = new HashMap<>();
             for(Block b : bbox.getBlocks(world)) {
                 Location loc = b.getLocation();
                 List<AABB> aabbs = Arrays.asList(WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes());
                 blocksInBBNew.put(loc, aabbs);
             }
+
+            Map<Location, List<AABB>> blocksInBBOld = trackedBlockCollisions;
             Set<Location> ignored = new HashSet<>();
             for(Location entry : blocksInBBNew.keySet()) {
                 if (blocksInBBOld.containsKey(entry) && !blocksInBBOld.get(entry).equals(blocksInBBNew.get(entry))) {
@@ -788,6 +824,7 @@ public class HawkPlayer {
                     }
                 }
             }
+
             trackedBlockCollisions = blocksInBBNew;
             Set<Location> ignoredOld = ignoredBlockCollisions;
             for(Location loc : ignoredOld) {
