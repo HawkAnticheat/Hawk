@@ -22,9 +22,7 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
-import me.islandscout.hawk.wrap.entity.MetaData;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -120,6 +118,7 @@ public class MoveEvent extends Event {
             } else if(!pp.getPlayer().isSleeping()) {
                 if (elapsedTicks > (ping / 50) + 5) { //5 is an arbitrary constant to keep things smooth
                     //didn't accept teleport, so help guide the confused client back to the tp location
+                    //TODO don't TP when the player is exempted!
                     pp.teleport(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
                 }
                 return false;
@@ -172,6 +171,7 @@ public class MoveEvent extends Event {
         pp.getBoxSidesTouchingBlocks().addAll(getBoxSidesTouchingBlocks());
         pp.setWaterFlowForce(getWaterFlowForce());
         pp.setFriction(newFriction);
+        pp.setSentPosUpdate(isUpdatePos());
         if(hasAcceptedKnockback())
             pp.updateLastVelocityAcceptTick();
     }
@@ -204,35 +204,41 @@ public class MoveEvent extends Event {
         return liquids;
     }
 
+    //TODO sprint-jumping right as you enter a 2-block-high tunnel will not change your Y, WTF? This will return false and checks will false-flag.
     private boolean testJumped() {
         int jumpBoostLvl = 0;
         for (PotionEffect pEffect : p.getActivePotionEffects()) {
             if (pEffect.getType().equals(PotionEffectType.JUMP)) {
-                jumpBoostLvl = pEffect.getAmplifier() + 1;
+                byte amp = (byte)pEffect.getAmplifier();
+                jumpBoostLvl = amp + 1;
+                //Debug.broadcastMessage(amp + " " + jumpBoostLvl);
                 break;
             }
         }
-        float initJumpVelocity = 0.42F + jumpBoostLvl * 0.1F;
-        float deltaY = (float)(getTo().getY() - getFrom().getY()); //TODO predict where a HawkPlayer was last at if the last packet wasn't a pos update
+        float expectedDY = Math.max(0.42F + jumpBoostLvl * 0.1F, 0F); //TODO if 0, that means they POSSIBLY could have jumped; not always. Falses SprintDirection with extreme negative jump boost.
+        Vector from = pp.hasSentPosUpdate() ? getFrom().toVector() : pp.getPositionPredicted();
+        float dY = (float)(getTo().getY() - from.getY());
 
         //Change by Havesta to more accurately handle Y collision
-        Vector pos = getFrom().toVector().setY(getTo().getY());
+        Vector pos = from.clone().setY(getTo().getY());
         AABB collisionBox = AABB.playerCollisionBox.clone();
         collisionBox.expand(-0.000001, -0.000001, -0.000001);
         collisionBox.translate(pos);
         boolean hitCeiling = AdjacentBlocks.checkTouchingBlock(collisionBox, getTo().getWorld(), 0.0001, pp.getClientVersion()).contains(Direction.TOP);
 
         boolean kbSimilarToJump = acceptedKnockback != null &&
-                (Math.abs(acceptedKnockback.getY() - initJumpVelocity) < 0.001 || hitCeiling);
-        return !kbSimilarToJump && (pp.isOnGround() && !isOnGround()) && (deltaY == initJumpVelocity || hitCeiling);
+                (Math.abs(acceptedKnockback.getY() - expectedDY) < 0.001 || hitCeiling);
+        boolean leftGround = (pp.isOnGround() && !isOnGround());
+        return !kbSimilarToJump && ((expectedDY == 0 && pp.isOnGround()) || leftGround) && (dY == expectedDY || hitCeiling);
     }
 
     //Again, kudos to MCP for guiding me to the right direction
     private boolean testSlimeBlockBounce() {
         if(Hawk.getServerVersion() < 8)
             return false;
-        float deltaY = (float)(getTo().getY() - getFrom().getY());
-        Block staningOn = ServerUtils.getBlockAsync(getFrom().clone().add(0, -0.01, 0));
+        Vector from = pp.hasSentPosUpdate() ? getFrom().toVector() : pp.getPositionPredicted();
+        float deltaY = (float)(getTo().getY() - from.getY());
+        Block staningOn = ServerUtils.getBlockAsync(from.toLocation(pp.getWorld()).add(0, -0.01, 0));
         if(staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
             return false;
         float prevPrevDeltaY = (float)pp.getPreviousVelocity().getY();

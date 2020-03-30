@@ -59,6 +59,6 @@ public class AimbotExperimental extends MovementCheck {
 
         //TODO integrate these delta yaws and then compare them
 
-        Debug.broadcastMessage( dir + " " + Math.abs(bestDeltaYaw - deltaYaw));
+        //Debug.broadcastMessage( dir + " " + Math.abs(bestDeltaYaw - deltaYaw));
     }
 }

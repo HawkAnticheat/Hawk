@@ -23,6 +23,7 @@ import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -61,8 +62,10 @@ public class Gravity extends MovementCheck {
     //dY -= 0.08
     //dY *= 0.98
 
+    //TODO do not forget checkerclimb
+
     private static final float MIN_VELOCITY = 0.005F;
-    private static final int MAX_NO_MOVES = 8;
+    private static final int MAX_NO_MOVES = 20;
     private static final double NO_MOVE_THRESHOLD = 0.03;
     private static final float DISCREPANCY_THRESHOLD = 0.0001F;
 
@@ -82,18 +85,21 @@ public class Gravity extends MovementCheck {
 
         HawkPlayer pp = e.getHawkPlayer();
         Player p = e.getPlayer();
-        float dY = (float) (e.getTo().getY() - e.getFrom().getY());
-        boolean moved = dY != 0F;
+        Vector from = pp.hasSentPosUpdate() ? e.getFrom().toVector() : pp.getPositionPredicted(); //must predict where a player was previously if they didn't send a pos update then.
+        float dY = (float) (e.getTo().getY() - from.getY());
+        boolean moved = e.isUpdatePos();
         int noMoves = noMovesMap.getOrDefault(pp.getUuid(), 0);
-        float estimatedPosition = estimatedPositionMap.getOrDefault(pp.getUuid(), (float)e.getFrom().getY());
+        float estimatedPosition = estimatedPositionMap.getOrDefault(pp.getUuid(), (float)from.getY());
         float prevEstimatedVelocity = estimatedVelocityMap.getOrDefault(pp.getUuid(), (float) pp.getVelocity().getY());
-        Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(e.getFrom().toVector()).getMaterials(pp.getWorld());
+        Debug.broadcastMessage(dY + " " + estimatedPosition + " " + prevEstimatedVelocity);
+        Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(from).getMaterials(pp.getWorld());
+        boolean opposingForce = e.isJump() || e.hasAcceptedKnockback() || e.hasTeleported() || e.isStep();
 
         //TODO false flag when toggling off fly. Fly lasts one tick longer.
-        if(!e.isOnGround() && !e.isJump() && !e.hasAcceptedKnockback() && !e.hasTeleported() && !e.isStep() &&
+        if(!e.isOnGround() && !opposingForce &&
                 !p.isInsideVehicle() &&
-                !pp.isFlying() && !pp.isSwimming() && !p.isSleeping() && !isInClimbable(e.getFrom()) && //TODO: uh oh! make sure to have a fastladder check, otherwise hackers can "pop" off them
-                !isOnBoat(p, e.getTo()) && !e.isSlimeBlockBounce()) { //TODO validate onGround w/ GroundSpoof check & dont forget to check when player lands
+                !pp.isFlying() && !pp.isSwimming() && !p.isSleeping() && !isInClimbable(from.toLocation(pp.getWorld())) && //TODO: uh oh! make sure to have a fastladder check, otherwise hackers can "pop" off them
+                !isOnBoat(p, e.getTo()) && !e.isSlimeBlockBounce()) { //TODO don't forget to check dY when player lands
 
             //count "no-moves"
             if(!moved) {
@@ -129,7 +135,7 @@ public class Gravity extends MovementCheck {
             }
 
             //finally, check for discrepancy
-            if(moved || noMoves > MAX_NO_MOVES) { //TODO also check if the distance between the last known position and the current expected position > 0.03
+            if(moved || noMoves > MAX_NO_MOVES || Math.abs(estimatedPosition - e.getTo().getY()) > NO_MOVE_THRESHOLD) {
                 float discrepancy = (float) e.getTo().getY() - estimatedPosition;
                 if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD) {
                     punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
@@ -142,7 +148,12 @@ public class Gravity extends MovementCheck {
             prevEstimatedVelocity = estimatedVelocity;
         }
         else {
-            estimatedPosition = (float) e.getTo().getY();
+            if(moved) {
+                estimatedPosition = (float) e.getTo().getY();
+            }
+            else {
+                estimatedPosition = (float) pp.getPositionPredicted().getY();
+            }
             if(e.isOnGround() || (e.getBoxSidesTouchingBlocks().contains(Direction.TOP) && dY > 0)) {
                 prevEstimatedVelocity = 0;
             }
@@ -150,6 +161,7 @@ public class Gravity extends MovementCheck {
                 prevEstimatedVelocity = dY;
             }
         }
+        //Debug.broadcastMessage((moved ? ChatColor.GREEN : ChatColor.RED) + "" + e.getTo().getY() + " " + estimatedPosition + " " + pp.getPositionPredicted().getY() + " prevEstDY: " + prevEstimatedVelocity);
 
         estimatedVelocityMap.put(pp.getUuid(), prevEstimatedVelocity);
         noMovesMap.put(pp.getUuid(), noMoves);

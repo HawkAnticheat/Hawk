@@ -88,6 +88,7 @@ public class HawkPlayer {
     private boolean onGround;
     private boolean prevTickOnGround;
     private boolean onGroundReally;
+    private boolean sentPosUpdate;
     private float friction;
     private int ping;
     private short pingJitter;
@@ -176,9 +177,7 @@ public class HawkPlayer {
         executeTasks();
         cleanUpOldMetaDataUpdates();
         entitiesInteractedInThisTick.clear();
-        //TODO this doesn't need to be called so often
-        if(predictedVelocity.lengthSquared() > 0)
-            predictNextPosition();
+        predictNextPosition();
         if(consumingItem)
             itemConsumeTicks++;
     }
@@ -367,7 +366,7 @@ public class HawkPlayer {
         this.pitch = pitch;
         if(isPosUpdate) {
             predictedPosition = position.clone();
-            if(previousVelocity.lengthSquared() > 0)
+            //if(previousVelocity.lengthSquared() > 0)
                 predictedVelocity = velocity.clone();
         }
     }
@@ -625,6 +624,9 @@ public class HawkPlayer {
         double pdY = move.getY() * 0.98;
         double pdZ = move.getZ() * getFriction();
 
+        if(!isFlying())
+            pdY += -0.0784;
+
         if(Math.abs(pdX) < 0.005) {
             pdX = 0;
         }
@@ -634,9 +636,6 @@ public class HawkPlayer {
         if(Math.abs(pdZ) < 0.005) {
             pdZ = 0;
         }
-
-        if(!isFlying())
-            pdY += -0.0784;
 
         AABB box = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition);
         AABB preBox = box.clone();
@@ -746,9 +745,9 @@ public class HawkPlayer {
         }
 
         //move predicted position
-        move.setX(pdX);
-        move.setY(pdY);
-        move.setZ(pdZ);
+        move.setX(MathPlus.round(pdX, 10));
+        move.setY(MathPlus.round(pdY, 10));
+        move.setZ(MathPlus.round(pdZ, 10));
         predictedPosition.add(move);
         predictedVelocity = move;
     }
@@ -1030,5 +1029,13 @@ public class HawkPlayer {
 
     public void setInCreative(boolean inCreative) {
         this.inCreative = inCreative;
+    }
+
+    public boolean hasSentPosUpdate() {
+        return sentPosUpdate;
+    }
+
+    public void setSentPosUpdate(boolean hasSentPosUpdate) {
+        this.sentPosUpdate = hasSentPosUpdate;
     }
 }
