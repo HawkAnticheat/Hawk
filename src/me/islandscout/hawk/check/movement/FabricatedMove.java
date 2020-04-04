@@ -110,8 +110,7 @@ public class FabricatedMove extends MovementCheck {
             }
             flyingTicksMap.put(uuid, flying);
 
-            //sent more than 20 flying packets in succession
-            if(flying > 20) {  // inspired by ToonBasic
+            if(flying > 20) {
                 punishAndTryRubberband(pp, flying - 20, e, e.getPlayer().getLocation());
             }
         }

@@ -366,7 +366,7 @@ public class HawkPlayer {
         this.pitch = pitch;
         if(isPosUpdate) {
             predictedPosition = position.clone();
-            //if(previousVelocity.lengthSquared() > 0)
+            if(hasSentPosUpdate())
                 predictedVelocity = velocity.clone();
         }
     }
@@ -627,16 +627,6 @@ public class HawkPlayer {
         if(!isFlying())
             pdY += -0.0784;
 
-        if(Math.abs(pdX) < 0.005) {
-            pdX = 0;
-        }
-        if(Math.abs(pdY) < 0.005) {
-            pdY = 0;
-        }
-        if(Math.abs(pdZ) < 0.005) {
-            pdZ = 0;
-        }
-
         AABB box = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition);
         AABB preBox = box.clone();
         preBox.expand(-0.0001, -0.0001, -0.0001);
@@ -744,11 +734,26 @@ public class HawkPlayer {
             return;
         }
 
+        if(Math.abs(pdX) < 0.005) {
+            pdX = 0;
+        }
+        if(Math.abs(pdY) < 0.005) {
+            pdY = 0;
+        }
+        if(Math.abs(pdZ) < 0.005) {
+            pdZ = 0;
+        }
+
         //move predicted position
         move.setX(MathPlus.round(pdX, 10));
         move.setY(MathPlus.round(pdY, 10));
         move.setZ(MathPlus.round(pdZ, 10));
         predictedPosition.add(move);
+
+        //AABB a = AABB.playerCollisionBox.clone();
+        //a.translate(predictedPosition);
+        //a.highlight(hawk, getWorld(), 0.299);
+
         predictedVelocity = move;
     }
 
