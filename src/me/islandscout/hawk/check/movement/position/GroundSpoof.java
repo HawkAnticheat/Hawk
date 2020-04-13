@@ -33,7 +33,7 @@ public class GroundSpoof extends MovementCheck {
     private final boolean PREVENT_NOFALL;
 
     public GroundSpoof() {
-        super("groundspoof", true, -1, 3, 0.995, 5000, "%player% failed ground spoof. VL: %vl%", null);
+        super("groundspoof", true, 0, 3, 0.995, 5000, "%player% failed ground spoof. VL: %vl%", null);
         PREVENT_NOFALL = (boolean) customSetting("preventNoFall", "", true);
     }
 

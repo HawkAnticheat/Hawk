@@ -63,6 +63,7 @@ public class Gravity extends MovementCheck {
     //dY *= 0.98
 
     //TODO do not forget checkerclimb
+    //TODO set up proper location to rubberband (do not rubberband to Player#getLocation(), this makes a very crude, but possible glide bypass. Exploits Y motion behavior after TP)
 
     private static final float MIN_VELOCITY = 0.005F;
     private static final int MAX_NO_MOVES = 20;
@@ -72,12 +73,14 @@ public class Gravity extends MovementCheck {
     private final Map<UUID, Float> estimatedPositionMap;
     private final Map<UUID, Float> estimatedVelocityMap;
     private final Map<UUID, Integer> noMovesMap;
+    private final Map<UUID, Location> legitLoc;
 
     public Gravity() {
-        super("gravity", "&7%player% failed gravity, VL: %vl%");
+        super("gravity", true, 0, 10, 0.995, 5000, "&7%player% failed gravity, VL: %vl%", null);
         estimatedPositionMap = new HashMap<>();
         estimatedVelocityMap = new HashMap<>();
         noMovesMap = new HashMap<>();
+        legitLoc = new HashMap<>();
     }
 
     @Override
@@ -91,15 +94,14 @@ public class Gravity extends MovementCheck {
         int noMoves = noMovesMap.getOrDefault(pp.getUuid(), 0);
         float estimatedPosition = estimatedPositionMap.getOrDefault(pp.getUuid(), (float)from.getY());
         float prevEstimatedVelocity = estimatedVelocityMap.getOrDefault(pp.getUuid(), (float) pp.getVelocity().getY());
-        Debug.broadcastMessage(dY + " " + estimatedPosition + " " + prevEstimatedVelocity);
         Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(from).getMaterials(pp.getWorld());
         boolean opposingForce = e.isJump() || e.hasAcceptedKnockback() || e.hasTeleported() || e.isStep();
 
         //TODO false flag when toggling off fly. Fly lasts one tick longer.
-        if(!e.isOnGround() && !opposingForce &&
+        if((!e.isOnGround() || !pp.isOnGround()) && !opposingForce &&
                 !p.isInsideVehicle() &&
                 !pp.isFlying() && !pp.isSwimming() && !p.isSleeping() && !isInClimbable(from.toLocation(pp.getWorld())) && //TODO: uh oh! make sure to have a fastladder check, otherwise hackers can "pop" off them
-                !isOnBoat(p, e.getTo()) && !e.isSlimeBlockBounce()) { //TODO don't forget to check dY when player lands
+                !isOnBoat(p, e.getTo()) && !e.isSlimeBlockBounce()) {
 
             //count "no-moves"
             if(!moved) {
@@ -134,19 +136,49 @@ public class Gravity extends MovementCheck {
                 estimatedVelocity = 0;
             }
 
-            //finally, check for discrepancy
-            if(moved || noMoves > MAX_NO_MOVES || Math.abs(estimatedPosition - e.getTo().getY()) > NO_MOVE_THRESHOLD) {
-                float discrepancy = (float) e.getTo().getY() - estimatedPosition;
-                if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD) {
+            //check landing
+            if(e.isOnGround() && !pp.isOnGround()) {
+                Debug.broadcastMessage("LAND!");
+                //Pretty much check if the Y is within reasonable bounds.
+                //Doesn't need to be so precise i.e. 0.0001 within bounds, leave that for GroundSpoof and Phase.
+                //However, if it becomes a problem, you know how to expand this code.
+                float y;
+                if(moved) {
+                    y = (float) e.getTo().getY();
+                }
+                else {
+                    y = (float) pp.getPositionPredicted().getY();
+                }
+
+                float discrepancy = y - estimatedPosition;
+                //y must be between last Y and estimatedPosition.
+                if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD && (y < Math.min(estimatedPosition, from.getY()) || y > Math.max(estimatedPosition, from.getY()))) {
                     punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
                 }
                 else {
                     reward(pp);
                 }
+
+                //If you've landed, then that must mean these should reset.
+                prevEstimatedVelocity = 0;
+                estimatedPosition = y;
             }
 
-            prevEstimatedVelocity = estimatedVelocity;
+            //check for Y discrepancy in air
+            else {
+                if(moved || noMoves > MAX_NO_MOVES || Math.abs(estimatedPosition - e.getTo().getY()) > NO_MOVE_THRESHOLD) {
+                    float discrepancy = (float) e.getTo().getY() - estimatedPosition;
+                    if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD) {
+                        punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+                    }
+                    else {
+                        reward(pp);
+                    }
+                }
+                prevEstimatedVelocity = estimatedVelocity;
+            }
         }
+
         else {
             if(moved) {
                 estimatedPosition = (float) e.getTo().getY();
@@ -187,5 +219,14 @@ public class Gravity extends MovementCheck {
     private boolean isInClimbable(Location loc) {
         Block b = ServerUtils.getBlockAsync(loc);
         return b != null && (b.getType() == Material.VINE || b.getType() == Material.LADDER);
+    }
+
+    @Override
+    public void removeData(Player p) {
+        UUID uuid = p.getUniqueId();
+        estimatedPositionMap.remove(uuid);
+        estimatedVelocityMap.remove(uuid);
+        noMovesMap.remove(uuid);
+        legitLoc.remove(uuid);
     }
 }
