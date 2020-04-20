@@ -33,7 +33,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -67,7 +67,7 @@ public class MoveEvent extends Event {
     private float maxExpectedInputForce;
     private Vector waterFlowForce;
     private List<Pair<Block, Vector>> liquidsAndDirections;
-    private final Set<Material> liquidTypes;
+    private final EnumSet<Material> liquidTypes;
     //No, don't compute a delta vector during instantiation since it won't respond to teleports.
 
     public MoveEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet, boolean updatePos, boolean updateRot) {
@@ -76,7 +76,7 @@ public class MoveEvent extends Event {
         this.updatePos = updatePos;
         this.updateRot = updateRot;
         this.onGround = onGround;
-        this.liquidTypes = new HashSet<>();
+        this.liquidTypes = EnumSet.noneOf(Material.class);
     }
 
     @Override

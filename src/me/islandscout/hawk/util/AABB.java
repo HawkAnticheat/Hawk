@@ -288,7 +288,7 @@ public class AABB implements Cloneable {
 
     //Blocks that barely touch don't count
     public Set<Material> getMaterials(World world) {
-        Set<Material> mats = new HashSet<>();
+        Set<Material> mats = EnumSet.noneOf(Material.class);
         for (int x = (int) Math.floor(min.getX()); x < (int) Math.ceil(max.getX()); x++) {
             for (int y = (int) Math.floor(min.getY()); y < (int) Math.ceil(max.getY()); y++) {
                 for (int z = (int) Math.floor(min.getZ()); z < (int) Math.ceil(max.getZ()); z++) {

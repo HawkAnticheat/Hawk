@@ -51,10 +51,12 @@ public class WrappedBlock7 extends WrappedBlock {
         this.block = b;
     }
 
+    @Override
     public net.minecraft.server.v1_7_R4.Block getNMS() {
         return block;
     }
 
+    @Override
     public void sendPacketToPlayer(Player p) {
         Location loc = getBukkitBlock().getLocation();
         PacketPlayOutBlockChange pac = new PacketPlayOutBlockChange(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), ((CraftWorld) loc.getWorld()).getHandle());
@@ -115,13 +117,14 @@ public class WrappedBlock7 extends WrappedBlock {
 
 
     private boolean isReallySolid(Block b) {
-        boolean reallySolid = b.getType().isSolid();
+        boolean reallySolid = block == null ? b.getType().isSolid() : block.getMaterial().isSolid();
         if (b.getType() == Material.CARPET || b.getType() == Material.WATER_LILY) {
             reallySolid = true;
         }
         return reallySolid;
     }
 
+    @Override
     public Vector getFlowDirection() {
         Vector vec = new Vector();
         Vec3D nmsVec = Vec3D.a(0, 0, 0);

@@ -86,7 +86,6 @@ public abstract class WrappedBlock {
     }
 
     //Man, I hate having to do this. I don't know why Bukkit is confused over the definition of SOLID.
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isSolid() {
         return solid;
     }

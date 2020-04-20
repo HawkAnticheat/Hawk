@@ -28,6 +28,7 @@ import org.bukkit.block.Block;
 import org.bukkit.material.Openable;
 import org.bukkit.util.Vector;
 
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -219,7 +220,7 @@ public class AdjacentBlocks {
         AABB bigBox = boundingBox.clone();
         Vector min = bigBox.getMin().add(new Vector(-borderSize, -borderSize, -borderSize));
         Vector max = bigBox.getMax().add(new Vector(borderSize, borderSize, borderSize));
-        Set<Direction> directions = new HashSet<>();
+        Set<Direction> directions = EnumSet.noneOf(Direction.class);
         //The coordinates should be floored, but this works too.
         for (int x = (int) (min.getX() < 0 ? min.getX() - 1 : min.getX()); x <= max.getX(); x++) {
             for (int y = (int) min.getY() - 1; y <= max.getY(); y++) { //always subtract 1 so that fences/walls can be checked
