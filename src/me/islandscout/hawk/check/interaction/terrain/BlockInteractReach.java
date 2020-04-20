@@ -27,8 +27,8 @@ import me.islandscout.hawk.util.Placeholder;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.util.Vector;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 public class BlockInteractReach extends BlockInteractionCheck {
 
@@ -52,11 +52,10 @@ public class BlockInteractReach extends BlockInteractionCheck {
         AABB targetAABB = new AABB(min, max);
 
         Vector ppPos;
-        if(pp.isInVehicle()) {
+        if (pp.isInVehicle()) {
             ppPos = hawk.getLagCompensator().getHistoryLocation(ServerUtils.getPing(p), p).toVector();
             ppPos.setY(ppPos.getY() + p.getEyeHeight());
-        }
-        else {
+        } else {
             ppPos = pp.getHeadPosition();
         }
 

@@ -37,49 +37,48 @@ public class PunishArgument extends Argument {
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
         PunishmentScheduler pScheduler = hawk.getPunishmentScheduler();
-        if(args.length < 2)
+        if (args.length < 2)
             return false;
 
-        if(args[1].equals("list")) {
+        if (args[1].equals("list")) {
             pScheduler.list(sender);
             return true;
         }
 
-        if(args.length < 3)
+        if (args.length < 3)
             return false;
 
         @SuppressWarnings("deprecation")
         OfflinePlayer offlineTarget = Bukkit.getOfflinePlayer(args[2]);
 
-        if(args[1].equals("info")) {
+        if (args[1].equals("info")) {
             pScheduler.info(sender, offlineTarget);
             return true;
         }
 
-        if(args[1].equals("remove")) {
+        if (args[1].equals("remove")) {
             pScheduler.remove(offlineTarget);
             return true;
         }
 
-        if(args[1].equals("authorize")) {
+        if (args[1].equals("authorize")) {
             pScheduler.authorize(offlineTarget);
             return true;
         }
 
         Player target = Bukkit.getPlayer(args[2]);
-        if(target == null) {
+        if (target == null) {
             sender.sendMessage(ChatColor.RED + "Player \"" + args[2] + "\" is not online");
             return true;
         }
 
         String reason;
-        if(args.length > 3) {
+        if (args.length > 3) {
             reason = String.join(" ", Arrays.asList(args).subList(3, args.length));
-        }
-        else
+        } else
             reason = null;
 
-        if(args[1].equals("add")) {
+        if (args[1].equals("add")) {
             pScheduler.add(target, reason);
             return true;
         }

@@ -20,14 +20,16 @@ package me.islandscout.hawk.command;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.Check;
-import me.islandscout.hawk.util.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class ViolationsArgument extends Argument {
 
@@ -44,7 +46,7 @@ public class ViolationsArgument extends Argument {
             sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[1] + "\"");
             return true;
         }
-        if(args.length < 3) {
+        if (args.length < 3) {
             sender.sendMessage(ChatColor.GOLD + "" + target.getName() + "'s top 5 VLs:");
 
             HawkPlayer pp = hawk.getHawkPlayer(target);
@@ -52,10 +54,10 @@ public class ViolationsArgument extends Argument {
             list.sort(Comparator.comparing(Map.Entry::getValue));
 
             int line = 0;
-            for(int i = list.size() - 1; i >= 0 && line < 5; i--) {
+            for (int i = list.size() - 1; i >= 0 && line < 5; i--) {
                 Map.Entry<Check, Double> entry = list.get(i);
-                int vl = (int)(double)entry.getValue();
-                if(vl == 0)
+                int vl = (int) (double) entry.getValue();
+                if (vl == 0)
                     continue;
                 sender.sendMessage(ChatColor.GOLD + "" + entry.getKey() + ": " + vl);
                 line++;

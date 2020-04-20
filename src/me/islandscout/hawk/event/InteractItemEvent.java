@@ -42,20 +42,19 @@ public class InteractItemEvent extends Event {
     public void postProcess() {
         Material mat = getItemStack().getType();
         boolean gapple = mat == Material.GOLDEN_APPLE && getItemStack().getDurability() == 1;
-        if(action == Action.START_USE_ITEM) {
-            if((mat.isEdible() && (p.getFoodLevel() < 20 || gapple) && p.getGameMode() != GameMode.CREATIVE) ||
+        if (action == Action.START_USE_ITEM) {
+            if ((mat.isEdible() && (p.getFoodLevel() < 20 || gapple) && p.getGameMode() != GameMode.CREATIVE) ||
                     (mat == Material.POTION && getItemStack().getDurability() == 0) || //water bottles
                     (mat == Material.POTION && !Potion.fromItemStack(getItemStack()).isSplash())) {
                 pp.setConsumingItem(true);
             }
-            if(EnchantmentTarget.WEAPON.includes(mat)) {
+            if (EnchantmentTarget.WEAPON.includes(mat)) {
                 pp.setBlocking(true);
             }
-            if(mat == Material.BOW && (p.getInventory().contains(Material.ARROW) || p.getGameMode() == GameMode.CREATIVE)) {
+            if (mat == Material.BOW && (p.getInventory().contains(Material.ARROW) || p.getGameMode() == GameMode.CREATIVE)) {
                 pp.setPullingBow(true);
             }
-        }
-        else if(action == Action.RELEASE_USE_ITEM || action == Action.DROP_HELD_ITEM || action == Action.DROP_HELD_ITEM_STACK) {
+        } else if (action == Action.RELEASE_USE_ITEM || action == Action.DROP_HELD_ITEM || action == Action.DROP_HELD_ITEM_STACK) {
             pp.setConsumingItem(false);
             pp.setBlocking(false);
             pp.setPullingBow(false);

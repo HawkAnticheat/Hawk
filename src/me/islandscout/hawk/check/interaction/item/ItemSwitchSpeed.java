@@ -20,8 +20,8 @@ package me.islandscout.hawk.check.interaction.item;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.check.CustomCheck;
-import me.islandscout.hawk.event.InteractWorldEvent;
 import me.islandscout.hawk.event.Event;
+import me.islandscout.hawk.event.InteractWorldEvent;
 import me.islandscout.hawk.event.ItemSwitchEvent;
 import org.bukkit.entity.Player;
 
@@ -38,28 +38,27 @@ public class ItemSwitchSpeed extends CustomCheck implements Cancelless {
         super("itemswitchspeed", true, -1, 5, 0.99, 5000, "%player% failed item switch speed, VL: %vl%", null);
         lastSwitchTicks = new HashMap<>();
         usedSomething = new HashSet<>();
-        MIN_SWITCH_TICKS = (int)customSetting("minSwitchTicks", "", 2);
+        MIN_SWITCH_TICKS = (int) customSetting("minSwitchTicks", "", 2);
     }
 
     @Override
     protected void check(Event event) {
-        if(event instanceof InteractWorldEvent) {
+        if (event instanceof InteractWorldEvent) {
             usedSomething.add(event.getPlayer().getUniqueId());
             return;
         }
-        if(!(event instanceof ItemSwitchEvent)) {
+        if (!(event instanceof ItemSwitchEvent)) {
             return;
         }
 
         HawkPlayer pp = event.getHawkPlayer();
         UUID uuid = pp.getUuid();
 
-        if(usedSomething.contains(uuid)) {
+        if (usedSomething.contains(uuid)) {
             long lastSwitchTick = lastSwitchTicks.getOrDefault(uuid, 0L);
-            if(pp.getCurrentTick() - lastSwitchTick < MIN_SWITCH_TICKS) {
+            if (pp.getCurrentTick() - lastSwitchTick < MIN_SWITCH_TICKS) {
                 punish(pp, 1, false, event);
-            }
-            else {
+            } else {
                 reward(pp);
             }
 

@@ -32,7 +32,10 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class MoveEvent extends Event {
 
@@ -94,28 +97,27 @@ public class MoveEvent extends Event {
 
         setTeleported(false);
         pp.tick();
-        if(isUpdatePos())
+        if (isUpdatePos())
             pp.setHasMoved();
 
         //handle teleports
         Vector lastPos = pp.getPosition(); //set this now, because HawkPlayer#getPosition() will change after teleport
-        int elapsedTicks = (int)(pp.getCurrentTick() - pp.getLastTeleportSendTick());
+        int elapsedTicks = (int) (pp.getCurrentTick() - pp.getLastTeleportSendTick());
         if (pp.isTeleporting()) {
             Location tpLoc = pp.getTeleportLoc();
             int ping = ServerUtils.getPing(p);
             if (tpLoc.getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(tpLoc) < 0.001) {
                 //move matched teleport location
-                if(elapsedTicks > (ping / 50) - 1) { //1 is an arbitrary constant to keep things smooth
+                if (elapsedTicks > (ping / 50) - 1) { //1 is an arbitrary constant to keep things smooth
                     //most likely accepted teleport, unless this move is a coincidence
                     pp.updatePositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch(), true);
                     pp.setTeleporting(false);
                     pp.setLastTeleportAcceptTick(pp.getCurrentTick());
                     setTeleported(true);
-                }
-                else {
+                } else {
                     return false;
                 }
-            } else if(!pp.getPlayer().isSleeping()) {
+            } else if (!pp.getPlayer().isSleeping()) {
                 if (elapsedTicks > (ping / 50) + 5) { //5 is an arbitrary constant to keep things smooth
                     //didn't accept teleport, so help guide the confused client back to the tp location
                     //TODO don't TP when the player is exempted!
@@ -138,7 +140,7 @@ public class MoveEvent extends Event {
     @Override
     public void postProcess() {
         pp.setLastMoveTime(System.currentTimeMillis());
-        if(isCancelled() && getCancelLocation() != null) {
+        if (isCancelled() && getCancelLocation() != null) {
             //handle rubberband if applicable
             setTo(getCancelLocation());
             pp.setTeleporting(true);
@@ -146,18 +148,18 @@ public class MoveEvent extends Event {
         }
 
         //handle item consumption
-        if(pp.getItemConsumeTicks() > 31 && pp.isConsumingItem()) {
+        if (pp.getItemConsumeTicks() > 31 && pp.isConsumingItem()) {
             pp.setConsumingItem(false);
         }
 
         //handle swimming
         pp.setInLiquid(isInLiquid());
-        if(pp.getCurrentTick() < 2)
+        if (pp.getCurrentTick() < 2)
             pp.setSwimming(pp.isInLiquid());
         long ticksSinceSwimToggle = pp.getCurrentTick() - pp.getLastInLiquidToggleTick();
         pp.setSwimming(!pp.isFlying() && ((pp.isInLiquid() && ticksSinceSwimToggle > 0) || (!pp.isInLiquid() && ticksSinceSwimToggle < 1)));
 
-        if(isOnGround() && !pp.isOnGround())
+        if (isOnGround() && !pp.isOnGround())
             pp.updateLastLandTick();
 
         Location to = getTo();
@@ -172,13 +174,13 @@ public class MoveEvent extends Event {
         pp.setWaterFlowForce(getWaterFlowForce());
         pp.setFriction(newFriction);
         pp.setSentPosUpdate(isUpdatePos());
-        if(hasAcceptedKnockback())
+        if (hasAcceptedKnockback())
             pp.updateLastVelocityAcceptTick();
     }
 
     private boolean testStep() {
         Vector extraVelocity = pp.getVelocity().clone();
-        if(pp.isOnGroundReally())
+        if (pp.isOnGroundReally())
             extraVelocity.setY(-0.0784);
         else
             extraVelocity.setY((extraVelocity.getY() - 0.08) * 0.98);
@@ -194,8 +196,8 @@ public class MoveEvent extends Event {
         liquidTest.translate(getTo().toVector());
         List<Pair<Block, Vector>> liquids = new ArrayList<>();
         List<Block> blocks = liquidTest.getBlocks(p.getWorld());
-        for(Block b : blocks) {
-            if(Physics.liquidDefs.contains(b.getType())) {
+        for (Block b : blocks) {
+            if (Physics.liquidDefs.contains(b.getType())) {
                 Vector direction = WrappedBlock.getWrappedBlock(b, pp.getClientVersion()).getFlowDirection();
                 liquids.add(new Pair<>(b, direction));
                 this.liquidTypes.add(b.getType());
@@ -209,7 +211,7 @@ public class MoveEvent extends Event {
         int jumpBoostLvl = 0;
         for (PotionEffect pEffect : p.getActivePotionEffects()) {
             if (pEffect.getType().equals(PotionEffectType.JUMP)) {
-                byte amp = (byte)pEffect.getAmplifier();
+                byte amp = (byte) pEffect.getAmplifier();
                 jumpBoostLvl = amp + 1;
                 //Debug.broadcastMessage(amp + " " + jumpBoostLvl);
                 break;
@@ -217,7 +219,7 @@ public class MoveEvent extends Event {
         }
         float expectedDY = Math.max(0.42F + jumpBoostLvl * 0.1F, 0F); //TODO if 0, that means they POSSIBLY could have jumped; not always. Falses SprintDirection with extreme negative jump boost.
         Vector from = pp.hasSentPosUpdate() ? getFrom().toVector() : pp.getPositionPredicted();
-        float dY = (float)(getTo().getY() - from.getY());
+        float dY = (float) (getTo().getY() - from.getY());
 
         //Change by Havesta to more accurately handle Y collision
         Vector pos = from.clone().setY(getTo().getY());
@@ -234,14 +236,14 @@ public class MoveEvent extends Event {
 
     //Again, kudos to MCP for guiding me to the right direction
     private boolean testSlimeBlockBounce() {
-        if(Hawk.getServerVersion() < 8)
+        if (Hawk.getServerVersion() < 8)
             return false;
         Vector from = pp.hasSentPosUpdate() ? getFrom().toVector() : pp.getPositionPredicted();
-        float deltaY = (float)(getTo().getY() - from.getY());
+        float deltaY = (float) (getTo().getY() - from.getY());
         Block staningOn = ServerUtils.getBlockAsync(from.toLocation(pp.getWorld()).add(0, -0.01, 0));
-        if(staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
+        if (staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
             return false;
-        float prevPrevDeltaY = (float)pp.getPreviousVelocity().getY();
+        float prevPrevDeltaY = (float) pp.getPreviousVelocity().getY();
         float expected = -0.96F * prevPrevDeltaY;
         return !pp.isSneaking() &&
                 pp.getVelocity().getY() < 0 &&
@@ -260,7 +262,7 @@ public class MoveEvent extends Event {
         if (onGround) {
             Vector pos = pp.getPosition();
             Block b = ServerUtils.getBlockAsync(new Location(pp.getWorld(), pos.getX(), pos.getY() - 1, pos.getZ()));
-            if(b != null) {
+            if (b != null) {
                 friction *= WrappedBlock.getWrappedBlock(b, pp.getClientVersion()).getSlipperiness();
             }
         }
@@ -273,11 +275,11 @@ public class MoveEvent extends Event {
         //Before reaching the method, the "strafe" and "forward" values are multiplied by 0.98,
         //and if sneaking, they are also multiplied by 0.3, and if using an item, they are also multiplied by 0.2.
         float initForce = 0.98F;
-        if(pp.isSneaking())
+        if (pp.isSneaking())
             initForce *= 0.3;
 
         boolean usingItem = pp.isConsumingOrPullingBowMetadataIncluded() || pp.isBlocking();
-        if(usingItem)
+        if (usingItem)
             initForce *= 0.2;
         boolean sprinting = pp.isSprinting() && !usingItem && !pp.isSneaking();
         boolean flying = pp.isFlying();
@@ -302,15 +304,14 @@ public class MoveEvent extends Event {
             multiplier = 0.1F * 0.16277136F / (newFriction * newFriction * newFriction);
             float groundMultiplier = 5 * p.getWalkSpeed() * speedEffectMultiplier;
             multiplier *= groundMultiplier;
-        }
-        else {
+        } else {
             float flyMultiplier = 10 * p.getFlySpeed();
             multiplier = (flying ? 0.05F : 0.02F) * flyMultiplier;
         }
 
         //Assume moving diagonally, since sometimes it's faster to move diagonally.
         //Skidded from MCP's moveFlying(float, float, float) in Entity
-        float diagonal = (float)Math.sqrt(2 * initForce * initForce);
+        float diagonal = (float) Math.sqrt(2 * initForce * initForce);
         if (diagonal < 1.0F) {
             diagonal = 1.0F;
         }
@@ -319,20 +320,20 @@ public class MoveEvent extends Event {
         float componentForce = initForce * multiplier / diagonal;
 
         //now find the hypotenuse i.e. magnitude of this diagonal vector
-        float finalForce = (float)Math.sqrt(2 * componentForce * componentForce);
+        float finalForce = (float) Math.sqrt(2 * componentForce * componentForce);
 
         return (float) (finalForce * (sprinting ? (flying ? 2 : 1.3) : 1));
     }
 
     private Vector computeWaterFlowForce() {
         Vector finalForce = new Vector();
-        for(Pair<Block, Vector> liquid : liquidsAndDirections) {
+        for (Pair<Block, Vector> liquid : liquidsAndDirections) {
             Material mat = liquid.getKey().getType();
-            if(mat == Material.STATIONARY_WATER || mat == Material.WATER) {
+            if (mat == Material.STATIONARY_WATER || mat == Material.WATER) {
                 finalForce.add(liquid.getValue());
             }
         }
-        if(finalForce.lengthSquared() > 0 && !pp.isFlying()) {
+        if (finalForce.lengthSquared() > 0 && !pp.isFlying()) {
             finalForce.normalize();
             finalForce.multiply(Physics.WATER_FLOW_FORCE_MULTIPLIER);
             return finalForce;
@@ -356,11 +357,11 @@ public class MoveEvent extends Event {
                     continue;
                 speedPotMultiplier = 1 + (effect.getAmplifier() + 1 * 0.2);
             }
-            boolean flying          = pp.isFlying();
+            boolean flying = pp.isFlying();
             double sprintMultiplier = flying ? (pp.isSprinting() ? 2 : 1) : (pp.isSprinting() ? 1.3 : 1);
-            double weirdConstant    = (jump && pp.isSprinting() ? 0.2518462 : (pp.isSwimming() ? 0.0196 : 0.098)); //(pp.isOnGround() ? 0.098 : (flying ? 0.049 : 0.0196));
-            double baseMultiplier   = flying ? (10 * p.getFlySpeed()) : (5 * p.getWalkSpeed() * speedPotMultiplier);
-            double maxDiscrepancy   = weirdConstant * baseMultiplier * sprintMultiplier + epsilon;
+            double weirdConstant = (jump && pp.isSprinting() ? 0.2518462 : (pp.isSwimming() ? 0.0196 : 0.098)); //(pp.isOnGround() ? 0.098 : (flying ? 0.049 : 0.0196));
+            double baseMultiplier = flying ? (10 * p.getFlySpeed()) : (5 * p.getWalkSpeed() * speedPotMultiplier);
+            double maxDiscrepancy = weirdConstant * baseMultiplier * sprintMultiplier + epsilon;
 
             //pending knockbacks must be in order; get the first entry in the list.
             //if the first entry doesn't work (probably because they were fired on the same tick),
@@ -401,8 +402,7 @@ public class MoveEvent extends Event {
                     }
                     kbs.subList(0, kbIndex + 1).clear();
                     return kbVelocity;
-                }
-                else {
+                } else {
                     failedKnockback = true;
                     expiredKbs++;
                 }
@@ -442,12 +442,12 @@ public class MoveEvent extends Event {
         AABB aboveFeet = feet.clone();
         aboveFeet.translate(new Vector(0, 0.020001, 0));
         AABB cube = new AABB(new Vector(0, 0, 0), new Vector(1, 1, 1));
-        for(Location loc : pp.getClientBlocks().keySet()) {
-            if(!getTo().getWorld().equals(loc.getWorld()))
+        for (Location loc : pp.getClientBlocks().keySet()) {
+            if (!getTo().getWorld().equals(loc.getWorld()))
                 continue;
             ClientBlock cBlock = pp.getClientBlocks().get(loc);
             cube.translateTo(loc.toVector());
-            if(cBlock.getMaterial().isSolid() && feet.isColliding(cube) && !aboveFeet.isColliding(cube))
+            if (cBlock.getMaterial().isSolid() && feet.isColliding(cube) && !aboveFeet.isColliding(cube))
                 return cBlock;
         }
         return null;
@@ -567,7 +567,7 @@ public class MoveEvent extends Event {
     @Override
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
-        if(!cancelled) {
+        if (!cancelled) {
             cancelLocation = null;
         }
     }

@@ -19,10 +19,12 @@
 package me.islandscout.hawk.check.movement.look;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.check.Cancelless;
-import me.islandscout.hawk.event.*;
-import me.islandscout.hawk.util.Debug;
+import me.islandscout.hawk.check.CustomCheck;
+import me.islandscout.hawk.event.Event;
+import me.islandscout.hawk.event.InteractEntityEvent;
+import me.islandscout.hawk.event.InteractWorldEvent;
+import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.MathPlus;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -72,40 +74,39 @@ public class AimbotHeuristic extends CustomCheck implements Cancelless {
         lastMoves.add(mouseMove);
         //make size 1 bigger so that we can get the move before
         //the first move that we check
-        if(lastMoves.size() > MOVES_PER_SAMPLE + 1) {
+        if (lastMoves.size() > MOVES_PER_SAMPLE + 1) {
             lastMoves.remove(0);
         }
         mouseMoves.put(uuid, lastMoves);
 
-        if(clickedXMovesBefore(MOVES_AFTER_HIT, pp)) {
+        if (clickedXMovesBefore(MOVES_AFTER_HIT, pp)) {
             double minSpeed = Double.MAX_VALUE;
             double maxSpeed = 0D;
             double maxAngle = 0D;
-            for(int i = 1; i < lastMoves.size(); i++) {
+            for (int i = 1; i < lastMoves.size(); i++) {
                 Vector lastMouseMove = lastMoves.get(i - 1);
                 Vector currMouseMove = lastMoves.get(i);
                 double speed = currMouseMove.length();
                 double lastSpeed = lastMouseMove.length();
                 double angle = (lastSpeed != 0 && lastSpeed != 0) ? MathPlus.angle(lastMouseMove, currMouseMove) : 0D;
-                if(Double.isNaN(angle))
+                if (Double.isNaN(angle))
                     angle = 0D;
                 maxSpeed = Math.max(speed, maxSpeed);
                 minSpeed = Math.min(speed, minSpeed);
                 maxAngle = Math.max(angle, maxAngle);
 
                 //stutter
-                if(maxSpeed - minSpeed > 4 && minSpeed < 0.01 && maxAngle < 0.1 && lastSpeed > 1) { //this lastSpeed check eliminates a false positive
+                if (maxSpeed - minSpeed > 4 && minSpeed < 0.01 && maxAngle < 0.1 && lastSpeed > 1) { //this lastSpeed check eliminates a false positive
                     punishEm(pp, e);
                 }
                 //twitching or zig zags
-                else if(speed > 20 && lastSpeed > 20 && angle > 2.86) {
+                else if (speed > 20 && lastSpeed > 20 && angle > 2.86) {
                     punishEm(pp, e);
                 }
                 //jump discontinuity
-                else if(speed - lastSpeed < -30 && angle > 0.8) {
+                else if (speed - lastSpeed < -30 && angle > 0.8) {
                     punishEm(pp, e);
-                }
-                else {
+                } else {
                     reward(pp);
                 }
             }
@@ -115,8 +116,8 @@ public class AimbotHeuristic extends CustomCheck implements Cancelless {
     private boolean clickedXMovesBefore(long x, HawkPlayer pp) {
         List<Long> clickTimess = clickTimes.getOrDefault(pp.getUuid(), new ArrayList<>());
         long time = pp.getCurrentTick() - x;
-        for(int i = 0; i < clickTimess.size(); i++) {
-            if(time == clickTimess.get(i)) {
+        for (int i = 0; i < clickTimess.size(); i++) {
+            if (time == clickTimess.get(i)) {
                 clickTimess.remove(i);
                 return true;
             }
@@ -128,12 +129,12 @@ public class AimbotHeuristic extends CustomCheck implements Cancelless {
         UUID uuid = e.getPlayer().getUniqueId();
         List<Long> clickTimess = clickTimes.getOrDefault(uuid, new ArrayList<>());
         long currTick = e.getHawkPlayer().getCurrentTick();
-        if(!clickTimess.contains(currTick))
+        if (!clickTimess.contains(currTick))
             clickTimess.add(e.getHawkPlayer().getCurrentTick());
 
         //memory leak fail-safe, if necessary?
-        for(int i = clickTimess.size() - 1; i >= 0; i--) {
-            if(currTick - clickTimess.get(i) > MOVES_PER_SAMPLE + 1)
+        for (int i = clickTimess.size() - 1; i >= 0; i--) {
+            if (currTick - clickTimess.get(i) > MOVES_PER_SAMPLE + 1)
                 clickTimess.remove(i);
         }
 

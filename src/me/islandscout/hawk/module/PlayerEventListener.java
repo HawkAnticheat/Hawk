@@ -48,13 +48,10 @@ public class PlayerEventListener implements Listener {
     public PlayerEventListener(Hawk hawk) {
         this.hawk = hawk;
 
-        hawk.getHawkSyncTaskScheduler().addRepeatingTask(new Runnable() {
-            @Override
-            public void run() {
-                for(HawkPlayer pp : hawk.getHawkPlayers()) {
-                    Player p = pp.getPlayer();
-                    pp.setPing(ServerUtils.getPing(p));
-                }
+        hawk.getHawkSyncTaskScheduler().addRepeatingTask(() -> {
+            for (HawkPlayer pp : hawk.getHawkPlayers()) {
+                Player p = pp.getPlayer();
+                pp.setPing(ServerUtils.getPing(p));
             }
         }, 40);
     }
@@ -109,67 +106,59 @@ public class PlayerEventListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onVelocity(HawkAsyncPlayerVelocityChangeEvent e) {
-        if(e.isAdditive())
+        if (e.isAdditive())
             return;
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         Vector vector = e.getVelocity();
 
         List<Pair<Vector, Long>> pendingVelocities = pp.getPendingVelocities();
         pendingVelocities.add(new Pair<>(vector, System.currentTimeMillis()));
-        if(pendingVelocities.size() > 20)
+        if (pendingVelocities.size() > 20)
             pendingVelocities.remove(0);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventoryOpenServerSide(InventoryOpenEvent e) {
         HumanEntity hE = e.getPlayer();
-        if(!(hE instanceof Player))
+        if (!(hE instanceof Player))
             return;
 
         //Fixes issues regarding the client not releasing item usage when a server inventory is opened.
         //Consumables may not have this issue.
         HawkPlayer pp = hawk.getHawkPlayer((Player) hE);
-        pp.sendSimulatedAction(new Runnable() {
-            @Override
-            public void run() {
-                pp.setBlocking(false);
-                pp.setPullingBow(false);
-                pp.setInventoryOpen((byte)2);
-            }
+        pp.sendSimulatedAction(() -> {
+            pp.setBlocking(false);
+            pp.setPullingBow(false);
+            pp.setInventoryOpen((byte) 2);
         });
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventoryCloseServerSide(InventoryCloseEvent e) {
         HumanEntity hE = e.getPlayer();
-        if(!(hE instanceof Player))
+        if (!(hE instanceof Player))
             return;
 
         HawkPlayer pp = hawk.getHawkPlayer((Player) hE);
-        pp.sendSimulatedAction(new Runnable() {
-            @Override
-            public void run() {
-                pp.setInventoryOpen((byte)0);
-            }
-        });
+        pp.sendSimulatedAction(() -> pp.setInventoryOpen((byte) 0));
     }
 
     @EventHandler
     public void sendMetadataEvent(HawkAsyncPlayerMetadataEvent e) {
         List<WrappedWatchableObject> objects = e.getMetaData();
-        for(WrappedWatchableObject object : objects) {
-            if(object.getIndex() == 0) {
+        for (WrappedWatchableObject object : objects) {
+            if (object.getIndex() == 0) {
                 Player p = e.getPlayer();
                 HawkPlayer pp = hawk.getHawkPlayer(p);
-                byte status = (byte)object.getObject();
+                byte status = (byte) object.getObject();
 
                 //bitmask
-                if((status & 16) == 16) {
+                if ((status & 16) == 16) {
                     pp.addMetaDataUpdate(new MetaData(MetaData.Type.USE_ITEM, true));
                 } else {
                     pp.addMetaDataUpdate(new MetaData(MetaData.Type.USE_ITEM, false));
                 }
-                if((status & 8) == 8) {
+                if ((status & 8) == 8) {
                     pp.addMetaDataUpdate(new MetaData(MetaData.Type.SPRINT, true));
                 } else {
                     pp.addMetaDataUpdate(new MetaData(MetaData.Type.SPRINT, false));
@@ -187,40 +176,27 @@ public class PlayerEventListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void vehicleEnter(VehicleEnterEvent e) {
-        if(e.getEntered() instanceof Player) {
-            HawkPlayer pp = hawk.getHawkPlayer((Player)e.getEntered());
-            pp.sendSimulatedAction(new Runnable() {
-                @Override
-                public void run() {
-                    pp.setInVehicle(true);
-                }
-            });
+        if (e.getEntered() instanceof Player) {
+            HawkPlayer pp = hawk.getHawkPlayer((Player) e.getEntered());
+            pp.sendSimulatedAction(() -> pp.setInVehicle(true));
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void vehicleExit(VehicleExitEvent e) {
-        if(e.getExited() instanceof Player) {
-            HawkPlayer pp = hawk.getHawkPlayer((Player)e.getExited());
-            pp.sendSimulatedAction(new Runnable() {
-                @Override
-                public void run() {
-                    pp.setInVehicle(false);
-                }
-            });
+        if (e.getExited() instanceof Player) {
+            HawkPlayer pp = hawk.getHawkPlayer((Player) e.getExited());
+            pp.sendSimulatedAction(() -> pp.setInVehicle(false));
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void abilitiesServerSide(HawkAsyncPlayerAbilitiesEvent e) {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
-        pp.sendSimulatedAction(new Runnable() {
-            @Override
-            public void run() {
-                pp.setAllowedToFly(e.isAllowedToFly());
-                pp.setFlying(e.isFlying());
-                pp.setInCreative(e.isCreativeMode());
-            }
+        pp.sendSimulatedAction(() -> {
+            pp.setAllowedToFly(e.isAllowedToFly());
+            pp.setFlying(e.isFlying());
+            pp.setInCreative(e.isCreativeMode());
         });
     }
 }

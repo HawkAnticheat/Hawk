@@ -39,7 +39,7 @@ public class FastFall extends MovementCheck {
     @Override
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
-        if(AdjacentBlocks.onGroundReally(new Location(pp.getWorld(), pp.getPosition().getX(), pp.getPosition().getY(), pp.getPosition().getZ()), -1, false, 0.001, pp) ||
+        if (AdjacentBlocks.onGroundReally(new Location(pp.getWorld(), pp.getPosition().getX(), pp.getPosition().getY(), pp.getPosition().getZ()), -1, false, 0.001, pp) ||
                 e.hasTeleported() || e.getPlayer().isFlying() || e.hasAcceptedKnockback() || pp.getPlayer().isSleeping() || pp.isSwimming())
             return;
         double deltaY = e.getTo().getY() - e.getFrom().getY();
@@ -47,13 +47,12 @@ public class FastFall extends MovementCheck {
         Location chkPos = e.getFrom().clone().add(0, 2.5, 0);
 
         //I HATE this game's movement.
-        if(!AdjacentBlocks.blockAdjacentIsSolid(chkPos) &&
+        if (!AdjacentBlocks.blockAdjacentIsSolid(chkPos) &&
                 !AdjacentBlocks.blockNearbyIsSolid(chkPos, false) &&
                 !AdjacentBlocks.matIsAdjacent(e.getTo(), Material.LADDER, Material.VINE)) {
-            if(deltaY + 0.02 < expected) {
+            if (deltaY + 0.02 < expected) {
                 punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
-            }
-            else {
+            } else {
                 reward(pp);
             }
         }

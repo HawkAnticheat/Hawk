@@ -22,7 +22,6 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.bukkit.HawkFlagEvent;
-import me.islandscout.hawk.module.CommandExecutor;
 import me.islandscout.hawk.util.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -249,7 +248,8 @@ public abstract class Check<E extends Event> {
     }
 
     //to be overridden by checks
-    public void removeData(Player p) {}
+    public void removeData(Player p) {
+    }
 
     @Override
     public String toString() {

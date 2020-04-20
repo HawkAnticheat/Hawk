@@ -48,8 +48,8 @@ public class AntiVelocityJump extends MovementCheck implements Cancelless {
 
     public AntiVelocityJump() {
         super("antivelocityjump", true, -1, 1, 0.9, 5000, "%player% may be using anti-velocity (jump), VL: %vl%", null);
-        SAMPLES = (int)customSetting("samples", "", 10);
-        RATIO_THRESHOLD = (double)customSetting("ratioThreshold", "", 0.85);
+        SAMPLES = (int) customSetting("samples", "", 10);
+        RATIO_THRESHOLD = (double) customSetting("ratioThreshold", "", 0.85);
         ratioMap = new HashMap<>();
         landingTickMap = new HashMap<>();
     }
@@ -58,21 +58,20 @@ public class AntiVelocityJump extends MovementCheck implements Cancelless {
     protected void check(MoveEvent event) {
         HawkPlayer pp = event.getHawkPlayer();
         long ticksOnGround = landingTickMap.getOrDefault(pp.getUuid(), 0L);
-        if(event.hasAcceptedKnockback() && pp.isOnGround() && pp.isSprinting() && ticksOnGround > 1 && !event.getBoxSidesTouchingBlocks().contains(Direction.TOP)) {
+        if (event.hasAcceptedKnockback() && pp.isOnGround() && pp.isSprinting() && ticksOnGround > 1 && !event.getBoxSidesTouchingBlocks().contains(Direction.TOP)) {
 
             Pair<Integer, Integer> ratio = ratioMap.getOrDefault(pp.getUuid(), new Pair<>(0, 0));
 
-            if(event.isJump()) {
+            if (event.isJump()) {
                 ratio.setKey(ratio.getKey() + 1);
             }
             ratio.setValue(ratio.getValue() + 1);
 
-            if(ratio.getValue() >= SAMPLES) {
-                double ratioValue = (double)ratio.getKey() / ratio.getValue();
-                if(ratioValue > RATIO_THRESHOLD) {
+            if (ratio.getValue() >= SAMPLES) {
+                double ratioValue = (double) ratio.getKey() / ratio.getValue();
+                if (ratioValue > RATIO_THRESHOLD) {
                     punish(pp, false, event);
-                }
-                else {
+                } else {
                     reward(pp);
                 }
                 ratio.setKey(0);
@@ -82,7 +81,7 @@ public class AntiVelocityJump extends MovementCheck implements Cancelless {
             ratioMap.put(pp.getUuid(), ratio);
         }
 
-        if(!pp.isOnGround() && event.isOnGround()) {
+        if (!pp.isOnGround() && event.isOnGround()) {
             landingTickMap.put(pp.getUuid(), pp.getCurrentTick());
         }
     }

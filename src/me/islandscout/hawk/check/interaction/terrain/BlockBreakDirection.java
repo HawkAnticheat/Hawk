@@ -21,7 +21,10 @@ package me.islandscout.hawk.check.interaction.terrain;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockDigCheck;
 import me.islandscout.hawk.event.BlockDigEvent;
-import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.util.AABB;
+import me.islandscout.hawk.util.MathPlus;
+import me.islandscout.hawk.util.Ray;
+import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -50,11 +53,10 @@ public class BlockBreakDirection extends BlockDigCheck {
         HawkPlayer pp = e.getHawkPlayer();
         Location bLoc = e.getBlock().getLocation();
         Vector pos;
-        if(pp.isInVehicle()) {
+        if (pp.isInVehicle()) {
             pos = hawk.getLagCompensator().getHistoryLocation(ServerUtils.getPing(p), p).toVector();
             pos.setY(pos.getY() + p.getEyeHeight());
-        }
-        else {
+        } else {
             pos = pp.getHeadPosition();
         }
         Vector dir = MathPlus.getDirection(pp.getYaw(), pp.getPitch());
@@ -62,15 +64,15 @@ public class BlockBreakDirection extends BlockDigCheck {
 
         switch (e.getDigAction()) {
             case START:
-                if(CHECK_DIG_START || (p.getGameMode() == GameMode.CREATIVE && CHECK_DIG_COMPLETE))
+                if (CHECK_DIG_START || (p.getGameMode() == GameMode.CREATIVE && CHECK_DIG_COMPLETE))
                     break;
                 return;
             case CANCEL:
-                if(CHECK_DIG_CANCEL)
+                if (CHECK_DIG_CANCEL)
                     break;
                 return;
             case COMPLETE:
-                if(CHECK_DIG_COMPLETE)
+                if (CHECK_DIG_COMPLETE)
                     break;
                 return;
         }
@@ -84,10 +86,9 @@ public class BlockBreakDirection extends BlockDigCheck {
         if (DEBUG_RAY)
             new Ray(pos, extraDir).highlight(hawk, p.getWorld(), 6F, 0.3);
 
-        if(targetAABB.betweenRays(pos, dir, extraDir)) {
+        if (targetAABB.betweenRays(pos, dir, extraDir)) {
             reward(pp);
-        }
-        else {
+        } else {
             punish(pp, true, e);
         }
     }

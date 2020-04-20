@@ -23,7 +23,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.Location;
 
@@ -42,7 +41,7 @@ public class GroundSpoof extends MovementCheck {
         HawkPlayer pp = event.getHawkPlayer();
 
         boolean onGroundReally;
-        if(event.isUpdatePos()) {
+        if (event.isUpdatePos()) {
             onGroundReally = event.isOnGroundReally();
         } else {
             onGroundReally = AdjacentBlocks.onGroundReally(pp.getPositionPredicted().toLocation(pp.getWorld()), pp.getVelocityPredicted().getY(), true, 0.001, pp);

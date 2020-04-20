@@ -25,7 +25,9 @@ import me.islandscout.hawk.util.*;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public class SwimVertical extends MovementCheck {
 
@@ -47,30 +49,27 @@ public class SwimVertical extends MovementCheck {
 
         boolean readyToExit = boxSidesTouchingBlocks.size() > 0 && !e.isInLiquid() && pp.isInLiquid();
         boolean exiting = readyToExit && currentDeltaY == 0.34;
-        if(exiting || (wasReadyToExit.contains(pp.getUuid()) && currentDeltaY == 0.3)) {
+        if (exiting || (wasReadyToExit.contains(pp.getUuid()) && currentDeltaY == 0.3)) {
             reward(pp);
-        }
-
-        else if(pp.isSwimming() && !e.hasTeleported() && !e.isOnGroundReally() && !pp.isFlying() && !e.hasAcceptedKnockback()) {
+        } else if (pp.isSwimming() && !e.hasTeleported() && !e.isOnGroundReally() && !pp.isFlying() && !e.hasAcceptedKnockback()) {
             //TODO: when you're getting pushed down by water, your terminal velocity is < 0.1 when going up, thus bypass when swimming up
-            if(Math.abs(currentDeltaY) >= 0.1) {
+            if (Math.abs(currentDeltaY) >= 0.1) {
                 //i check when it is >= 0.1 because this game is broken
                 //and i don't want work around each individual axis that does this
                 //stupid compression-like behavior
-                float flowForce = (float)pp.getWaterFlowForce().getY();
+                float flowForce = (float) pp.getWaterFlowForce().getY();
                 double prevDeltaY = pp.getVelocity().getY();
                 Set<Material> liquidTypes = e.getLiquidTypes();
                 float kineticPreservation = (liquidTypes.contains(Material.LAVA) || liquidTypes.contains(Material.STATIONARY_LAVA) ? Physics.KINETIC_PRESERVATION_LAVA : Physics.KINETIC_PRESERVATION_WATER);
-                if(currentDeltaY < kineticPreservation * prevDeltaY + (-(Physics.MOVE_LIQUID_FORCE + 0.000001) + flowForce) ||
+                if (currentDeltaY < kineticPreservation * prevDeltaY + (-(Physics.MOVE_LIQUID_FORCE + 0.000001) + flowForce) ||
                         currentDeltaY > kineticPreservation * prevDeltaY + (Physics.MOVE_LIQUID_FORCE + 0.000001 + flowForce)) {
                     punishAndTryRubberband(pp, e, pp.getPlayer().getLocation());
-                }
-                else
+                } else
                     reward(pp);
             }
         }
 
-        if(readyToExit)
+        if (readyToExit)
             wasReadyToExit.add(pp.getUuid());
         else
             wasReadyToExit.remove(pp.getUuid());

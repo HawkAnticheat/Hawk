@@ -26,10 +26,6 @@ import me.islandscout.hawk.util.MathPlus;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 public class Inertia extends MovementCheck {
 
     //"Inertia is a property of matter... Bill, Bill, Bill..."
@@ -55,10 +51,9 @@ public class Inertia extends MovementCheck {
             //setting up expected values
             double magnitudeThres;
             double prevSpeed = e.hasHitSlowdown() ? prevVector.length() * 0.6 : prevVector.length();
-            if(AdjacentBlocks.blockAdjacentIsLiquid(e.getFrom()) || AdjacentBlocks.blockAdjacentIsLiquid(e.getFrom().clone().add(0, 1, 0))) {
+            if (AdjacentBlocks.blockAdjacentIsLiquid(e.getFrom()) || AdjacentBlocks.blockAdjacentIsLiquid(e.getFrom().clone().add(0, 1, 0))) {
                 magnitudeThres = 0; //screw it
-            }
-            else {
+            } else {
                 magnitudeThres = e.getFriction() * prevSpeed - 0.026001;
             }
 
@@ -66,12 +61,10 @@ public class Inertia extends MovementCheck {
             if (horizSpeedSquared > 0.05 && deltaAngle > 0.2) {
                 punishAndTryRubberband(pp, e, p.getLocation());
 
-            //magnitude check
-            } else if(prevVector.lengthSquared() > 0.01 && moveVector.length() < magnitudeThres) {
+                //magnitude check
+            } else if (prevVector.lengthSquared() > 0.01 && moveVector.length() < magnitudeThres) {
                 punishAndTryRubberband(pp, e, p.getLocation());
-            }
-
-            else {
+            } else {
                 reward(pp);
             }
         }

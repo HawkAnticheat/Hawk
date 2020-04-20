@@ -19,7 +19,6 @@
 package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.util.Debug;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -53,12 +52,9 @@ public class ViolationLogger {
             }
         }
 
-        hawk.getHawkSyncTaskScheduler().addRepeatingTask(new Runnable() {
-            @Override
-            public void run() {
-                hawk.getViolationLogger().updateFile();
-                hawk.getSQLModule().tick();
-            }
+        hawk.getHawkSyncTaskScheduler().addRepeatingTask(() -> {
+            hawk.getViolationLogger().updateFile();
+            hawk.getSQLModule().tick();
         }, 20);
     }
 

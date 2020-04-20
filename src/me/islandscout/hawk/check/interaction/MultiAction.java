@@ -21,10 +21,6 @@ package me.islandscout.hawk.check.interaction;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.event.*;
-import me.islandscout.hawk.util.Debug;
-import me.islandscout.hawk.util.Pair;
-import me.islandscout.hawk.util.ServerUtils;
-import me.islandscout.hawk.wrap.entity.MetaData;
 
 public class MultiAction extends CustomCheck {
 
@@ -34,7 +30,7 @@ public class MultiAction extends CustomCheck {
 
     @Override
     protected void check(Event event) {
-        if(!(event instanceof InteractEntityEvent ||
+        if (!(event instanceof InteractEntityEvent ||
                 event instanceof InteractWorldEvent ||
                 event instanceof BlockDigEvent ||
                 event instanceof InteractItemEvent))
@@ -43,18 +39,17 @@ public class MultiAction extends CustomCheck {
         HawkPlayer pp = event.getHawkPlayer();
 
         //interacting while using item
-        if(!(event instanceof InteractItemEvent) && pp.getClientVersion() == 8 &&
+        if (!(event instanceof InteractItemEvent) && pp.getClientVersion() == 8 &&
                 (pp.isBlocking() || pp.isConsumingOrPullingBowMetadataIncluded())) {
             punish(pp, 1, true, event);
             event.resync();
         }
         //interacting while digging
-        else if(pp.getClientVersion() == 8 && pp.isDigging() &&
+        else if (pp.getClientVersion() == 8 && pp.isDigging() &&
                 !(event instanceof BlockDigEvent && ((BlockDigEvent) event).getDigAction() != BlockDigEvent.DigAction.START)) {
             punish(pp, 1, true, event);
             event.resync();
-        }
-        else {
+        } else {
             reward(pp);
         }
     }

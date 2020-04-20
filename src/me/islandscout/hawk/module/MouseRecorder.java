@@ -19,8 +19,8 @@
 package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.event.*;
 import me.islandscout.hawk.event.Event;
+import me.islandscout.hawk.event.*;
 import me.islandscout.hawk.util.ConfigHelper;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Pair;
@@ -37,7 +37,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MouseRecorder {
@@ -56,15 +56,15 @@ public class MouseRecorder {
         this.hawk = hawk;
         RESOLUTION = (float) ConfigHelper.getOrSetDefault(3D, hawk.getConfig(), "mouseRecorder.resolution");
         DEFAULT_TIME = (float) ConfigHelper.getOrSetDefault(10D, hawk.getConfig(), "mouseRecorder.defaultRecordingTime");
-        WIDTH = (int)(360 * RESOLUTION);
-        HEIGHT = (int)(180 * RESOLUTION);
+        WIDTH = (int) (360 * RESOLUTION);
+        HEIGHT = (int) (180 * RESOLUTION);
     }
 
     //to be called from main thread
     public void start(CommandSender admin, Player target, float time) {
         List<HawkEventListener> hawkListeners = hawk.getPacketHandler().getHawkEventListeners();
-        for(HawkEventListener hawkListener : hawkListeners) {
-            if(hawkListener instanceof MouseRecorderListener && ((MouseRecorderListener) hawkListener).target.equals(target)) {
+        for (HawkEventListener hawkListener : hawkListeners) {
+            if (hawkListener instanceof MouseRecorderListener && ((MouseRecorderListener) hawkListener).target.equals(target)) {
                 admin.sendMessage(ChatColor.RED + "" + target.getName() + " is already being recorded.");
                 return;
             }
@@ -78,9 +78,9 @@ public class MouseRecorder {
     //to be called from main thread
     public void stop(CommandSender admin, Player target) {
         List<HawkEventListener> hawkListeners = hawk.getPacketHandler().getHawkEventListeners();
-        for(HawkEventListener hawkListener : hawkListeners) {
-            if(hawkListener instanceof MouseRecorderListener && ((MouseRecorderListener) hawkListener).target.equals(target)) {
-                MouseRecorderListener mRecLis = (MouseRecorderListener)hawkListener;
+        for (HawkEventListener hawkListener : hawkListeners) {
+            if (hawkListener instanceof MouseRecorderListener && ((MouseRecorderListener) hawkListener).target.equals(target)) {
+                MouseRecorderListener mRecLis = (MouseRecorderListener) hawkListener;
                 hawkListeners.remove(mRecLis);
                 HandlerList.unregisterAll(mRecLis);
                 admin.sendMessage(ChatColor.GOLD + "Stopped recording " + target.getName());
@@ -92,7 +92,7 @@ public class MouseRecorder {
     }
 
     private void render(MouseRecorderListener listener) {
-        if(listener.admin != null)
+        if (listener.admin != null)
             listener.admin.sendMessage(ChatColor.GOLD + "Rendering...");
         Bukkit.getScheduler().runTaskAsynchronously(hawk, () -> {
             BufferedImage img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
@@ -116,11 +116,10 @@ public class MouseRecorder {
                     image.createNewFile();
                 }
                 ImageIO.write(img, "PNG", image);
-                if(listener.admin != null)
+                if (listener.admin != null)
                     listener.admin.sendMessage(ChatColor.GOLD + "Complete! Saved image to " + image.getPath());
-            }
-            catch(Exception e) {
-                if(listener.admin != null) {
+            } catch (Exception e) {
+                if (listener.admin != null) {
                     listener.admin.sendMessage(ChatColor.RED + "An exception occurred while saving the image to " + image.getPath());
                     listener.admin.sendMessage(ChatColor.RED + "Check the console for more information.");
                 }
@@ -132,24 +131,23 @@ public class MouseRecorder {
     private void renderClicks(Graphics2D g, MouseRecorderListener listener) {
         g.setColor(new Color(0F, 1F, 0F, 0.4F));
         Pair<Float, Float> currCoord = new Pair<>(listener.origin);
-        for(int i = 0; i < listener.motions.size(); i++) {
+        for (int i = 0; i < listener.motions.size(); i++) {
             float x1 = currCoord.getKey();
             float y1 = currCoord.getValue();
             float x2 = x1 + listener.motions.get(i).getKey();
             float y2 = y1 + listener.motions.get(i).getValue();
 
-            if(listener.clicks.contains(i)) {
-                g.fillOval((int)((x1 - CLICK_DOT_RADIUS) * RESOLUTION), (int)((y1 - CLICK_DOT_RADIUS) * RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION));
+            if (listener.clicks.contains(i)) {
+                g.fillOval((int) ((x1 - CLICK_DOT_RADIUS) * RESOLUTION), (int) ((y1 - CLICK_DOT_RADIUS) * RESOLUTION), (int) (2 * CLICK_DOT_RADIUS * RESOLUTION), (int) (2 * CLICK_DOT_RADIUS * RESOLUTION));
             }
 
             currCoord.setKey(x2);
             currCoord.setValue(y2);
 
             //handle if line goes off the canvas horizontally
-            if(x2 >= 360) {
+            if (x2 >= 360) {
                 currCoord.setKey(x2 % 360);
-            }
-            else if(x2 < 0) {
+            } else if (x2 < 0) {
                 currCoord.setKey((360 + x2) % 360);
             }
         }
@@ -157,32 +155,31 @@ public class MouseRecorder {
 
     private void renderMovement(Graphics2D g, MouseRecorderListener listener) {
         g.setColor(new Color(0F, 0F, 1F, 0.8F)); //starting marker color
-        g.fillOval((int)((listener.origin.getKey() - CLICK_DOT_RADIUS) * RESOLUTION), (int)((listener.origin.getValue() - CLICK_DOT_RADIUS) * RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION), (int)(2* CLICK_DOT_RADIUS *RESOLUTION));
+        g.fillOval((int) ((listener.origin.getKey() - CLICK_DOT_RADIUS) * RESOLUTION), (int) ((listener.origin.getValue() - CLICK_DOT_RADIUS) * RESOLUTION), (int) (2 * CLICK_DOT_RADIUS * RESOLUTION), (int) (2 * CLICK_DOT_RADIUS * RESOLUTION));
         Pair<Float, Float> currCoord = new Pair<>(listener.origin);
-        for(Pair<Float, Float> vector : listener.motions) {
-            float distance = (float)MathPlus.distance2d(vector.getKey(), vector.getValue());
-            g.setColor(new Color(1F, 1 / (0.3F * distance + 1), 1 / (0.3F * distance + 1), (float)Math.max(1 / (0.2F * distance + 1), 0.004)));
+        for (Pair<Float, Float> vector : listener.motions) {
+            float distance = (float) MathPlus.distance2d(vector.getKey(), vector.getValue());
+            g.setColor(new Color(1F, 1 / (0.3F * distance + 1), 1 / (0.3F * distance + 1), (float) Math.max(1 / (0.2F * distance + 1), 0.004)));
 
             float x1 = currCoord.getKey();
             float y1 = currCoord.getValue();
             float x2 = x1 + vector.getKey();
             float y2 = y1 + vector.getValue();
-            g.drawLine((int)(x1 * RESOLUTION), (int)(y1 * RESOLUTION), (int)(x2 * RESOLUTION), (int)(y2 * RESOLUTION));
+            g.drawLine((int) (x1 * RESOLUTION), (int) (y1 * RESOLUTION), (int) (x2 * RESOLUTION), (int) (y2 * RESOLUTION));
 
             currCoord.setKey(x2);
             currCoord.setValue(y2);
 
             //handle if line goes off the canvas horizontally
-            if(x2 >= 360) {
+            if (x2 >= 360) {
                 float slope = (y2 - y1) / (x2 - x1); //impossible for a div by 0 because this won't run unless motX > 0
                 float intersection = slope * (360 - x1) + y1;
-                g.drawLine(0, (int)(intersection * RESOLUTION), (int)((x2 % 360) * RESOLUTION), (int)(y2 * RESOLUTION));
+                g.drawLine(0, (int) (intersection * RESOLUTION), (int) ((x2 % 360) * RESOLUTION), (int) (y2 * RESOLUTION));
                 currCoord.setKey(x2 % 360);
-            }
-            else if(x2 < 0) {
+            } else if (x2 < 0) {
                 float slope = (y2 - y1) / (x2 - x1);
                 float intersection = slope * (0 - x1) + y1;
-                g.drawLine((int)((360 - 1) * RESOLUTION), (int)(intersection * RESOLUTION), (int)(((360 + x2) % 360) * RESOLUTION), (int)(y2 * RESOLUTION));
+                g.drawLine((int) ((360 - 1) * RESOLUTION), (int) (intersection * RESOLUTION), (int) (((360 + x2) % 360) * RESOLUTION), (int) (y2 * RESOLUTION));
                 currCoord.setKey((360 + x2) % 360);
             }
         }
@@ -205,36 +202,34 @@ public class MouseRecorder {
             motions = new ArrayList<>();
             clicks = new ArrayList<>();
             teleports = new ArrayList<>();
-            this.moves = (time == 0 ? (int)(DEFAULT_TIME * 20) : (int)(time * 20));
+            this.moves = (time == 0 ? (int) (DEFAULT_TIME * 20) : (int) (time * 20));
             hawkListeners = hawk.getPacketHandler().getHawkEventListeners();
             Bukkit.getPluginManager().registerEvents(this, hawk);
         }
 
         @Override
         public void onEvent(Event e) {
-            if(e.getPlayer().equals(target)) {
-                if(e instanceof MoveEvent) {
-                    MoveEvent posE = (MoveEvent)e;
+            if (e.getPlayer().equals(target)) {
+                if (e instanceof MoveEvent) {
+                    MoveEvent posE = (MoveEvent) e;
                     float deltaYaw = posE.getTo().getYaw() - posE.getFrom().getYaw();
                     float deltaPitch = posE.getTo().getPitch() - posE.getFrom().getPitch();
                     int size = motions.size();
-                    if(size < moves) {
+                    if (size < moves) {
                         if (size == 0)
                             origin = new Pair<>(posE.getFrom().getYaw(), posE.getFrom().getPitch());
                         motions.add(new Pair<>(deltaYaw, deltaPitch));
-                        if(size % 40 == 0 && admin != null) {
-                            admin.sendMessage(ChatColor.GOLD + "Recording progress for " + target.getName() + ": " + MathPlus.round((float)size / moves * 100, 2) + "%");
+                        if (size % 40 == 0 && admin != null) {
+                            admin.sendMessage(ChatColor.GOLD + "Recording progress for " + target.getName() + ": " + MathPlus.round((float) size / moves * 100, 2) + "%");
                         }
-                    }
-                    else {
-                        if(admin != null)
+                    } else {
+                        if (admin != null)
                             admin.sendMessage(ChatColor.GOLD + "Finished recording.");
                         hawkListeners.remove(this);
                         HandlerList.unregisterAll(this);
                         render(this);
                     }
-                }
-                else if(e instanceof InteractEntityEvent && ((InteractEntityEvent) e).getInteractAction() == InteractAction.ATTACK) {
+                } else if (e instanceof InteractEntityEvent && ((InteractEntityEvent) e).getInteractAction() == InteractAction.ATTACK) {
                     clicks.add(motions.size());
                 }
             }
@@ -242,8 +237,8 @@ public class MouseRecorder {
 
         @EventHandler
         public void onQuit(PlayerQuitEvent e) {
-            if(e.getPlayer().equals(target)) {
-                if(admin != null) {
+            if (e.getPlayer().equals(target)) {
+                if (admin != null) {
                     admin.sendMessage(ChatColor.GOLD + "Recording progress for " + target.getName() + " interrupted because of disconnection.");
                 }
                 hawkListeners.remove(this);

@@ -40,7 +40,7 @@ public class WrappedEntity8 extends WrappedEntity {
     }
 
     public static WrappedEntity8 getWrappedEntity(Entity entity) {
-        if(entity instanceof CraftHumanEntity)
+        if (entity instanceof CraftHumanEntity)
             return new WrappedEntityHuman8(entity);
         else
             return new WrappedEntity8(entity);

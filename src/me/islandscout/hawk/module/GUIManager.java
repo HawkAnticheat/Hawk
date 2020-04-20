@@ -81,7 +81,7 @@ public class GUIManager implements Listener {
         for (int i = 0; i < window.getElements().length; i++) {
             if (i == clickedLoc) {
                 Element element = window.getElements()[i];
-                if(element == null)
+                if (element == null)
                     break;
                 element.doAction(p, hawk);
                 break;
@@ -90,9 +90,9 @@ public class GUIManager implements Listener {
     }
 
     public void stop() {
-        for(UUID uuid : activeWindows.keySet()) {
+        for (UUID uuid : activeWindows.keySet()) {
             Player p = Bukkit.getPlayer(uuid);
-            if(p == null)
+            if (p == null)
                 return;
             p.closeInventory();
         }

@@ -6,9 +6,9 @@ description: An anticheat system
 website: https://github.com/HawkAnticheat/Hawk
 softdepend: [ProtocolLib]
 commands:
-    hawk:
-        description: Basic information about Hawk Anticheat
-        usage: /<command>
+  hawk:
+    description: Basic information about Hawk Anticheat
+    usage: /<command>
 permissions:
   hawk.admin:
     description: Allows one to be considered an administrator to Hawk

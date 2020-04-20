@@ -34,7 +34,7 @@ public class UnfilteredFlagsArgument extends Argument {
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
         List<Check> checks = hawk.getCheckManager().getChecks();
-        for(Check check : checks) {
+        for (Check check : checks) {
             check.setFlagThreshold(0);
             check.setFlagCooldown(0);
         }

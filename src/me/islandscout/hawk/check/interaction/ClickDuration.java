@@ -48,13 +48,12 @@ public class ClickDuration extends BlockDigCheck implements Cancelless {
     protected void check(BlockDigEvent e) {
         BlockDigEvent.DigAction action = e.getDigAction();
         HawkPlayer pp = e.getHawkPlayer();
-        if(action == BlockDigEvent.DigAction.START)
+        if (action == BlockDigEvent.DigAction.START)
             digStartTick.put(pp.getUuid(), pp.getCurrentTick());
-        else if(action == BlockDigEvent.DigAction.CANCEL) {
-            if(pp.getCurrentTick() == digStartTick.getOrDefault(pp.getUuid(), -10L)) {
+        else if (action == BlockDigEvent.DigAction.CANCEL) {
+            if (pp.getCurrentTick() == digStartTick.getOrDefault(pp.getUuid(), -10L)) {
                 punish(pp, false, e);
-            }
-            else {
+            } else {
                 reward(pp);
             }
         }

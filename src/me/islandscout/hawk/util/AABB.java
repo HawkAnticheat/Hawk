@@ -110,26 +110,25 @@ public class AABB implements Cloneable {
       2) will return true if box is large enough and is behind player
      */
     public boolean betweenRays(Vector pos, Vector dir1, Vector dir2) {
-        if(dir1.dot(dir2) > 0.999) {
+        if (dir1.dot(dir2) > 0.999) {
             //Directions are very similar; do a simple ray check.
-            if(this.intersectsRay(new Ray(pos, dir2), 0, Float.MAX_VALUE) == null) {
+            if (this.intersectsRay(new Ray(pos, dir2), 0, Float.MAX_VALUE) == null) {
                 return false;
             }
-        }
-        else {
+        } else {
             //check if box even collides with plane
             Vector planeNormal = dir2.clone().crossProduct(dir1);
             Vector[] vertices = this.getVertices();
             boolean hitPlane = false;
             boolean above = false;
             boolean below = false;
-            for(Vector vertex : vertices) {
+            for (Vector vertex : vertices) {
                 //Eh, what the hell. Let's move the vertices now.
                 //Imagine moving everything in this system so that the plane
                 //is at <0,0,0>. This will make it easier to compute stuff.
                 vertex.subtract(pos);
 
-                if(!hitPlane) {
+                if (!hitPlane) {
                     if (vertex.dot(planeNormal) > 0) {
                         above = true;
                     } else {
@@ -144,7 +143,7 @@ public class AABB implements Cloneable {
                     }
                 }
             }
-            if(!hitPlane) {
+            if (!hitPlane) {
                 return false;
             }
 
@@ -154,20 +153,20 @@ public class AABB implements Cloneable {
             boolean betweenVectors = false;
             boolean frontOfExtraDirToDir = false;
             boolean frontOfDirToExtraDir = false;
-            for(Vector vertex : vertices) {
-                if(!frontOfExtraDirToDir && vertex.dot(extraDirToDirNormal) >= 0) {
+            for (Vector vertex : vertices) {
+                if (!frontOfExtraDirToDir && vertex.dot(extraDirToDirNormal) >= 0) {
                     frontOfExtraDirToDir = true;
                 }
-                if(!frontOfDirToExtraDir && vertex.dot(dirToExtraDirNormal) >= 0) {
+                if (!frontOfDirToExtraDir && vertex.dot(dirToExtraDirNormal) >= 0) {
                     frontOfDirToExtraDir = true;
                 }
 
-                if(frontOfExtraDirToDir && frontOfDirToExtraDir) {
+                if (frontOfExtraDirToDir && frontOfDirToExtraDir) {
                     betweenVectors = true;
                     break;
                 }
             }
-            if(!betweenVectors) {
+            if (!betweenVectors) {
                 return false;
             }
         }
@@ -248,13 +247,13 @@ public class AABB implements Cloneable {
 
     public Vector[] getVertices() {
         return new Vector[]{new Vector(min.getX(), min.getY(), min.getZ()),
-                            new Vector(min.getX(), min.getY(), max.getZ()),
-                            new Vector(min.getX(), max.getY(), min.getZ()),
-                            new Vector(min.getX(), max.getY(), max.getZ()),
-                            new Vector(max.getX(), min.getY(), min.getZ()),
-                            new Vector(max.getX(), min.getY(), max.getZ()),
-                            new Vector(max.getX(), max.getY(), min.getZ()),
-                            new Vector(max.getX(), max.getY(), max.getZ())};
+                new Vector(min.getX(), min.getY(), max.getZ()),
+                new Vector(min.getX(), max.getY(), min.getZ()),
+                new Vector(min.getX(), max.getY(), max.getZ()),
+                new Vector(max.getX(), min.getY(), min.getZ()),
+                new Vector(max.getX(), min.getY(), max.getZ()),
+                new Vector(max.getX(), max.getY(), min.getZ()),
+                new Vector(max.getX(), max.getY(), max.getZ())};
     }
 
     public void shrink(double x, double y, double z) {
@@ -272,12 +271,12 @@ public class AABB implements Cloneable {
     //Blocks that barely touch don't count
     public List<Block> getBlocks(World world) {
         List<Block> blocks = new ArrayList<>();
-        for (int x = (int)Math.floor(min.getX()); x < (int)Math.ceil(max.getX()); x++) {
-            for (int y = (int)Math.floor(min.getY()); y < (int)Math.ceil(max.getY()); y++) {
-                for (int z = (int)Math.floor(min.getZ()); z < (int)Math.ceil(max.getZ()); z++) {
+        for (int x = (int) Math.floor(min.getX()); x < (int) Math.ceil(max.getX()); x++) {
+            for (int y = (int) Math.floor(min.getY()); y < (int) Math.ceil(max.getY()); y++) {
+                for (int z = (int) Math.floor(min.getZ()); z < (int) Math.ceil(max.getZ()); z++) {
                     Block block = ServerUtils.getBlockAsync(new Location(world, x, y, z));
 
-                    if(block == null)
+                    if (block == null)
                         continue;
 
                     blocks.add(block);
@@ -290,12 +289,12 @@ public class AABB implements Cloneable {
     //Blocks that barely touch don't count
     public Set<Material> getMaterials(World world) {
         Set<Material> mats = new HashSet<>();
-        for (int x = (int)Math.floor(min.getX()); x < (int)Math.ceil(max.getX()); x++) {
-            for (int y = (int)Math.floor(min.getY()); y < (int)Math.ceil(max.getY()); y++) {
-                for (int z = (int)Math.floor(min.getZ()); z < (int)Math.ceil(max.getZ()); z++) {
+        for (int x = (int) Math.floor(min.getX()); x < (int) Math.ceil(max.getX()); x++) {
+            for (int y = (int) Math.floor(min.getY()); y < (int) Math.ceil(max.getY()); y++) {
+                for (int z = (int) Math.floor(min.getZ()); z < (int) Math.ceil(max.getZ()); z++) {
                     Block block = ServerUtils.getBlockAsync(new Location(world, x, y, z));
 
-                    if(block == null)
+                    if (block == null)
                         continue;
 
                     mats.add(block.getType());
@@ -309,10 +308,10 @@ public class AABB implements Cloneable {
     public List<AABB> getBlockAABBs(World world, int gameVersion) {
         List<AABB> aabbs = new ArrayList<>();
         List<Block> blocks = getBlocks(world);
-        for(Block b : blocks) {
+        for (Block b : blocks) {
             AABB[] bAABBs = WrappedBlock.getWrappedBlock(b, gameVersion).getCollisionBoxes();
-            for(AABB aabb : bAABBs) {
-                if(this.isColliding(aabb)) {
+            for (AABB aabb : bAABBs) {
+                if (this.isColliding(aabb)) {
                     aabbs.add(aabb);
                 }
             }
@@ -322,6 +321,7 @@ public class AABB implements Cloneable {
 
     /**
      * Returns the shortest distance between this AABB and a point in space.
+     *
      * @param vector Point
      * @return Distance
      */
@@ -329,7 +329,7 @@ public class AABB implements Cloneable {
         double distX = Math.max(min.getX() - vector.getX(), Math.max(0, vector.getX() - max.getX()));
         double distY = Math.max(min.getY() - vector.getY(), Math.max(0, vector.getY() - max.getY()));
         double distZ = Math.max(min.getZ() - vector.getZ(), Math.max(0, vector.getZ() - max.getZ()));
-        return Math.sqrt(distX*distX + distY*distY + distZ*distZ);
+        return Math.sqrt(distX * distX + distY * distY + distZ * distZ);
     }
 
     @Override

@@ -18,12 +18,7 @@
 
 package me.islandscout.hawk.util;
 
-import me.islandscout.hawk.HawkPlayer;
-import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.util.Vector;
-
-import java.util.Set;
 
 /**
  * ClientBlocks allow Hawk to track the placement of blocks

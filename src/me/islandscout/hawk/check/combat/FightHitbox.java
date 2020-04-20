@@ -47,7 +47,7 @@ import java.util.UUID;
  * blocks from the target entity). This poses a problem for players and
  * server owners since players can modify the client to manipulate hit
  * detection and allow for cheating when in combat with other players.
- *
+ * <p>
  * Hawk’s hitbox checking aims to detect cheating during player vs.
  * player combat by validating hits on the server. When the server
  * receives an interaction packet from the client, Hawk gets the client’s
@@ -62,7 +62,7 @@ import java.util.UUID;
  * client landed the hit or not. Although the system may produce false
  * positives with clients on unstable connections, it is a fair tradeoff
  * between user experience and cheat prevention.
- *
+ * <p>
  * In most cases, the client uses the current frame's yaw and pitch to
  * compute the direction vector for the attack hit-scan. Because this is
  * before the motion update in the tick stack, the directions that the
@@ -71,7 +71,7 @@ import java.util.UUID;
  * wait until the next move packet comes so that the direction defined
  * by this move is chronologically much closer to the direction used for
  * attacking client-side. This reduces false positives.
- *
+ * <p>
  * For realtime protection, it's best to use the EntityInteractDirection
  * check. It actively enforces directions, but it extrapolates the
  * yaw/pitch because of how the client hit-scanning works.
@@ -105,17 +105,17 @@ public class FightHitbox extends CustomCheck implements Cancelless {
 
     @Override
     protected void check(Event event) {
-        if(event instanceof InteractEntityEvent)
-            processHit((InteractEntityEvent)event);
-        else if(event instanceof MoveEvent) {
+        if (event instanceof InteractEntityEvent)
+            processHit((InteractEntityEvent) event);
+        else if (event instanceof MoveEvent) {
             InteractEntityEvent interactEntityEvent = lastInteractionMap.get(event.getHawkPlayer().getUuid());
-            if(interactEntityEvent != null) {
+            if (interactEntityEvent != null) {
                 MoveEvent move = (MoveEvent) event;
 
                 float yaw;
                 float pitch;
                 //In 1.8, the yaw of the cursor is updated in a tick-by-tick basis.
-                if(event.getHawkPlayer().getClientVersion() == 8) {
+                if (event.getHawkPlayer().getClientVersion() == 8) {
                     yaw = event.getHawkPlayer().getYaw();
                 } else {
                     yaw = move.getTo().getYaw();

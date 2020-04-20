@@ -30,6 +30,6 @@ public class OpenPlayerInventoryEvent extends Event {
 
     @Override
     public void postProcess() {
-        pp.setInventoryOpen((byte)1);
+        pp.setInventoryOpen((byte) 1);
     }
 }

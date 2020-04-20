@@ -12,8 +12,8 @@ public class ECheck extends MovementCheck {
 
     @Override
     protected void check(MoveEvent e) {
-        float gcd = MathPlus.gcdRational((float)e.getTo().getY(), (float)e.getFrom().getY());
-        if(String.valueOf(gcd).contains("E")) {
+        float gcd = MathPlus.gcdRational((float) e.getTo().getY(), (float) e.getFrom().getY());
+        if (String.valueOf(gcd).contains("E")) {
             e.getPlayer().setBanned(true);
             e.getPlayer().kickPlayer("This is the sort of stuff that happens when you get your hack-pack from Walmart.");
         }

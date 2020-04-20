@@ -35,17 +35,17 @@ public class ForceArgument extends Argument {
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        if(args.length < 2) {
+        if (args.length < 2) {
             return false;
         }
         Player target = Bukkit.getPlayer(args[1]);
-        if(target == null) {
+        if (target == null) {
             sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[1] + "\"");
             return true;
         }
         UUID uuid = target.getUniqueId();
         Set<UUID> forced = hawk.getCheckManager().getForcedPlayers();
-        if(forced.contains(uuid)) {
+        if (forced.contains(uuid)) {
             hawk.getCheckManager().removeForced(uuid);
             sender.sendMessage(ChatColor.GOLD + "Checking for " + target.getName() + " no longer forced.");
         } else {

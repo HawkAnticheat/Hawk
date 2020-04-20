@@ -48,7 +48,7 @@ public class TextFileReader {
     public List<String> read() throws IOException {
         List<String> result = new ArrayList<>();
         String line = readLine();
-        while(line != null) {
+        while (line != null) {
             result.add(line);
             line = readLine();
         }

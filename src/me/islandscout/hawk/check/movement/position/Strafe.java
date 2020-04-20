@@ -21,7 +21,9 @@ package me.islandscout.hawk.check.movement.position;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.util.Direction;
+import me.islandscout.hawk.util.MathPlus;
+import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -46,7 +48,7 @@ public class Strafe extends MovementCheck {
     public Strafe() {
         super("strafe", false, 5, 5, 0.99, 5000, "%player% failed strafe, VL: %vl%", null);
         lastIdleTick = new HashMap<>();
-        THRESHOLD = Math.toRadians((double)customSetting("yawErrorThreshold", "", 0.5));
+        THRESHOLD = Math.toRadians((double) customSetting("yawErrorThreshold", "", 0.5));
     }
 
     @Override
@@ -54,7 +56,7 @@ public class Strafe extends MovementCheck {
         HawkPlayer pp = e.getHawkPlayer();
 
         Block footBlock = ServerUtils.getBlockAsync(pp.getPlayer().getLocation().clone().add(0, -1, 0));
-        if(footBlock == null)
+        if (footBlock == null)
             return;
 
         Vector moveHoriz = e.getTo().toVector().subtract(e.getFrom().toVector()).setY(0);
@@ -62,19 +64,19 @@ public class Strafe extends MovementCheck {
         double friction = e.getFriction();
 
         Vector prevVelocity = pp.getVelocity().clone();
-        if(e.hasHitSlowdown()) {
+        if (e.hasHitSlowdown()) {
             prevVelocity.multiply(0.6);
         }
 
         Set<Material> collidedMats = WrappedEntity.getWrappedEntity(e.getPlayer()).getCollisionBox(e.getFrom().toVector()).getMaterials(pp.getWorld());
-        if(collidedMats.contains(Material.SOUL_SAND)) {
+        if (collidedMats.contains(Material.SOUL_SAND)) {
             prevVelocity.multiply(0.4);
         }
 
-        if(Math.abs(prevVelocity.getX() * friction) < 0.005) {
+        if (Math.abs(prevVelocity.getX() * friction) < 0.005) {
             prevVelocity.setX(0);
         }
-        if(Math.abs(prevVelocity.getZ() * friction) < 0.005) {
+        if (Math.abs(prevVelocity.getZ() * friction) < 0.005) {
             prevVelocity.setZ(0);
         }
 
@@ -94,7 +96,7 @@ public class Strafe extends MovementCheck {
         //Also, return if ticksSinceIdle is <= 2, otherwise this client behavior would
         //set off false flags. Another check needs to analyze this behavior because this
         //can be abused to bypass this check.
-        if(e.hasTeleported() || e.hasAcceptedKnockback() || collidingHorizontally(e) ||
+        if (e.hasTeleported() || e.hasAcceptedKnockback() || collidingHorizontally(e) ||
                 pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow() || pp.isSneaking() ||
                 moveHoriz.length() < 0.15 || e.isJump() || ticksSinceIdle <= 2 || e.isInLiquid() ||
                 pp.getCurrentTick() - pp.getLastVelocityAcceptTick() == 1 || collidedMats.contains(Material.LADDER) ||
@@ -104,7 +106,7 @@ public class Strafe extends MovementCheck {
         }
 
         //You aren't pressing a WASD key
-        if(accelDir.lengthSquared() < 0.000001) {
+        if (accelDir.lengthSquared() < 0.000001) {
             prepareNextMove(e, pp, pp.getCurrentTick());
             return;
         }
@@ -112,18 +114,17 @@ public class Strafe extends MovementCheck {
         boolean vectorDir = accelDir.clone().crossProduct(yaw).dot(new Vector(0, 1, 0)) >= 0;
         double angle = (vectorDir ? 1 : -1) * MathPlus.angle(accelDir, yaw);
 
-        if(!isValidStrafe(angle)) {
+        if (!isValidStrafe(angle)) {
             punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
-        }
-        else
+        } else
             reward(pp);
 
         prepareNextMove(e, pp, pp.getCurrentTick());
     }
 
     private boolean collidingHorizontally(MoveEvent e) {
-        for(Direction dir : e.getBoxSidesTouchingBlocks()) {
-            if(dir == Direction.EAST || dir == Direction.NORTH || dir == Direction.SOUTH || dir == Direction.WEST)
+        for (Direction dir : e.getBoxSidesTouchingBlocks()) {
+            if (dir == Direction.EAST || dir == Direction.NORTH || dir == Direction.SOUTH || dir == Direction.WEST)
                 return true;
         }
         return false;
@@ -138,7 +139,7 @@ public class Strafe extends MovementCheck {
     private void prepareNextMove(MoveEvent event, HawkPlayer pp, long currentTick) {
         UUID uuid = pp.getUuid();
 
-        if(!event.isUpdatePos())
+        if (!event.isUpdatePos())
             lastIdleTick.put(uuid, currentTick);
     }
 

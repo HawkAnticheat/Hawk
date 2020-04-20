@@ -42,13 +42,13 @@ public final class MathPlus {
     }
 
     public static double distance2d(double x, double y) {
-        return Math.sqrt(x*x + y*y);
+        return Math.sqrt(x * x + y * y);
     }
 
     public static Vector getDirection(float yaw, float pitch) {
         Vector vector = new Vector();
-        float rotX = (float)Math.toRadians(yaw);
-        float rotY = (float)Math.toRadians(pitch);
+        float rotX = (float) Math.toRadians(yaw);
+        float rotY = (float) Math.toRadians(pitch);
         vector.setY(-sin(rotY));
         double xz = cos(rotY);
         vector.setX(-xz * sin(rotX));
@@ -73,7 +73,7 @@ public final class MathPlus {
             return net.minecraft.server.v1_8_R3.MathHelper.sin(radians);
         if (Hawk.getServerVersion() == 7)
             return net.minecraft.server.v1_7_R4.MathHelper.sin(radians);
-        return (float)Math.sin(radians);
+        return (float) Math.sin(radians);
     }
 
     public static float cos(float radians) {
@@ -81,11 +81,11 @@ public final class MathPlus {
             return net.minecraft.server.v1_8_R3.MathHelper.cos(radians);
         if (Hawk.getServerVersion() == 7)
             return net.minecraft.server.v1_7_R4.MathHelper.cos(radians);
-        return (float)Math.cos(radians);
+        return (float) Math.cos(radians);
     }
 
     public static void rotateVectorsEulerXYZ(Vector[] vertices, float radX, float radY, float radZ) {
-        for(Vector vertex : vertices) {
+        for (Vector vertex : vertices) {
             double x, y, z;
 
             //rotate around X axis (pitch)
@@ -110,7 +110,7 @@ public final class MathPlus {
 
     public static double stdev(List<Double> data) {
         double[] array = new double[data.size()];
-        for(int i = 0; i < array.length; i++) {
+        for (int i = 0; i < array.length; i++) {
             array[i] = data.get(i);
         }
         return stdev(array);
@@ -119,7 +119,7 @@ public final class MathPlus {
     public static double stdev(double[] data) {
         double mean = mean(data);
         double dividend = 0;
-        for(double num : data) {
+        for (double num : data) {
             dividend += Math.pow(num - mean, 2);
         }
         return Math.sqrt(dividend / (data.length - 1));
@@ -127,7 +127,7 @@ public final class MathPlus {
 
     public static double mean(double[] data) {
         double ans = 0;
-        for(double num : data) {
+        for (double num : data) {
             ans += num;
         }
         ans /= data.length;
@@ -136,7 +136,7 @@ public final class MathPlus {
 
     public static double mean(List<Double> data) {
         double[] array = new double[data.size()];
-        for(int i = 0; i < array.length; i++) {
+        for (int i = 0; i < array.length; i++) {
             array[i] = data.get(i);
         }
         return mean(array);
@@ -145,10 +145,10 @@ public final class MathPlus {
     public static double range(double[] data) {
         double high = Double.NEGATIVE_INFINITY;
         double low = Double.POSITIVE_INFINITY;
-        for(Double num : data) {
-            if(num > high)
+        for (Double num : data) {
+            if (num > high)
                 high = num;
-            if(num < low)
+            if (num < low)
                 low = num;
         }
         return high - low;
@@ -156,8 +156,8 @@ public final class MathPlus {
 
     public static double range(List data) {
         double[] array = new double[data.size()];
-        for(int i = 0; i < array.length; i++) {
-            array[i] = ((Number)data.get(i)).doubleValue();
+        for (int i = 0; i < array.length; i++) {
+            array[i] = ((Number) data.get(i)).doubleValue();
         }
         return range(array);
     }
@@ -184,7 +184,7 @@ public final class MathPlus {
 
     public static float derivative(MathFunction func, double x) {
         double h = (x * 1E-8);
-        return (float)((func.func(x + h) - func.func(x))/h);
+        return (float) ((func.func(x + h) - func.func(x)) / h);
     }
 
     //rough approximate
@@ -193,27 +193,27 @@ public final class MathPlus {
         double trapWidth = (upperBound - lowerBound) / trapezoids;
         double x0 = lowerBound;
         double sum = 0;
-        for(double x1 = lowerBound + trapWidth; x1 <= upperBound; x1+=trapWidth) {
+        for (double x1 = lowerBound + trapWidth; x1 <= upperBound; x1 += trapWidth) {
             sum += func.func(x1) + func.func(x0);
             x0 = x1;
         }
-        return (float)((trapWidth / 2D) * sum);
+        return (float) ((trapWidth / 2D) * sum);
     }
 
     public static double truncateRound(double num, double sigFigs) {
-        int numExponent = (int)Math.floor(Math.log10(num));
+        int numExponent = (int) Math.floor(Math.log10(num));
         int shift = (int) Math.pow(10, sigFigs - numExponent - 1);
         double result = Math.round(num * shift);
         return result / shift;
     }
 
     public static float gcdRational(float a, float b) {
-        if(a == 0) {
+        if (a == 0) {
             return b;
         }
         int quotient = getIntQuotient(b, a);
         float remainder = ((b / a) - quotient) * a;
-        if(Math.abs(remainder) < Math.max(a, b) * 1E-3F)
+        if (Math.abs(remainder) < Math.max(a, b) * 1E-3F)
             remainder = 0;
         return gcdRational(remainder, a);
     }
@@ -229,6 +229,6 @@ public final class MathPlus {
     public static int getIntQuotient(float dividend, float divisor) {
         float ans = dividend / divisor;
         float error = Math.max(dividend, divisor) * 1E-3F;
-        return (int)(ans + error);
+        return (int) (ans + error);
     }
 }

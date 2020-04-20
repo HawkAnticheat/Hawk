@@ -20,7 +20,8 @@ package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.event.*;
+import me.islandscout.hawk.event.Event;
+import me.islandscout.hawk.event.HawkEventListener;
 import me.islandscout.hawk.module.listener.PacketListener;
 import me.islandscout.hawk.module.listener.PacketListener7;
 import me.islandscout.hawk.module.listener.PacketListener8;
@@ -28,7 +29,7 @@ import me.islandscout.hawk.util.ConfigHelper;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
@@ -56,7 +57,7 @@ public class PacketHandler implements Listener {
         this.serverVersion = Hawk.getServerVersion();
         this.hawk = hawk;
         async = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "asyncChecking");
-        if(async) {
+        if (async) {
             hawk.getLogger().warning("---");
             hawk.getLogger().warning("It appears that you have enabled ASYNCHRONOUS packet checking.");
             hawk.getLogger().warning("Although this will significantly improve network performance, it");
@@ -77,13 +78,13 @@ public class PacketHandler implements Listener {
             return false;
 
         Event event = convertPacketInboundToEvent(packet, pp);
-        if(event == null)
+        if (event == null)
             return true;
 
-        if(!event.preProcess())
+        if (!event.preProcess())
             return false;
 
-        for(HawkEventListener eventListener : hawkEventListeners)
+        for (HawkEventListener eventListener : hawkEventListeners)
             eventListener.onEvent(event);
 
         hawk.getCheckManager().dispatchEvent(event);
@@ -101,7 +102,7 @@ public class PacketHandler implements Listener {
 
         Bukkit.getServer().getPluginManager().callEvent(event);
 
-        if(event instanceof Cancellable) {
+        if (event instanceof Cancellable) {
             return !((Cancellable) event).isCancelled();
         }
 
@@ -160,7 +161,7 @@ public class PacketHandler implements Listener {
     }
 
     public void stopListener() {
-        if(packetListener != null)
+        if (packetListener != null)
             packetListener.disable();
     }
 
@@ -172,7 +173,7 @@ public class PacketHandler implements Listener {
     }
 
     private void setupListenerForPlayer(Player p) {
-        if(packetListener != null)
+        if (packetListener != null)
             packetListener.addListener(p);
     }
 

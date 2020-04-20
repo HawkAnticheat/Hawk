@@ -26,10 +26,11 @@ import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import org.bukkit.block.Block;
-import org.bukkit.util.Vector;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
-/** This check prevents players from interacting on
+/**
+ * This check prevents players from interacting on
  * unavailable locations on blocks. Players must be
  * looking at the face of the block they want to interact
  * with.
@@ -46,28 +47,25 @@ public class WrongBlockFace extends BlockInteractionCheck {
 
         Block b = ServerUtils.getBlockAsync(e.getTargetedBlockLocation());
         AABB hitbox;
-        if(b != null) {
+        if (b != null) {
             hitbox = WrappedBlock.getWrappedBlock(b, pp.getClientVersion()).getHitBox();
-        }
-        else {
+        } else {
             hitbox = new AABB(new Vector(), new Vector());
         }
 
         Vector headPos;
-        if(pp.isInVehicle()) {
+        if (pp.isInVehicle()) {
             Player p = e.getPlayer();
             headPos = hawk.getLagCompensator().getHistoryLocation(ServerUtils.getPing(p), p).toVector();
             headPos.setY(headPos.getY() + p.getEyeHeight());
-        }
-        else {
+        } else {
             headPos = pp.getHeadPosition();
         }
 
-        if(e.getTargetedBlockFaceNormal().dot(MathPlus.getDirection(pp.getYaw(), pp.getPitch())) >= 0 &&
-            !hitbox.containsPoint(headPos)) {
+        if (e.getTargetedBlockFaceNormal().dot(MathPlus.getDirection(pp.getYaw(), pp.getPitch())) >= 0 &&
+                !hitbox.containsPoint(headPos)) {
             punishAndTryCancelAndBlockRespawn(pp, e);
-        }
-        else {
+        } else {
             reward(pp);
         }
     }

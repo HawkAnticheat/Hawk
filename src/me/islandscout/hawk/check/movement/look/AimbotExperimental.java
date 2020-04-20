@@ -20,10 +20,8 @@ package me.islandscout.hawk.check.movement.look;
 
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -36,7 +34,7 @@ public class AimbotExperimental extends MovementCheck {
     @Override
     protected void check(MoveEvent e) {
         Player victim = Bukkit.getPlayer("Islandscout");
-        if(victim == null) {
+        if (victim == null) {
             return;
         }
 
@@ -51,7 +49,7 @@ public class AimbotExperimental extends MovementCheck {
         Vector relEntityPosA = relEntityPosB.clone().add(relEntityVelocity);
         Vector toRelEntityPosA = relEntityPosA.clone().subtract(pos);
         Vector toRelEntityPosB = relEntityPosB.clone().subtract(pos);
-        int dir = (int)Math.signum(toRelEntityPosA.clone().crossProduct(toRelEntityPosB.clone()).getY());
+        int dir = (int) Math.signum(toRelEntityPosA.clone().crossProduct(toRelEntityPosB.clone()).getY());
         double distBSquared = pos.distanceSquared(relEntityPosB);
         double distASquared = pos.distanceSquared(relEntityPosA);
         //law of cosines

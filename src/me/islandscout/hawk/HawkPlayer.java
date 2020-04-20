@@ -43,7 +43,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Represents a client. Provides essential and additional tools
  * to analyze players during packet interception. Recommended
  * to use this rather than Bukkit's implementation.
- *
+ * <p>
  * Fields here should be faithful to the client they represent
  * as much as possible, regardless of any modifications that the
  * anti-cheat makes to the incoming packets. Caution: that means
@@ -160,13 +160,10 @@ public class HawkPlayer {
         clientVersion = ServerUtils.getProtocolVersion(p) == 47 ? 8 : 7;
 
         //do this a little later since these values are a little slow
-        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, new Runnable() {
-            @Override
-            public void run() {
-                allowedToFly = p.getAllowFlight();
-                flying = p.isFlying();
-                inCreative = p.getGameMode() == GameMode.CREATIVE;
-            }
+        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> {
+            allowedToFly = p.getAllowFlight();
+            flying = p.isFlying();
+            inCreative = p.getGameMode() == GameMode.CREATIVE;
         });
 
     }
@@ -178,7 +175,7 @@ public class HawkPlayer {
         cleanUpOldMetaDataUpdates();
         entitiesInteractedInThisTick.clear();
         predictNextPosition();
-        if(consumingItem)
+        if (consumingItem)
             itemConsumeTicks++;
     }
 
@@ -300,11 +297,11 @@ public class HawkPlayer {
 
     public void setPing(int ping) {
         this.ping = ping;
-        this.lastPings.add((double)ping);
-        if(lastPings.size() > 10) {
+        this.lastPings.add((double) ping);
+        if (lastPings.size() > 10) {
             lastPings.remove(0);
         }
-        pingJitter = (short)MathPlus.range(lastPings);
+        pingJitter = (short) MathPlus.range(lastPings);
     }
 
     public short getPingJitter() {
@@ -364,9 +361,9 @@ public class HawkPlayer {
         this.position = position;
         this.yaw = yaw;
         this.pitch = pitch;
-        if(isPosUpdate) {
+        if (isPosUpdate) {
             predictedPosition = position.clone();
-            if(hasSentPosUpdate())
+            if (hasSentPosUpdate())
                 predictedVelocity = velocity.clone();
         }
     }
@@ -433,7 +430,7 @@ public class HawkPlayer {
 
     public void setBlocking(boolean blocking) {
         this.blocking = blocking;
-        if(blocking)
+        if (blocking)
             itemUseTick = currentTick;
     }
 
@@ -443,7 +440,7 @@ public class HawkPlayer {
 
     public void setPullingBow(boolean pullingBow) {
         this.pullingBow = pullingBow;
-        if(pullingBow)
+        if (pullingBow)
             itemUseTick = currentTick;
     }
 
@@ -473,7 +470,7 @@ public class HawkPlayer {
 
     public void setConsumingItem(boolean consumingItem) {
         this.consumingItem = consumingItem;
-        if(consumingItem)
+        if (consumingItem)
             itemUseTick = currentTick;
         else
             itemConsumeTicks = 0;
@@ -484,7 +481,7 @@ public class HawkPlayer {
     }
 
     public void setInLiquid(boolean inLiquid) {
-        if(this.inLiquid != inLiquid) {
+        if (this.inLiquid != inLiquid) {
             lastInLiquidToggleTick = currentTick;
             this.inLiquid = inLiquid;
         }
@@ -579,7 +576,7 @@ public class HawkPlayer {
             return;
         }
         double deltaY = y2 - y1;
-        if(deltaY > 0)
+        if (deltaY > 0)
             jumpedHeight += deltaY;
     }
 
@@ -624,7 +621,7 @@ public class HawkPlayer {
         double pdY = move.getY() * 0.98;
         double pdZ = move.getZ() * getFriction();
 
-        if(!isFlying())
+        if (!isFlying())
             pdY += -0.0784;
 
         AABB box = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition);
@@ -641,14 +638,14 @@ public class HawkPlayer {
         collidedBlocks.removeAll(collidedBlocksBefore);
 
         double highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-        for(AABB aabb : collidedBlocks) {
+        for (AABB aabb : collidedBlocks) {
             double point = positive ? aabb.getMin().getX() : aabb.getMax().getX();
-            if(positive && point < highestPoint)
+            if (positive && point < highestPoint)
                 highestPoint = point;
-            else if(!positive && point > highestPoint)
+            else if (!positive && point > highestPoint)
                 highestPoint = point;
         }
-        if(Double.isFinite(highestPoint)) {
+        if (Double.isFinite(highestPoint)) {
             double invPenetrationDist = positive ? highestPoint - box.getMax().getX() - 0.00000001 : highestPoint - box.getMin().getX() + 0.00000001;
             box.translate(new Vector(invPenetrationDist, 0, 0));
             pdX += invPenetrationDist;
@@ -661,14 +658,14 @@ public class HawkPlayer {
         collidedBlocks.removeAll(collidedBlocksBefore);
 
         highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-        for(AABB aabb : collidedBlocks) {
+        for (AABB aabb : collidedBlocks) {
             double point = positive ? aabb.getMin().getZ() : aabb.getMax().getZ();
-            if(positive && point < highestPoint)
+            if (positive && point < highestPoint)
                 highestPoint = point;
-            else if(!positive && point > highestPoint)
+            else if (!positive && point > highestPoint)
                 highestPoint = point;
         }
-        if(Double.isFinite(highestPoint)) {
+        if (Double.isFinite(highestPoint)) {
             double invPenetrationDist = positive ? highestPoint - box.getMax().getZ() - 0.00000001 : highestPoint - box.getMin().getZ() + 0.00000001;
             box.translate(new Vector(0, 0, invPenetrationDist));
             pdZ += invPenetrationDist;
@@ -681,14 +678,14 @@ public class HawkPlayer {
         collidedBlocks.removeAll(collidedBlocksBefore);
 
         highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-        for(AABB aabb : collidedBlocks) {
+        for (AABB aabb : collidedBlocks) {
             double point = positive ? aabb.getMin().getY() : aabb.getMax().getY();
-            if(positive && point < highestPoint)
+            if (positive && point < highestPoint)
                 highestPoint = point;
-            else if(!positive && point > highestPoint)
+            else if (!positive && point > highestPoint)
                 highestPoint = point;
         }
-        if(Double.isFinite(highestPoint)) {
+        if (Double.isFinite(highestPoint)) {
             double invPenetrationDist = positive ? highestPoint - box.getMax().getY() - 0.00000001 : highestPoint - box.getMin().getY() + 0.00000001;
             box.translate(new Vector(0, invPenetrationDist, 0));
             pdY += invPenetrationDist;
@@ -696,7 +693,7 @@ public class HawkPlayer {
 
         //crude way of handling sneaking
         boolean sneakHalt;
-        if(sneaking) {
+        if (sneaking) {
             Vector min = predictedPosition.clone().add(new Vector(-0.3, -0.001, -0.3));
             Vector max = predictedPosition.clone().add(new Vector(0.3, 0, 0.3));
             AABB feet = new AABB(min, max);
@@ -705,42 +702,39 @@ public class HawkPlayer {
             feet.translate(new Vector(pdX, pdY, pdZ));
             boolean isOnGround = feet.getBlockAABBs(world, clientVersion).size() > 0;
 
-            if(wasOnGround && !isOnGround) {
+            if (wasOnGround && !isOnGround) {
                 //use max.getY() to save a clone()
                 Vector check = new Vector(pdX, max.getY() - 1, pdZ);
                 Block checkBlock = ServerUtils.getBlockAsync(check.toLocation(world));
-                if(checkBlock == null) {
+                if (checkBlock == null) {
                     sneakHalt = true;
-                }
-                else {
+                } else {
                     sneakHalt = true;
-                    for(AABB aabb : WrappedBlock.getWrappedBlock(checkBlock, clientVersion).getCollisionBoxes()) {
-                        if(aabb.containsPoint(check)) {
+                    for (AABB aabb : WrappedBlock.getWrappedBlock(checkBlock, clientVersion).getCollisionBoxes()) {
+                        if (aabb.containsPoint(check)) {
                             sneakHalt = false;
                             break;
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 sneakHalt = false;
             }
-        }
-        else {
+        } else {
             sneakHalt = false;
         }
-        if(sneakHalt) {
+        if (sneakHalt) {
             predictedVelocity = new Vector(0, 0, 0);
             return;
         }
 
-        if(Math.abs(pdX) < 0.005) {
+        if (Math.abs(pdX) < 0.005) {
             pdX = 0;
         }
-        if(Math.abs(pdY) < 0.005) {
+        if (Math.abs(pdY) < 0.005) {
             pdY = 0;
         }
-        if(Math.abs(pdZ) < 0.005) {
+        if (Math.abs(pdZ) < 0.005) {
             pdZ = 0;
         }
 
@@ -764,15 +758,15 @@ public class HawkPlayer {
         bbox.expand(expand, expand, expand);
 
         //handle teleportation into a block
-        if(teleported) {
+        if (teleported) {
             AABB lastbbox = WrappedEntity.getWrappedEntity(p).getCollisionBox(from);
             lastbbox.expand(expand, expand, expand);
 
             //add new entries
             Set<Location> addIgnored = new HashSet<>();
-            for(Block b : bbox.getBlocks(world)) {
-                for(AABB aabb : WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes()) {
-                    if(aabb.isColliding(bbox) && !aabb.isColliding(lastbbox)) { //Must enter an AABB. This patches a Phase bypass.
+            for (Block b : bbox.getBlocks(world)) {
+                for (AABB aabb : WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes()) {
+                    if (aabb.isColliding(bbox) && !aabb.isColliding(lastbbox)) { //Must enter an AABB. This patches a Phase bypass.
                         addIgnored.add(b.getLocation());
                         break;
                     }
@@ -781,22 +775,22 @@ public class HawkPlayer {
 
             //remove old entries
             Set<Location> removeIgnored = new HashSet<>();
-            for(Location loc : ignoredBlockCollisions) {
+            for (Location loc : ignoredBlockCollisions) {
                 Block b = ServerUtils.getBlockAsync(loc);
-                if(b == null) {
+                if (b == null) {
                     removeIgnored.add(loc);
                     continue;
                 }
 
                 boolean colliding = false;
-                for(AABB aabb : WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes()) {
-                    if(aabb.isColliding(bbox)) {
+                for (AABB aabb : WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes()) {
+                    if (aabb.isColliding(bbox)) {
                         colliding = true;
                         break;
                     }
                 }
 
-                if(!colliding) {
+                if (!colliding) {
                     removeIgnored.add(loc);
                 }
             }
@@ -810,7 +804,7 @@ public class HawkPlayer {
         //TODO snapshot nearby blocks or make 90% of checks sync to avoid concurrency problems
         else {
             Map<Location, List<AABB>> blocksInBBNew = new HashMap<>();
-            for(Block b : bbox.getBlocks(world)) {
+            for (Block b : bbox.getBlocks(world)) {
                 Location loc = b.getLocation();
                 List<AABB> aabbs = Arrays.asList(WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes());
                 blocksInBBNew.put(loc, aabbs);
@@ -818,10 +812,10 @@ public class HawkPlayer {
 
             Map<Location, List<AABB>> blocksInBBOld = trackedBlockCollisions;
             Set<Location> ignored = new HashSet<>();
-            for(Location entry : blocksInBBNew.keySet()) {
+            for (Location entry : blocksInBBNew.keySet()) {
                 if (blocksInBBOld.containsKey(entry) && !blocksInBBOld.get(entry).equals(blocksInBBNew.get(entry))) {
-                    for(AABB aabb : blocksInBBNew.get(entry)) {
-                        if(aabb.isColliding(bbox)) {
+                    for (AABB aabb : blocksInBBNew.get(entry)) {
+                        if (aabb.isColliding(bbox)) {
                             ignored.add(entry);
                             break;
                         }
@@ -831,12 +825,12 @@ public class HawkPlayer {
 
             trackedBlockCollisions = blocksInBBNew;
             Set<Location> ignoredOld = ignoredBlockCollisions;
-            for(Location loc : ignoredOld) {
+            for (Location loc : ignoredOld) {
                 Block b = ServerUtils.getBlockAsync(loc);
-                if(b == null)
+                if (b == null)
                     continue;
-                for(AABB aabb : WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes()) {
-                    if(aabb.isColliding(bbox)) {
+                for (AABB aabb : WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes()) {
+                    if (aabb.isColliding(bbox)) {
                         ignored.add(loc);
                         break;
                     }
@@ -908,7 +902,7 @@ public class HawkPlayer {
 
     //safely force player to release item (bow, consumable, or sword blocking)
     public void releaseItem() {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> ((WrappedEntityHuman)WrappedEntity.getWrappedEntity(p)).releaseItem());
+        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> ((WrappedEntityHuman) WrappedEntity.getWrappedEntity(p)).releaseItem());
         sendSimulatedAction(() -> {
             setBlocking(false);
             setPullingBow(false);
@@ -924,11 +918,11 @@ public class HawkPlayer {
     }
 
     private void executeTasks() {
-        if(simulatedCmds.size() == 0)
+        if (simulatedCmds.size() == 0)
             return;
         int ping = ServerUtils.getPing(p);
         long currTime = System.currentTimeMillis();
-        while(simulatedCmds.size() > 0 && currTime - simulatedCmds.get(0).getValue() >= ping) {
+        while (simulatedCmds.size() > 0 && currTime - simulatedCmds.get(0).getValue() >= ping) {
             simulatedCmds.get(0).getKey().run();
             simulatedCmds.remove(0);
         }
@@ -937,7 +931,7 @@ public class HawkPlayer {
     public void addMetaDataUpdate(MetaData metaData) {
         metaDataUpdates.add(new Pair<>(metaData, System.currentTimeMillis()));
         //in case something happens, let's not hog memory...
-        if(metaDataUpdates.size() > 200) {
+        if (metaDataUpdates.size() > 200) {
             metaDataUpdates.remove(0);
         }
     }
@@ -947,10 +941,10 @@ public class HawkPlayer {
     }
 
     private void cleanUpOldMetaDataUpdates() {
-        if(metaDataUpdates.size() == 0)
+        if (metaDataUpdates.size() == 0)
             return;
         long currTime = System.currentTimeMillis();
-        while(metaDataUpdates.size() > 0 && currTime - metaDataUpdates.get(0).getValue() > 2000) {
+        while (metaDataUpdates.size() > 0 && currTime - metaDataUpdates.get(0).getValue() > 2000) {
             metaDataUpdates.remove(0);
         }
     }
@@ -997,11 +991,11 @@ public class HawkPlayer {
         boolean consumingOrBow = isConsumingItem() || isPullingBow();
         long currTime = System.currentTimeMillis();
         int ping = ServerUtils.getPing(p) + 100;
-        for(Pair<MetaData, Long> metaDataPair : getMetaDataUpdates()) {
+        for (Pair<MetaData, Long> metaDataPair : getMetaDataUpdates()) {
             //Ideally it would be +/-50ms leniency, but let's do +/-100ms just because of network jitter.
-            if(Math.abs(metaDataPair.getValue() + ping - currTime) < 100) {
+            if (Math.abs(metaDataPair.getValue() + ping - currTime) < 100) {
                 MetaData metaData = metaDataPair.getKey();
-                if(metaData.getType() == MetaData.Type.USE_ITEM && !metaData.getValue()) {
+                if (metaData.getType() == MetaData.Type.USE_ITEM && !metaData.getValue()) {
                     consumingOrBow = false;
                     break;
                 }
@@ -1023,7 +1017,7 @@ public class HawkPlayer {
     }
 
     public void setFlying(boolean flying) {
-        if(!isAllowedToFly() && flying)
+        if (!isAllowedToFly() && flying)
             return;
         this.flying = flying;
     }

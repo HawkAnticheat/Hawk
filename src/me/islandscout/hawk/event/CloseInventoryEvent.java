@@ -30,6 +30,6 @@ public class CloseInventoryEvent extends Event {
 
     @Override
     public void postProcess() {
-        pp.setInventoryOpen((byte)0);
+        pp.setInventoryOpen((byte) 0);
     }
 }

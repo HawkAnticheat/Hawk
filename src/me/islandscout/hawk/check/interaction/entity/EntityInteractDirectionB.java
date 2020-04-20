@@ -51,18 +51,17 @@ public class EntityInteractDirectionB extends CustomCheck {
 
     @Override
     protected void check(Event e) {
-        if(e instanceof MoveEvent) {
+        if (e instanceof MoveEvent) {
             processMove((MoveEvent) e);
-        }
-        else if(e instanceof InteractEntityEvent) {
+        } else if (e instanceof InteractEntityEvent) {
             processHit((InteractEntityEvent) e);
         }
     }
 
     private void processHit(InteractEntityEvent e) {
-        if(e.getInteractAction() == InteractAction.INTERACT) {
+        if (e.getInteractAction() == InteractAction.INTERACT) {
             Vector hitVec = e.getIntersectVector();
-            if(hitVec != null) {
+            if (hitVec != null) {
                 hitVec = hitVec.clone();
                 hitVec.add(hawk.getLagCompensator().getHistoryLocation(ServerUtils.getPing(e.getPlayer()), e.getEntity()).toVector());
                 lastHitVecMap.put(e.getPlayer().getUniqueId(), hitVec);
@@ -74,7 +73,7 @@ public class EntityInteractDirectionB extends CustomCheck {
         Player p = e.getPlayer();
         UUID uuid = p.getUniqueId();
 
-        if(lastHitVecMap.containsKey(uuid)) {
+        if (lastHitVecMap.containsKey(uuid)) {
             Vector headPos = e.getHawkPlayer().getHeadPosition();
             Vector dirA = MathPlus.getDirection(e.getFrom().getYaw(), e.getTo().getPitch());
             Vector dirB = lastHitVecMap.get(uuid).subtract(headPos).normalize();

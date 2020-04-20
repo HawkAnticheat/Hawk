@@ -66,7 +66,7 @@ public class WrappedPacket7 extends WrappedPacket {
     }
 
     public void overwritePacket(Object packetDataSerializer) {
-        PacketDataSerializer serializer = (PacketDataSerializer)packetDataSerializer;
+        PacketDataSerializer serializer = (PacketDataSerializer) packetDataSerializer;
         try {
             ((Packet) packet).a(serializer); //"a" method interprets PacketDataSerializer (writes to packet)
         } catch (IOException e) {

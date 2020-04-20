@@ -62,19 +62,19 @@ public final class PacketConverter7 {
             return packetToPlayerActionEvent((PacketPlayInEntityAction) packet, p, pp);
         if (packet instanceof PacketPlayInWindowClick)
             return packetToWindowClickEvent((PacketPlayInWindowClick) packet, p, pp);
-        if(packet instanceof PacketPlayInClientCommand)
+        if (packet instanceof PacketPlayInClientCommand)
             return packetToOpenWindowEvent((PacketPlayInClientCommand) packet, p, pp);
-        if(packet instanceof PacketPlayInCloseWindow)
+        if (packet instanceof PacketPlayInCloseWindow)
             return packetToCloseWindowEvent((PacketPlayInCloseWindow) packet, p, pp);
         return null;
     }
 
     public static org.bukkit.event.Event packetOutboundToEvent(Object packet, Player p) {
-        if(packet instanceof PacketPlayOutEntityVelocity || packet instanceof PacketPlayOutExplosion)
-            return packetToVelocityEvent((Packet)packet, p);
-        if(packet instanceof PacketPlayOutEntityMetadata)
-            return packetToPlayerMetadataEvent((PacketPlayOutEntityMetadata)packet, p);
-        if(packet instanceof PacketPlayOutAbilities)
+        if (packet instanceof PacketPlayOutEntityVelocity || packet instanceof PacketPlayOutExplosion)
+            return packetToVelocityEvent((Packet) packet, p);
+        if (packet instanceof PacketPlayOutEntityMetadata)
+            return packetToPlayerMetadataEvent((PacketPlayOutEntityMetadata) packet, p);
+        if (packet instanceof PacketPlayOutAbilities)
             return packetToPlayerAbilitiesOutEvent((PacketPlayOutAbilities) packet, p);
         return null;
     }
@@ -94,12 +94,12 @@ public final class PacketConverter7 {
         packet.b(serializer);
         int id = serializer.readInt();
         List metaData = DataWatcher.b(serializer);
-        if(id != p.getEntityId() || metaData == null)
+        if (id != p.getEntityId() || metaData == null)
             return null;
 
         List<WrappedWatchableObject> wrappedMetaData = new ArrayList<>();
-        for(Object object : metaData) {
-            if(object instanceof WatchableObject) {
+        for (Object object : metaData) {
+            if (object instanceof WatchableObject) {
 
                 WatchableObject wO = (WatchableObject) object;
                 WrappedWatchableObject wwO = new WrappedWatchableObject(wO.c(), wO.a(), wO.b());
@@ -113,7 +113,7 @@ public final class PacketConverter7 {
     }
 
     private static HawkAsyncPlayerVelocityChangeEvent packetToVelocityEvent(Packet packet, Player p) {
-        if(packet instanceof PacketPlayOutExplosion) {
+        if (packet instanceof PacketPlayOutExplosion) {
             PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
             ((PacketPlayOutExplosion) packet).b(serializer);
             serializer.readerIndex(serializer.writerIndex() - 12);
@@ -121,15 +121,14 @@ public final class PacketConverter7 {
             float y = serializer.readFloat();
             float z = serializer.readFloat();
             Vector velocity = new Vector(x, y, z);
-            if(velocity.lengthSquared() == 0)
+            if (velocity.lengthSquared() == 0)
                 return null;
             return new HawkAsyncPlayerVelocityChangeEvent(velocity, p, true);
-        }
-        else if(packet instanceof PacketPlayOutEntityVelocity) {
+        } else if (packet instanceof PacketPlayOutEntityVelocity) {
             PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
             ((PacketPlayOutEntityVelocity) packet).b(serializer);
             int id = serializer.readInt();
-            if(id != p.getEntityId()) {
+            if (id != p.getEntityId()) {
                 return null;
             }
             double x = serializer.readShort() / 8000D;
@@ -176,8 +175,8 @@ public final class PacketConverter7 {
             loc.setZ(packet.e());
         }
 
-        if(Math.abs(loc.getX()) >= Integer.MAX_VALUE || Math.abs(loc.getY()) >= Integer.MAX_VALUE || Math.abs(loc.getZ()) >= Integer.MAX_VALUE ||
-            Double.isNaN(loc.getX()) || Double.isNaN(loc.getY()) || Double.isNaN(loc.getZ())) {
+        if (Math.abs(loc.getX()) >= Integer.MAX_VALUE || Math.abs(loc.getY()) >= Integer.MAX_VALUE || Math.abs(loc.getZ()) >= Integer.MAX_VALUE ||
+                Double.isNaN(loc.getX()) || Double.isNaN(loc.getY()) || Double.isNaN(loc.getZ())) {
             return new BadEvent(p, pp, new WrappedPacket7(packet, pType));
         }
 
@@ -223,17 +222,17 @@ public final class PacketConverter7 {
             default:
                 return new BadEvent(p, pp, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_DIG));
         }
-        if(interactAction == null) {
+        if (interactAction == null) {
             Location loc = new Location(p.getWorld(), packet.c(), packet.d(), packet.e());
 
             org.bukkit.block.Block b = ServerUtils.getBlockAsync(loc);
-            if(b == null)
+            if (b == null)
                 return null;
 
             return new BlockDigEvent(p, pp, digAction, b, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_DIG));
         }
         ItemStack item = p.getInventory().getItem(pp.getHeldItemSlot());
-        if(item == null)
+        if (item == null)
             return null;
         return new InteractItemEvent(p, pp, item, interactAction, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_DIG));
 
@@ -268,17 +267,15 @@ public final class PacketConverter7 {
 
         InteractWorldEvent.InteractionType interactionType;
         //first vector is for 1.8 clients, second is for 1.7
-        if(!targetedPosition.equals(new Vector(-1, -1, -1)) && !targetedPosition.equals(new Vector(-1, 255, -1))) {
-            if(mat != null && mat != Material.AIR) {
+        if (!targetedPosition.equals(new Vector(-1, -1, -1)) && !targetedPosition.equals(new Vector(-1, 255, -1))) {
+            if (mat != null && mat != Material.AIR) {
                 interactionType = InteractWorldEvent.InteractionType.PLACE_BLOCK;
-            }
-            else {
+            } else {
                 interactionType = InteractWorldEvent.InteractionType.INTERACT_BLOCK;
             }
-        }
-        else {
+        } else {
             ItemStack item = p.getInventory().getItem(pp.getHeldItemSlot());
-            if(item == null)
+            if (item == null)
                 return null;
             return new InteractItemEvent(p, pp, item, InteractItemEvent.Action.START_USE_ITEM, new WrappedPacket7(packet, WrappedPacket.PacketType.BLOCK_PLACE));
         }
@@ -371,7 +368,7 @@ public final class PacketConverter7 {
     }
 
     private static OpenPlayerInventoryEvent packetToOpenWindowEvent(PacketPlayInClientCommand packet, Player p, HawkPlayer pp) {
-        if(packet.c().equals(EnumClientCommand.OPEN_INVENTORY_ACHIEVEMENT)) { // sadly this works only for player inventory
+        if (packet.c().equals(EnumClientCommand.OPEN_INVENTORY_ACHIEVEMENT)) { // sadly this works only for player inventory
             return new OpenPlayerInventoryEvent(p, pp, new WrappedPacket7(packet, WrappedPacket.PacketType.ENTITY_ACTION));
         }
         return null;

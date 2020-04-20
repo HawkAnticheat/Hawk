@@ -31,7 +31,7 @@ public class FabricatedBlockInteract extends BlockInteractionCheck {
     @Override
     protected void check(InteractWorldEvent e) {
 
-        if(e.getTargetedBlockFace() == InteractWorldEvent.BlockFace.INVALID) {
+        if (e.getTargetedBlockFace() == InteractWorldEvent.BlockFace.INVALID) {
             fail(e);
             return;
         }
@@ -39,10 +39,10 @@ public class FabricatedBlockInteract extends BlockInteractionCheck {
         Vector cursorPos = e.getCursorPositionOnTargetedBlock();
         //Disable these for now; currently there is no efficient way to get block hitboxes.
         //boolean onFace = false;
-        for(double value : new double[] {cursorPos.getX(), cursorPos.getY(), cursorPos.getZ()}) {
+        for (double value : new double[]{cursorPos.getX(), cursorPos.getY(), cursorPos.getZ()}) {
             //Unnecessary to do "value % 0.0625 != 0" because the position is actually
             //stored as 3 bytes, not floats. Each represents a multiple of 1/16 of an axis.
-            if(value > 1 || value < 0) {
+            if (value > 1 || value < 0) {
                 fail(e);
                 return;
             }

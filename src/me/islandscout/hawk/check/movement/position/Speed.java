@@ -22,7 +22,8 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.util.MathPlus;
+import me.islandscout.hawk.util.Physics;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -30,7 +31,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 public class Speed extends MovementCheck implements Listener {
 
@@ -80,20 +84,19 @@ public class Speed extends MovementCheck implements Listener {
         int noMoves = noMovesMap.getOrDefault(p.getUniqueId(), 0);
         double lastSpeed;
         double speed;
-        if(event.isUpdatePos()) {
+        if (event.isUpdatePos()) {
             lastSpeed = prevSpeed.getOrDefault(p.getUniqueId(), 0D);
-            if(noMoves > 0) {
+            if (noMoves > 0) {
                 //Players don't update position unless they've moved at least 0.03 blocks (or if 20 ticks passed)
                 lastSpeed = Math.min(lastSpeed, MAX_NO_MOVE_DISTANCE);
             }
             speed = MathPlus.distance2d(event.getTo().getX() - event.getFrom().getX(), event.getTo().getZ() - event.getFrom().getZ());
-        }
-        else {
+        } else {
             speed = prevSpeed.getOrDefault(p.getUniqueId(), 0D) - (lastNegativeDiscrepancies.getOrDefault(p.getUniqueId(), 0D) + EPSILON);
             lastSpeed = speed;
         }
 
-        if(event.isUpdatePos())
+        if (event.isUpdatePos())
             noMoves = 0;
         else
             noMoves++;
@@ -110,7 +113,7 @@ public class Speed extends MovementCheck implements Listener {
         Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(event.getFrom().toVector()).getMaterials(pp.getWorld());
 
         //handle any pending knockbacks
-        if(event.hasAcceptedKnockback()) {
+        if (event.hasAcceptedKnockback()) {
             prepareNextMove(p.getUniqueId(), noMoves, speed, touchedBlocks);
             return;
         }
@@ -119,13 +122,13 @@ public class Speed extends MovementCheck implements Listener {
         //Handle other things in the game that multiply velocity.
         //These affect velocity first (coincidentally, these are all multiplication operations)
         double handleMultipliers = 1;
-        if(event.hasHitSlowdown())
+        if (event.hasHitSlowdown())
             handleMultipliers *= 0.6;
-        if(touchedBlocks.contains(Material.SOUL_SAND))
+        if (touchedBlocks.contains(Material.SOUL_SAND))
             handleMultipliers *= 0.4;
-        if(touchedBlocks.contains(Material.WEB))
+        if (touchedBlocks.contains(Material.WEB))
             handleMultipliers *= 0.25;
-        if(Hawk.getServerVersion() > 7 && touchedBlocks.contains(Material.SLIME_BLOCK)) {
+        if (Hawk.getServerVersion() > 7 && touchedBlocks.contains(Material.SLIME_BLOCK)) {
             //TODO I believe webs affect this mot Y too.
             if (Math.abs(pp.getVelocity().getY()) < 0.1 && !pp.isSneaking()) {
                 handleMultipliers *= 0.4 + Math.abs(pp.getVelocity().getY()) * 0.2;
@@ -134,7 +137,7 @@ public class Speed extends MovementCheck implements Listener {
         //Handle other things in the game that add to velocity.
         //These affect velocity later (coincidentally, these are all addition operations)
         double handleAdders = 0;
-        if(pp.isSprinting() && jump) {
+        if (pp.isSprinting() && jump) {
             handleAdders += 0.2;
         }
         //Finally, the expected speed calculation
@@ -142,27 +145,26 @@ public class Speed extends MovementCheck implements Listener {
 
         Discrepancy discrepancy;
         //LIQUID
-        if(swimming && !flying) {
+        if (swimming && !flying) {
 
             Vector move = new Vector(event.getTo().getX() - event.getFrom().getX(), 0, event.getTo().getZ() - event.getFrom().getZ());
             Vector waterForce = event.getWaterFlowForce().clone().setY(0).normalize().multiply(Physics.WATER_FLOW_FORCE_MULTIPLIER);
             double waterForceLength = waterForce.length();
             //you can just normalize them and do a dot product. should be faster.
-            double computedForce = MathPlus.cos((float)MathPlus.angle(move, waterForce)) * waterForceLength;
+            double computedForce = MathPlus.cos((float) MathPlus.angle(move, waterForce)) * waterForceLength;
 
             computedForce += 0.003; //add epsilon to allow room for error
 
-            if(Double.isNaN(computedForce)) {
+            if (Double.isNaN(computedForce)) {
                 computedForce = waterForceLength;
                 //wtf how can this still be NaN?
-                if(Double.isNaN(computedForce)) {
+                if (Double.isNaN(computedForce)) {
                     computedForce = 0;
                 }
             }
 
             discrepancy = waterMapping(lastSpeed, speed, computedForce);
-        }
-        else {
+        } else {
             discrepancy = new Discrepancy(expected, speed);
         }
 
@@ -170,22 +172,21 @@ public class Speed extends MovementCheck implements Listener {
         if (event.isUpdatePos()) {
             double haltDistanceExpected = negativeDiscrepanciesCumulative.getOrDefault(p.getUniqueId(), 0D);
             lastNegativeDiscrepancies.put(p.getUniqueId(), 0D);
-            if(discrepancy.value < 0 || speed > haltDistanceExpected)
+            if (discrepancy.value < 0 || speed > haltDistanceExpected)
                 discrepancies.put(p.getUniqueId(), Math.max(discrepancies.getOrDefault(p.getUniqueId(), 0D) + discrepancy.value, 0));
             double totalDiscrepancy = discrepancies.getOrDefault(p.getUniqueId(), 0D);
 
-            if(DEBUG) {
+            if (DEBUG) {
                 p.sendMessage((totalDiscrepancy > DISCREPANCY_THRESHOLD ? ChatColor.RED : ChatColor.GREEN) + "" + totalDiscrepancy);
             }
 
-            if(discrepancy.value > 0 && totalDiscrepancy > DISCREPANCY_THRESHOLD) {
+            if (discrepancy.value > 0 && totalDiscrepancy > DISCREPANCY_THRESHOLD) {
                 punishAndTryRubberband(pp, discrepancy.value * VL_FAIL_DISCREPANCY_FACTOR, event, p.getLocation());
-                if(RESET_DISCREPANCY_ON_FAIL)
+                if (RESET_DISCREPANCY_ON_FAIL)
                     discrepancies.put(p.getUniqueId(), 0D);
-                if(RELEASE_ITEM_OVER_VL > -1 && (pp.isPullingBow() || pp.isConsumingItem() || pp.isBlocking()) && pp.getVL(this) > RELEASE_ITEM_OVER_VL)
+                if (RELEASE_ITEM_OVER_VL > -1 && (pp.isPullingBow() || pp.isConsumingItem() || pp.isBlocking()) && pp.getVL(this) > RELEASE_ITEM_OVER_VL)
                     pp.releaseItem();
-            }
-            else {
+            } else {
                 reward(pp);
             }
 
@@ -205,7 +206,7 @@ public class Speed extends MovementCheck implements Listener {
     }
 
     private void prepareNextMove(UUID uuid, int noMoves, double currentSpeed, Set<Material> touchedBlocks) {
-        if(touchedBlocks.contains(Material.WEB)) {
+        if (touchedBlocks.contains(Material.WEB)) {
             currentSpeed = 0;
         }
         prevSpeed.put(uuid, currentSpeed);

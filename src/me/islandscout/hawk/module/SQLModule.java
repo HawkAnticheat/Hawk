@@ -101,7 +101,7 @@ public class SQLModule {
 
     //to be called every second by Hawk's scheduler task
     public void tick() {
-        if(loopCounter >= postInterval) {
+        if (loopCounter >= postInterval) {
             loopCounter = 0;
             postBuffer();
         }
@@ -139,8 +139,7 @@ public class SQLModule {
 
                 ps.executeBatch();
 
-            }
-            catch (SQLException e) {
+            } catch (SQLException e) {
                 e.printStackTrace();
             }
         });

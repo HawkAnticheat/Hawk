@@ -36,7 +36,7 @@ public class WrappedItemStack7 extends WrappedItemStack {
     public float getDestroySpeed(Block obbBlock) {
         net.minecraft.server.v1_7_R4.Block block =
                 (net.minecraft.server.v1_7_R4.Block) WrappedBlock.getWrappedBlock(obbBlock, Hawk.getServerVersion()).getNMS();
-        if(itemStack == null)
+        if (itemStack == null)
             return 1F;
         return itemStack.a(block);
     }
@@ -45,7 +45,7 @@ public class WrappedItemStack7 extends WrappedItemStack {
     public boolean canDestroySpecialBlock(Block obbBlock) {
         net.minecraft.server.v1_7_R4.Block block =
                 (net.minecraft.server.v1_7_R4.Block) WrappedBlock.getWrappedBlock(obbBlock, Hawk.getServerVersion()).getNMS();
-        if(itemStack == null)
+        if (itemStack == null)
             return false;
         return itemStack.b(block);
     }

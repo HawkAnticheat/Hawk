@@ -110,8 +110,7 @@ public class HawkCommand implements CommandExecutor {
             GUIManager guiManager = hawk.getGuiManager();
             if (sender instanceof Player && guiManager.isEnabled()) {
                 guiManager.sendMainMenuWindow((Player) sender);
-            }
-            else {
+            } else {
                 sendUsage(sender, 0);
             }
         }

@@ -19,7 +19,10 @@
 package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.util.ConfigHelper;
+import me.islandscout.hawk.util.Pair;
+import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.util.TextFileReader;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -95,29 +98,28 @@ public class PunishmentScheduler {
     }
 
     public void start() {
-        if(!enabled)
+        if (!enabled)
             return;
 
         taskId = hawk.getHawkSyncTaskScheduler().addRepeatingTask(() -> {
-            if(schedule.isNow()) {
-                if(!justExecuted) {
+            if (schedule.isNow()) {
+                if (!justExecuted) {
                     punishTime();
                 }
                 justExecuted = true;
-            }
-            else {
+            } else {
                 justExecuted = false;
             }
 
             currentSecond++;
-            if(AUTO_SAVE && currentSecond % AUTO_SAVE_INTERVAL == 0) {
+            if (AUTO_SAVE && currentSecond % AUTO_SAVE_INTERVAL == 0) {
                 saveAsynchronously();
             }
         }, 20);
     }
 
     public void stop() {
-        if(!enabled)
+        if (!enabled)
             return;
         hawk.getHawkSyncTaskScheduler().cancelTask(taskId);
     }
@@ -135,11 +137,11 @@ public class PunishmentScheduler {
     }
 
     public void add(Player p, String reason) {
-        if(ignoreIfServerOverloaded && ServerUtils.getStress() > 1) {
+        if (ignoreIfServerOverloaded && ServerUtils.getStress() > 1) {
             hawk.broadcastAlertToAdmins(SERVER_OVERLOADED);
             return;
         }
-        if(pingThreshold > -1 && ServerUtils.getPing(p) > pingThreshold) {
+        if (pingThreshold > -1 && ServerUtils.getPing(p) > pingThreshold) {
             hawk.broadcastAlertToAdmins(PING_LIMIT_EXCEEDED.replace("%player%", p.getName()));
             return;
         }
@@ -156,33 +158,32 @@ public class PunishmentScheduler {
 
     public void authorize(OfflinePlayer p) {
         UUID uuid = p.getUniqueId();
-        if(convicts.containsKey(uuid)) {
+        if (convicts.containsKey(uuid)) {
             convicts.get(uuid).setValue(true);
             hawk.broadcastAlertToAdmins(USER_AUTHORIZED.replace("%player%", p.getName()));
-        }
-        else {
+        } else {
             hawk.broadcastAlertToAdmins(USER_NOT_FOUND.replace("%player%", p.getName()));
         }
     }
 
     public void info(CommandSender admin, OfflinePlayer target) {
         Pair<String, Boolean> info = convicts.get(target.getUniqueId());
-        if(info == null) {
+        if (info == null) {
             admin.sendMessage(USER_NOT_FOUND.replace("%player%", target.getName()));
             return;
         }
         admin.sendMessage(ChatColor.GOLD + "Punishment information about " + target.getName() + ":");
-        admin.sendMessage(ChatColor.GOLD + "Authorized: " + (info.getValue() ? ChatColor.GREEN: ChatColor.GRAY) + "" + info.getValue());
+        admin.sendMessage(ChatColor.GOLD + "Authorized: " + (info.getValue() ? ChatColor.GREEN : ChatColor.GRAY) + "" + info.getValue());
         admin.sendMessage(ChatColor.GOLD + "Reason: " + ChatColor.RESET + info.getKey());
     }
 
     public void list(CommandSender admin) {
-        if(convicts.size() == 0) {
+        if (convicts.size() == 0) {
             admin.sendMessage(LIST_EMPTY);
             return;
         }
         List<String> names = new ArrayList<>();
-        for(UUID uuid : convicts.keySet()) {
+        for (UUID uuid : convicts.keySet()) {
             boolean authorized = convicts.get(uuid).getValue();
             names.add((authorized ? ChatColor.GREEN : ChatColor.GRAY) + Bukkit.getOfflinePlayer(uuid).getName());
         }
@@ -194,10 +195,10 @@ public class PunishmentScheduler {
             try {
                 fileReader.load();
                 String input = fileReader.readLine();
-                while(input != null) {
+                while (input != null) {
                     String[] parts = input.split(" ", 3);
 
-                    if(parts.length < 3)
+                    if (parts.length < 3)
                         continue;
 
                     UUID uuid = UUID.fromString(parts[0]);
@@ -224,7 +225,7 @@ public class PunishmentScheduler {
         try {
             List<String> data = new ArrayList<>();
 
-            for(UUID uuid : convicts.keySet()) {
+            for (UUID uuid : convicts.keySet()) {
                 Pair<String, Boolean> value = convicts.get(uuid);
                 String line = uuid + " " + value.getValue() + " " + value.getKey();
                 data.add(line);
@@ -242,7 +243,7 @@ public class PunishmentScheduler {
     }
 
     public void setEnabled(boolean status) {
-        if(!status)
+        if (!status)
             stop();
         enabled = status;
     }
@@ -268,10 +269,10 @@ public class PunishmentScheduler {
             int compareDayOfWeek = now.get(Calendar.DAY_OF_WEEK);
             int compareHour = now.get(Calendar.HOUR_OF_DAY);
             int compareMinute = now.get(Calendar.MINUTE);
-            if(dayOfWeek != -1 && compareDayOfWeek != dayOfWeek) {
+            if (dayOfWeek != -1 && compareDayOfWeek != dayOfWeek) {
                 return false;
             }
-            if(hour != -1 && compareHour != hour) {
+            if (hour != -1 && compareHour != hour) {
                 return false;
             }
             return minute == -1 || compareMinute == minute;

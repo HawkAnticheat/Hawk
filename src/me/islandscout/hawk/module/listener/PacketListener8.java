@@ -35,7 +35,7 @@ public class PacketListener8 extends PacketListener {
             @Override
             public void channelRead(ChannelHandlerContext context, Object packet) throws Exception {
 
-                if(!processIn(packet, p))
+                if (!processIn(packet, p))
                     return;
 
                 super.channelRead(context, packet);
@@ -44,7 +44,7 @@ public class PacketListener8 extends PacketListener {
             @Override
             public void write(ChannelHandlerContext context, Object packet, ChannelPromise promise) throws Exception {
 
-                if(!processOut(packet, p))
+                if (!processOut(packet, p))
                     return;
 
                 super.write(context, packet, promise);
@@ -56,7 +56,7 @@ public class PacketListener8 extends PacketListener {
             return;
         String handlerName = "hawk_packet_processor";
         channel.eventLoop().submit(() -> {
-            if(pipeline.get(handlerName) != null)
+            if (pipeline.get(handlerName) != null)
                 pipeline.remove(handlerName);
             pipeline.addBefore("packet_handler", handlerName, channelDuplexHandler);
             return null;
@@ -69,7 +69,7 @@ public class PacketListener8 extends PacketListener {
             ChannelPipeline pipeline = channel.pipeline();
             String handlerName = "hawk_packet_processor";
             channel.eventLoop().submit(() -> {
-                if(pipeline.get(handlerName) != null)
+                if (pipeline.get(handlerName) != null)
                     pipeline.remove(handlerName);
                 return null;
             });

@@ -21,7 +21,9 @@ package me.islandscout.hawk.check.interaction.entity;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractEntityEvent;
-import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.util.AABB;
+import me.islandscout.hawk.util.MathPlus;
+import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -54,11 +56,10 @@ public class EntityInteractDirection extends EntityInteractionCheck {
         if (PING_LIMIT > -1 && ping > PING_LIMIT)
             return;
         Vector pos;
-        if(pp.isInVehicle()) {
+        if (pp.isInVehicle()) {
             pos = hawk.getLagCompensator().getHistoryLocation(ping, p).toVector();
             pos.setY(pos.getY() + p.getEyeHeight());
-        }
-        else {
+        } else {
             pos = pp.getHeadPosition();
         }
         //As I always say in math class, converting polar coordinates to rectangular coordinates is a pain in
@@ -73,7 +74,7 @@ public class EntityInteractDirection extends EntityInteractionCheck {
         Vector extraDir = MathPlus.getDirection(pp.getYaw() + pp.getDeltaYaw(), pp.getPitch() + pp.getDeltaPitch());
 
         Location victimLoc;
-        if(LAG_COMPENSATION)
+        if (LAG_COMPENSATION)
             victimLoc = hawk.getLagCompensator().getHistoryLocation(ping, victimEntity);
         else
             victimLoc = e.getEntity().getLocation();
@@ -85,10 +86,9 @@ public class EntityInteractDirection extends EntityInteractionCheck {
         Vector toVictim = victimLoc.toVector().setY(0).subtract(pos.clone().setY(0));
         boolean behind = toVictim.clone().normalize().dot(dir.clone().setY(0).normalize()) < 0 && toVictim.lengthSquared() > victimAABB.getMax().clone().setY(0).subtract(victimAABB.getMin().clone().setY(0)).lengthSquared();
 
-        if(victimAABB.betweenRays(pos, dir, extraDir) && !behind) {
+        if (victimAABB.betweenRays(pos, dir, extraDir) && !behind) {
             reward(pp);
-        }
-        else {
+        } else {
             punish(pp, true, e);
         }
     }

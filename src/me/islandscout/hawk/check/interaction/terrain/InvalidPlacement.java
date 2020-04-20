@@ -35,10 +35,10 @@ public class InvalidPlacement extends BlockInteractionCheck {
     protected void check(InteractWorldEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
         Block targetedBlock = ServerUtils.getBlockAsync(e.getTargetedBlockLocation());
-        if(targetedBlock == null)
+        if (targetedBlock == null)
             return;
         Material mat = targetedBlock.getType();
-        if(targetedBlock.isLiquid() || mat == Material.AIR) {
+        if (targetedBlock.isLiquid() || mat == Material.AIR) {
             punishAndTryCancelAndBlockRespawn(pp, 1, e);
         }
     }

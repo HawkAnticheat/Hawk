@@ -47,7 +47,7 @@ public abstract class Window {
 
     protected void prepareInventory() {
         for (int i = 0; i < elements.length; i++) {
-            if(elements[i] == null)
+            if (elements[i] == null)
                 continue;
             inventory.setItem(i, elements[i].getItemStack());
         }

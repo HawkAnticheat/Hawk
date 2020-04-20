@@ -32,7 +32,7 @@ public class MouseRecArgument extends Argument {
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        if(args.length < 3)
+        if (args.length < 3)
             return false;
 
         boolean start;
@@ -49,25 +49,25 @@ public class MouseRecArgument extends Argument {
         }
 
         Player target = Bukkit.getPlayer(args[2]);
-        if(target == null) {
+        if (target == null) {
             sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[2] + "\"");
             return true;
         }
 
-        if(!start) {
+        if (!start) {
             hawk.getMouseRecorder().stop(sender, target);
             return true;
         }
 
         float time = 0;
-        if(args.length == 4) {
+        if (args.length == 4) {
             try {
                 time = Float.parseFloat(args[3]);
             } catch (NumberFormatException e) {
                 sender.sendMessage(ChatColor.RED + "Fourth argument must be a non-negative real number.");
                 return true;
             }
-            if(time < 0) {
+            if (time < 0) {
                 sender.sendMessage(ChatColor.RED + "Fourth argument must be a non-negative real number.");
                 return true;
             }

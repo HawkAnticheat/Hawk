@@ -20,13 +20,7 @@ package me.islandscout.hawk.check.combat;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
-import me.islandscout.hawk.event.InteractAction;
 import me.islandscout.hawk.event.InteractEntityEvent;
-import org.bukkit.entity.Player;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 public class FightMulti extends EntityInteractionCheck {
 
@@ -37,10 +31,9 @@ public class FightMulti extends EntityInteractionCheck {
     @Override
     protected void check(InteractEntityEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
-        if(pp.getEntitiesInteractedInThisTick().size() > 0 && !pp.getEntitiesInteractedInThisTick().contains(e.getEntity())) {
+        if (pp.getEntitiesInteractedInThisTick().size() > 0 && !pp.getEntitiesInteractedInThisTick().contains(e.getEntity())) {
             punish(pp, true, e);
-        }
-        else {
+        } else {
             reward(pp);
         }
     }

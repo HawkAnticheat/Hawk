@@ -21,7 +21,6 @@ package me.islandscout.hawk.check.movement;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.entity.Player;
@@ -54,7 +53,7 @@ public class FabricatedMove extends MovementCheck {
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
 
-        if(pp.getPlayer().isInsideVehicle() || e.hasTeleported()) {
+        if (pp.getPlayer().isInsideVehicle() || e.hasTeleported()) {
             flyingTicksMap.put(pp.getUuid(), 0);
             return;
         }
@@ -64,29 +63,29 @@ public class FabricatedMove extends MovementCheck {
         //and if the player stands still, hawk will register the first one
         //accepted in the batch and ignore the succeeding ones. Add 10 ticks
         //just to be safe. - Islandscout
-        if(pp.getCurrentTick() - pp.getLastTeleportAcceptTick() > ServerUtils.getPing(e.getPlayer()) / 50 + 10 &&
+        if (pp.getCurrentTick() - pp.getLastTeleportAcceptTick() > ServerUtils.getPing(e.getPlayer()) / 50 + 10 &&
                 pp.getCurrentTick() > 100) {
 
             WrappedPacket packet = e.getWrappedPacket();
-            switch(packet.getType()) {
+            switch (packet.getType()) {
                 case POSITION:
                     //We can extend the check to position packets by checking
                     //the velocity since the last flying packet. - Islandscout
-                    if(!e.hasDeltaPos() && pp.getVelocity().lengthSquared() > 0) {
+                    if (!e.hasDeltaPos() && pp.getVelocity().lengthSquared() > 0) {
                         punishAndTryRubberband(e.getHawkPlayer(), e, e.getPlayer().getLocation());
                     } else {
                         reward(e.getHawkPlayer());
                     }
                     break;
                 case LOOK:
-                    if(!e.hasDeltaRot()) {
+                    if (!e.hasDeltaRot()) {
                         punishAndTryRubberband(e.getHawkPlayer(), e, e.getPlayer().getLocation());
                     } else {
                         reward(e.getHawkPlayer());
                     }
                     break;
                 case POSITION_LOOK:
-                    if(!e.hasDeltaRot() || (!e.hasDeltaPos() && pp.getVelocity().lengthSquared() > 0)) {
+                    if (!e.hasDeltaRot() || (!e.hasDeltaPos() && pp.getVelocity().lengthSquared() > 0)) {
                         punishAndTryRubberband(e.getHawkPlayer(), e, e.getPlayer().getLocation());
                     } else {
                         reward(e.getHawkPlayer());
@@ -98,19 +97,18 @@ public class FabricatedMove extends MovementCheck {
             int flying = flyingTicksMap.getOrDefault(uuid, 0);
 
             //moved less than 0.03
-            if(e.isUpdatePos() && flying == 0 && e.getTo().distanceSquared(e.getFrom()) < 0.00089) {
+            if (e.isUpdatePos() && flying == 0 && e.getTo().distanceSquared(e.getFrom()) < 0.00089) {
                 punishAndTryRubberband(e.getHawkPlayer(), e, e.getPlayer().getLocation());
             }
 
-            if(!e.isUpdatePos()) {
+            if (!e.isUpdatePos()) {
                 flying++;
-            }
-            else {
+            } else {
                 flying = 0;
             }
             flyingTicksMap.put(uuid, flying);
 
-            if(flying > 20) {
+            if (flying > 20) {
                 punishAndTryRubberband(pp, flying - 20, e, e.getPlayer().getLocation());
             }
         }

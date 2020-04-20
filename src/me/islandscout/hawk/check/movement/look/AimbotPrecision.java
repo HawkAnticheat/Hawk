@@ -53,8 +53,8 @@ public class AimbotPrecision extends MovementCheck implements Cancelless {
 
     public AimbotPrecision() {
         super("aimbotprecision", false, -1, 5, 0.9, 5000, "%player% failed aimbot (precision), VL: %vl%", null);
-        SAMPLES = (int)customSetting("samples", "", 20);
-        PITCHRATE_LIMIT = (float)((double)customSetting("ignorePitchrateHigherThan", "", 10D));
+        SAMPLES = (int) customSetting("samples", "", 20);
+        PITCHRATE_LIMIT = (float) ((double) customSetting("ignorePitchrateHigherThan", "", 10D));
         this.deltaPitches = new HashMap<>();
         this.lastDeltaPitchGCDs = new HashMap<>();
     }
@@ -67,7 +67,7 @@ public class AimbotPrecision extends MovementCheck implements Cancelless {
         List<Float> lastDeltaPitches = deltaPitches.getOrDefault(uuid, new ArrayList<>());
 
         //ignore if deltaPitch is 0 or >= 10 or if pitch is +/-90.
-        if(deltaPitch != 0 && Math.abs(deltaPitch) <= PITCHRATE_LIMIT && Math.abs(e.getTo().getPitch()) != 90) {
+        if (deltaPitch != 0 && Math.abs(deltaPitch) <= PITCHRATE_LIMIT && Math.abs(e.getTo().getPitch()) != 90) {
             lastDeltaPitches.add(Math.abs(deltaPitch));
         }
 
@@ -75,16 +75,15 @@ public class AimbotPrecision extends MovementCheck implements Cancelless {
         //For some reason when you spin your head around too much,
         //yaw checking becomes unreliable. Precision errors?
         //Still, this check is pretty impressive.
-        if(lastDeltaPitches.size() >= SAMPLES) {
+        if (lastDeltaPitches.size() >= SAMPLES) {
             float deltaPitchGCD = MathPlus.gcdRational(lastDeltaPitches);
             float lastDeltaPitchGCD = lastDeltaPitchGCDs.getOrDefault(uuid, deltaPitchGCD);
             float gcdDiff = Math.abs(deltaPitchGCD - lastDeltaPitchGCD);
 
             //if GCD is significantly different or if GCD is practically unsolvable
-            if(gcdDiff > 0.001 || deltaPitchGCD < 0.00001) {
+            if (gcdDiff > 0.001 || deltaPitchGCD < 0.00001) {
                 fail(pp, e);
-            }
-            else
+            } else
                 reward(pp);
 
             lastDeltaPitches.clear();

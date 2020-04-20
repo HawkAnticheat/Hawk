@@ -19,9 +19,12 @@
 package me.islandscout.hawk.check.combat;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.check.Cancelless;
-import me.islandscout.hawk.event.*;
+import me.islandscout.hawk.check.CustomCheck;
+import me.islandscout.hawk.event.ArmSwingEvent;
+import me.islandscout.hawk.event.Event;
+import me.islandscout.hawk.event.InteractAction;
+import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.Placeholder;
 import org.bukkit.Bukkit;
@@ -61,11 +64,11 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
         lastAttacked = new HashMap<>();
         swingTick = new HashMap<>();
         effort = new HashMap<>();
-        EFFORT_THRESHOLD = (double)customSetting("effortThreshold", "", 0.7D);
-        ACCURACY_THRESHOLD = (double)customSetting("accuracyThreshold", "", 0.9D);
-        SWINGS_UNTIL_CHECK = (int)customSetting("swingsUntilCheck", "", 20);
-        MIN_PRECISION_THRESHOLD = (double)customSetting("minPrecisionThreshold", "", 0.3D); //TODO change to 0.18? Was pretty sensitive on 0.1
-        DEBUG = (boolean)customSetting("debug", "", false);
+        EFFORT_THRESHOLD = (double) customSetting("effortThreshold", "", 0.7D);
+        ACCURACY_THRESHOLD = (double) customSetting("accuracyThreshold", "", 0.9D);
+        SWINGS_UNTIL_CHECK = (int) customSetting("swingsUntilCheck", "", 20);
+        MIN_PRECISION_THRESHOLD = (double) customSetting("minPrecisionThreshold", "", 0.3D); //TODO change to 0.18? Was pretty sensitive on 0.1
+        DEBUG = (boolean) customSetting("debug", "", false);
     }
 
     public void check(Event e) {
@@ -100,15 +103,15 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
         //Anyone having an accuracy over 100% should re-evaluate what they're doing with their life.
         //Technically this is a bug, but I'll keep it for the sake of ratting out garbage-juice skids.
         if (fightData.swings >= SWINGS_UNTIL_CHECK) {
-            if(DEBUG) {
+            if (DEBUG) {
                 att.getPlayer().sendMessage("Checking aim...");
                 att.getPlayer().sendMessage("Effort: " + effort.getOrDefault(uuid, 0D));
                 att.getPlayer().sendMessage("Effort threshold: " + EFFORT_THRESHOLD);
                 att.getPlayer().sendMessage("Aim accuracy: " + fightData.getRatio() * 100 + "%");
                 att.getPlayer().sendMessage("Aim accuracy threshold: " + ACCURACY_THRESHOLD * 100 + "%");
             }
-            if(fightData.getRatio() > ACCURACY_THRESHOLD && effort.getOrDefault(uuid, 0D) >= EFFORT_THRESHOLD) {
-                if(DEBUG) {
+            if (fightData.getRatio() > ACCURACY_THRESHOLD && effort.getOrDefault(uuid, 0D) >= EFFORT_THRESHOLD) {
+                if (DEBUG) {
                     att.getPlayer().sendMessage(ChatColor.RED + "FAIL");
                 }
                 punish(att, 1, false, e, new Placeholder("accuracy", MathPlus.round(fightData.getRatio() * 100, 2) + "%"));
@@ -151,21 +154,20 @@ public class FightAccuracy extends CustomCheck implements Listener, Cancelless {
         Location victimLoc = new Location(victim.getWorld(), victim.getPosition().getX(), victim.getPosition().getY(), victim.getPosition().getZ(), victim.getYaw(), victim.getPitch());
 
         //determine how far the opponent has moved horizontally on local coordinates and compute required mouse precision
-        if(!attackerLoc.getWorld().equals(victimLoc.getWorld()))
+        if (!attackerLoc.getWorld().equals(victimLoc.getWorld()))
             return;
         Vector victimVelocity = victim.getVelocity().clone().setY(0);
         Vector attackerDirection = att.getPlayer().getLocation().getDirection().clone().setY(0);
-        double localMovement = MathPlus.sin((float)MathPlus.angle(victimVelocity, attackerDirection)) * victimVelocity.length();
-        if(Double.isNaN(localMovement))
+        double localMovement = MathPlus.sin((float) MathPlus.angle(victimVelocity, attackerDirection)) * victimVelocity.length();
+        if (Double.isNaN(localMovement))
             localMovement = 0D;
         double requiredPrecision = localMovement * attackerLoc.distance(victimLoc);
         double effort = this.effort.getOrDefault(uuid, 0D);
 
-        if(DEBUG) {
-            if(requiredPrecision >= MIN_PRECISION_THRESHOLD && effort < EFFORT_THRESHOLD && effort + 0.02 >= EFFORT_THRESHOLD) {
+        if (DEBUG) {
+            if (requiredPrecision >= MIN_PRECISION_THRESHOLD && effort < EFFORT_THRESHOLD && effort + 0.02 >= EFFORT_THRESHOLD) {
                 att.getPlayer().sendMessage(ChatColor.GREEN + "You are now eligible to be checked by fightaccuracy because your opponent is moving significantly.");
-            }
-            else if(requiredPrecision < MIN_PRECISION_THRESHOLD && effort >= EFFORT_THRESHOLD && effort - 0.01 < EFFORT_THRESHOLD) {
+            } else if (requiredPrecision < MIN_PRECISION_THRESHOLD && effort >= EFFORT_THRESHOLD && effort - 0.01 < EFFORT_THRESHOLD) {
                 att.getPlayer().sendMessage(ChatColor.RED + "You are no longer eligible to be checked by fightaccuracy because your opponent is not moving enough.");
             }
         }

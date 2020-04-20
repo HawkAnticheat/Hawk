@@ -38,17 +38,15 @@ public class InventoryActions extends CustomCheck {
     @Override
     protected void check(Event e) {
         HawkPlayer pp = e.getHawkPlayer();
-        if(pp.hasInventoryOpen() != 0 && (e instanceof InteractEntityEvent || e instanceof BlockDigEvent ||
+        if (pp.hasInventoryOpen() != 0 && (e instanceof InteractEntityEvent || e instanceof BlockDigEvent ||
                 e instanceof ArmSwingEvent || e instanceof InteractWorldEvent)) {
             punish(pp, true, e);
             e.resync();
             //TODO After failing several times, there's a chance that they could be legit, but the inventory state is glitched. Close the player's inventory.
-        }
-        else if(pp.hasInventoryOpen() == 0 && e instanceof ClickInventoryEvent) {
+        } else if (pp.hasInventoryOpen() == 0 && e instanceof ClickInventoryEvent) {
             punish(pp, true, e);
             e.resync();
-        }
-        else {
+        } else {
             reward(pp);
         }
     }

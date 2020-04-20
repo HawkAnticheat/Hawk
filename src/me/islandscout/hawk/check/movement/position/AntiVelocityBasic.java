@@ -19,8 +19,8 @@
 package me.islandscout.hawk.check.movement.position;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.check.Cancelless;
+import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 
 /**
@@ -38,7 +38,7 @@ public class AntiVelocityBasic extends MovementCheck implements Cancelless {
     @Override
     protected void check(MoveEvent event) {
         HawkPlayer pp = event.getHawkPlayer();
-        if(event.hasFailedKnockback())
+        if (event.hasFailedKnockback())
             punish(pp, false, event);
         else
             reward(pp);

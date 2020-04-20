@@ -31,7 +31,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.material.Openable;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.Set;
 
 /**
  * The Phase check tests collision with blocks between players'
@@ -99,7 +99,7 @@ public class Phase extends MovementCheck {
         ignored.clear(); //TODO remove this line when you get ignored-blocks fixed
 
         GameMode gm = p.getGameMode();
-        if(gm == GameMode.SURVIVAL || gm == GameMode.ADVENTURE || gm == GameMode.CREATIVE) {
+        if (gm == GameMode.SURVIVAL || gm == GameMode.ADVENTURE || gm == GameMode.CREATIVE) {
             for (int x = selection.getMin().getBlockX(); x <= selection.getMax().getBlockX(); x++) {
                 for (int y = selection.getMin().getBlockY(); y <= selection.getMax().getBlockY(); y++) {
                     for (int z = selection.getMin().getBlockZ(); z <= selection.getMax().getBlockZ(); z++) {
@@ -107,7 +107,7 @@ public class Phase extends MovementCheck {
                         Location blockLoc = new Location(locTo.getWorld(), x, y, z);
 
                         //Skip block if it updated within player AABB (only if they move slowly)
-                        if(ignored.contains(blockLoc) && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD && vertDistance <= VERTICAL_DISTANCE_THRESHOLD)
+                        if (ignored.contains(blockLoc) && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD && vertDistance <= VERTICAL_DISTANCE_THRESHOLD)
                             continue;
 
                         Block bukkitBlock = ServerUtils.getBlockAsync(blockLoc);

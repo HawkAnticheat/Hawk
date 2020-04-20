@@ -136,32 +136,32 @@ public class Hawk extends JavaPlugin {
 
     public void unloadModules() {
         getLogger().info("Unloading modules...");
-        if(packetHandler != null)
+        if (packetHandler != null)
             packetHandler.stopListener();
         getCommand("hawk").setExecutor(null);
         HandlerList.unregisterAll(this);
-        if(guiManager != null)
+        if (guiManager != null)
             guiManager.stop();
         guiManager = null;
-        if(punishmentScheduler != null) {
+        if (punishmentScheduler != null) {
             punishmentScheduler.setEnabled(false);
             punishmentScheduler.stop();
             punishmentScheduler.saveSynchronously();
             punishmentScheduler = null;
         }
         lagCompensator = null;
-        if(checkManager != null)
+        if (checkManager != null)
             checkManager.unloadChecks();
         checkManager = null;
         bungeeBridge = null;
-        if(banManager != null)
+        if (banManager != null)
             banManager.saveBannedPlayers();
         banManager = null;
-        if(muteManager != null)
+        if (muteManager != null)
             muteManager.saveMutedPlayers();
         muteManager = null;
         profiles = null;
-        if(sqlModule != null)
+        if (sqlModule != null)
             sqlModule.closeConnection();
         sqlModule = null;
         commandExecutor = null;
@@ -176,7 +176,7 @@ public class Hawk extends JavaPlugin {
     }
 
     private void saveConfigs() {
-        if(plugin == null)
+        if (plugin == null)
             return;
         saveConfig();
         try {
@@ -188,7 +188,7 @@ public class Hawk extends JavaPlugin {
     }
 
     private void registerCommand() {
-        if(plugin == null)
+        if (plugin == null)
             return;
         PluginCommand cmd = plugin.getCommand("hawk");
         cmd.setExecutor(new HawkCommand(this));
@@ -210,13 +210,11 @@ public class Hawk extends JavaPlugin {
     }
 
     private void setServerVersion() {
-        if(Package.getPackage("net.minecraft.server.v1_8_R3") != null) {
+        if (Package.getPackage("net.minecraft.server.v1_8_R3") != null) {
             SERVER_VERSION = 8;
-        }
-        else if(Package.getPackage("net.minecraft.server.v1_7_R4") != null) {
+        } else if (Package.getPackage("net.minecraft.server.v1_7_R4") != null) {
             SERVER_VERSION = 7;
-        }
-        else {
+        } else {
             SERVER_VERSION = 0;
         }
     }
@@ -259,8 +257,8 @@ public class Hawk extends JavaPlugin {
     }
 
     public void broadcastAlertToAdmins(String msg) {
-        for(HawkPlayer pp : getHawkPlayers()) {
-            if(pp.canReceiveAlerts())
+        for (HawkPlayer pp : getHawkPlayers()) {
+            if (pp.canReceiveAlerts())
                 pp.getPlayer().sendMessage(msg);
         }
         Bukkit.getConsoleSender().sendMessage(msg);

@@ -22,11 +22,15 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.util.Pair;
+import me.islandscout.hawk.util.Ray;
+import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class AimbotConvergence extends CustomCheck {
 
@@ -42,10 +46,10 @@ public class AimbotConvergence extends CustomCheck {
 
     @Override
     protected void check(Event event) {
-        if(event instanceof MoveEvent) {
+        if (event instanceof MoveEvent) {
             MoveEvent e = (MoveEvent) event;
             HawkPlayer pp = e.getHawkPlayer();
-            if(!e.hasDeltaPos())
+            if (!e.hasDeltaPos())
                 return;
             UUID uuid = pp.getUuid();
             Vector prePos = e.getFrom().toVector().clone().subtract(pp.getVelocity()).add(new Vector(0, 1.62, 0));
@@ -57,15 +61,15 @@ public class AimbotConvergence extends CustomCheck {
             Vector lastConvergence = lastConvergencePointMap.get(uuid);
             Vector convergence = points.getKey().add(points.getValue()).multiply(0.5);
 
-            if(lastConvergence != null &&
+            if (lastConvergence != null &&
                     //make sure TPs don't false this check
                     pp.getCurrentTick() - pp.getLastTeleportAcceptTick() > ServerUtils.getPing(e.getPlayer()) / 50 + 10 &&
                     pp.getCurrentTick() > 100) {
 
                 double distance = lastConvergence.distanceSquared(convergence);
-                if(!Double.isNaN(distance)) {
+                if (!Double.isNaN(distance)) {
 
-                    if(distance < 0.00000001)
+                    if (distance < 0.00000001)
                         punish(pp, false, e);
                     else
                         reward(pp);

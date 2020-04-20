@@ -46,11 +46,10 @@ public class ChkinfoArgument extends Argument {
                 sender.sendMessage(ChatColor.GOLD + "Flag: " + ((check.canFlag() ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED")));
 
                 boolean bypass;
-                if(sender instanceof Player) {
+                if (sender instanceof Player) {
                     UUID uuid = ((Player) sender).getUniqueId();
                     bypass = !hawk.getCheckManager().getForcedPlayers().contains(uuid) && (sender.hasPermission(check.getBypassPermission()) || hawk.getCheckManager().getExemptedPlayers().contains(uuid));
-                }
-                else
+                } else
                     bypass = true;
 
                 sender.sendMessage(ChatColor.GOLD + "You " + (!bypass ? "do not " : "") + "have permission to bypass this check.");

@@ -19,8 +19,8 @@
 package me.islandscout.hawk.check.combat;
 
 import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.check.Cancelless;
+import me.islandscout.hawk.check.CustomCheck;
 import me.islandscout.hawk.event.Event;
 import me.islandscout.hawk.event.InteractAction;
 import me.islandscout.hawk.event.InteractEntityEvent;
@@ -49,16 +49,15 @@ public class FightSynchronized extends CustomCheck implements Cancelless {
         super("fightsync", true, -1, 2, 0.95, 5000, "%player% may be using killaura (sync). VL %vl%", null);
         attackTime = new HashMap<>();
         sample = new HashMap<>();
-        SAMPLE_SIZE = (int)customSetting("sampleSize", "", 10);
+        SAMPLE_SIZE = (int) customSetting("sampleSize", "", 10);
     }
 
     @Override
     public void check(Event event) {
-        if(event instanceof MoveEvent) {
-            processMove((MoveEvent)event);
-        }
-        else if(event instanceof InteractEntityEvent) {
-            processHit((InteractEntityEvent)event);
+        if (event instanceof MoveEvent) {
+            processMove((MoveEvent) event);
+        } else if (event instanceof InteractEntityEvent) {
+            processHit((InteractEntityEvent) event);
         }
     }
 
@@ -69,26 +68,25 @@ public class FightSynchronized extends CustomCheck implements Cancelless {
         long mToA = lastAttackTime - pp.getLastMoveTime(); //difference between previous move time to last attack time
         long aToM = System.currentTimeMillis() - lastAttackTime; //difference between last attack time to now
 
-        if(mToA < 0) {
+        if (mToA < 0) {
             return; //last attack was more than 50ms ago
         }
 
-        if(mToA + aToM < 40) {
+        if (mToA + aToM < 40) {
             return; //connection catching up from lag spike, so ignore
         }
 
         Pair<Integer, Integer> ratio = sample.getOrDefault(p.getUniqueId(), new Pair<>(0, 0));
         ratio.setValue(ratio.getValue() + 1);
 
-        if(mToA < THRESHOLD) {
+        if (mToA < THRESHOLD) {
             ratio.setKey(ratio.getKey() + 1);
         }
 
-        if(ratio.getValue() >= SAMPLE_SIZE) {
-            if(ratio.getKey() / (double)ratio.getValue() > 0.9) {
+        if (ratio.getValue() >= SAMPLE_SIZE) {
+            if (ratio.getKey() / (double) ratio.getValue() > 0.9) {
                 punish(pp, false, e);
-            }
-            else {
+            } else {
                 reward(pp);
             }
             ratio.setKey(0);
@@ -99,7 +97,7 @@ public class FightSynchronized extends CustomCheck implements Cancelless {
     }
 
     private void processHit(InteractEntityEvent e) {
-        if(e.getInteractAction() == InteractAction.ATTACK)
+        if (e.getInteractAction() == InteractAction.ATTACK)
             attackTime.put(e.getPlayer().getUniqueId(), System.currentTimeMillis());
     }
 

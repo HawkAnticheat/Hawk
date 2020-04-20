@@ -43,16 +43,16 @@ public class Test {
             public void run(Object packet, Player player) {
                 //NOT COMPATIBLE WITH 1.8
 
-                if(packet instanceof PacketPlayOutEntityMetadata) {
+                if (packet instanceof PacketPlayOutEntityMetadata) {
 
                     PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
                     ((PacketPlayOutEntityMetadata) packet).b(serializer);
 
                     int entityId = serializer.readInt();
-                    if(entityId != player.getEntityId()) {
-                        Entity nmsEntity = ((CraftWorld)player.getWorld()).getHandle().getEntity(entityId);
+                    if (entityId != player.getEntityId()) {
+                        Entity nmsEntity = ((CraftWorld) player.getWorld()).getHandle().getEntity(entityId);
 
-                        if(nmsEntity instanceof EntityLiving && !(nmsEntity instanceof EntityWolf)) {
+                        if (nmsEntity instanceof EntityLiving && !(nmsEntity instanceof EntityWolf)) {
 
                             List b = DataWatcher.b(serializer);
 
@@ -83,7 +83,7 @@ public class Test {
         PacketAdapter adapter = new PacketAdapter() {
             @Override
             public void run(Object packet, Player player) {
-                if(packet instanceof PacketPlayOutExplosion) {
+                if (packet instanceof PacketPlayOutExplosion) {
                     PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
                     ((PacketPlayOutExplosion) packet).b(serializer);
                     serializer.readerIndex(serializer.writerIndex() - 12);
@@ -91,22 +91,17 @@ public class Test {
                     float y = serializer.readFloat();
                     float z = serializer.readFloat();
                     Vector velocity = new Vector(x, y, z);
-                    if(velocity.lengthSquared() == 0)
+                    if (velocity.lengthSquared() == 0)
                         return;
 
-                    Bukkit.getScheduler().runTask(hawk, new Runnable() {
-                        @Override
-                        public void run() {
-                            Bukkit.getServer().getPluginManager().callEvent(new HawkAsyncPlayerVelocityChangeEvent(velocity, player, true));
-                        }
-                    });
+                    Bukkit.getScheduler().runTask(hawk, () -> Bukkit.getServer().getPluginManager().callEvent(new HawkAsyncPlayerVelocityChangeEvent(velocity, player, true)));
                 }
-                if(packet instanceof PacketPlayOutEntityVelocity) {
+                if (packet instanceof PacketPlayOutEntityVelocity) {
 
                     PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer(0));
                     ((PacketPlayOutEntityVelocity) packet).b(serializer);
                     int id = serializer.readInt();
-                    if(id != player.getEntityId()) {
+                    if (id != player.getEntityId()) {
                         return;
                     }
 
@@ -115,12 +110,7 @@ public class Test {
                     double z = serializer.readShort() / 8000D;
                     Vector velocity = new Vector(x, y, z);
 
-                    Bukkit.getScheduler().runTask(hawk, new Runnable() {
-                        @Override
-                        public void run() {
-                            Bukkit.getServer().getPluginManager().callEvent(new HawkAsyncPlayerVelocityChangeEvent(velocity, player, false));
-                        }
-                    });
+                    Bukkit.getScheduler().runTask(hawk, () -> Bukkit.getServer().getPluginManager().callEvent(new HawkAsyncPlayerVelocityChangeEvent(velocity, player, false)));
                 }
             }
         };

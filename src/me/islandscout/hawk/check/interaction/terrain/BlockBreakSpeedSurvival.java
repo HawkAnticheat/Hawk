@@ -56,20 +56,20 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
         targetBlockMap = new HashMap<>();
         blockDamageCumulativeMap = new HashMap<>();
         CHECK_ON_GROUND = (boolean) customSetting("checkOnGround", "", false);
-        PREVENT_SAME_TICK = (boolean)customSetting("flagSameTick", "", true);
+        PREVENT_SAME_TICK = (boolean) customSetting("flagSameTick", "", true);
     }
 
     @Override
     protected void check(Event event) {
-        if(event instanceof MoveEvent && event.getHawkPlayer().isDigging())
+        if (event instanceof MoveEvent && event.getHawkPlayer().isDigging())
             tickDig(event.getHawkPlayer());
-        else if(event instanceof BlockDigEvent)
+        else if (event instanceof BlockDigEvent)
             checkEvent((BlockDigEvent) event);
     }
 
     private void tickDig(HawkPlayer pp) {
         Block target = targetBlockMap.get(pp.getUuid());
-        if(target != null && pp.getPlayer().getGameMode() == GameMode.SURVIVAL) {
+        if (target != null && pp.getPlayer().getGameMode() == GameMode.SURVIVAL) {
             float accumulatedDamage = blockDamageCumulativeMap.getOrDefault(pp.getUuid(), 0F);
             float damage = getDamage(target, pp);
             blockDamageCumulativeMap.put(pp.getUuid(), accumulatedDamage + damage);
@@ -79,7 +79,7 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
     private void checkEvent(BlockDigEvent e) {
         Player p = e.getPlayer();
         HawkPlayer pp = e.getHawkPlayer();
-        if(p.getGameMode() == GameMode.CREATIVE)
+        if (p.getGameMode() == GameMode.CREATIVE)
             return;
 
         if (e.getDigAction() == BlockDigEvent.DigAction.START) {
@@ -93,14 +93,13 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
         if (e.getDigAction() == BlockDigEvent.DigAction.COMPLETE) {
             float totalDamage = blockDamageCumulativeMap.getOrDefault(p.getUniqueId(), 0F);
 
-            if(totalDamage < 1 || (PREVENT_SAME_TICK && pp.getCurrentTick() == interactTick.getOrDefault(p.getUniqueId(), 0L))) {
+            if (totalDamage < 1 || (PREVENT_SAME_TICK && pp.getCurrentTick() == interactTick.getOrDefault(p.getUniqueId(), 0L))) {
                 double speedFactor = 1 / totalDamage;
                 double vl = Math.min((speedFactor - 1) * 10, 10);
                 Block b = e.getBlock();
                 punish(pp, vl, true, e, new Placeholder("block", b.getType()), new Placeholder("speed", MathPlus.round(speedFactor, 2) + "x"));
                 e.resync();
-            }
-            else {
+            } else {
                 reward(pp);
             }
 
@@ -124,7 +123,7 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
     //(and no, I'm not talking about the "synchronized" keyword).
 
     private float getDamage(Block block, HawkPlayer pp) {
-        if(block == null || ServerUtils.getBlockAsync(block.getLocation()) == null)
+        if (block == null || ServerUtils.getBlockAsync(block.getLocation()) == null)
             return 0;
         WrappedBlock wBlock = WrappedBlock.getWrappedBlock(block, pp.getClientVersion());
         float strength = wBlock.getStrength();
@@ -146,7 +145,7 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
             int enchLvl = pp.getHeldItem().getEnchantmentLevel(Enchantment.DIG_SPEED);
             WrappedItemStack itemstack = WrappedItemStack.getWrappedItemStack(pp.getHeldItem());
             if (enchLvl > 0) {
-                float f1 = (float)(enchLvl * enchLvl + 1);
+                float f1 = (float) (enchLvl * enchLvl + 1);
                 if (!itemstack.canDestroySpecialBlock(wBlock.getBukkitBlock()) && destroySpeed <= 1.0F) {
                     destroySpeed += f1 * 0.08F;
                 } else {
@@ -155,16 +154,16 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
             }
         }
 
-        for(org.bukkit.potion.PotionEffect potionEffect : pp.getPlayer().getActivePotionEffects()) {
+        for (org.bukkit.potion.PotionEffect potionEffect : pp.getPlayer().getActivePotionEffects()) {
 
-            if(potionEffect.getType().equals(PotionEffectType.FAST_DIGGING)) {
+            if (potionEffect.getType().equals(PotionEffectType.FAST_DIGGING)) {
                 destroySpeed *= 1.0F + (potionEffect.getAmplifier() + 1) * 0.2F;
             }
 
-            if(Hawk.getServerVersion() == 8) {
-                if(potionEffect.getType().equals(PotionEffectType.SLOW_DIGGING)) {
+            if (Hawk.getServerVersion() == 8) {
+                if (potionEffect.getType().equals(PotionEffectType.SLOW_DIGGING)) {
                     float f1;
-                    switch(potionEffect.getAmplifier()) {
+                    switch (potionEffect.getAmplifier()) {
                         case 0:
                             f1 = 0.3F;
                             break;
@@ -181,9 +180,8 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
 
                     destroySpeed *= f1;
                 }
-            }
-            else {
-                if(potionEffect.getType().equals(PotionEffectType.SLOW_DIGGING)) {
+            } else {
+                if (potionEffect.getType().equals(PotionEffectType.SLOW_DIGGING)) {
                     destroySpeed *= 1.0F - (potionEffect.getAmplifier() + 1) * 0.2F;
                 }
             }
@@ -212,28 +210,28 @@ public class BlockBreakSpeedSurvival extends CustomCheck {
         Vector position = pp.getPosition();
         double d0 = position.getY() + 1.62;
         int i = floor(position.getX());
-        int j = (int)d((float)floor(d0));
+        int j = (int) d((float) floor(d0));
         int k = floor(position.getZ());
         Block block = ServerUtils.getBlockAsync(new Location(pp.getWorld(), i, j, k));
-        if(block == null)
+        if (block == null)
             return false;
         if (block.getType() == Material.WATER || block.getType() == Material.STATIONARY_WATER) {
             float f = b(block.getData()) - 0.11111111F;
-            float f1 = (float)(j + 1) - f;
-            return d0 < (double)f1;
+            float f1 = (float) (j + 1) - f;
+            return d0 < (double) f1;
         } else {
             return false;
         }
     }
 
     private int floor(double var0) {
-        int var2 = (int)var0;
-        return var0 < (double)var2 ? var2 - 1 : var2;
+        int var2 = (int) var0;
+        return var0 < (double) var2 ? var2 - 1 : var2;
     }
 
     private long d(double var0) {
-        long var2 = (long)var0;
-        return var0 < (double)var2 ? var2 - 1L : var2;
+        long var2 = (long) var0;
+        return var0 < (double) var2 ? var2 - 1L : var2;
     }
 
     private float b(int i) {

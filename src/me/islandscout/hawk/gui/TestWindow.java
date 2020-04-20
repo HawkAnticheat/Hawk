@@ -30,10 +30,9 @@ public class TestWindow extends Window {
             @Override
             public void doAction(Player p, Hawk hawk) {
                 Element element = elements[4];
-                if(element.getItemStack().getType() == Material.STONE) {
+                if (element.getItemStack().getType() == Material.STONE) {
                     element.getItemStack().setType(Material.WOOD);
-                }
-                else {
+                } else {
                     element.getItemStack().setType(Material.STONE);
                 }
                 updateWindow();

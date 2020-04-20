@@ -42,11 +42,11 @@ public final class ServerUtils {
     }
 
     public static int getProtocolVersion(Player p) {
-        if(Hawk.USING_PLIB)
+        if (Hawk.USING_PLIB)
             return ProtocolLibrary.getProtocolManager().getProtocolVersion(p);
-        if(Hawk.getServerVersion() == 7) {
+        if (Hawk.getServerVersion() == 7) {
             net.minecraft.server.v1_7_R4.PlayerConnection pConnection = ((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer) p).getHandle().playerConnection;
-            if(pConnection == null)
+            if (pConnection == null)
                 return 5;
             return pConnection.networkManager.getVersion();
         }

@@ -21,7 +21,10 @@ package me.islandscout.hawk.check.interaction.entity;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.EntityInteractionCheck;
 import me.islandscout.hawk.event.InteractEntityEvent;
-import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.util.AABB;
+import me.islandscout.hawk.util.MathPlus;
+import me.islandscout.hawk.util.Placeholder;
+import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -68,11 +71,10 @@ public class EntityInteractReach extends EntityInteractionCheck {
         AABB victimAABB = WrappedEntity.getWrappedEntity(victimEntity).getHitbox(victimLocation.toVector());
 
         Vector attackerPos;
-        if(att.isInVehicle()) {
+        if (att.isInVehicle()) {
             attackerPos = hawk.getLagCompensator().getHistoryLocation(ServerUtils.getPing(p), p).toVector();
             attackerPos.setY(attackerPos.getY() + p.getEyeHeight());
-        }
-        else {
+        } else {
             attackerPos = att.getHeadPosition();
         }
 

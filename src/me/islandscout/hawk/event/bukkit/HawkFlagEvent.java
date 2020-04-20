@@ -24,7 +24,8 @@ import org.bukkit.event.HandlerList;
 
 public class HawkFlagEvent extends Event {
 
-    private static final HandlerList handlers = new HandlerList();
+    private static final HandlerList HANDLERS = new HandlerList();
+
     private final Violation violation;
 
     public HawkFlagEvent(Violation violation) {
@@ -36,12 +37,12 @@ public class HawkFlagEvent extends Event {
         return violation;
     }
 
+    @Override
     public HandlerList getHandlers() {
-        return handlers;
+        return HANDLERS;
     }
 
     public static HandlerList getHandlerList() {
-        return handlers;
+        return HANDLERS;
     }
-
 }

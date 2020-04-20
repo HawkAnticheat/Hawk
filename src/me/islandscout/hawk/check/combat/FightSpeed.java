@@ -45,8 +45,8 @@ public class FightSpeed extends EntityInteractionCheck {
         super("fightspeed", "%player% failed attack speed. CPS: %cps%, VL: %vl%");
         lastClickTime = new HashMap<>();
         deltaTimes = new HashMap<>();
-        SAMPLES = (int)customSetting("sampleSize", "", 10);
-        MAX_CPS = (double)customSetting("maxCps", "", 16D);
+        SAMPLES = (int) customSetting("sampleSize", "", 10);
+        MAX_CPS = (double) customSetting("maxCps", "", 16D);
     }
 
     @Override

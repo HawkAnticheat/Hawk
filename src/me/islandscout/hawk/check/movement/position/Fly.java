@@ -18,10 +18,13 @@
 
 package me.islandscout.hawk.check.movement.position;
 
-import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.util.AABB;
+import me.islandscout.hawk.util.AdjacentBlocks;
+import me.islandscout.hawk.util.Pair;
+import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -108,10 +111,10 @@ public class Fly extends MovementCheck implements Listener {
                 lastDeltaY.put(p.getUniqueId(), 0.42 + getJumpBoostLvl(p) * 0.1);
 
             //handle any pending knockbacks
-            if(event.hasAcceptedKnockback())
+            if (event.hasAcceptedKnockback())
                 lastDeltaY.put(p.getUniqueId(), deltaY);
 
-            if(event.isSlimeBlockBounce())
+            if (event.isSlimeBlockBounce())
                 lastDeltaY.put(p.getUniqueId(), deltaY);
 
             double expectedDeltaY = lastDeltaY.getOrDefault(p.getUniqueId(), 0D);
@@ -123,7 +126,7 @@ public class Fly extends MovementCheck implements Listener {
                 epsilon = 0.000001;
                 if (AdjacentBlocks.onGroundReally(event.getTo().clone().add(0, -0.03, 0), -1, false, 0.02, pp))
                     return;
-            } else if(!pp.isInLiquid() && event.isInLiquid()) {
+            } else if (!pp.isInLiquid() && event.isInLiquid()) {
                 //entering liquid
                 lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) * 0.98) - 0.038399);
             } else {
@@ -160,7 +163,7 @@ public class Fly extends MovementCheck implements Listener {
                     }
                 }
 
-                if(event.isOnClientBlock() != null) {
+                if (event.isOnClientBlock() != null) {
                     onGroundStuff(p);
                     return;
                 }
@@ -205,7 +208,7 @@ public class Fly extends MovementCheck implements Listener {
     private boolean isOnBoat(Player p, Location loc) {
         Set<Entity> trackedEntities = hawk.getLagCompensator().getPositionTrackedEntities();
         int ping = ServerUtils.getPing(p);
-        for(Entity entity : trackedEntities) {
+        for (Entity entity : trackedEntities) {
             if (entity instanceof Boat) {
                 AABB boatBB = WrappedEntity.getWrappedEntity(entity).getCollisionBox(hawk.getLagCompensator().getHistoryLocation(ping, entity).toVector());
                 AABB feet = new AABB(

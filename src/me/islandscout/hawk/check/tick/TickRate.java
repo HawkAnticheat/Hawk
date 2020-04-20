@@ -31,7 +31,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * The Tickrate check enforces a limit to clients' tickrates.
@@ -67,11 +69,11 @@ public class TickRate extends MovementCheck implements Listener {
         THRESHOLD = -(int) customSetting("clockDriftThresholdMillis", "", 50);
         MAX_CATCHUP_TIME = 1000000 * (int) customSetting("maxCatchupTimeMillis", "", 1000);
         DEBUG = (boolean) customSetting("debug", "", false);
-        MIN_RATE = (50 - (50 / (double)customSetting("minRateMultiplier", "", 0.995))) / 1E-6;
-        MAX_RATE = (50 - (50 / (double)customSetting("maxRateMultiplier", "", 1.005))) / 1E-6;
-        RUBBERBAND = (boolean)customSetting("rubberband", "", true);
-        RESET_DRIFT_ON_FAIL = (boolean)customSetting("resetDriftOnFail", "", false);
-        WARM_UP = (int)customSetting("ignoreTicksAfterLongTeleport", "", 150) - 1;
+        MIN_RATE = (50 - (50 / (double) customSetting("minRateMultiplier", "", 0.995))) / 1E-6;
+        MAX_RATE = (50 - (50 / (double) customSetting("maxRateMultiplier", "", 1.005))) / 1E-6;
+        RUBBERBAND = (boolean) customSetting("rubberband", "", true);
+        RESET_DRIFT_ON_FAIL = (boolean) customSetting("resetDriftOnFail", "", false);
+        WARM_UP = (int) customSetting("ignoreTicksAfterLongTeleport", "", 150) - 1;
     }
 
     @Override
@@ -88,7 +90,7 @@ public class TickRate extends MovementCheck implements Listener {
         prevNanoTime.put(p.getUniqueId(), time);
 
         if (event.hasTeleported() || pp.getCurrentTick() - lastBigTeleportTime.getOrDefault(p.getUniqueId(), 0L) < WARM_UP) {
-            if(DEBUG)
+            if (DEBUG)
                 p.sendMessage(ChatColor.GRAY + "Tickrate check warming up. Please wait a moment...");
             clockDrift.put(p.getUniqueId(), 50000000L);
             return;
@@ -109,11 +111,11 @@ public class TickRate extends MovementCheck implements Listener {
             p.sendMessage((msOffset < 0 ? (msOffset < THRESHOLD ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.BLUE) + "CLOCK DRIFT: " + MathPlus.round(-msOffset, 2) + "ms");
         }
         if (drift * 1E-6 < THRESHOLD) {
-            if(RUBBERBAND && pp.getCurrentTick() - pp.getLastTeleportSendTick() > 20) //Don't rubberband so often. You're already cancelling a ton of moves.
+            if (RUBBERBAND && pp.getCurrentTick() - pp.getLastTeleportSendTick() > 20) //Don't rubberband so often. You're already cancelling a ton of moves.
                 punishAndTryRubberband(pp, event, p.getLocation());
             else
                 punish(pp, true, event);
-            if(RESET_DRIFT_ON_FAIL)
+            if (RESET_DRIFT_ON_FAIL)
                 drift = 0;
         } else
             reward(pp);
@@ -139,7 +141,7 @@ public class TickRate extends MovementCheck implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onTeleport(PlayerTeleportEvent e) {
         Location loc = e.getTo();
-        if(!loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
+        if (!loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
             lastBigTeleportTime.put(e.getPlayer().getUniqueId(), hawk.getHawkPlayer(e.getPlayer()).getCurrentTick());
         }
     }

@@ -18,9 +18,9 @@
 
 package me.islandscout.hawk.module;
 
-import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.ConfigHelper;
+import me.islandscout.hawk.util.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -65,59 +65,49 @@ public class LagCompensator implements Listener {
         DEBUG = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "lagCompensation.debug");
         Bukkit.getPluginManager().registerEvents(this, hawk);
 
-        hawk.getHawkSyncTaskScheduler().addRepeatingTask(new Runnable() {
-            @Override
-            public void run() {
+        hawk.getHawkSyncTaskScheduler().addRepeatingTask(() -> {
+            Set<Entity> collectedEntities = new HashSet<>();
 
-                Set<Entity> collectedEntities = new HashSet<>();
-
-                for(Player p : Bukkit.getOnlinePlayers()) {
-                    List<Entity> nearbyEntities = p.getNearbyEntities(SEARCH_WIDTH, SEARCH_HEIGHT, SEARCH_WIDTH);
-                    for(Entity entity : nearbyEntities) {
-                        //add anything that moves and is clickable
-                        if(entity instanceof LivingEntity || entity instanceof Vehicle || entity instanceof Fireball) {
-                            collectedEntities.add(entity);
-                        }
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                List<Entity> nearbyEntities = p.getNearbyEntities(SEARCH_WIDTH, SEARCH_HEIGHT, SEARCH_WIDTH);
+                for (Entity entity : nearbyEntities) {
+                    //add anything that moves and is clickable
+                    if (entity instanceof LivingEntity || entity instanceof Vehicle || entity instanceof Fireball) {
+                        collectedEntities.add(entity);
                     }
                 }
-
-                for(Entity entity : collectedEntities) {
-                    trackedEntities.put(entity, trackedEntities.getOrDefault(entity, new ArrayList<>()));
-                }
-
-                Set<Entity> expiredEntities = new HashSet<>(trackedEntities.keySet());
-                expiredEntities.removeAll(collectedEntities);
-
-                for(Entity expired : expiredEntities) {
-                    trackedEntities.remove(expired);
-                }
-
             }
+
+            for (Entity entity : collectedEntities) {
+                trackedEntities.put(entity, trackedEntities.getOrDefault(entity, new ArrayList<>()));
+            }
+
+            Set<Entity> expiredEntities = new HashSet<>(trackedEntities.keySet());
+            expiredEntities.removeAll(collectedEntities);
+
+            for (Entity expired : expiredEntities) {
+                trackedEntities.remove(expired);
+            }
+
         }, POLL_RATE);
 
-        if(ALWAYS_TICK_PLAYERS) {
-            hawk.getHawkSyncTaskScheduler().addRepeatingTask(new Runnable() {
-                @Override
-                public void run() {
-                    for(Player p : Bukkit.getOnlinePlayers()) {
-                        trackedEntities.put(p, trackedEntities.getOrDefault(p, new ArrayList<>()));
-                    }
+        if (ALWAYS_TICK_PLAYERS) {
+            hawk.getHawkSyncTaskScheduler().addRepeatingTask(() -> {
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    trackedEntities.put(p, trackedEntities.getOrDefault(p, new ArrayList<>()));
                 }
             }, 1);
         }
 
-        hawk.getHawkSyncTaskScheduler().addRepeatingTask(new Runnable() {
-            @Override
-            public void run() {
-                for(Entity entity : trackedEntities.keySet()) {
-                    processPosition(entity);
-                }
-                /*
-                for(HawkPlayer pp : hawk.getHawkPlayers()) {
-                    Player p = pp.getPlayer();
-                    p.getActivePotionEffects();
-                }*/
+        hawk.getHawkSyncTaskScheduler().addRepeatingTask(() -> {
+            for (Entity entity : trackedEntities.keySet()) {
+                processPosition(entity);
             }
+            /*
+            for(HawkPlayer pp : hawk.getHawkPlayers()) {
+                Player p = pp.getPlayer();
+                p.getActivePotionEffects();
+            }*/
         }, 1);
     }
 
@@ -190,7 +180,7 @@ public class LagCompensator implements Listener {
     private void processPosition(Entity entity) {
         List<Pair<Location, Long>> times = trackedEntities.getOrDefault(entity, new ArrayList<>());
         long currTime = System.currentTimeMillis();
-        if(DEBUG && entity instanceof Player) {
+        if (DEBUG && entity instanceof Player) {
             Player p = (Player) entity;
             p.sendMessage(ChatColor.GRAY + "[Lag Compensator] Your moves are being recorded: " + currTime);
         }

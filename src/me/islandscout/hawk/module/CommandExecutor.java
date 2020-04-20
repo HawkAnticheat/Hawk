@@ -35,12 +35,7 @@ public class CommandExecutor {
         this.commandHistory = Collections.synchronizedSet(new HashSet<>());
         int cooldown = ConfigHelper.getOrSetDefault(1, hawk.getConfig(), "commandExecutor.cooldownTicks");
 
-        hawk.getHawkSyncTaskScheduler().addRepeatingTask(new Runnable() {
-            @Override
-            public void run() {
-                commandHistory.clear();
-            }
-        }, cooldown);
+        hawk.getHawkSyncTaskScheduler().addRepeatingTask(commandHistory::clear, cooldown);
     }
 
     public void runACommand(List<String> command, Check check, double deltaVL, Player p, HawkPlayer pp, Hawk hawk, Placeholder... placeholders) {
@@ -104,7 +99,7 @@ public class CommandExecutor {
             preCmd = preCmd.replace("%" + placeholder.getKey() + "%", placeholder.getValue().toString());
         final String cmd = preCmd;
         Pair<UUID, Pair<Check, String>> cmdInfo = new Pair<>(player.getUniqueId(), new Pair<>(check, parts[2]));
-        if(!commandHistory.contains(cmdInfo))
+        if (!commandHistory.contains(cmdInfo))
             Bukkit.getScheduler().scheduleSyncDelayedTask((hawk), () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd), Long.parseLong(parts[1]) * 20);
         commandHistory.add(cmdInfo);
     }

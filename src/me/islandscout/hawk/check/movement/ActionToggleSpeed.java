@@ -45,24 +45,24 @@ public class ActionToggleSpeed extends CustomCheck {
 
     @Override
     protected void check(Event e) {
-        if(!(e instanceof PlayerActionEvent))
+        if (!(e instanceof PlayerActionEvent))
             return;
-        PlayerActionEvent aE = (PlayerActionEvent)e;
+        PlayerActionEvent aE = (PlayerActionEvent) e;
         PlayerActionEvent.PlayerAction action = aE.getAction();
         HawkPlayer pp = e.getHawkPlayer();
         UUID uuid = e.getPlayer().getUniqueId();
-        if(action == PlayerActionEvent.PlayerAction.SNEAK_START || action == PlayerActionEvent.PlayerAction.SNEAK_STOP) {
+        if (action == PlayerActionEvent.PlayerAction.SNEAK_START || action == PlayerActionEvent.PlayerAction.SNEAK_STOP) {
 
-            if(pp.getCurrentTick() - lastSneakToggle.getOrDefault(uuid, 0L) < 1) {
+            if (pp.getCurrentTick() - lastSneakToggle.getOrDefault(uuid, 0L) < 1) {
                 punish(pp, canCancel(), e);
             } else {
                 reward(pp);
             }
 
             lastSneakToggle.put(uuid, pp.getCurrentTick());
-        } else if(action == PlayerActionEvent.PlayerAction.SPRINT_START || action == PlayerActionEvent.PlayerAction.SPRINT_STOP) {
+        } else if (action == PlayerActionEvent.PlayerAction.SPRINT_START || action == PlayerActionEvent.PlayerAction.SPRINT_STOP) {
 
-            if(pp.getCurrentTick() - lastSprintToggle.getOrDefault(uuid, 0L) < 1) {
+            if (pp.getCurrentTick() - lastSprintToggle.getOrDefault(uuid, 0L) < 1) {
                 punish(pp, canCancel(), e);
             } else {
                 reward(pp);

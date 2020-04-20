@@ -65,16 +65,16 @@ public class PingArgument extends Argument {
 
     private ChatColor pingZoneColor(int millis) {
         int zone = millis / 50;
-        if(zone < 1) {
+        if (zone < 1) {
             return ChatColor.AQUA;
         }
-        if(zone < 2) {
+        if (zone < 2) {
             return ChatColor.GREEN;
         }
-        if(zone < 3) {
+        if (zone < 3) {
             return ChatColor.YELLOW;
         }
-        if(zone < 4) {
+        if (zone < 4) {
             return ChatColor.GOLD;
         }
         return ChatColor.RED;

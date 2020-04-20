@@ -19,9 +19,6 @@
 package me.islandscout.hawk.module;
 
 import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.HawkPlayer;
-import me.islandscout.hawk.util.ServerUtils;
-import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +37,8 @@ public class HawkSyncTaskScheduler implements Runnable {
 
     @Override
     public void run() {
-        for(HawkTask hawkTask : tasks) {
-            if(currentTick % hawkTask.interval == 0) {
+        for (HawkTask hawkTask : tasks) {
+            if (currentTick % hawkTask.interval == 0) {
                 hawkTask.task.run();
             }
         }
@@ -56,9 +53,9 @@ public class HawkSyncTaskScheduler implements Runnable {
     }
 
     public void cancelTask(int id) {
-        for(int i = 0; i < tasks.size(); i++) {
+        for (int i = 0; i < tasks.size(); i++) {
             HawkTask task = tasks.get(i);
-            if(id == task.id) {
+            if (id == task.id) {
                 tasks.remove(i);
                 break;
             }

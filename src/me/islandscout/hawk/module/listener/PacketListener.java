@@ -45,21 +45,21 @@ public abstract class PacketListener {
         this.adaptersInbound = new ArrayList<>();
         this.adaptersOutbound = new ArrayList<>();
         this.async = async;
-        if(async) {
+        if (async) {
             prepareAsync();
         }
     }
 
     public void enable() {
         running = true;
-        if(async) {
+        if (async) {
             hawkAsyncCheckThread.start();
         }
     }
 
     public void disable() {
         running = false;
-        if(async) {
+        if (async) {
             synchronized (hawkAsyncCheckThread) {
                 hawkAsyncCheckThread.notify();
             }
@@ -77,9 +77,9 @@ public abstract class PacketListener {
 
     //returns false if not async and packet fails checks
     boolean processIn(Object packet, Player p) {
-        if(!running)
+        if (!running)
             return true;
-        if(async) {
+        if (async) {
             addToAsyncQueue(packet, p, true);
             return true;
         }
@@ -87,9 +87,9 @@ public abstract class PacketListener {
     }
 
     boolean processOut(Object packet, Player p) {
-        if(!running)
+        if (!running)
             return true;
-        if(async) {
+        if (async) {
             addToAsyncQueue(packet, p, false);
             return true;
         }
@@ -107,7 +107,7 @@ public abstract class PacketListener {
 
     private boolean dispatchInbound(Object packet, Player p) {
         try {
-            for(PacketAdapter adapter : adaptersInbound) {
+            for (PacketAdapter adapter : adaptersInbound) {
                 adapter.run(packet, p);
             }
 
@@ -123,7 +123,7 @@ public abstract class PacketListener {
 
     private boolean dispatchOutbound(Object packet, Player p) {
         try {
-            for(PacketAdapter adapter : adaptersOutbound) {
+            for (PacketAdapter adapter : adaptersOutbound) {
                 adapter.run(packet, p);
             }
 
@@ -140,7 +140,7 @@ public abstract class PacketListener {
     private void prepareAsync() {
         asyncQueuedPackets = Collections.synchronizedList(new ArrayList<>());
         hawkAsyncCheckThread = new Thread(() -> {
-            while(running) {
+            while (running) {
 
                 //copy contents from queue to batch for processing
                 List<Pair<Pair<Object, Player>, Boolean>> packetBatch = new ArrayList<>(asyncQueuedPackets);
@@ -151,10 +151,9 @@ public abstract class PacketListener {
                     Player player = packetAndPlayer.getValue();
                     boolean inbound = pair.getValue();
 
-                    if(inbound) {
+                    if (inbound) {
                         dispatchInbound(packet, player);
-                    }
-                    else {
+                    } else {
                         dispatchOutbound(packet, player);
                     }
 
@@ -165,7 +164,7 @@ public abstract class PacketListener {
                 //Otherwise, wait until notification from Netty thread.
                 synchronized (asyncQueuedPackets) {
                     asyncQueuedPackets.subList(0, packetBatch.size()).clear();
-                    if(asyncQueuedPackets.size() > 0)
+                    if (asyncQueuedPackets.size() > 0)
                         continue;
                 }
                 try {
@@ -188,7 +187,7 @@ public abstract class PacketListener {
         System.err.println("This " + packetName + "'s fields:");
 
         Class current = packet.getClass();
-        while(current != null){
+        while (current != null) {
             for (Field field : current.getDeclaredFields()) {
                 field.setAccessible(true);
                 Object value = null;

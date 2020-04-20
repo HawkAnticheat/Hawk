@@ -30,13 +30,13 @@ public class BungeeBridge {
 
     public BungeeBridge(Hawk hawk, boolean enabled) {
         this.hawk = hawk;
-        if(enabled)
+        if (enabled)
             hawk.getServer().getMessenger().registerOutgoingPluginChannel(hawk, "BungeeCord");
         this.enabled = enabled;
     }
 
     public void sendAlertForBroadcast(String msg) {
-        if(!enabled)
+        if (!enabled)
             return;
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("HawkACAlert");

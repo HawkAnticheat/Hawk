@@ -28,7 +28,8 @@ import org.bukkit.block.Block;
 import org.bukkit.material.Openable;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 public class AdjacentBlocks {
 
@@ -44,16 +45,7 @@ public class AdjacentBlocks {
         blocks.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
         blocks.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         blocks.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
-
-        Block previousBlock = null;
-        Iterator<Block> blockIterator = blocks.iterator();
-        while (blockIterator.hasNext()) {
-            Block currentBlock = blockIterator.next();
-            if (currentBlock == null || currentBlock.getType() == Material.AIR || (currentBlock.equals(previousBlock))) {
-                blockIterator.remove();
-            }
-            previousBlock = currentBlock;
-        }
+        blocks.remove(null);
         return blocks;
     }
 
@@ -169,15 +161,7 @@ public class AdjacentBlocks {
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check));
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, -1, 0)));
 
-        Block prevBlock = null;
-        Iterator<Block> blockIterator = blocks.iterator();
-        while (blockIterator.hasNext()){
-            Block currentBlock = blockIterator.next();
-            if (currentBlock.equals(prevBlock) || pp.getIgnoredBlockCollisions().contains(currentBlock.getLocation())){
-                blockIterator.remove();
-            }
-            prevBlock = currentBlock;
-        }
+        blocks.removeIf(currentBlock -> pp.getIgnoredBlockCollisions().contains(currentBlock.getLocation()));
 
         AABB underFeet = new AABB(loc.toVector().add(new Vector(-0.3, -feetDepth, -0.3)), loc.toVector().add(new Vector(0.3, 0, 0.3)));
         for (Block block : blocks) {

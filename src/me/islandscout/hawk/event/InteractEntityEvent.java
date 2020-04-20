@@ -51,12 +51,12 @@ public class InteractEntityEvent extends Event {
         //MoveEvent class for more information.)
         pp.updateLastEntityInteractTick();
         pp.addEntityToEntitiesInteractedInThisTick(entity);
-        if(/*!isCancelled() && */getInteractAction() == InteractAction.ATTACK) {
+        if (/*!isCancelled() && */getInteractAction() == InteractAction.ATTACK) {
             pp.updateItemUsedForAttack();
-            if(getEntity() instanceof Player) {
+            if (getEntity() instanceof Player) {
                 pp.updateLastAttackedPlayerTick();
                 ItemStack heldItem = pp.getItemUsedForAttack();
-                if(pp.isSprinting() || (heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0)) {
+                if (pp.isSprinting() || (heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0)) {
                     pp.updateHitSlowdownTick();
                 }
             }

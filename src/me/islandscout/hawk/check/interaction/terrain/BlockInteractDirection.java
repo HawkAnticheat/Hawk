@@ -21,7 +21,10 @@ package me.islandscout.hawk.check.interaction.terrain;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.BlockInteractionCheck;
 import me.islandscout.hawk.event.InteractWorldEvent;
-import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.util.AABB;
+import me.islandscout.hawk.util.MathPlus;
+import me.islandscout.hawk.util.Ray;
+import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -45,11 +48,10 @@ public class BlockInteractDirection extends BlockInteractionCheck {
         HawkPlayer pp = e.getHawkPlayer();
         Location bLoc = e.getTargetedBlockLocation();
         Vector pos;
-        if(pp.isInVehicle()) {
+        if (pp.isInVehicle()) {
             pos = hawk.getLagCompensator().getHistoryLocation(ServerUtils.getPing(p), p).toVector();
             pos.setY(pos.getY() + p.getEyeHeight());
-        }
-        else {
+        } else {
             pos = pp.getHeadPosition();
         }
         Vector dir = MathPlus.getDirection(pp.getYaw(), pp.getPitch());
@@ -65,10 +67,9 @@ public class BlockInteractDirection extends BlockInteractionCheck {
         if (DEBUG_RAY)
             new Ray(pos, extraDir).highlight(hawk, p.getWorld(), 6F, 0.3);
 
-        if(targetAABB.betweenRays(pos, dir, extraDir)) {
+        if (targetAABB.betweenRays(pos, dir, extraDir)) {
             reward(pp);
-        }
-        else {
+        } else {
             punish(pp, true, e);
         }
     }

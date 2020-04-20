@@ -42,7 +42,7 @@ public class BlockDigEvent extends Event {
 
     @Override
     public boolean preProcess() {
-        if(pp.isTeleporting()) {
+        if (pp.isTeleporting()) {
             resync();
             return false;
         }

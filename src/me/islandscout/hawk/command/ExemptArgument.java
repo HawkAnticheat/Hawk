@@ -36,17 +36,17 @@ public class ExemptArgument extends Argument {
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        if(args.length < 2) {
+        if (args.length < 2) {
             return false;
         }
         Player target = Bukkit.getPlayer(args[1]);
-        if(target == null) {
+        if (target == null) {
             sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[1] + "\"");
             return true;
         }
         UUID uuid = target.getUniqueId();
         Set<UUID> exempted = hawk.getCheckManager().getExemptedPlayers();
-        if(exempted.contains(uuid)) {
+        if (exempted.contains(uuid)) {
             hawk.getCheckManager().removeExemption(uuid);
             sender.sendMessage(ChatColor.GOLD + "" + target.getName() + " is no longer exempted from checks.");
         } else {

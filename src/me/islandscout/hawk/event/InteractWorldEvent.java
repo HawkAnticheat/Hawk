@@ -52,7 +52,7 @@ public class InteractWorldEvent extends Event {
 
     @Override
     public boolean preProcess() {
-        if(pp.isTeleporting()) {
+        if (pp.isTeleporting()) {
             resync();
             return false;
         }
@@ -71,7 +71,7 @@ public class InteractWorldEvent extends Event {
     public void resync() {
         Block b = ServerUtils.getBlockAsync(getPlacedBlockLocation());
         Block targeted = ServerUtils.getBlockAsync(getTargetedBlockLocation());
-        if(b == null || targeted == null)
+        if (b == null || targeted == null)
             return;
         if (Hawk.getServerVersion() == 7) {
             WrappedBlock7.getWrappedBlock(b, pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());

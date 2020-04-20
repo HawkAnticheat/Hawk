@@ -21,7 +21,8 @@ package me.islandscout.hawk.check.combat;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.check.EntityInteractionCheck;
-import me.islandscout.hawk.event.*;
+import me.islandscout.hawk.event.InteractAction;
+import me.islandscout.hawk.event.InteractEntityEvent;
 import me.islandscout.hawk.util.MathPlus;
 import org.bukkit.entity.Player;
 
@@ -46,11 +47,11 @@ public class FightSpeedConsistency extends EntityInteractionCheck implements Can
 
     public FightSpeedConsistency() {
         super("fightspeedconsistency", false, -1, 3, 0.99, 5000, "%player% failed click consistency. Autoclicker? VL: %vl%", null);
-        MIN_CPS = (double)customSetting("checkAboveCPS", "", 10D);
-        SAMPLES = (int)customSetting("samples", "", 5);
-        SAMPLE_SIZE = (int)customSetting("sampleSize", "", 20);
-        STDEV_THRESHOLD = (double)customSetting("stdevThreshold", "", 0.05D);
-        RECORD_THRESHOLD = (int)(20 * (1 / MIN_CPS) + 1);
+        MIN_CPS = (double) customSetting("checkAboveCPS", "", 10D);
+        SAMPLES = (int) customSetting("samples", "", 5);
+        SAMPLE_SIZE = (int) customSetting("sampleSize", "", 20);
+        STDEV_THRESHOLD = (double) customSetting("stdevThreshold", "", 0.05D);
+        RECORD_THRESHOLD = (int) (20 * (1 / MIN_CPS) + 1);
         pSamples = new HashMap<>();
         lastClickTick = new HashMap<>();
         deltaTimes = new HashMap<>();
@@ -89,17 +90,16 @@ public class FightSpeedConsistency extends EntityInteractionCheck implements Can
                     //Acts like a narrow barrier between the two limits to prevent false flags.
                     //Explanation: When clicks are barely meeting speed requirements, a narrow
                     //range of CPSs will be processed, thus setting off false flags.
-                    if(avgCps > MIN_CPS && sampless.size() >= SAMPLES) {
+                    if (avgCps > MIN_CPS && sampless.size() >= SAMPLES) {
                         //Debug.broadcastMessage(ChatColor.YELLOW + "" + MathPlus.stdev(sampless));
-                        if(MathPlus.stdev(sampless) < STDEV_THRESHOLD) {
+                        if (MathPlus.stdev(sampless) < STDEV_THRESHOLD) {
                             punish(pp, false, e);
-                        }
-                        else {
+                        } else {
                             reward(pp);
                         }
                     }
 
-                    if(sampless.size() >= SAMPLES) {
+                    if (sampless.size() >= SAMPLES) {
                         sampless.remove(0);
                     }
                     pSamples.put(uuid, sampless);

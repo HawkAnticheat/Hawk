@@ -63,7 +63,7 @@ public class WrappedBlock7 extends WrappedBlock {
 
     @Override
     public float getDamage(HumanEntity entity) {
-        return block.getDamage(((CraftHumanEntity)entity).getHandle(), ((CraftWorld)obBlock.getWorld()).getHandle(), obBlock.getX(), obBlock.getY(), obBlock.getZ());
+        return block.getDamage(((CraftHumanEntity) entity).getHandle(), ((CraftWorld) obBlock.getWorld()).getHandle(), obBlock.getX(), obBlock.getY(), obBlock.getZ());
     }
 
     @Override
@@ -91,10 +91,9 @@ public class WrappedBlock7 extends WrappedBlock {
         //define boxes for funny blocks
         if (b instanceof BlockCarpet) {
             AABB[] aabbarr = new AABB[1];
-            if(clientVersion == 7) {
+            if (clientVersion == 7) {
                 aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0, 1)));
-            }
-            else {
+            } else {
                 aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0.0625, 1)));
             }
             return aabbarr;
@@ -127,12 +126,12 @@ public class WrappedBlock7 extends WrappedBlock {
         Vector vec = new Vector();
         Vec3D nmsVec = Vec3D.a(0, 0, 0);
         Entity dummy = null;
-        if(!block.getMaterial().isLiquid())
+        if (!block.getMaterial().isLiquid())
             return vec;
 
         //this should prevent async threads from calling NMS code that actually loads chunks
-        if(!Bukkit.isPrimaryThread()) {
-            if(!obBlock.getWorld().isChunkLoaded(obBlock.getX() >> 4, obBlock.getZ() >> 4) ||
+        if (!Bukkit.isPrimaryThread()) {
+            if (!obBlock.getWorld().isChunkLoaded(obBlock.getX() >> 4, obBlock.getZ() >> 4) ||
                     !obBlock.getWorld().isChunkLoaded(obBlock.getX() + 1 >> 4, obBlock.getZ() >> 4) ||
                     !obBlock.getWorld().isChunkLoaded(obBlock.getX() - 1 >> 4, obBlock.getZ() >> 4) ||
                     !obBlock.getWorld().isChunkLoaded(obBlock.getX() >> 4, obBlock.getZ() + 1 >> 4) ||

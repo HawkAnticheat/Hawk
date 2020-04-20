@@ -39,20 +39,19 @@ public class ItemUseSpeed extends CustomCheck {
 
     @Override
     protected void check(Event e) {
-        if(!(e instanceof InteractItemEvent)) {
+        if (!(e instanceof InteractItemEvent)) {
             return;
         }
         InteractItemEvent.Action action = ((InteractItemEvent) e).getAction();
-        if(action == InteractItemEvent.Action.DROP_HELD_ITEM || action == InteractItemEvent.Action.DROP_HELD_ITEM_STACK) {
+        if (action == InteractItemEvent.Action.DROP_HELD_ITEM || action == InteractItemEvent.Action.DROP_HELD_ITEM_STACK) {
             return;
         }
         HawkPlayer pp = e.getHawkPlayer();
         UUID uuid = pp.getUuid();
         long currTick = pp.getCurrentTick();
-        if(currTick == lastEventTick.getOrDefault(uuid, -1L)) {
+        if (currTick == lastEventTick.getOrDefault(uuid, -1L)) {
             punish(pp, true, e);
-        }
-        else {
+        } else {
             reward(pp);
         }
         lastEventTick.put(uuid, pp.getCurrentTick());
