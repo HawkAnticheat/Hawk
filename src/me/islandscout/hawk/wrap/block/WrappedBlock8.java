@@ -44,7 +44,7 @@ public class WrappedBlock8 extends WrappedBlock {
         BlockPosition.MutableBlockPosition bPos = new BlockPosition.MutableBlockPosition();
         bPos.c(block.getX(), block.getY(), block.getZ());
         IBlockData data = ((CraftWorld) block.getWorld()).getHandle().getType(bPos);
-        net.minecraft.server.v1_8_R3.Block b = data.getBlock();
+        net.minecraft.server.v1_8_R3.Block b = this.block = data.getBlock();
         b.updateShape(((CraftWorld) block.getWorld()).getHandle(), bPos);
 
         strength = b.g(null, null);
@@ -52,14 +52,14 @@ public class WrappedBlock8 extends WrappedBlock {
         hitbox = getHitBox(b, block.getLocation());
         collisionBoxes = getCollisionBoxes(b, block.getLocation(), bPos, data);
         slipperiness = b.frictionFactor;
-
-        this.block = b;
     }
 
+    @Override
     public net.minecraft.server.v1_8_R3.Block getNMS() {
         return block;
     }
 
+    @Override
     public void sendPacketToPlayer(Player p) {
         Location loc = getBukkitBlock().getLocation();
         PacketPlayOutBlockChange pac = new PacketPlayOutBlockChange(((CraftWorld) loc.getWorld()).getHandle(), new BlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
@@ -86,7 +86,7 @@ public class WrappedBlock8 extends WrappedBlock {
 
     //Bukkit, get your crap straight and stay consistent on the definition of SOLID.
     private boolean isReallySolid(Block b) {
-        boolean reallySolid = b.getType().isSolid();
+        boolean reallySolid = block.getMaterial().isSolid();
         MaterialData matData = b.getState().getData();
         if (matData instanceof Sign || matData instanceof Banner)
             reallySolid = false;
@@ -134,6 +134,7 @@ public class WrappedBlock8 extends WrappedBlock {
         return collisionBoxes;
     }
 
+    @Override
     public Vector getFlowDirection() {
         Vector vec = new Vector();
         Vec3D nmsVec = new Vec3D(0, 0, 0);

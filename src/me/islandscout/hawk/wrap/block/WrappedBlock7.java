@@ -40,21 +40,21 @@ public class WrappedBlock7 extends WrappedBlock {
 
     public WrappedBlock7(Block block, int clientVersion) {
         super(block, clientVersion);
-        net.minecraft.server.v1_7_R4.Block b = ((CraftWorld) block.getWorld()).getHandle().getType(block.getLocation().getBlockX(), block.getLocation().getBlockY(), block.getLocation().getBlockZ());
+        net.minecraft.server.v1_7_R4.Block b = this.block = ((CraftWorld) block.getWorld()).getHandle().getType(block.getLocation().getBlockX(), block.getLocation().getBlockY(), block.getLocation().getBlockZ());
 
         strength = b.f(null, 0, 0, 0);
         hitbox = getHitBox(b, block.getLocation());
         solid = isReallySolid(block);
         collisionBoxes = getCollisionBoxes(b, block.getLocation());
         slipperiness = b.frictionFactor;
-
-        this.block = b;
     }
 
+    @Override
     public net.minecraft.server.v1_7_R4.Block getNMS() {
         return block;
     }
 
+    @Override
     public void sendPacketToPlayer(Player p) {
         Location loc = getBukkitBlock().getLocation();
         PacketPlayOutBlockChange pac = new PacketPlayOutBlockChange(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), ((CraftWorld) loc.getWorld()).getHandle());
@@ -116,13 +116,14 @@ public class WrappedBlock7 extends WrappedBlock {
 
 
     private boolean isReallySolid(Block b) {
-        boolean reallySolid = b.getType().isSolid();
+        boolean reallySolid = block.getMaterial().isSolid();
         if (b.getType() == Material.CARPET || b.getType() == Material.WATER_LILY) {
             reallySolid = true;
         }
         return reallySolid;
     }
 
+    @Override
     public Vector getFlowDirection() {
         Vector vec = new Vector();
         Vec3D nmsVec = Vec3D.a(0, 0, 0);
