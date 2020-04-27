@@ -62,8 +62,9 @@ public class Gravity extends MovementCheck {
     //dY -= 0.08
     //dY *= 0.98
 
-    //TODO do not forget checkerclimb
+    //TODO do not forget checkerclimb. Blocks within 0.3 should be treated as AIR unless they are in HawkPlayer's collision ignore list
     //TODO set up proper location to rubberband (do not rubberband to Player#getLocation(), this makes a very crude, but possible glide bypass. Exploits Y motion behavior after TP)
+    //TODO perhaps have a ground checking mode? clientside vs serverside? doing it server side can allow GroundSpoof to not cancel, yet Gravity will still catch groundspoof-based flys
 
     private static final float MIN_VELOCITY = 0.005F;
     private static final int MAX_NO_MOVES = 20;

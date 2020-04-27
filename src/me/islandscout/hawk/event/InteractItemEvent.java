@@ -41,7 +41,7 @@ public class InteractItemEvent extends Event {
     @Override
     public void postProcess() {
         Material mat = getItemStack().getType();
-        boolean gapple = mat == Material.GOLDEN_APPLE && getItemStack().getDurability() == 1;
+        boolean gapple = mat == Material.GOLDEN_APPLE;
         if(action == Action.START_USE_ITEM) {
             if((mat.isEdible() && (p.getFoodLevel() < 20 || gapple) && p.getGameMode() != GameMode.CREATIVE) ||
                     (mat == Material.POTION && getItemStack().getDurability() == 0) || //water bottles

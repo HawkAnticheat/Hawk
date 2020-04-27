@@ -29,7 +29,8 @@ import org.bukkit.Location;
 
 public class GroundSpoof extends MovementCheck {
 
-    //PASSED (9/13/18)
+    //TODO do not forget checkerclimb. Blocks within 0.3 should be treated as AIR unless they are in HawkPlayer's collision ignore list
+
     private final boolean PREVENT_NOFALL;
 
     public GroundSpoof() {
@@ -52,7 +53,7 @@ public class GroundSpoof extends MovementCheck {
             if (event.isOnGround()) {
 
                 //Must also check position before, because in the client, Y is clipped first.
-                //If Y is clipped, then onGround is set to true.
+                //In the client, if Y is clipped, then onGround is set to true.
                 Location checkLoc = event.getFrom().clone();
                 checkLoc.setY(event.getTo().getY());
                 if (AdjacentBlocks.onGroundReally(checkLoc, -1, false, 0.02, pp))
@@ -70,6 +71,7 @@ public class GroundSpoof extends MovementCheck {
         }
     }
 
+    //TODO don't do this here. This should be done in MoveEvent#postProcess() to avoid conflict with other checks.
     private void setNotOnGround(MoveEvent e) {
         WrappedPacket packet = e.getWrappedPacket();
         if (Hawk.getServerVersion() == 7) {
