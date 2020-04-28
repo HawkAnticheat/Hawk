@@ -1,3 +1,3 @@
 # Skid List
 Hall of Hawk clones.
-* "Skade Anticheat" 4/27/20 - https://songoda.com/product/skade-anticheat-seeing-into-the-future/version/31
+* "Skade Anticheat" Published April 20, 2020 - https://songoda.com/product/skade-anticheat-seeing-into-the-future/version/31
