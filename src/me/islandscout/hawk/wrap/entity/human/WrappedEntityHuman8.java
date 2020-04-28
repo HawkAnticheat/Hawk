@@ -49,4 +49,9 @@ public class WrappedEntityHuman8 extends WrappedEntity8 implements WrappedEntity
     public void releaseItem() {
         ((EntityHuman) nmsEntity).bU();
     }
+
+    @Override
+    public boolean usingItem() {
+        return ((EntityHuman) nmsEntity).bS();
+    }
 }

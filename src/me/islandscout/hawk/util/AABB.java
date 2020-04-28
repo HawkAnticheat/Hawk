@@ -306,10 +306,14 @@ public class AABB implements Cloneable {
     }
 
     //Blocks that barely touch don't count
-    public List<AABB> getBlockAABBs(World world, int gameVersion) {
+    public List<AABB> getBlockAABBs(World world, int gameVersion, Material... exemptedMats) {
+        Set<Material> exempt = new HashSet<>();
+        exempt.addAll(Arrays.asList(exemptedMats));
         List<AABB> aabbs = new ArrayList<>();
         List<Block> blocks = getBlocks(world);
         for(Block b : blocks) {
+            if(exempt.contains(b.getType()))
+                continue;
             AABB[] bAABBs = WrappedBlock.getWrappedBlock(b, gameVersion).getCollisionBoxes();
             for(AABB aabb : bAABBs) {
                 if(this.isColliding(aabb)) {

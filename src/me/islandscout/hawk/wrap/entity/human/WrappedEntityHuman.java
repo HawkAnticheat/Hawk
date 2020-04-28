@@ -30,4 +30,6 @@ public interface WrappedEntityHuman {
     float getCurrentPlayerStrVsBlock(Block block, boolean flag);
 
     void releaseItem();
+
+    boolean usingItem();
 }

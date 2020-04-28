@@ -96,7 +96,7 @@ public class Strafe extends MovementCheck {
         //can be abused to bypass this check.
         if(e.hasTeleported() || e.hasAcceptedKnockback() || collidingHorizontally(e) ||
                 pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow() || pp.isSneaking() ||
-                moveHoriz.length() < 0.15 || e.isJump() || ticksSinceIdle <= 2 || e.isInLiquid() ||
+                moveHoriz.length() < 0.15 || e.isJump() || ticksSinceIdle <= 2 || e.isInLiquid() || //TODO get rid of e.isJump() from here and actually try to handle it
                 pp.getCurrentTick() - pp.getLastVelocityAcceptTick() == 1 || collidedMats.contains(Material.LADDER) ||
                 collidedMats.contains(Material.VINE)) {
             prepareNextMove(e, pp, pp.getCurrentTick());

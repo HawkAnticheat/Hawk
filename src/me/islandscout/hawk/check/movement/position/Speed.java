@@ -111,7 +111,7 @@ public class Speed extends MovementCheck implements Listener {
 
         //handle any pending knockbacks
         if(event.hasAcceptedKnockback()) {
-            prepareNextMove(p.getUniqueId(), noMoves, speed, touchedBlocks);
+            prepareNextMove(pp, noMoves, speed, touchedBlocks);
             return;
         }
 
@@ -121,9 +121,9 @@ public class Speed extends MovementCheck implements Listener {
         double handleMultipliers = 1;
         if(event.hasHitSlowdown())
             handleMultipliers *= 0.6;
-        if(touchedBlocks.contains(Material.SOUL_SAND))
+        if(touchedBlocks.contains(Material.SOUL_SAND) && !flying)
             handleMultipliers *= 0.4;
-        if(touchedBlocks.contains(Material.WEB))
+        if(touchedBlocks.contains(Material.WEB) && !flying)
             handleMultipliers *= 0.25;
         if(Hawk.getServerVersion() > 7 && touchedBlocks.contains(Material.SLIME_BLOCK)) {
             //TODO I believe webs affect this mot Y too.
@@ -201,13 +201,14 @@ public class Speed extends MovementCheck implements Listener {
             negativeDiscrepanciesCumulative.put(p.getUniqueId(), negativeDiscrepanciesCumulative.getOrDefault(p.getUniqueId(), 0D) + speed);
         }
 
-        prepareNextMove(p.getUniqueId(), noMoves, speed, touchedBlocks);
+        prepareNextMove(pp, noMoves, speed, touchedBlocks);
     }
 
-    private void prepareNextMove(UUID uuid, int noMoves, double currentSpeed, Set<Material> touchedBlocks) {
-        if(touchedBlocks.contains(Material.WEB)) {
+    private void prepareNextMove(HawkPlayer pp, int noMoves, double currentSpeed, Set<Material> touchedBlocks) {
+        if(touchedBlocks.contains(Material.WEB) && !pp.isFlying()) {
             currentSpeed = 0;
         }
+        UUID uuid = pp.getUuid();
         prevSpeed.put(uuid, currentSpeed);
         noMovesMap.put(uuid, noMoves);
     }

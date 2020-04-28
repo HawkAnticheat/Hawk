@@ -32,10 +32,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class Gravity extends MovementCheck {
 
@@ -75,6 +72,7 @@ public class Gravity extends MovementCheck {
     private final Map<UUID, Float> estimatedVelocityMap;
     private final Map<UUID, Integer> noMovesMap;
     private final Map<UUID, Location> legitLoc;
+    private final Set<UUID> wasFlyingSet;
 
     public Gravity() {
         super("gravity", true, 0, 10, 0.995, 5000, "&7%player% failed gravity, VL: %vl%", null);
@@ -82,6 +80,7 @@ public class Gravity extends MovementCheck {
         estimatedVelocityMap = new HashMap<>();
         noMovesMap = new HashMap<>();
         legitLoc = new HashMap<>();
+        wasFlyingSet = new HashSet<>();
     }
 
     @Override
@@ -93,15 +92,14 @@ public class Gravity extends MovementCheck {
         float dY = (float) (e.getTo().getY() - from.getY());
         boolean moved = e.isUpdatePos();
         int noMoves = noMovesMap.getOrDefault(pp.getUuid(), 0);
-        float estimatedPosition = estimatedPositionMap.getOrDefault(pp.getUuid(), (float)from.getY());
+        float estimatedPosition = estimatedPositionMap.getOrDefault(pp.getUuid(), (float) from.getY());
         float prevEstimatedVelocity = estimatedVelocityMap.getOrDefault(pp.getUuid(), (float) pp.getVelocity().getY());
         Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(from).getMaterials(pp.getWorld());
         boolean opposingForce = e.isJump() || e.hasAcceptedKnockback() || e.hasTeleported() || e.isStep();
 
-        //TODO false flag when toggling off fly. Fly lasts one tick longer.
         if((!e.isOnGround() || !pp.isOnGround()) && !opposingForce &&
-                !p.isInsideVehicle() &&
-                !pp.isFlying() && !pp.isSwimming() && !p.isSleeping() && !isInClimbable(from.toLocation(pp.getWorld())) && //TODO: uh oh! make sure to have a fastladder check, otherwise hackers can "pop" off them
+                !p.isInsideVehicle() && !pp.isFlying() && !wasFlyingSet.contains(p.getUniqueId()) &&
+                !pp.isSwimming() && !p.isSleeping() && !isInClimbable(from.toLocation(pp.getWorld())) && //TODO: uh oh! make sure to have a fastladder check, otherwise hackers can "pop" off them
                 !isOnBoat(p, e.getTo()) && !e.isSlimeBlockBounce()) {
 
             //count "no-moves"
@@ -115,7 +113,7 @@ public class Gravity extends MovementCheck {
             //compute next expected velocity
             float estimatedVelocity;
             if (touchedBlocks.contains(Material.WEB)) {
-                estimatedVelocity = -0.00392F; //TODO: find the function
+                estimatedVelocity = ((prevEstimatedVelocity * 0.98F) - 0.0784F) * 0.05F;
             }
             else if(pp.isInLiquid()) { //TODO fix this. (entering liquid)
                 estimatedVelocity = (prevEstimatedVelocity * 0.98F) - 0.0784F;
@@ -139,7 +137,6 @@ public class Gravity extends MovementCheck {
 
             //check landing
             if(e.isOnGround() && !pp.isOnGround()) {
-                Debug.broadcastMessage("LAND!");
                 //Pretty much check if the Y is within reasonable bounds.
                 //Doesn't need to be so precise i.e. 0.0001 within bounds, leave that for GroundSpoof and Phase.
                 //However, if it becomes a problem, you know how to expand this code.
@@ -176,7 +173,12 @@ public class Gravity extends MovementCheck {
                         reward(pp);
                     }
                 }
-                prevEstimatedVelocity = estimatedVelocity;
+                if (touchedBlocks.contains(Material.WEB)) {
+                    prevEstimatedVelocity = 0;
+                }
+                else {
+                    prevEstimatedVelocity = estimatedVelocity;
+                }
             }
         }
 
@@ -199,6 +201,12 @@ public class Gravity extends MovementCheck {
         estimatedVelocityMap.put(pp.getUuid(), prevEstimatedVelocity);
         noMovesMap.put(pp.getUuid(), noMoves);
         estimatedPositionMap.put(pp.getUuid(), estimatedPosition);
+        if(pp.isFlying()) {
+            wasFlyingSet.add(p.getUniqueId());
+        }
+        else {
+            wasFlyingSet.remove(p.getUniqueId());
+        }
     }
 
     private boolean isOnBoat(Player p, Location loc) {
@@ -229,5 +237,6 @@ public class Gravity extends MovementCheck {
         estimatedVelocityMap.remove(uuid);
         noMovesMap.remove(uuid);
         legitLoc.remove(uuid);
+        wasFlyingSet.remove(uuid);
     }
 }

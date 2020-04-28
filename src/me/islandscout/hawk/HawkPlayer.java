@@ -24,10 +24,7 @@ import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.MetaData;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import me.islandscout.hawk.wrap.entity.human.WrappedEntityHuman;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -619,6 +616,8 @@ public class HawkPlayer {
     private void predictNextPosition() {
         Vector move = predictedVelocity.clone();
 
+        Set<Material> oldTouchedMats = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition).getMaterials(getWorld());
+
         //compute new predicted motion values
         double pdX = move.getX() * getFriction();
         double pdY = move.getY() * 0.98;
@@ -627,17 +626,23 @@ public class HawkPlayer {
         if(!isFlying())
             pdY += -0.0784;
 
+        if(oldTouchedMats.contains(Material.WEB)) {
+            pdX *= 0.25;
+            pdY *= 0.05;
+            pdZ *= 0.25;
+        }
+
         AABB box = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition);
         AABB preBox = box.clone();
         preBox.expand(-0.0001, -0.0001, -0.0001);
-        List<AABB> collidedBlocksBefore = preBox.getBlockAABBs(world, getClientVersion());
+        List<AABB> collidedBlocksBefore = preBox.getBlockAABBs(world, getClientVersion(), Material.WEB);
 
         //clipping order: X, Z, Y
         //X
         box.expand(-0.00000001, -0.00000001, -0.00000001);
         boolean positive = pdX > 0;
         box.translate(new Vector(pdX, 0, 0));
-        List<AABB> collidedBlocks = box.getBlockAABBs(world, getClientVersion());
+        List<AABB> collidedBlocks = box.getBlockAABBs(world, getClientVersion(), Material.WEB);
         collidedBlocks.removeAll(collidedBlocksBefore);
 
         double highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
@@ -657,7 +662,7 @@ public class HawkPlayer {
         //Z
         positive = pdZ > 0;
         box.translate(new Vector(0, 0, pdZ));
-        collidedBlocks = box.getBlockAABBs(world, getClientVersion());
+        collidedBlocks = box.getBlockAABBs(world, getClientVersion(), Material.WEB);
         collidedBlocks.removeAll(collidedBlocksBefore);
 
         highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
@@ -677,7 +682,7 @@ public class HawkPlayer {
         //Y
         positive = pdY > 0;
         box.translate(new Vector(0, pdY, 0));
-        collidedBlocks = box.getBlockAABBs(world, getClientVersion());
+        collidedBlocks = box.getBlockAABBs(world, getClientVersion(), Material.WEB);
         collidedBlocks.removeAll(collidedBlocksBefore);
 
         highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
@@ -700,10 +705,10 @@ public class HawkPlayer {
             Vector min = predictedPosition.clone().add(new Vector(-0.3, -0.001, -0.3));
             Vector max = predictedPosition.clone().add(new Vector(0.3, 0, 0.3));
             AABB feet = new AABB(min, max);
-            boolean wasOnGround = feet.getBlockAABBs(world, clientVersion).size() > 0;
+            boolean wasOnGround = feet.getBlockAABBs(world, clientVersion, Material.WEB).size() > 0;
 
             feet.translate(new Vector(pdX, pdY, pdZ));
-            boolean isOnGround = feet.getBlockAABBs(world, clientVersion).size() > 0;
+            boolean isOnGround = feet.getBlockAABBs(world, clientVersion, Material.WEB).size() > 0;
 
             if(wasOnGround && !isOnGround) {
                 //use max.getY() to save a clone()
@@ -734,27 +739,34 @@ public class HawkPlayer {
             return;
         }
 
-        if(Math.abs(pdX) < 0.005) {
-            pdX = 0;
-        }
-        if(Math.abs(pdY) < 0.005) {
-            pdY = 0;
-        }
-        if(Math.abs(pdZ) < 0.005) {
-            pdZ = 0;
-        }
-
         //move predicted position
         move.setX(MathPlus.round(pdX, 10));
         move.setY(MathPlus.round(pdY, 10));
         move.setZ(MathPlus.round(pdZ, 10));
         predictedPosition.add(move);
 
+        Vector nextVelocity = move.clone();
+        if(Math.abs(pdX) < 0.005) {
+            nextVelocity.setX(0);
+        }
+        if(Math.abs(pdY) < 0.005) {
+            nextVelocity.setY(0);
+        }
+        if(Math.abs(pdZ) < 0.005) {
+            nextVelocity.setZ(0);
+        }
+
         //AABB a = AABB.playerCollisionBox.clone();
         //a.translate(predictedPosition);
         //a.highlight(hawk, getWorld(), 0.299);
 
-        predictedVelocity = move;
+        Set<Material> newTouchedMats = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition).getMaterials(getWorld());
+        if(newTouchedMats.contains(Material.WEB)) {
+            predictedVelocity = new Vector();
+        }
+        else {
+            predictedVelocity = nextVelocity;
+        }
     }
 
     //Handles block AABB updates and teleportations to assist collision-based checks

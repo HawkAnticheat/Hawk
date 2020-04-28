@@ -19,6 +19,8 @@
 package me.islandscout.hawk.event;
 
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.wrap.entity.WrappedEntity;
+import me.islandscout.hawk.wrap.entity.human.WrappedEntityHuman;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -60,6 +62,13 @@ public class InteractItemEvent extends Event {
             pp.setBlocking(false);
             pp.setPullingBow(false);
         }
+    }
+
+    @Override
+    public void resync() {
+        WrappedEntityHuman weh = (WrappedEntityHuman) WrappedEntity.getWrappedEntity(p);
+        boolean usingItem = weh.usingItem();
+        //TODO
     }
 
     public Action getAction() {
