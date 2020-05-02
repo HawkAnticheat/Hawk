@@ -113,11 +113,14 @@ public class Gravity extends MovementCheck {
             } else { //air function
                 estimatedVelocity = (prevEstimatedVelocity - 0.08F) * 0.98F;
                 estimatedVelocityAlt = estimatedVelocity;
+                if(Math.abs(estimatedVelocity) < MIN_VELOCITY) {
+                    estimatedVelocity = 0;
+                }
+                if(Math.abs(estimatedVelocityAlt) < MIN_VELOCITY) {
+                    estimatedVelocityAlt = 0;
+                }
                 if(pp.isInLiquid()) { //Entering liquid. You could take two paths depending if you're holding the jump button or not.
                     estimatedVelocityAlt += 0.04;
-                }
-                if(Math.abs(estimatedVelocity) < MIN_VELOCITY) {
-                    estimatedVelocity = estimatedVelocityAlt = 0;
                 }
             }
 
@@ -195,11 +198,11 @@ public class Gravity extends MovementCheck {
                         reward(pp);
                     }
 
-                    //we can set things up for next move, since the client has sent a pos update
+                    //we can use these for next move, since the client has sent a pos update and we have already checked it
                     estimatedPosition = (float) e.getTo().getY();
                     if(noMovesMap.getOrDefault(pp.getUuid(), 0) == 0) {
                         estimatedVelocity = velResetA ? estimatedVelocity : dY;
-                        estimatedVelocityAlt = velResetB ? estimatedPositionAlt : dY;
+                        estimatedVelocityAlt = velResetB ? estimatedVelocityAlt : dY;
                     }
                 }
 
