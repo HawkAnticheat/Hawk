@@ -23,6 +23,7 @@ import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -79,7 +80,7 @@ public class Gravity extends MovementCheck {
 
         boolean opposingForce = e.isJump() || e.hasAcceptedKnockback() || e.hasTeleported() || e.isStep();
 
-        if((!e.isOnGround() || !pp.isOnGround()) && !opposingForce &&
+        if((!e.isOnGround() || !pp.isOnGround()) && !opposingForce && !e.isLiquidExit() &&
                 !p.isInsideVehicle() && !pp.isFlying() && !wasFlyingSet.contains(p.getUniqueId()) &&
                 !p.isSleeping() && !isInClimbable(from.toLocation(pp.getWorld())) && //TODO: uh oh! make sure to have a fastladder check, otherwise hackers can "pop" off them
                 !isOnBoat(p, e.getTo()) && !e.isSlimeBlockBounce()) {
@@ -120,6 +121,15 @@ public class Gravity extends MovementCheck {
                     estimatedVelocityAlt = 0;
                 }
                 if(pp.isInLiquid()) { //Entering liquid. You could take two paths depending if you're holding the jump button or not.
+                    estimatedVelocity = (prevEstimatedVelocity + (float)pp.getWaterFlowForce().getY() - 0.08F) * 0.98F;
+                    estimatedVelocity += pp.getWaterFlowForce().getY();
+                    estimatedVelocityAlt = estimatedVelocity;
+                    if(Math.abs(estimatedVelocity) < MIN_VELOCITY) {
+                        estimatedVelocity = 0;
+                    }
+                    if(Math.abs(estimatedVelocityAlt) < MIN_VELOCITY) {
+                        estimatedVelocityAlt = 0;
+                    }
                     estimatedVelocityAlt += 0.04;
                 }
             }
@@ -192,7 +202,7 @@ public class Gravity extends MovementCheck {
                     float discrepancy = alt ? discrepancyB : discrepancyA;
 
                     if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD) {
-                        punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+                        //punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
                     }
                     else {
                         reward(pp);

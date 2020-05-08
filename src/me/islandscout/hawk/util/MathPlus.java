@@ -231,4 +231,8 @@ public final class MathPlus {
         float error = Math.max(dividend, divisor) * 1E-3F;
         return (int)(ans + error);
     }
+
+    public static double[] vector3DToArray(Vector vec) {
+        return new double[] {vec.getX(), vec.getY(), vec.getZ()};
+    }
 }

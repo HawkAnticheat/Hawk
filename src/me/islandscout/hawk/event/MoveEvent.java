@@ -59,6 +59,7 @@ public class MoveEvent extends Event {
     private boolean jumped;
     private boolean slimeBlockBounce;
     private boolean step;
+    private boolean liquidExit;
     private float newFriction; //This is the friction that is used to compute this move's initial force.
     private float oldFriction; //This is the friction that affects this move's velocity.
     private float maxExpectedInputForce;
@@ -91,6 +92,9 @@ public class MoveEvent extends Event {
         slimeBlockBounce = testSlimeBlockBounce();
         waterFlowForce = computeWaterFlowForce();
         maxExpectedInputForce = computeMaximumInputForce();
+        double dy = getTo().getY() - getFrom().getY();
+        double waterYForce = pp.getWaterFlowForce().getY();
+        liquidExit = pp.isExitingLiquidTemp() && (Math.abs(dy - waterYForce - 0.3) < 0.00001 || Math.abs(dy - 0.04 - waterYForce - 0.3) < 0.00001);
 
         setTeleported(false);
         pp.tick();
@@ -108,6 +112,7 @@ public class MoveEvent extends Event {
                 if(elapsedTicks > (ping / 50) - 1) { //1 is an arbitrary constant to keep things smooth
                     //most likely accepted teleport, unless this move is a coincidence
                     pp.updatePositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch(), true);
+                    pp.setVelocity(new Vector(0, 0, 0));
                     pp.setTeleporting(false);
                     pp.setLastTeleportAcceptTick(pp.getCurrentTick());
                     setTeleported(true);
@@ -150,6 +155,9 @@ public class MoveEvent extends Event {
             pp.setConsumingItem(false);
         }
 
+        //handle liquid exit
+        pp.setLiquidExit(testLiquidExit());
+
         //handle swimming
         pp.setInLiquid(isInLiquid());
         if(pp.getCurrentTick() < 2)
@@ -174,6 +182,22 @@ public class MoveEvent extends Event {
         pp.setSentPosUpdate(isUpdatePos());
         if(hasAcceptedKnockback())
             pp.updateLastVelocityAcceptTick();
+    }
+
+    private boolean testLiquidExit() {
+        //seriously?
+        boolean collidingHorizontally = getBoxSidesTouchingBlocks().contains(Direction.EAST) ||
+                                        getBoxSidesTouchingBlocks().contains(Direction.WEST) ||
+                                        getBoxSidesTouchingBlocks().contains(Direction.NORTH) ||
+                                        getBoxSidesTouchingBlocks().contains(Direction.SOUTH);
+
+        Vector offset = getTo().toVector().subtract(getFrom().toVector());
+        offset.setY(offset.getY() * 0.8 - 0.02); //How about gravity in lava? If you're gonna do this, remember that water has priority over lava.
+
+        AABB aabb = AABB.playerCollisionBox.clone();
+        aabb.translate(getTo().toVector().add(offset).add(new Vector(0, 0.6 - getTo().getY() + getFrom().getY(), 0)));
+
+        return pp.isInLiquid() && collidingHorizontally && !aabb.isLiquidPresent(pp.getWorld());
     }
 
     private boolean testStep() {
@@ -533,6 +557,10 @@ public class MoveEvent extends Event {
 
     public boolean isSlimeBlockBounce() {
         return slimeBlockBounce;
+    }
+
+    public boolean isLiquidExit() {
+        return liquidExit;
     }
 
     public Vector getWaterFlowForce() {

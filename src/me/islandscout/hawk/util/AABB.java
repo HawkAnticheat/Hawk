@@ -305,6 +305,23 @@ public class AABB implements Cloneable {
         return mats;
     }
 
+    public boolean isLiquidPresent(World world) {
+        for (int x = (int)Math.floor(min.getX()); x < (int)Math.ceil(max.getX()); x++) {
+            for (int y = (int)Math.floor(min.getY()); y < (int)Math.ceil(max.getY()); y++) {
+                for (int z = (int)Math.floor(min.getZ()); z < (int)Math.ceil(max.getZ()); z++) {
+                    Block block = ServerUtils.getBlockAsync(new Location(world, x, y, z));
+
+                    if(block == null)
+                        continue;
+
+                    if(block.isLiquid())
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+
     //Blocks that barely touch don't count
     public List<AABB> getBlockAABBs(World world, int gameVersion, Material... exemptedMats) {
         Set<Material> exempt = new HashSet<>();
@@ -334,6 +351,55 @@ public class AABB implements Cloneable {
         double distY = Math.max(min.getY() - vector.getY(), Math.max(0, vector.getY() - max.getY()));
         double distZ = Math.max(min.getZ() - vector.getZ(), Math.max(0, vector.getZ() - max.getZ()));
         return Math.sqrt(distX*distX + distY*distY + distZ*distZ);
+    }
+
+    public Vector translateAndCollide(Vector vector, World world, int gameVersion) {
+        AABB preBox = this.clone();
+        preBox.expand(-0.0001, -0.0001, -0.0001);
+        List<AABB> collidedBlocksBefore = preBox.getBlockAABBs(world, gameVersion, Material.WEB);
+
+        double pdX = vector.getX();
+        double pdY = vector.getY();
+        double pdZ = vector.getZ();
+
+        AABB testBox = this.clone();
+        testBox.expand(-0.00000001, -0.00000001, -0.00000001);
+        pdX = moveOnAxis(testBox, pdX, 0, world, gameVersion, collidedBlocksBefore);
+        pdY = moveOnAxis(testBox, pdY, 1, world, gameVersion, collidedBlocksBefore);
+        pdZ = moveOnAxis(testBox, pdZ, 2, world, gameVersion, collidedBlocksBefore);
+
+        Vector move = new Vector(pdX, pdY, pdZ);
+        translate(move);
+
+        return move;
+    }
+
+    private double moveOnAxis(AABB box, double delta, int axis, World world, int gameVersion, List<AABB> collidedBlocksBefore) {
+        byte[] mask = new byte[3];
+        mask[axis] = 1;
+        boolean positive = delta > 0;
+        box.translate(new Vector(mask[0] * delta, mask[1] * delta, mask[2] * delta));
+        List<AABB> collidedBlocks = box.getBlockAABBs(world, gameVersion, Material.WEB);
+        collidedBlocks.removeAll(collidedBlocksBefore);
+
+        double highestPoint = positive ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+        for(AABB aabb : collidedBlocks) {
+            double[] min = MathPlus.vector3DToArray(aabb.getMin());
+            double[] max = MathPlus.vector3DToArray(aabb.getMax());
+            double point = positive ? min[axis] : max[axis];
+            if(positive && point < highestPoint)
+                highestPoint = point;
+            else if(!positive && point > highestPoint)
+                highestPoint = point;
+        }
+        if(Double.isFinite(highestPoint)) {
+            double[] min = MathPlus.vector3DToArray(box.getMin());
+            double[] max = MathPlus.vector3DToArray(box.getMax());
+            double invPenetrationDist = positive ? highestPoint - max[axis] - 0.00000001 : highestPoint - min[axis] + 0.00000001;
+            box.translate(new Vector(mask[0] * invPenetrationDist, mask[1] * invPenetrationDist, mask[2] * invPenetrationDist));
+            delta += invPenetrationDist;
+        }
+        return delta;
     }
 
     @Override

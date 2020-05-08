@@ -86,6 +86,7 @@ public class HawkPlayer {
     private boolean prevTickOnGround;
     private boolean onGroundReally;
     private boolean sentPosUpdate;
+    private boolean liquidExit;
     private float friction;
     private int ping;
     private short pingJitter;
@@ -382,6 +383,10 @@ public class HawkPlayer {
 
     public void setPitch(float pitch) {
         this.pitch = pitch;
+    }
+
+    public void setVelocity(Vector velocity) {
+        this.velocity = velocity;
     }
 
     public Vector getVelocity() {
@@ -905,6 +910,15 @@ public class HawkPlayer {
 
     public void setFriction(float friction) {
         this.friction = friction;
+    }
+
+    //DO NOT USE THIS IN CHECKS. USE MoveEvent#isLiquidExit()
+    public boolean isExitingLiquidTemp() {
+        return liquidExit;
+    }
+
+    public void setLiquidExit(boolean liquidExit) {
+        this.liquidExit = liquidExit;
     }
 
     //safely kill the connection
