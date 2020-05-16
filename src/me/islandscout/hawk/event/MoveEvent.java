@@ -74,7 +74,7 @@ public class MoveEvent extends Event {
         this.updatePos = updatePos;
         this.updateRot = updateRot;
         this.onGround = onGround;
-        this.liquidTypes = new HashSet<>();
+        this.liquidTypes = EnumSet.noneOf(Material.class);
     }
 
     @Override

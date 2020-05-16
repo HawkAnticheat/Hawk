@@ -44,16 +44,7 @@ public class AdjacentBlocks {
         blocks.add(ServerUtils.getBlockAsync(check.add(-0.3, 0, 0)));
         blocks.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
         blocks.add(ServerUtils.getBlockAsync(check.add(0, 0, 0.3)));
-
-        Block previousBlock = null;
-        Iterator<Block> blockIterator = blocks.iterator();
-        while (blockIterator.hasNext()) {
-            Block currentBlock = blockIterator.next();
-            if (currentBlock == null || currentBlock.getType() == Material.AIR || (currentBlock.equals(previousBlock))) {
-                blockIterator.remove();
-            }
-            previousBlock = currentBlock;
-        }
+        blocks.remove(null);
         return blocks;
     }
 
@@ -169,15 +160,7 @@ public class AdjacentBlocks {
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check));
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, -1, 0)));
 
-        Block prevBlock = null;
-        Iterator<Block> blockIterator = blocks.iterator();
-        while (blockIterator.hasNext()){
-            Block currentBlock = blockIterator.next();
-            if (currentBlock.equals(prevBlock) || pp.getIgnoredBlockCollisions().contains(currentBlock.getLocation())){
-                blockIterator.remove();
-            }
-            prevBlock = currentBlock;
-        }
+        blocks.removeIf(currentBlock -> pp.getIgnoredBlockCollisions().contains(currentBlock.getLocation()));
 
         AABB underFeet = new AABB(loc.toVector().add(new Vector(-0.3, -feetDepth, -0.3)), loc.toVector().add(new Vector(0.3, 0, 0.3)));
         for (Block block : blocks) {
@@ -235,7 +218,7 @@ public class AdjacentBlocks {
         AABB bigBox = boundingBox.clone();
         Vector min = bigBox.getMin().add(new Vector(-borderSize, -borderSize, -borderSize));
         Vector max = bigBox.getMax().add(new Vector(borderSize, borderSize, borderSize));
-        Set<Direction> directions = new HashSet<>();
+        Set<Direction> directions = EnumSet.noneOf(Direction.class);
         //The coordinates should be floored, but this works too.
         for (int x = (int) (min.getX() < 0 ? min.getX() - 1 : min.getX()); x <= max.getX(); x++) {
             for (int y = (int) min.getY() - 1; y <= max.getY(); y++) { //always subtract 1 so that fences/walls can be checked
