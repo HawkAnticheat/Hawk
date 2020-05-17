@@ -85,7 +85,7 @@ public class SprintDirection extends MovementCheck {
         Vector yawVec = MathPlus.getDirection(yaw, 0);
 
         if(MathPlus.angle(yawVec, moveForce) > Math.PI / 4 + 0.3) { //0.3 is arbitrary. Prevents falses due to silly stuff in game
-            punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+            punishAndTryRubberband(pp, e);
         }
         else {
             reward(pp);

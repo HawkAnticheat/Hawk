@@ -51,7 +51,7 @@ public class FastFall extends MovementCheck {
                 !AdjacentBlocks.blockNearbyIsSolid(chkPos, false) &&
                 !AdjacentBlocks.matIsAdjacent(e.getTo(), Material.LADDER, Material.VINE)) {
             if(deltaY + 0.02 < expected) {
-                punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+                punishAndTryRubberband(pp, e);
             }
             else {
                 reward(pp);

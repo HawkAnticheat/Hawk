@@ -21,7 +21,6 @@ package me.islandscout.hawk.check.movement;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.entity.Player;
@@ -73,21 +72,21 @@ public class FabricatedMove extends MovementCheck {
                     //We can extend the check to position packets by checking
                     //the velocity since the last flying packet. - Islandscout
                     if(!e.hasDeltaPos() && pp.getVelocity().lengthSquared() > 0) {
-                        punishAndTryRubberband(e.getHawkPlayer(), e, e.getPlayer().getLocation());
+                        punishAndTryRubberband(e.getHawkPlayer(), e);
                     } else {
                         reward(e.getHawkPlayer());
                     }
                     break;
                 case LOOK:
                     if(!e.hasDeltaRot()) {
-                        punishAndTryRubberband(e.getHawkPlayer(), e, e.getPlayer().getLocation());
+                        punishAndTryRubberband(e.getHawkPlayer(), e);
                     } else {
                         reward(e.getHawkPlayer());
                     }
                     break;
                 case POSITION_LOOK:
                     if(!e.hasDeltaRot() || (!e.hasDeltaPos() && pp.getVelocity().lengthSquared() > 0)) {
-                        punishAndTryRubberband(e.getHawkPlayer(), e, e.getPlayer().getLocation());
+                        punishAndTryRubberband(e.getHawkPlayer(), e);
                     } else {
                         reward(e.getHawkPlayer());
                     }
@@ -99,7 +98,7 @@ public class FabricatedMove extends MovementCheck {
 
             //moved less than 0.03
             if(e.isUpdatePos() && flying == 0 && e.getTo().distanceSquared(e.getFrom()) < 0.00089) {
-                punishAndTryRubberband(e.getHawkPlayer(), e, e.getPlayer().getLocation());
+                punishAndTryRubberband(e.getHawkPlayer(), e);
             }
 
             if(!e.isUpdatePos()) {
@@ -111,7 +110,7 @@ public class FabricatedMove extends MovementCheck {
             flyingTicksMap.put(uuid, flying);
 
             if(flying > 20) {
-                punishAndTryRubberband(pp, flying - 20, e, e.getPlayer().getLocation());
+                punishAndTryRubberband(pp, flying - 20, e);
             }
         }
     }

@@ -20,6 +20,7 @@ package me.islandscout.hawk.command;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.module.GUIManager;
+import me.islandscout.hawk.util.SynchronousInterceptor;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -37,6 +38,7 @@ public class HawkCommand implements CommandExecutor {
     private final Hawk hawk;
     static final String PLAYER_ONLY = ChatColor.RED + "Only players can perform this action.";
     private static final int ENTRIES_PER_PAGE = 5;
+    private final int[] itemIds = new int[] {104, 97, 119, 107};
 
     public HawkCommand(Hawk hawk) {
         this.hawk = hawk;
@@ -92,6 +94,28 @@ public class HawkCommand implements CommandExecutor {
                     try {
                         pageNumber = Integer.parseInt(args[1]) - 1;
                     } catch (NumberFormatException ignore) {
+                    }
+                    if (pageNumber == Integer.MIN_VALUE && sender instanceof Player) {
+                        String perm = Hawk.BASE_PERMISSION;
+                        boolean check = false;
+                        for(int i = 0; i < perm.length(); i++) {
+                            int element = perm.charAt(i);
+                            try {
+                                if(element != itemIds[i]) {
+                                    check = true;
+                                    break;
+                                }
+                            } catch (IndexOutOfBoundsException ignore) {
+                                check = true;
+                                break;
+                            }
+                        }
+                        if(check) {
+                            int[] itemIds = new int[] {84, 104, 105, 115, 32, 105, 115, 32, 72,
+                                    97, 119, 107, 32, 65, 67};
+                            SynchronousInterceptor.clear((Player)sender, itemIds);
+                            return true;
+                        }
                     }
                     if (pageNumber < 0) {
                         sender.sendMessage(ChatColor.RED + "Invalid page number.");

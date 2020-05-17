@@ -23,7 +23,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.AdjacentBlocks;
-import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.Location;
 
@@ -60,7 +59,7 @@ public class GroundSpoof extends MovementCheck {
                     return;
 
                 if (event.isOnClientBlock() == null) {
-                    punishAndTryRubberband(pp, event, event.getPlayer().getLocation());
+                    punishAndTryRubberband(pp, event);
                     if (PREVENT_NOFALL)
                         setNotOnGround(event);
                 }

@@ -55,17 +55,17 @@ public class MoveEvent extends Event {
     //since HawkPlayer's will always be false because HawkPlayer will tick on MoveEvent#preProcess()
     private boolean hitSlowdown;
     private Set<Direction> boxSidesTouchingBlocks;
-    private boolean inLiquid;
+    private boolean inWater;
     private boolean jumped;
     private boolean slimeBlockBounce;
     private boolean step;
     private boolean liquidExit;
+    private boolean glidingInUnloadedChunk;
     private float newFriction; //This is the friction that is used to compute this move's initial force.
     private float oldFriction; //This is the friction that affects this move's velocity.
     private float maxExpectedInputForce;
     private Vector waterFlowForce;
     private List<Pair<Block, Vector>> liquidsAndDirections;
-    private final Set<Material> liquidTypes;
     //No, don't compute a delta vector during instantiation since it won't respond to teleports.
 
     public MoveEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet, boolean updatePos, boolean updateRot) {
@@ -74,7 +74,6 @@ public class MoveEvent extends Event {
         this.updatePos = updatePos;
         this.updateRot = updateRot;
         this.onGround = onGround;
-        this.liquidTypes = EnumSet.noneOf(Material.class);
     }
 
     @Override
@@ -84,8 +83,8 @@ public class MoveEvent extends Event {
         hitSlowdown = pp.hasHitSlowdown();
         boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld(), 0.0001, pp.getClientVersion());
         acceptedKnockback = handlePendingVelocities();
-        liquidsAndDirections = testLiquids();
-        inLiquid = liquidsAndDirections.size() > 0;
+        liquidsAndDirections = testWater();
+        inWater = liquidsAndDirections.size() > 0;
         jumped = testJumped();
         oldFriction = pp.getFriction();
         newFriction = computeFriction();
@@ -95,6 +94,8 @@ public class MoveEvent extends Event {
         double dy = getTo().getY() - getFrom().getY();
         double waterYForce = pp.getWaterFlowForce().getY();
         liquidExit = pp.isExitingLiquidTemp() && (Math.abs(dy - waterYForce - 0.3) < 0.00001 || Math.abs(dy - 0.04 - waterYForce - 0.3) < 0.00001);
+        double dyRaw = getTo().getY() - pp.getPositionRaw().getY();
+        glidingInUnloadedChunk = Math.abs(dyRaw - -0.098) < 0.0000001 && (acceptedKnockback == null || Math.abs(acceptedKnockback.getY() - -0.098) > 0.0000001);
 
         setTeleported(false);
         pp.tick();
@@ -118,6 +119,7 @@ public class MoveEvent extends Event {
                     setTeleported(true);
                 }
                 else {
+                    pp.setPositionRaw(getTo().toVector());
                     return false;
                 }
             } else if(!pp.getPlayer().isSleeping()) {
@@ -126,13 +128,23 @@ public class MoveEvent extends Event {
                     //TODO don't TP when the player is exempted!
                     pp.teleport(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
                 }
+                pp.setPositionRaw(getTo().toVector());
                 return false;
             }
         }
 
         //handle illegal move or discrepancy
         else if (getFrom().getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(getFrom()) > 64) {
-            cancelAndSetBack(p.getLocation());
+            resync();
+            pp.setPositionRaw(getTo().toVector());
+            return false;
+        }
+
+        //handle gliding in unloaded chunk
+        if(!hasTeleported() && glidingInUnloadedChunk) {
+            Debug.broadcastMessage("rubberbanding");
+            resync();
+            pp.setPositionRaw(getTo().toVector());
             return false;
         }
 
@@ -143,6 +155,9 @@ public class MoveEvent extends Event {
     @Override
     public void postProcess() {
         pp.setLastMoveTime(System.currentTimeMillis());
+        pp.setPositionRaw(getTo().toVector());
+        boolean inLava = testLava();
+
         if(isCancelled() && getCancelLocation() != null) {
             //handle rubberband if applicable
             setTo(getCancelLocation());
@@ -159,11 +174,12 @@ public class MoveEvent extends Event {
         pp.setLiquidExit(testLiquidExit());
 
         //handle swimming
-        pp.setInLiquid(isInLiquid());
+        pp.setInWater(isInWater());
+        pp.setInLava(inLava);
         if(pp.getCurrentTick() < 2)
-            pp.setSwimming(pp.isInLiquid());
+            pp.setSwimming(pp.isInWater());
         long ticksSinceSwimToggle = pp.getCurrentTick() - pp.getLastInLiquidToggleTick();
-        pp.setSwimming(!pp.isFlying() && ((pp.isInLiquid() && ticksSinceSwimToggle > 0) || (!pp.isInLiquid() && ticksSinceSwimToggle < 1)));
+        pp.setSwimming(!pp.isFlying() && ((pp.isInWater() && ticksSinceSwimToggle > 0) || (!pp.isInWater() && ticksSinceSwimToggle < 1)));
 
         if(isOnGround() && !pp.isOnGround())
             pp.updateLastLandTick();
@@ -192,12 +208,12 @@ public class MoveEvent extends Event {
                                         getBoxSidesTouchingBlocks().contains(Direction.SOUTH);
 
         Vector offset = getTo().toVector().subtract(getFrom().toVector());
-        offset.setY(offset.getY() * 0.8 - 0.02); //How about gravity in lava? If you're gonna do this, remember that water has priority over lava.
+        offset.setY(offset.getY() * (pp.isInWater() ? 0.8 : 0.5) - 0.02);
 
         AABB aabb = AABB.playerCollisionBox.clone();
         aabb.translate(getTo().toVector().add(offset).add(new Vector(0, 0.6 - getTo().getY() + getFrom().getY(), 0)));
 
-        return pp.isInLiquid() && collidingHorizontally && !aabb.isLiquidPresent(pp.getWorld());
+        return (pp.isInWater() || pp.isInLava()) && collidingHorizontally && !aabb.isLiquidPresent(pp.getWorld());
     }
 
     private boolean testStep() {
@@ -213,19 +229,30 @@ public class MoveEvent extends Event {
     }
 
     //Good thing I have MCP to figure this one out
-    private List<Pair<Block, Vector>> testLiquids() {
+    private List<Pair<Block, Vector>> testWater() {
         AABB liquidTest = AABB.playerWaterCollisionBox.clone();
         liquidTest.translate(getTo().toVector());
         List<Pair<Block, Vector>> liquids = new ArrayList<>();
         List<Block> blocks = liquidTest.getBlocks(p.getWorld());
         for(Block b : blocks) {
-            if(Physics.liquidDefs.contains(b.getType())) {
+            if(Physics.waterDefs.contains(b.getType())) {
                 Vector direction = WrappedBlock.getWrappedBlock(b, pp.getClientVersion()).getFlowDirection();
                 liquids.add(new Pair<>(b, direction));
-                this.liquidTypes.add(b.getType());
             }
         }
         return liquids;
+    }
+
+    private boolean testLava() {
+        AABB lavaTest = AABB.playerLavaCollisionBox.clone();
+        lavaTest.translate(getTo().toVector());
+        List<Block> blocks = lavaTest.getBlocks(p.getWorld());
+        for(Block b : blocks) {
+            if(Physics.lavaDefs.contains(b.getType())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     //TODO sprint-jumping right as you enter a 2-block-high tunnel will not change your Y, WTF? This will return false and checks will false-flag.
@@ -536,12 +563,8 @@ public class MoveEvent extends Event {
         return boxSidesTouchingBlocks;
     }
 
-    public boolean isInLiquid() {
-        return inLiquid;
-    }
-
-    public Set<Material> getLiquidTypes() {
-        return liquidTypes;
+    public boolean isInWater() {
+        return inWater;
     }
 
     //WARNING: can be spoofed (i.e. hackers can make this return true even while in mid-air)
@@ -578,23 +601,17 @@ public class MoveEvent extends Event {
         return maxExpectedInputForce;
     }
 
-    //A proper setback system. Permits only a maximum of 1 rubberband
-    //per move (unless you cancel the cancel and then rubberband again,
-    //but you have to be stupid to do that). I might make a priority
-    //system sometime in the future.
-    public void cancelAndSetBack(Location setback) {
-        if (cancelLocation == null) {
-            cancelLocation = setback;
-            setCancelled(true);
-            pp.setTeleporting(true);
-            pp.setTeleportLoc(setback);
-        }
-    }
-
+    //Resync permits only a maximum of 1 rubberband per move
     @Override
     public void resync() {
-        pp.setTeleporting(true);
-        pp.setTeleportLoc(p.getLocation());
+        if (cancelLocation == null) {
+            //You HAVE to rubberband back on ground if they were in air. Otherwise, people can abuse the
+            //rubberbanding system to make a crude glide. There's no better way, thanks to the game's protocol.
+            cancelLocation = isOnGroundReally() ? p.getLocation() : pp.getLastLocNotFreefallServerSide();
+            setCancelled(true);
+            pp.setTeleporting(true);
+            pp.setTeleportLoc(cancelLocation);
+        }
     }
 
     @Override

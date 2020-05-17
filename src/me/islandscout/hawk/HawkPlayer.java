@@ -68,9 +68,11 @@ public class HawkPlayer {
     //Be careful when playing with these fields.
     //World is not sync'd to position, yaw, nor pitch.
     private World world; //updated by server
-    private Vector position; //updated by client
-    private float yaw; //updated by client
-    private float pitch; //updated by client
+    private Vector position; //updated by server and client
+    private Vector positionRaw; //updated by client
+    private Location lastLocNotFreefallServerSide; //updated by server
+    private float yaw; //updated by server and client
+    private float pitch; //updated by server and client
 
     private Vector predictedPosition; //ticked by client
     private Vector predictedVelocity;
@@ -98,7 +100,8 @@ public class HawkPlayer {
     private boolean pullingBow;
     private boolean consumingItem;
     private byte inventoryOpen; //0 for closed; 1 for own inventory; 2 for any other inventory. Updated by server & client
-    private boolean inLiquid;
+    private boolean inWater;
+    private boolean inLava;
     private boolean swimming;
     private boolean inVehicle; //updated by server
     private boolean allowedToFly; //updated by server
@@ -135,6 +138,8 @@ public class HawkPlayer {
         Location defaultLocation = p.getLocation();
         this.world = p.getWorld();
         this.position = defaultLocation.toVector();
+        this.positionRaw = defaultLocation.toVector();
+        this.lastLocNotFreefallServerSide = defaultLocation;
         this.yaw = defaultLocation.getYaw();
         this.pitch = defaultLocation.getPitch();
         this.velocity = new Vector();
@@ -176,6 +181,9 @@ public class HawkPlayer {
         cleanUpOldMetaDataUpdates();
         entitiesInteractedInThisTick.clear();
         predictNextPosition();
+        Location serverSideLoc = p.getLocation().clone();
+        if(AdjacentBlocks.onGroundReally(serverSideLoc, -1, true, 0.03, this))
+            lastLocNotFreefallServerSide = serverSideLoc;
         if(consumingItem)
             itemConsumeTicks++;
     }
@@ -246,9 +254,7 @@ public class HawkPlayer {
         return teleportLoc;
     }
 
-    /*TODO no no no no no... this is NOT how we handle teleports. THE MAIN THREAD SHOULD BE THE ONLY THREAD TOUCHING THIS.
-     No wonder why it's so fkin difficult to do /spawn while getting rubberbanded back and forth. REDO THIS SYSTEM.
-    */
+    //TODO Have this take a Teleport and give non-clear teleports priority. HawkPlayer needs to store its current Teleport. setTeleporting(false) should set it to null
     public void setTeleportLoc(Location teleportLoc) {
         this.teleportLoc = teleportLoc;
     }
@@ -330,6 +336,11 @@ public class HawkPlayer {
         return position;
     }
 
+    //the player's position since the last flying packet; completely untouched
+    public Vector getPositionRaw() {
+        return positionRaw;
+    }
+
     //currently doesn't support when in vehicle
     public Vector getHeadPosition() {
         Vector add = new Vector(0, 0, 0);
@@ -344,10 +355,6 @@ public class HawkPlayer {
     //Returns the predicted position of the HawkPlayer, assuming no user input.
     public Vector getPositionPredicted() {
         return predictedPosition;
-    }
-
-    public void setPosition(Vector position) {
-        this.position = position;
     }
 
     public void updatePositionYawPitch(Vector position, float yaw, float pitch, boolean isPosUpdate) {
@@ -367,6 +374,10 @@ public class HawkPlayer {
             if(hasSentPosUpdate())
                 predictedVelocity = velocity.clone();
         }
+    }
+
+    public void setPositionRaw(Vector positionRaw) {
+        this.positionRaw = positionRaw;
     }
 
     public float getYaw() {
@@ -481,15 +492,23 @@ public class HawkPlayer {
             itemConsumeTicks = 0;
     }
 
-    public boolean isInLiquid() {
-        return inLiquid;
+    public boolean isInWater() {
+        return inWater;
     }
 
-    public void setInLiquid(boolean inLiquid) {
-        if(this.inLiquid != inLiquid) {
+    public void setInWater(boolean inWater) {
+        if(this.inWater != inWater) {
             lastInLiquidToggleTick = currentTick;
-            this.inLiquid = inLiquid;
+            this.inWater = inWater;
         }
+    }
+
+    public boolean isInLava() {
+        return inLava;
+    }
+
+    public void setInLava(boolean inLava) {
+        this.inLava = inLava;
     }
 
     @Deprecated
@@ -919,6 +938,10 @@ public class HawkPlayer {
 
     public void setLiquidExit(boolean liquidExit) {
         this.liquidExit = liquidExit;
+    }
+
+    public Location getLastLocNotFreefallServerSide() {
+        return lastLocNotFreefallServerSide;
     }
 
     //safely kill the connection

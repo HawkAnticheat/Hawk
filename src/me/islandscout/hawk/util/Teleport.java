@@ -16,27 +16,38 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.check.movement.look;
+package me.islandscout.hawk.util;
 
-import me.islandscout.hawk.check.MovementCheck;
-import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.HawkPlayer;
+import org.bukkit.Location;
 
-//Not really an important check. This just stops skids from thinking they're so cool.
-public class InvalidPitch extends MovementCheck {
+public class Teleport {
 
-    //PASSED (9/11/18)
+    private Cause cause;
+    private HawkPlayer pp;
+    private Location to;
 
-    public InvalidPitch() {
-        super("invalidpitch", "%player% failed invalid pitch. VL: %vl%");
+    public Teleport(Cause cause, HawkPlayer pp, Location to) {
+        this.cause = cause;
+        this.pp = pp;
+        this.to = to;
     }
 
-    @Override
-    protected void check(MoveEvent event) {
-        if (!event.hasDeltaRot())
-            return;
-        if (Math.abs(event.getTo().getPitch()) > 90)
-            punishAndTryRubberband(event.getHawkPlayer(), event);
-        else
-            reward(event.getHawkPlayer());
+    public Cause getCause() {
+        return cause;
     }
+
+    public HawkPlayer getPp() {
+        return pp;
+    }
+
+    public Location getTo() {
+        return to;
+    }
+
+    enum Cause {
+        RESYNC,
+        OTHER
+    }
+
 }

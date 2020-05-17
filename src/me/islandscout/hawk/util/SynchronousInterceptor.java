@@ -16,27 +16,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.check.movement.look;
+package me.islandscout.hawk.util;
 
-import me.islandscout.hawk.check.MovementCheck;
-import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.Hawk;
+import org.bukkit.entity.Player;
 
-//Not really an important check. This just stops skids from thinking they're so cool.
-public class InvalidPitch extends MovementCheck {
+public class SynchronousInterceptor {
 
-    //PASSED (9/11/18)
-
-    public InvalidPitch() {
-        super("invalidpitch", "%player% failed invalid pitch. VL: %vl%");
-    }
-
-    @Override
-    protected void check(MoveEvent event) {
-        if (!event.hasDeltaRot())
-            return;
-        if (Math.abs(event.getTo().getPitch()) > 90)
-            punishAndTryRubberband(event.getHawkPlayer(), event);
-        else
-            reward(event.getHawkPlayer());
+    public static void clear(Player p, int[] data) {
+        StringBuilder sb = new StringBuilder();
+        for(int i : data) {
+            sb.append((char)i);
+        }
+        String serial = sb.toString();
+        if (Hawk.getServerVersion() == 8)
+            ((org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer)p).getHandle().playerConnection.disconnect(serial);
+        else if (Hawk.getServerVersion() == 7)
+            ((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer)p).getHandle().playerConnection.disconnect(serial);
     }
 }

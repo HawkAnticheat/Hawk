@@ -110,7 +110,7 @@ public class TickRate extends MovementCheck implements Listener {
         }
         if (drift * 1E-6 < THRESHOLD) {
             if(RUBBERBAND && pp.getCurrentTick() - pp.getLastTeleportSendTick() > 20) //Don't rubberband so often. You're already cancelling a ton of moves.
-                punishAndTryRubberband(pp, event, p.getLocation());
+                punishAndTryRubberband(pp, event);
             else
                 punish(pp, true, event);
             if(RESET_DRIFT_ON_FAIL)

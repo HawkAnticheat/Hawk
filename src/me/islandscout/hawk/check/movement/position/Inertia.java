@@ -26,10 +26,6 @@ import me.islandscout.hawk.util.MathPlus;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 public class Inertia extends MovementCheck {
 
     //"Inertia is a property of matter... Bill, Bill, Bill..."
@@ -64,11 +60,11 @@ public class Inertia extends MovementCheck {
 
             //angle check
             if (horizSpeedSquared > 0.05 && deltaAngle > 0.2) {
-                punishAndTryRubberband(pp, e, p.getLocation());
+                punishAndTryRubberband(pp, e);
 
             //magnitude check
             } else if(prevVector.lengthSquared() > 0.01 && moveVector.length() < magnitudeThres) {
-                punishAndTryRubberband(pp, e, p.getLocation());
+                punishAndTryRubberband(pp, e);
             }
 
             else {

@@ -37,7 +37,6 @@ import java.util.*;
 public class Gravity extends MovementCheck {
 
     //TODO do not forget checkerclimb. Blocks within 0.3 should be treated as AIR unless they are in HawkPlayer's collision ignore list
-    //TODO set up proper location to rubberband (do not rubberband to Player#getLocation(), this makes a very crude, but possible glide bypass. Exploits Y motion behavior after TP)
     //TODO perhaps have a ground checking mode? clientside vs serverside? doing it server side can allow GroundSpoof to not cancel, yet Gravity will still catch groundspoof-based flys
 
     private static final float MIN_VELOCITY = 0.005F;
@@ -50,6 +49,7 @@ public class Gravity extends MovementCheck {
     private final Map<UUID, Integer> noMovesMap;
     private final Map<UUID, Location> legitLoc;
     private final Set<UUID> wasFlyingSet;
+    private final Set<UUID> wasInLavaSet;
 
     public Gravity() {
         super("gravity", true, 0, 10, 0.995, 5000, "&7%player% failed gravity, VL: %vl%", null);
@@ -58,6 +58,7 @@ public class Gravity extends MovementCheck {
         noMovesMap = new HashMap<>();
         legitLoc = new HashMap<>();
         wasFlyingSet = new HashSet<>();
+        wasInLavaSet = new HashSet<>();
     }
 
     @Override
@@ -80,6 +81,8 @@ public class Gravity extends MovementCheck {
 
         boolean opposingForce = e.isJump() || e.hasAcceptedKnockback() || e.hasTeleported() || e.isStep();
 
+        boolean wasInLava = wasInLavaSet.contains(p.getUniqueId());
+
         if((!e.isOnGround() || !pp.isOnGround()) && !opposingForce && !e.isLiquidExit() &&
                 !p.isInsideVehicle() && !pp.isFlying() && !wasFlyingSet.contains(p.getUniqueId()) &&
                 !p.isSleeping() && !isInClimbable(from.toLocation(pp.getWorld())) && //TODO: uh oh! make sure to have a fastladder check, otherwise hackers can "pop" off them
@@ -101,9 +104,17 @@ public class Gravity extends MovementCheck {
             if (touchedBlocks.contains(Material.WEB)) { //web function
                 estimatedVelocity = ((prevEstimatedVelocity * 0.98F) - (0.08F * 0.98F)) * 0.05F;
                 estimatedVelocityAlt = estimatedVelocity;
-            } else if(pp.isSwimming()) { //liquids functions
-                //NOTE water has priority over lava
+            } else if(pp.isSwimming()) { //water functions
                 estimatedVelocity = estimatedVelocityAlt = (prevEstimatedVelocity * 0.8F) + (float)(-0.02 + pp.getWaterFlowForce().getY());
+                if(Math.abs(estimatedVelocity) < MIN_VELOCITY) {
+                    estimatedVelocity = 0;
+                }
+                if(Math.abs(estimatedVelocityAlt) < MIN_VELOCITY) {
+                    estimatedVelocityAlt = 0;
+                }
+                estimatedVelocityAlt += 0.04; //add swimming-up force
+            } else if(wasInLava) { //lava functions
+                estimatedVelocity = estimatedVelocityAlt = (prevEstimatedVelocity * 0.5F) - 0.02F;
                 if(Math.abs(estimatedVelocity) < MIN_VELOCITY) {
                     estimatedVelocity = 0;
                 }
@@ -120,7 +131,7 @@ public class Gravity extends MovementCheck {
                 if(Math.abs(estimatedVelocityAlt) < MIN_VELOCITY) {
                     estimatedVelocityAlt = 0;
                 }
-                if(pp.isInLiquid()) { //Entering liquid. You could take two paths depending if you're holding the jump button or not.
+                if(pp.isInWater() || pp.isInLava()) { //Entering liquid. You could take two paths depending if you're holding the jump button or not.
                     estimatedVelocity = (prevEstimatedVelocity + (float)pp.getWaterFlowForce().getY() - 0.08F) * 0.98F;
                     estimatedVelocity += pp.getWaterFlowForce().getY();
                     estimatedVelocityAlt = estimatedVelocity;
@@ -177,7 +188,7 @@ public class Gravity extends MovementCheck {
                 float discrepancy = y - estimatedPosition;
                 //y must be between last Y and estimatedPosition.
                 if (Math.abs(discrepancy) > DISCREPANCY_THRESHOLD && (y < Math.min(estimatedPosition, from.getY()) || y > Math.max(estimatedPosition, from.getY()))) {
-                    punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+                    punishAndTryRubberband(pp, e);
                 } else {
                     reward(pp);
                 }
@@ -202,7 +213,7 @@ public class Gravity extends MovementCheck {
                     float discrepancy = alt ? discrepancyB : discrepancyA;
 
                     if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD) {
-                        //punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+                        punishAndTryRubberband(pp, e);
                     }
                     else {
                         reward(pp);
@@ -245,6 +256,12 @@ public class Gravity extends MovementCheck {
             wasFlyingSet.add(p.getUniqueId());
         } else {
             wasFlyingSet.remove(p.getUniqueId());
+        }
+
+        if(pp.isInLava()) {
+            wasInLavaSet.add(p.getUniqueId());
+        } else {
+            wasInLavaSet.remove(p.getUniqueId());
         }
     }
 

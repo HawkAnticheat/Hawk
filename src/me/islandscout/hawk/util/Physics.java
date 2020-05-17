@@ -69,7 +69,8 @@ public final class Physics {
     public static final float FLY_SPRINT_MULTIPLIER = 2F;
     public static final float SPRINT_MULTIPLIER = 1.3F;
 
-    public static final List<Material> liquidDefs = Arrays.asList(Material.WATER, Material.STATIONARY_WATER, Material.LAVA, Material.STATIONARY_LAVA);
+    public static final List<Material> waterDefs = Arrays.asList(Material.WATER, Material.STATIONARY_WATER);
+    public static final List<Material> lavaDefs = Arrays.asList(Material.LAVA, Material.STATIONARY_LAVA);
 
     private Physics() {
     }

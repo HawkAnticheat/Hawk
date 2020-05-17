@@ -51,7 +51,7 @@ public class SmallHop extends MovementCheck {
                 !AdjacentBlocks.blockAdjacentIsSolid(checkPos) && !AdjacentBlocks.blockAdjacentIsSolid(checkPos.add(0, 1, 0)) && !AdjacentBlocks.blockAdjacentIsLiquid(checkPos.add(0, -1, 0)) &&
                 !AdjacentBlocks.blockAdjacentIsLiquid(checkPos.add(0, -1, 0)) && !AdjacentBlocks.matIsAdjacent(e.getTo(), Material.LADDER, Material.VINE) &&
                 !AdjacentBlocks.onGroundReally(e.getTo(), -1, false, 0.001, pp)) {
-            punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+            punishAndTryRubberband(pp, e);
         }
         else {
             reward(pp);

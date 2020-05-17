@@ -123,7 +123,7 @@ public class Fly extends MovementCheck implements Listener {
                 epsilon = 0.000001;
                 if (AdjacentBlocks.onGroundReally(event.getTo().clone().add(0, -0.03, 0), -1, false, 0.02, pp))
                     return;
-            } else if(!pp.isInLiquid() && event.isInLiquid()) {
+            } else if(!pp.isInWater() && event.isInWater()) {
                 //entering liquid
                 lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) * 0.98) - 0.038399);
             } else {
@@ -167,7 +167,7 @@ public class Fly extends MovementCheck implements Listener {
 
                 //scold the child
                 punish(pp, false, event);
-                tryRubberband(event, legitLoc.getOrDefault(p.getUniqueId(), p.getLocation()));
+                tryRubberband(event);
                 lastDeltaY.put(p.getUniqueId(), canCancel() ? 0 : deltaY);
                 failedSoDontUpdateRubberband.add(p.getUniqueId());
                 return;

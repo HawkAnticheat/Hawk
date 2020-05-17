@@ -99,7 +99,7 @@ public class Speed extends MovementCheck implements Listener {
             noMoves++;
 
         boolean flying = pp.isFlying();
-        boolean swimming = pp.isInLiquid(); //this needs improvement
+        boolean swimming = pp.isInWater(); //this needs improvement
         //it is possible that the player has pressed the jump key even if this move is "stepped" (only while sprinting)
         boolean jump = event.isJump() || (event.isStep() && pp.isOnGround() && pp.isSprinting());
 
@@ -179,7 +179,7 @@ public class Speed extends MovementCheck implements Listener {
             }
 
             if(discrepancy.value > 0 && totalDiscrepancy > DISCREPANCY_THRESHOLD) {
-                punishAndTryRubberband(pp, discrepancy.value * VL_FAIL_DISCREPANCY_FACTOR, event, p.getLocation());
+                punishAndTryRubberband(pp, discrepancy.value * VL_FAIL_DISCREPANCY_FACTOR, event);
                 if(RESET_DISCREPANCY_ON_FAIL)
                     discrepancies.put(p.getUniqueId(), 0D);
                 if(RELEASE_ITEM_OVER_VL > -1 && (pp.isPullingBow() || pp.isConsumingItem() || pp.isBlocking()) && pp.getVL(this) > RELEASE_ITEM_OVER_VL)

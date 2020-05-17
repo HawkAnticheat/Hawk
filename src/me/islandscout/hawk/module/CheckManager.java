@@ -95,7 +95,7 @@ public class CheckManager {
         //new FastFall();
         new MultiAction();
         new SprintDirection();
-        new SwimVertical();
+        //new SwimVertical();
         new ClickDuration();
         new FightSpeedConsistency();
         new AimbotPrecision();

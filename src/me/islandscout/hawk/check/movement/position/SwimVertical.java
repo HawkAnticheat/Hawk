@@ -45,7 +45,7 @@ public class SwimVertical extends MovementCheck {
         //TODO: optimize
         Set<Direction> boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(e.getFrom().toVector().add(new Vector(-0.299, 0.001, -0.299)), e.getFrom().toVector().add(new Vector(0.299, 1.799, 0.299))), e.getFrom().getWorld(), 0.1, pp.getClientVersion());
 
-        boolean readyToExit = boxSidesTouchingBlocks.size() > 0 && !e.isInLiquid() && pp.isInLiquid();
+        boolean readyToExit = boxSidesTouchingBlocks.size() > 0 && !e.isInWater() && pp.isInWater();
         boolean exiting = readyToExit && currentDeltaY == 0.34;
         if(exiting || (wasReadyToExit.contains(pp.getUuid()) && currentDeltaY == 0.3)) {
             reward(pp);
@@ -59,11 +59,11 @@ public class SwimVertical extends MovementCheck {
                 //stupid compression-like behavior
                 float flowForce = (float)pp.getWaterFlowForce().getY();
                 double prevDeltaY = pp.getVelocity().getY();
-                Set<Material> liquidTypes = e.getLiquidTypes();
+                Set<Material> liquidTypes = new HashSet<>();
                 float kineticPreservation = (liquidTypes.contains(Material.LAVA) || liquidTypes.contains(Material.STATIONARY_LAVA) ? Physics.KINETIC_PRESERVATION_LAVA : Physics.KINETIC_PRESERVATION_WATER);
                 if(currentDeltaY < kineticPreservation * prevDeltaY + (-(Physics.MOVE_LIQUID_FORCE + 0.000001) + flowForce) ||
                         currentDeltaY > kineticPreservation * prevDeltaY + (Physics.MOVE_LIQUID_FORCE + 0.000001 + flowForce)) {
-                    punishAndTryRubberband(pp, e, pp.getPlayer().getLocation());
+                    punishAndTryRubberband(pp, e);
                 }
                 else
                     reward(pp);

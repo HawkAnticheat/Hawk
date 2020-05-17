@@ -21,7 +21,6 @@ package me.islandscout.hawk.check;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.Placeholder;
-import org.bukkit.Location;
 
 import java.util.List;
 
@@ -43,21 +42,17 @@ public abstract class MovementCheck extends Check<MoveEvent> {
         this(name, true, 0, 5, 0.9, 5000, flag, null);
     }
 
-    private void rubberband(MoveEvent event, Location setback) {
-        event.cancelAndSetBack(setback);
-    }
-
-    protected void tryRubberband(MoveEvent event, Location setback) {
+    protected void tryRubberband(MoveEvent event) {
         if (canCancel() && event.getHawkPlayer().getVL(this) >= cancelThreshold)
-            rubberband(event, setback);
+            event.resync();
     }
 
-    protected void punishAndTryRubberband(HawkPlayer offender, MoveEvent event, Location setback, Placeholder... placeholders) {
-        punishAndTryRubberband(offender, 1, event, setback, placeholders);
+    protected void punishAndTryRubberband(HawkPlayer offender, MoveEvent event, Placeholder... placeholders) {
+        punishAndTryRubberband(offender, 1, event, placeholders);
     }
 
-    protected void punishAndTryRubberband(HawkPlayer offender, double vlAmnt, MoveEvent event, Location setback, Placeholder... placeholders) {
+    protected void punishAndTryRubberband(HawkPlayer offender, double vlAmnt, MoveEvent event, Placeholder... placeholders) {
         punish(offender, vlAmnt, false, event, placeholders);
-        tryRubberband(event, setback);
+        tryRubberband(event);
     }
 }

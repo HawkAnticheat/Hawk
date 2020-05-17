@@ -133,7 +133,7 @@ public class Phase extends MovementCheck {
                             boolean zCollide = collides2d(test.getMin().getX(), test.getMax().getX(), test.getMin().getY(), test.getMax().getY(), playerFrom.getMin().getX(), playerFrom.getMax().getX(), playerFrom.getMin().getY(), playerFrom.getMax().getY(), moveDirection.getX(), moveDirection.getY());
                             if (xCollide && yCollide && zCollide) {
                                 punish(pp, false, event, new Placeholder("block", bukkitBlock.getType()));
-                                tryRubberband(event, p.getLocation());
+                                tryRubberband(event);
                                 return;
                             }
                         }

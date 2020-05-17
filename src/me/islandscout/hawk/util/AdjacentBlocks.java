@@ -160,8 +160,6 @@ public class AdjacentBlocks {
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check));
         blocks.addAll(AdjacentBlocks.getBlocksInLocation(check.add(0, -1, 0)));
 
-        blocks.removeIf(currentBlock -> pp.getIgnoredBlockCollisions().contains(currentBlock.getLocation()));
-
         AABB underFeet = new AABB(loc.toVector().add(new Vector(-0.3, -feetDepth, -0.3)), loc.toVector().add(new Vector(0.3, 0, 0.3)));
         for (Block block : blocks) {
             WrappedBlock bNMS = WrappedBlock.getWrappedBlock(block, pp.getClientVersion());

@@ -42,7 +42,7 @@ public class InventoryMove extends MovementCheck {
         //TODO: false flag: rotation is still possible at least 1 tick after opening inventory
         //TODO: false flag: you gotta do that TP grace period thing for this too
         if((e.isUpdateRot() || pp.isSprinting() || pp.isSneaking()) && pp.hasInventoryOpen() != 0 && !e.hasTeleported()) {
-            punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+            punishAndTryRubberband(pp, e);
         }
         else {
             reward(pp);

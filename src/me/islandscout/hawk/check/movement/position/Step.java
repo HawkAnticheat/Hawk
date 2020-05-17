@@ -21,7 +21,7 @@ public class Step extends MovementCheck {
         double dY = e.getTo().getY() - e.getFrom().getY();
 
         if(dY > 0.6 || dY < -0.0784) {
-            punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+            punishAndTryRubberband(pp, e);
         }
         else {
             reward(pp);

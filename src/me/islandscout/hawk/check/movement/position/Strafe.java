@@ -96,7 +96,7 @@ public class Strafe extends MovementCheck {
         //can be abused to bypass this check.
         if(e.hasTeleported() || e.hasAcceptedKnockback() || collidingHorizontally(e) ||
                 pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow() || pp.isSneaking() ||
-                moveHoriz.length() < 0.15 || e.isJump() || ticksSinceIdle <= 2 || e.isInLiquid() || //TODO get rid of e.isJump() from here and actually try to handle it
+                moveHoriz.length() < 0.15 || e.isJump() || ticksSinceIdle <= 2 || e.isInWater() || //TODO get rid of e.isJump() from here and actually try to handle it
                 pp.getCurrentTick() - pp.getLastVelocityAcceptTick() == 1 || collidedMats.contains(Material.LADDER) ||
                 collidedMats.contains(Material.VINE)) {
             prepareNextMove(e, pp, pp.getCurrentTick());
@@ -113,7 +113,7 @@ public class Strafe extends MovementCheck {
         double angle = (vectorDir ? 1 : -1) * MathPlus.angle(accelDir, yaw);
 
         if(!isValidStrafe(angle)) {
-            punishAndTryRubberband(pp, e, e.getPlayer().getLocation());
+            punishAndTryRubberband(pp, e);
         }
         else
             reward(pp);

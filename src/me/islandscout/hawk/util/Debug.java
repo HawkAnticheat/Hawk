@@ -24,6 +24,8 @@ import org.bukkit.entity.Player;
 
 public final class Debug {
 
+    private static final boolean SUPRESS_DEBUGS = true;
+
     private Debug() {
     }
 
@@ -37,14 +39,16 @@ public final class Debug {
             calling?
             - For instance: getting the AABB of blocks from Block. Plants return null because BlockPlant extends Block
               and overrides the AABB getter method with its own.
-          - Get the class name and possibly the reference of the troublesome object. (getClass().getName() usually does this)
+          - Get the class name (Object#getClass().getName()) and possibly the reference (Object#hashCode()) of the troublesome object.
      */
 
     public static void broadcastMessage(Object msg) {
-        Bukkit.broadcastMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "[Hawk DEBUG]: " + ChatColor.RESET + msg);
+        if(!SUPRESS_DEBUGS)
+            Bukkit.broadcastMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "[Hawk DEBUG]: " + ChatColor.RESET + msg);
     }
 
     public static void sendToPlayer(Player player, String str) {
-        player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "[Hawk DEBUG]: " + ChatColor.RESET + str);
+        if(!SUPRESS_DEBUGS)
+            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "[Hawk DEBUG]: " + ChatColor.RESET + str);
     }
 }
