@@ -148,6 +148,12 @@ public class MoveEvent extends Event {
             return false;
         }
 
+        //set override rubberband location
+        Location serverSideLoc = p.getLocation().clone();
+        if(hasTeleported() || pp.isFlying() || pp.isInLava() || pp.isInWater() ||
+                AdjacentBlocks.onGroundReally(serverSideLoc, -1, true, 0.03, pp))
+            pp.setLastLocNotFreefallServerSide(serverSideLoc);
+
         pp.updateIgnoredBlockCollisions(getTo().toVector(), lastPos, hasTeleported());
         return true;
     }

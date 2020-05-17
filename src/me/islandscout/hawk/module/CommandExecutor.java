@@ -61,32 +61,32 @@ public class CommandExecutor {
             try {
                 if (parts[0].charAt(0) == '>' && parts[0].charAt(1) == '=') {
                     if (pp.getVL(check) >= Integer.parseInt(parts[0].substring(2))) {
-                        execute(parts, p, hawk, check, placeholders);
+                        execute(parts, pp, hawk, check, placeholders);
                     }
                     return;
                 }
                 if (parts[0].charAt(0) == '<' && parts[0].charAt(1) == '=') {
                     if (pp.getVL(check) <= Integer.parseInt(parts[0].substring(2))) {
-                        execute(parts, p, hawk, check, placeholders);
+                        execute(parts, pp, hawk, check, placeholders);
                     }
                     return;
                 }
                 if (parts[0].charAt(0) == '>') {
                     if (pp.getVL(check) > Integer.parseInt(parts[0].substring(1))) {
-                        execute(parts, p, hawk, check, placeholders);
+                        execute(parts, pp, hawk, check, placeholders);
                     }
                     return;
                 }
                 if (parts[0].charAt(0) == '<') {
                     if (pp.getVL(check) < Integer.parseInt(parts[0].substring(1))) {
-                        execute(parts, p, hawk, check, placeholders);
+                        execute(parts, pp, hawk, check, placeholders);
                     }
                     return;
                 }
                 int confVL = Integer.parseInt(parts[0]);
                 double currVL = pp.getVL(check);
                 if (pp.getVL(check) >= confVL && currVL - deltaVL <= confVL) {
-                    execute(parts, p, hawk, check, placeholders);
+                    execute(parts, pp, hawk, check, placeholders);
                 }
             } catch (NumberFormatException e) {
                 hawk.getLogger().warning("Failed command execution: Invalid command syntax in " + check + " configuration!");
@@ -94,16 +94,17 @@ public class CommandExecutor {
         }
     }
 
-    private void execute(String[] parts, Player player, Hawk hawk, Check check, Placeholder... placeholders) {
+    private void execute(String[] parts, HawkPlayer pp, Hawk hawk, Check check, Placeholder... placeholders) {
         String preCmd = parts[2]
-                .replace("%player%", player.getName())
-                .replace("%ping%", ServerUtils.getPing(player) + "")
+                .replace("%player%", pp.getPlayer().getName())
+                .replace("%ping%", ServerUtils.getPing(pp.getPlayer()) + "")
                 .replace("%check%", check + "")
-                .replace("%tps%", MathPlus.round(ServerUtils.getTps(), 2) + "");
+                .replace("%tps%", MathPlus.round(ServerUtils.getTps(), 2) + "")
+                .replace("%vl%", pp.getVL(check) + "");
         for (Placeholder placeholder : placeholders)
             preCmd = preCmd.replace("%" + placeholder.getKey() + "%", placeholder.getValue().toString());
         final String cmd = preCmd;
-        Pair<UUID, Pair<Check, String>> cmdInfo = new Pair<>(player.getUniqueId(), new Pair<>(check, parts[2]));
+        Pair<UUID, Pair<Check, String>> cmdInfo = new Pair<>(pp.getUuid(), new Pair<>(check, parts[2]));
         if(!commandHistory.contains(cmdInfo))
             Bukkit.getScheduler().scheduleSyncDelayedTask((hawk), () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd), Long.parseLong(parts[1]) * 20);
         commandHistory.add(cmdInfo);

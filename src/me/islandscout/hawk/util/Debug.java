@@ -24,7 +24,7 @@ import org.bukkit.entity.Player;
 
 public final class Debug {
 
-    private static final boolean SUPRESS_DEBUGS = true;
+    private static final boolean SUPPRESS_DEBUGS = true;
 
     private Debug() {
     }
@@ -43,12 +43,12 @@ public final class Debug {
      */
 
     public static void broadcastMessage(Object msg) {
-        if(!SUPRESS_DEBUGS)
+        if(!SUPPRESS_DEBUGS)
             Bukkit.broadcastMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "[Hawk DEBUG]: " + ChatColor.RESET + msg);
     }
 
     public static void sendToPlayer(Player player, String str) {
-        if(!SUPRESS_DEBUGS)
+        if(!SUPPRESS_DEBUGS)
             player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "[Hawk DEBUG]: " + ChatColor.RESET + str);
     }
 }

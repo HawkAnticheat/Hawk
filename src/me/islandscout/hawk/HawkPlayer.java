@@ -181,9 +181,6 @@ public class HawkPlayer {
         cleanUpOldMetaDataUpdates();
         entitiesInteractedInThisTick.clear();
         predictNextPosition();
-        Location serverSideLoc = p.getLocation().clone();
-        if(AdjacentBlocks.onGroundReally(serverSideLoc, -1, true, 0.03, this))
-            lastLocNotFreefallServerSide = serverSideLoc;
         if(consumingItem)
             itemConsumeTicks++;
     }
@@ -938,6 +935,10 @@ public class HawkPlayer {
 
     public void setLiquidExit(boolean liquidExit) {
         this.liquidExit = liquidExit;
+    }
+
+    public void setLastLocNotFreefallServerSide(Location pos) {
+        this.lastLocNotFreefallServerSide = pos;
     }
 
     public Location getLastLocNotFreefallServerSide() {
