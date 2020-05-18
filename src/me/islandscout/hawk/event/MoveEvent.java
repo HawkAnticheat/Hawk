@@ -150,9 +150,11 @@ public class MoveEvent extends Event {
 
         //set override rubberband location
         Location serverSideLoc = p.getLocation().clone();
-        if(hasTeleported() || pp.isFlying() || pp.isInLava() || pp.isInWater() ||
+        if(pp.isFlying() || pp.isInLava() || pp.isInWater() ||
                 AdjacentBlocks.onGroundReally(serverSideLoc, -1, true, 0.03, pp))
-            pp.setLastLocNotFreefallServerSide(serverSideLoc);
+            pp.setAltSetbackLoc(null);
+        if(hasTeleported())
+            pp.setAltSetbackLoc(serverSideLoc);
 
         pp.updateIgnoredBlockCollisions(getTo().toVector(), lastPos, hasTeleported());
         return true;
@@ -611,9 +613,17 @@ public class MoveEvent extends Event {
     @Override
     public void resync() {
         if (cancelLocation == null) {
-            //You HAVE to rubberband back on ground if they were in air. Otherwise, people can abuse the
-            //rubberbanding system to make a crude glide. There's no better way, thanks to the game's protocol.
-            cancelLocation = isOnGroundReally() ? p.getLocation() : pp.getLastLocNotFreefallServerSide();
+            if(isOnGroundReally()) {
+                pp.setAltSetbackLoc(null);
+                cancelLocation = p.getLocation();
+            }
+            else if(pp.getAltSetbackLoc() == null) {
+                pp.setAltSetbackLoc(p.getLocation());
+                cancelLocation = p.getLocation();
+            }
+            else {
+                cancelLocation = pp.getAltSetbackLoc();
+            }
             setCancelled(true);
             pp.setTeleporting(true);
             pp.setTeleportLoc(cancelLocation);

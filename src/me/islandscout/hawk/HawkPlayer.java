@@ -70,7 +70,7 @@ public class HawkPlayer {
     private World world; //updated by server
     private Vector position; //updated by server and client
     private Vector positionRaw; //updated by client
-    private Location lastLocNotFreefallServerSide; //updated by server
+    private Location altSetbackLoc; //updated by server
     private float yaw; //updated by server and client
     private float pitch; //updated by server and client
 
@@ -139,7 +139,7 @@ public class HawkPlayer {
         this.world = p.getWorld();
         this.position = defaultLocation.toVector();
         this.positionRaw = defaultLocation.toVector();
-        this.lastLocNotFreefallServerSide = defaultLocation;
+        altSetbackLoc = defaultLocation;
         this.yaw = defaultLocation.getYaw();
         this.pitch = defaultLocation.getPitch();
         this.velocity = new Vector();
@@ -937,14 +937,6 @@ public class HawkPlayer {
         this.liquidExit = liquidExit;
     }
 
-    public void setLastLocNotFreefallServerSide(Location pos) {
-        this.lastLocNotFreefallServerSide = pos;
-    }
-
-    public Location getLastLocNotFreefallServerSide() {
-        return lastLocNotFreefallServerSide;
-    }
-
     //safely kill the connection
     public void kickPlayer(String reason) {
         online = false;
@@ -1092,5 +1084,13 @@ public class HawkPlayer {
 
     public void setSentPosUpdate(boolean hasSentPosUpdate) {
         this.sentPosUpdate = hasSentPosUpdate;
+    }
+
+    public Location getAltSetbackLoc() {
+        return altSetbackLoc;
+    }
+
+    public void setAltSetbackLoc(Location altSetbackLoc) {
+        this.altSetbackLoc = altSetbackLoc;
     }
 }
