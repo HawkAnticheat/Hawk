@@ -7,7 +7,7 @@ import me.islandscout.hawk.event.MoveEvent;
 public class Step extends MovementCheck {
 
     public Step() {
-        super("step", "&7%player% failed step, VL: %vl%");
+        super("step", true, 0, 5, 0.995, 5000, "&7%player% failed step, VL: %vl%", null);
     }
 
     @Override

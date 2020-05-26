@@ -18,6 +18,7 @@
 
 package me.islandscout.hawk.module;
 
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.ConfigHelper;
@@ -25,11 +26,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.util.Vector;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class LagCompensator implements Listener {
 
@@ -82,7 +87,7 @@ public class LagCompensator implements Listener {
                 }
 
                 for(Entity entity : collectedEntities) {
-                    trackedEntities.put(entity, trackedEntities.getOrDefault(entity, new ArrayList<>()));
+                    trackedEntities.put(entity, trackedEntities.getOrDefault(entity, new CopyOnWriteArrayList<>()));
                 }
 
                 Set<Entity> expiredEntities = new HashSet<>(trackedEntities.keySet());
@@ -100,7 +105,7 @@ public class LagCompensator implements Listener {
                 @Override
                 public void run() {
                     for(Player p : Bukkit.getOnlinePlayers()) {
-                        trackedEntities.put(p, trackedEntities.getOrDefault(p, new ArrayList<>()));
+                        trackedEntities.put(p, trackedEntities.getOrDefault(p, new CopyOnWriteArrayList<>()));
                     }
                 }
             }, 1);
@@ -188,7 +193,7 @@ public class LagCompensator implements Listener {
     }
 
     private void processPosition(Entity entity) {
-        List<Pair<Location, Long>> times = trackedEntities.getOrDefault(entity, new ArrayList<>());
+        List<Pair<Location, Long>> times = trackedEntities.getOrDefault(entity, new CopyOnWriteArrayList<>());
         long currTime = System.currentTimeMillis();
         if(DEBUG && entity instanceof Player) {
             Player p = (Player) entity;
@@ -211,19 +216,19 @@ public class LagCompensator implements Listener {
         return trackedEntities.keySet();
     }
 
-    public void getStatsTrackedPlayers() {
-
+    public List<Pair<Location, Long>> getHistoryPositionsOfEntity(Entity entity) {
+        return trackedEntities.get(entity);
     }
 
-    /*
+
     @EventHandler
     public void pistonExtend(BlockPistonExtendEvent e) {
-
+        Debug.broadcastMessage(e.getBlocks().size());
     }
 
     @EventHandler
     public void pistonRetract(BlockPistonRetractEvent e) {
-
+        Debug.broadcastMessage(e.getBlocks().size());
     }
-    */
+
 }

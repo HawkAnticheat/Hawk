@@ -75,7 +75,9 @@ public class HawkPlayer {
     private float pitch; //updated by server and client
 
     private Vector predictedPosition; //ticked by client
+    private Vector previousPredictedPosition;
     private Vector predictedVelocity;
+    private Vector previousPredictedVelocity;
 
     private Map<Location, List<AABB>> trackedBlockCollisions; //Private. Used to update ignoredBlockCollisions.
     private Set<Location> ignoredBlockCollisions; //is accessible via getter
@@ -145,6 +147,7 @@ public class HawkPlayer {
         this.velocity = new Vector();
         this.previousVelocity = new Vector();
         this.predictedPosition = defaultLocation.toVector();
+        this.previousPredictedPosition = defaultLocation.toVector();
         this.predictedVelocity = new Vector();
         this.onGround = ((Entity) p).isOnGround();
         this.hawk = hawk;
@@ -354,6 +357,10 @@ public class HawkPlayer {
         return predictedPosition;
     }
 
+    public Vector getPreviousPositionPredicted() {
+        return previousPredictedPosition;
+    }
+
     public void updatePositionYawPitch(Vector position, float yaw, float pitch, boolean isPosUpdate) {
         this.previousVelocity = this.velocity;
         this.velocity = new Vector(
@@ -407,6 +414,10 @@ public class HawkPlayer {
 
     public Vector getPreviousVelocity() {
         return previousVelocity;
+    }
+
+    public Vector getPreviousPredictedVelocity() {
+        return previousPredictedVelocity;
     }
 
     public float getDeltaYaw() {
@@ -636,6 +647,8 @@ public class HawkPlayer {
     //TODO TEST BEFORE RELEASING 2001
     private void predictNextPosition() {
         Vector move = predictedVelocity.clone();
+        previousPredictedPosition = predictedPosition.clone();
+        previousPredictedVelocity = predictedVelocity.clone();
 
         Set<Material> oldTouchedMats = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition).getMaterials(getWorld());
 
@@ -653,10 +666,26 @@ public class HawkPlayer {
             pdZ *= 0.25;
         }
 
+        if(Math.abs(pdX) < 0.005) {
+            pdX = 0;
+        }
+        if(Math.abs(pdY) < 0.005) {
+            pdY = 0;
+        }
+        if(Math.abs(pdZ) < 0.005) {
+            pdZ = 0;
+        }
+
+        move.setX(pdX);
+        move.setY(pdY);
+        move.setZ(pdZ);
+
         AABB box = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition);
         AABB preBox = box.clone();
         preBox.expand(-0.0001, -0.0001, -0.0001);
         List<AABB> collidedBlocksBefore = preBox.getBlockAABBs(world, getClientVersion(), Material.WEB);
+
+        boolean collidedVertically = false;
 
         //clipping order: X, Z, Y
         //X
@@ -718,6 +747,7 @@ public class HawkPlayer {
             double invPenetrationDist = positive ? highestPoint - box.getMax().getY() - 0.00000001 : highestPoint - box.getMin().getY() + 0.00000001;
             box.translate(new Vector(0, invPenetrationDist, 0));
             pdY += invPenetrationDist;
+            collidedVertically = true;
         }
 
         //crude way of handling sneaking
@@ -761,21 +791,8 @@ public class HawkPlayer {
         }
 
         //move predicted position
-        move.setX(MathPlus.round(pdX, 10));
-        move.setY(MathPlus.round(pdY, 10));
-        move.setZ(MathPlus.round(pdZ, 10));
-        predictedPosition.add(move);
-
-        Vector nextVelocity = move.clone();
-        if(Math.abs(pdX) < 0.005) {
-            nextVelocity.setX(0);
-        }
-        if(Math.abs(pdY) < 0.005) {
-            nextVelocity.setY(0);
-        }
-        if(Math.abs(pdZ) < 0.005) {
-            nextVelocity.setZ(0);
-        }
+        Vector clippedVel = new Vector(MathPlus.round(pdX, 10), MathPlus.round(pdY, 10), MathPlus.round(pdZ, 10));
+        predictedPosition.add(clippedVel);
 
         //AABB a = AABB.playerCollisionBox.clone();
         //a.translate(predictedPosition);
@@ -784,9 +801,16 @@ public class HawkPlayer {
         Set<Material> newTouchedMats = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition).getMaterials(getWorld());
         if(newTouchedMats.contains(Material.WEB)) {
             predictedVelocity = new Vector();
+        } else if(collidedVertically) {
+            Block b = ServerUtils.getBlockAsync(predictedPosition.clone().add(new Vector(0, -0.2, 0)).toLocation(getWorld()));
+            if(!isSneaking() && b != null && b.getType() == Material.SLIME_BLOCK && move.getY() < 0) {
+                predictedVelocity.setY(-move.getY());
+            } else {
+                predictedVelocity = clippedVel; //touched ground
+            }
         }
         else {
-            predictedVelocity = nextVelocity;
+            predictedVelocity = clippedVel; //air
         }
     }
 
@@ -840,7 +864,7 @@ public class HawkPlayer {
 
         //handle AABB updates within player bounds
         //TODO Phase false when player moves out of block
-        //TODO snapshot nearby blocks or make 90% of checks sync to avoid concurrency problems
+        //TODO to fix concurrency issues with checks such as Phase, have these blocks/AABBs in this method copied and stored in a shared list in MoveEvent so that Phase can compare using the same block data
         else {
             Map<Location, List<AABB>> blocksInBBNew = new HashMap<>();
             for(Block b : bbox.getBlocks(world)) {

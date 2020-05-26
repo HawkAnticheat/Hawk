@@ -32,6 +32,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 public class WrappedBlock7 extends WrappedBlock {
@@ -40,8 +41,17 @@ public class WrappedBlock7 extends WrappedBlock {
 
     public WrappedBlock7(Block block, int clientVersion) {
         super(block, clientVersion);
-        net.minecraft.server.v1_7_R4.Block b = this.block = ((CraftWorld) block.getWorld()).getHandle().getType(block.getLocation().getBlockX(), block.getLocation().getBlockY(), block.getLocation().getBlockZ());
+        net.minecraft.server.v1_7_R4.Block b;
 
+        //i know this is a poor idea. you have a better idea?
+        while(true) {
+            try {
+                b = ((CraftWorld) block.getWorld()).getHandle().getType(block.getLocation().getBlockX(), block.getLocation().getBlockY(), block.getLocation().getBlockZ());
+                break;
+            } catch (ConcurrentModificationException ignore) { }
+        }
+
+        this.block = b;
         strength = b.f(null, 0, 0, 0);
         hitbox = getHitBox(b, block.getLocation());
         solid = isReallySolid(block);

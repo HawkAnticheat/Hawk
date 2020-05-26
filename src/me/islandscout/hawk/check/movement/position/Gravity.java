@@ -18,6 +18,7 @@
 
 package me.islandscout.hawk.check.movement.position;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
@@ -86,7 +87,7 @@ public class Gravity extends MovementCheck {
         if((!e.isOnGround() || !pp.isOnGround()) && !opposingForce && !e.isLiquidExit() &&
                 !p.isInsideVehicle() && !pp.isFlying() && !wasFlyingSet.contains(p.getUniqueId()) &&
                 !p.isSleeping() && !isInClimbable(from.toLocation(pp.getWorld())) && //TODO: uh oh! make sure to have a fastladder check, otherwise hackers can "pop" off them
-                !isOnBoat(p, e.getTo()) && !e.isSlimeBlockBounce()) {
+                !isOnBoat(p, e.getTo())) {
 
             //count "no-moves"
             if(!moved) {
@@ -166,7 +167,10 @@ public class Gravity extends MovementCheck {
                 estimatedVelocity = 0;
                 velResetA = true;
             }
-            if(e.getTo().getY() < estimatedPositionAlt && (hitHead && !hasHitHead)) { //alt. pos/vel
+
+            //check if hit head while swimming
+            if(e.getTo().getY() < estimatedPositionAlt && e.getTo().getY() > estimatedPosition &&
+                    (pp.isInWater() || pp.isInLava() || pp.isSwimming()) && (hitHead || hasHitHead)) { //alt. pos/vel
                 estimatedPositionAlt = (float) e.getTo().getY();
                 estimatedVelocityAlt = 0;
                 velResetB = true;
@@ -194,8 +198,13 @@ public class Gravity extends MovementCheck {
                 }
 
                 //If you've landed, then that must mean these should reset.
-                prevEstimatedVelocity = 0;
                 estimatedPosition = y;
+
+                if(e.isNextSlimeBlockBounce()) {
+                    prevEstimatedVelocity = -estimatedVelocity;
+                } else {
+                    prevEstimatedVelocity = 0;
+                }
             }
 
             //check for Y discrepancy in air

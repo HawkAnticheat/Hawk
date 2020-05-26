@@ -70,9 +70,11 @@ public class Phase extends MovementCheck {
         Location locFrom = event.getFrom();
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
-        double distanceSquared = locFrom.distanceSquared(locTo);
+        if(!locFrom.getWorld().equals(locTo.getWorld()))
+            return;
 
         //this stops an NPE
+        double distanceSquared = locFrom.distanceSquared(locTo);
         if (distanceSquared == 0)
             return;
 
@@ -96,7 +98,6 @@ public class Phase extends MovementCheck {
         selection.getMin().setY(selection.getMin().getY() - 0.6); //we need to grab blocks below us too, such as fences
 
         Set<Location> ignored = pp.getIgnoredBlockCollisions();
-        ignored.clear(); //TODO remove this line when you get ignored-blocks fixed
 
         GameMode gm = p.getGameMode();
         if(gm == GameMode.SURVIVAL || gm == GameMode.ADVENTURE || gm == GameMode.CREATIVE) {

@@ -24,7 +24,7 @@ import org.bukkit.entity.Player;
 
 public final class Debug {
 
-    private static final boolean SUPPRESS_DEBUGS = true;
+    private static final boolean SUPPRESS_DEBUGS = false;
 
     private Debug() {
     }

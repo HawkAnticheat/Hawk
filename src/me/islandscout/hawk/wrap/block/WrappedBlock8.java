@@ -33,6 +33,7 @@ import org.bukkit.material.*;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 public class WrappedBlock8 extends WrappedBlock {
@@ -43,7 +44,16 @@ public class WrappedBlock8 extends WrappedBlock {
         super(block, clientVersion);
         BlockPosition.MutableBlockPosition bPos = new BlockPosition.MutableBlockPosition();
         bPos.c(block.getX(), block.getY(), block.getZ());
-        IBlockData data = ((CraftWorld) block.getWorld()).getHandle().getType(bPos);
+        IBlockData data;
+
+        //i know this is a poor idea. you have a better idea?
+        while(true) {
+            try {
+                data = ((CraftWorld) block.getWorld()).getHandle().getType(bPos);
+                break;
+            } catch (ConcurrentModificationException ignore) { }
+        }
+
         net.minecraft.server.v1_8_R3.Block b = this.block = data.getBlock();
         b.updateShape(((CraftWorld) block.getWorld()).getHandle(), bPos);
 
@@ -84,7 +94,6 @@ public class WrappedBlock8 extends WrappedBlock {
         return new AABB(min, max);
     }
 
-    //Bukkit, get your crap straight and stay consistent on the definition of SOLID.
     private boolean isReallySolid(Block b) {
         boolean reallySolid = block.getMaterial().isSolid();
         MaterialData matData = b.getState().getData();

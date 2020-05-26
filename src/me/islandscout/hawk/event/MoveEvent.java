@@ -23,6 +23,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -58,6 +59,7 @@ public class MoveEvent extends Event {
     private boolean inWater;
     private boolean jumped;
     private boolean slimeBlockBounce;
+    private boolean nextIsSlimeBlockBounce;
     private boolean step;
     private boolean liquidExit;
     private boolean glidingInUnloadedChunk;
@@ -101,6 +103,8 @@ public class MoveEvent extends Event {
         pp.tick();
         if(isUpdatePos())
             pp.setHasMoved();
+
+        nextIsSlimeBlockBounce = testSlimeBlockBounceNext();
 
         //handle teleports
         Vector lastPos = pp.getPosition(); //set this now, because HawkPlayer#getPosition() will change after teleport
@@ -297,16 +301,26 @@ public class MoveEvent extends Event {
             return false;
         Vector from = pp.hasSentPosUpdate() ? getFrom().toVector() : pp.getPositionPredicted();
         float deltaY = (float)(getTo().getY() - from.getY());
-        Block staningOn = ServerUtils.getBlockAsync(from.toLocation(pp.getWorld()).add(0, -0.01, 0));
+        Block staningOn = ServerUtils.getBlockAsync(from.toLocation(pp.getWorld()).add(0, -0.2, 0));
         if(staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
             return false;
         float prevPrevDeltaY = (float)pp.getPreviousVelocity().getY();
-        float expected = -0.96F * prevPrevDeltaY;
-        return !pp.isSneaking() &&
-                pp.getVelocity().getY() < 0 &&
-                deltaY > 0 &&
-                deltaY > (prevPrevDeltaY < -0.1F ? expected - 0.003 : 0) &&
-                deltaY <= expected;
+        float expected = (-((prevPrevDeltaY - 0.08F) * 0.98F) - 0.08F) * 0.98F;
+        //TODO you're supposed to get the sneaking from the LAST tick, not this one
+        return !pp.isSneaking() && pp.isOnGround() && !isOnGround() && deltaY >= 0 && Math.abs(expected - deltaY) < 0.00001;
+    }
+
+    private boolean testSlimeBlockBounceNext() {
+        if(Hawk.getServerVersion() < 8)
+            return false;
+        Vector to = isUpdatePos() ? getTo().toVector() : pp.getPositionPredicted();
+        Block staningOn = ServerUtils.getBlockAsync(to.toLocation(pp.getWorld()).add(0, -0.2, 0));
+        if(staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
+            return false;
+
+        float prevDeltaY = (float)pp.getPreviousPredictedVelocity().getY();
+        return !pp.isSneaking() && isOnGround() && !pp.isOnGround() && prevDeltaY < 0;
+
     }
 
     private float computeFriction() {
@@ -607,6 +621,10 @@ public class MoveEvent extends Event {
 
     public float getMaxExpectedInputForce() {
         return maxExpectedInputForce;
+    }
+
+    public boolean isNextSlimeBlockBounce() {
+        return nextIsSlimeBlockBounce;
     }
 
     //Resync permits only a maximum of 1 rubberband per move

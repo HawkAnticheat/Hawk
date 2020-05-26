@@ -198,7 +198,11 @@ public class Speed extends MovementCheck implements Listener {
         //position.
         else {
             lastNegativeDiscrepancies.put(p.getUniqueId(), discrepancy.value);
-            negativeDiscrepanciesCumulative.put(p.getUniqueId(), negativeDiscrepanciesCumulative.getOrDefault(p.getUniqueId(), 0D) + speed);
+
+            //TODO improve these two lines...
+            double val = negativeDiscrepanciesCumulative.getOrDefault(p.getUniqueId(), 0D);
+            negativeDiscrepanciesCumulative.put(p.getUniqueId(), Math.min(val + speed, MAX_NO_MOVE_DISTANCE + speed));
+            //negativeDiscrepanciesCumulative.put(p.getUniqueId(), negativeDiscrepanciesCumulative.getOrDefault(p.getUniqueId(), 0D) + speed);
         }
 
         prepareNextMove(pp, noMoves, speed, touchedBlocks);
