@@ -178,7 +178,7 @@ public class Speed extends MovementCheck implements Listener {
                 p.sendMessage((totalDiscrepancy > DISCREPANCY_THRESHOLD ? ChatColor.RED : ChatColor.GREEN) + "" + totalDiscrepancy);
             }
 
-            if(discrepancy.value > 0 && totalDiscrepancy > DISCREPANCY_THRESHOLD) {
+            if(discrepancy.value > 0 && totalDiscrepancy > DISCREPANCY_THRESHOLD && !event.isPossiblePistonPush()) {
                 punishAndTryRubberband(pp, discrepancy.value * VL_FAIL_DISCREPANCY_FACTOR, event);
                 if(RESET_DISCREPANCY_ON_FAIL)
                     discrepancies.put(p.getUniqueId(), 0D);

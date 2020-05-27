@@ -63,6 +63,7 @@ public class MoveEvent extends Event {
     private boolean step;
     private boolean liquidExit;
     private boolean glidingInUnloadedChunk;
+    private boolean possiblePistonPush;
     private float newFriction; //This is the friction that is used to compute this move's initial force.
     private float oldFriction; //This is the friction that affects this move's velocity.
     private float maxExpectedInputForce;
@@ -93,6 +94,7 @@ public class MoveEvent extends Event {
         slimeBlockBounce = testSlimeBlockBounce();
         waterFlowForce = computeWaterFlowForce();
         maxExpectedInputForce = computeMaximumInputForce();
+        possiblePistonPush = testPistonPush(getFrom().toVector(), getTo().toVector(), pp);
         double dy = getTo().getY() - getFrom().getY();
         double waterYForce = pp.getWaterFlowForce().getY();
         liquidExit = pp.isExitingLiquidTemp() && (Math.abs(dy - waterYForce - 0.3) < 0.00001 || Math.abs(dy - 0.04 - waterYForce - 0.3) < 0.00001);
@@ -320,7 +322,20 @@ public class MoveEvent extends Event {
 
         float prevDeltaY = (float)pp.getPreviousPredictedVelocity().getY();
         return !pp.isSneaking() && isOnGround() && !pp.isOnGround() && prevDeltaY < 0;
+    }
 
+    private boolean testPistonPush(Vector from, Vector to, HawkPlayer pp) {
+        Vector delta = to.clone().subtract(from);
+
+        //TODO: put another condition in these so that it wont trigger on practically every move?
+        boolean x = Math.abs(delta.getX()) < 1.5;
+        boolean y = Math.abs(delta.getY()) < 1.5;
+        boolean z = Math.abs(delta.getZ()) < 1.5;
+
+        if(x || y || z) {
+            return hawk.getLagCompensator().testNearPiston(to, pp.getWorld(), ServerUtils.getPing(pp.getPlayer()));
+        }
+        return false;
     }
 
     private float computeFriction() {
@@ -625,6 +640,10 @@ public class MoveEvent extends Event {
 
     public boolean isNextSlimeBlockBounce() {
         return nextIsSlimeBlockBounce;
+    }
+
+    public boolean isPossiblePistonPush() {
+        return possiblePistonPush;
     }
 
     //Resync permits only a maximum of 1 rubberband per move

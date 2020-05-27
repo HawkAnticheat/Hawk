@@ -26,6 +26,7 @@ import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.material.Openable;
@@ -119,6 +120,10 @@ public class Phase extends MovementCheck {
                         WrappedBlock block = WrappedBlock.getWrappedBlock(bukkitBlock, pp.getClientVersion());
                         if (!block.isSolid())
                             continue;
+
+                        if(bukkitBlock.getType() == Material.PISTON_MOVING_PIECE) {
+                            continue;
+                        }
 
                         if (bukkitBlock.getState().getData() instanceof Openable && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD && vertDistance <= VERTICAL_DISTANCE_THRESHOLD) {
                             continue;

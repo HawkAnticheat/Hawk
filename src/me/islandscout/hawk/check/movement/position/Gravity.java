@@ -191,7 +191,8 @@ public class Gravity extends MovementCheck {
 
                 float discrepancy = y - estimatedPosition;
                 //y must be between last Y and estimatedPosition.
-                if (Math.abs(discrepancy) > DISCREPANCY_THRESHOLD && (y < Math.min(estimatedPosition, from.getY()) || y > Math.max(estimatedPosition, from.getY()))) {
+                if (Math.abs(discrepancy) > DISCREPANCY_THRESHOLD && !e.isPossiblePistonPush() &&
+                        (y < Math.min(estimatedPosition, from.getY()) || y > Math.max(estimatedPosition, from.getY()))) {
                     punishAndTryRubberband(pp, e);
                 } else {
                     reward(pp);
@@ -221,7 +222,7 @@ public class Gravity extends MovementCheck {
                     alt = Math.abs(discrepancyA) - Math.abs(discrepancyB) > 0;
                     float discrepancy = alt ? discrepancyB : discrepancyA;
 
-                    if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD) {
+                    if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD && !e.isPossiblePistonPush()) {
                         punishAndTryRubberband(pp, e);
                     }
                     else {

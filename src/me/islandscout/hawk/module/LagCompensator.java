@@ -18,18 +18,18 @@
 
 package me.islandscout.hawk.module;
 
-import me.islandscout.hawk.util.Debug;
-import me.islandscout.hawk.util.Pair;
+import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.Hawk;
-import me.islandscout.hawk.util.ConfigHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonExtendEvent;
-import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -51,6 +51,7 @@ public class LagCompensator implements Listener {
     //measuring latency.
 
     private final Map<Entity, List<Pair<Location, Long>>> trackedEntities;
+    private final List<PistonPush> pistonPushes;
     private final int historySize;
     private final int pingOffset;
     private final boolean DEBUG;
@@ -61,6 +62,7 @@ public class LagCompensator implements Listener {
 
     public LagCompensator(Hawk hawk) {
         this.trackedEntities = new ConcurrentHashMap<>();
+        this.pistonPushes = new CopyOnWriteArrayList<>();
         historySize = ConfigHelper.getOrSetDefault(20, hawk.getConfig(), "lagCompensation.historySize");
         pingOffset = ConfigHelper.getOrSetDefault(175, hawk.getConfig(), "lagCompensation.pingOffset");
         SEARCH_WIDTH = ConfigHelper.getOrSetDefault(40, hawk.getConfig(), "lagCompensation.entityTracking.searchWidth") / 2;
@@ -122,6 +124,12 @@ public class LagCompensator implements Listener {
                     Player p = pp.getPlayer();
                     p.getActivePotionEffects();
                 }*/
+
+                long currTime = System.currentTimeMillis();
+
+                while(pistonPushes.size() > 0 && currTime - pistonPushes.get(0).getTimestamp() > 2000) {
+                    pistonPushes.remove(0);
+                }
             }
         }, 1);
     }
@@ -220,15 +228,64 @@ public class LagCompensator implements Listener {
         return trackedEntities.get(entity);
     }
 
+    public boolean testNearPiston(Vector pos, World world, int ping) {
 
-    @EventHandler
-    public void pistonExtend(BlockPistonExtendEvent e) {
-        Debug.broadcastMessage(e.getBlocks().size());
+        long rewoundTime = System.currentTimeMillis() - ping;
+        AABB playerBox = AABB.playerCollisionBox.clone();
+        playerBox.translate(pos);
+        playerBox.expand(1, 1, 1);
+
+        for(PistonPush pistonPush : pistonPushes) {
+            if(pistonPush.getWorld().equals(world)) {
+                if(Math.abs(pistonPush.getTimestamp() - rewoundTime) < 500) {
+
+                    Vector blockMin = pistonPush.getPosition().clone();
+                    Vector blockMax = pistonPush.getPosition().clone().add(new Vector(1, 1, 1));
+                    AABB basicBounds = new AABB(blockMin, blockMax);
+
+                    if(playerBox.isColliding(basicBounds)) {
+                        return true;
+                    }
+                }
+            }
+
+        }
+
+        return false;
     }
 
     @EventHandler
-    public void pistonRetract(BlockPistonRetractEvent e) {
-        Debug.broadcastMessage(e.getBlocks().size());
+    public void pistonExtend(BlockPistonExtendEvent e) {
+        World world = e.getBlock().getWorld();
+        BlockFace bf = e.getDirection();
+        Vector offset = new Vector(0, 0, 0);
+        switch (bf) {
+            case UP:
+                offset.setY(1);
+                break;
+            case DOWN:
+                offset.setY(-1);
+                break;
+            case EAST:
+                offset.setX(1);
+                break;
+            case WEST:
+                offset.setX(-1);
+                break;
+            case NORTH:
+                offset.setZ(-1);
+                break;
+            case SOUTH:
+                offset.setZ(1);
+        }
+
+        long currTime = System.currentTimeMillis();
+
+        pistonPushes.add(new PistonPush(world, e.getBlock().getLocation().toVector().add(offset), bf, currTime));
+
+        for(Block b : e.getBlocks()) {
+            pistonPushes.add(new PistonPush(world, b.getLocation().toVector().add(offset), bf, currTime));
+        }
     }
 
 }

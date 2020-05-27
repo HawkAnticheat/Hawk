@@ -18,6 +18,7 @@
 
 package me.islandscout.hawk.event;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.entity.Player;
@@ -28,6 +29,7 @@ public abstract class Event {
     protected final Player p;
     protected final HawkPlayer pp;
     protected final WrappedPacket wPacket;
+    protected static Hawk hawk;
 
     public Event(Player p, HawkPlayer pp, WrappedPacket wPacket) {
         this.p = p;
@@ -66,5 +68,9 @@ public abstract class Event {
 
     public WrappedPacket getWrappedPacket() {
         return wPacket;
+    }
+
+    public static void setHawkReference(Hawk plugin) {
+        hawk = plugin;
     }
 }

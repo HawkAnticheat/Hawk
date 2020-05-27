@@ -55,6 +55,7 @@ public class PacketHandler implements Listener {
     public PacketHandler(Hawk hawk) {
         this.serverVersion = Hawk.getServerVersion();
         this.hawk = hawk;
+        Event.setHawkReference(hawk);
         async = ConfigHelper.getOrSetDefault(false, hawk.getConfig(), "asyncChecking");
         if(async) {
             hawk.getLogger().warning("---");
