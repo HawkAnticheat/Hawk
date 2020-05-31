@@ -23,7 +23,6 @@ import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -194,6 +193,7 @@ public class Gravity extends MovementCheck {
             boolean hitHead = e.getBoxSidesTouchingBlocks().contains(Direction.TOP),
                     hasHitHead = pp.getBoxSidesTouchingBlocks().contains(Direction.TOP);
             if(e.getTo().getY() < estimatedPosition && (hitHead && !hasHitHead)) { //standard pos/vel
+                Debug.broadcastMessage("hit head!");
                 estimatedPosition = (float) e.getTo().getY();
                 estimatedVelocity = 0;
                 velResetA = true;
@@ -252,9 +252,10 @@ public class Gravity extends MovementCheck {
 
                     float discrepancy;
 
-                    if(ticksSinceNoPosUpdate < 2) {
+                    if(ticksSinceNoPosUpdate < 2 && noMoves <= MAX_NO_MOVES) {
                         //Handle stupid-moves with a range check.
                         //Honestly, I don't care about an error of 0.03 in liquids while the client isn't updating its position.
+                        //TODO this will break if the estimated paths cross (and it's totally possible that it will happen). Make a better range check.
                         float y = (float) e.getTo().getY();
                         if(y > estimatedPositionAlt) {
                             discrepancy = y - estimatedPositionAlt;
@@ -307,7 +308,7 @@ public class Gravity extends MovementCheck {
                 estimatedPosition = estimatedPositionAlt = (float) pp.getPositionPredicted().getY();
             }
 
-            if(e.isOnGround() || (e.getBoxSidesTouchingBlocks().contains(Direction.TOP) && dY > 0)) {
+            if(e.isOnGround() || (e.hasHitCeiling() && dY > 0)) {
                 prevEstimatedVelocity = prevEstimatedVelocityAlt = 0;
             } else {
                 prevEstimatedVelocity = prevEstimatedVelocityAlt = dY;

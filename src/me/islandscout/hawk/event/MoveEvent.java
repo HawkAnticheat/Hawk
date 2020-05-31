@@ -64,6 +64,7 @@ public class MoveEvent extends Event {
     private boolean liquidExit;
     private boolean glidingInUnloadedChunk;
     private boolean possiblePistonPush;
+    private boolean hitCeiling;
     private float newFriction; //This is the friction that is used to compute this move's initial force.
     private float oldFriction; //This is the friction that affects this move's velocity.
     private float maxExpectedInputForce;
@@ -88,6 +89,7 @@ public class MoveEvent extends Event {
         acceptedKnockback = handlePendingVelocities();
         liquidsAndDirections = testWater();
         inWater = liquidsAndDirections.size() > 0;
+        hitCeiling = testHitCeiling();
         jumped = testJumped();
         oldFriction = pp.getFriction();
         newFriction = computeFriction();
@@ -269,32 +271,52 @@ public class MoveEvent extends Event {
         return false;
     }
 
-    //TODO sprint-jumping right as you enter a 2-block-high tunnel will not change your Y, WTF? This will return false and checks will false-flag.
+    //checks if the player's dY matches the expected dY
     private boolean testJumped() {
         int jumpBoostLvl = 0;
         for (PotionEffect pEffect : p.getActivePotionEffects()) {
             if (pEffect.getType().equals(PotionEffectType.JUMP)) {
                 byte amp = (byte)pEffect.getAmplifier();
                 jumpBoostLvl = amp + 1;
-                //Debug.broadcastMessage(amp + " " + jumpBoostLvl);
                 break;
             }
         }
-        float expectedDY = Math.max(0.42F + jumpBoostLvl * 0.1F, 0F); //TODO if 0, that means they POSSIBLY could have jumped; not always. Falses SprintDirection with extreme negative jump boost.
+        float expectedDY = Math.max(0.42F + jumpBoostLvl * 0.1F, 0F);
+        boolean leftGround = (pp.isOnGround() && !isOnGround());
         Vector from = pp.hasSentPosUpdate() ? getFrom().toVector() : pp.getPositionPredicted();
         float dY = (float)(getTo().getY() - from.getY());
 
+        //Jumping right as you enter a 2-block-high space will not change your motY.
+        //When these conditions are met, we'll give them the benefit of the doubt and say that they jumped.
+        {
+            AABB box = AABB.playerCollisionBox.clone();
+            box.expand(-0.000001, -0.000001, -0.000001);
+            box.translate(getTo().toVector().add(new Vector(0, expectedDY, 0)));
+            boolean collidedNow = !box.getBlockAABBs(getTo().getWorld(), pp.getClientVersion()).isEmpty();
+
+            box = AABB.playerCollisionBox.clone();
+            box.expand(-0.000001, -0.000001, -0.000001);
+            box.translate(getFrom().toVector().add(new Vector(0, expectedDY, 0)));
+            boolean collidedBefore = !box.getBlockAABBs(getTo().getWorld(), pp.getClientVersion()).isEmpty();
+
+            if(collidedNow && !collidedBefore && leftGround && dY == 0) {
+                expectedDY = 0;
+            }
+        }
+
+        boolean kbSimilarToJump = acceptedKnockback != null &&
+                (Math.abs(acceptedKnockback.getY() - expectedDY) < 0.001 || hitCeiling);
+        return !kbSimilarToJump && ((expectedDY == 0 && pp.isOnGround()) || leftGround) && (dY == expectedDY || hitCeiling);
+    }
+
+    private boolean testHitCeiling() {
         //Change by Havesta to more accurately handle Y collision
+        Vector from = pp.hasSentPosUpdate() ? getFrom().toVector() : pp.getPositionPredicted();
         Vector pos = from.clone().setY(getTo().getY());
         AABB collisionBox = AABB.playerCollisionBox.clone();
         collisionBox.expand(-0.000001, -0.000001, -0.000001);
         collisionBox.translate(pos);
-        boolean hitCeiling = AdjacentBlocks.checkTouchingBlock(collisionBox, getTo().getWorld(), 0.0001, pp.getClientVersion()).contains(Direction.TOP);
-
-        boolean kbSimilarToJump = acceptedKnockback != null &&
-                (Math.abs(acceptedKnockback.getY() - expectedDY) < 0.001 || hitCeiling);
-        boolean leftGround = (pp.isOnGround() && !isOnGround());
-        return !kbSimilarToJump && ((expectedDY == 0 && pp.isOnGround()) || leftGround) && (dY == expectedDY || hitCeiling);
+        return AdjacentBlocks.checkTouchingBlock(collisionBox, getTo().getWorld(), 0.0001, pp.getClientVersion()).contains(Direction.TOP);
     }
 
     //Again, kudos to MCP for guiding me to the right direction
@@ -644,6 +666,10 @@ public class MoveEvent extends Event {
 
     public boolean isPossiblePistonPush() {
         return possiblePistonPush;
+    }
+
+    public boolean hasHitCeiling() {
+        return hitCeiling;
     }
 
     //Resync permits only a maximum of 1 rubberband per move

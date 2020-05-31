@@ -32,6 +32,8 @@ import java.util.*;
 
 public class SprintDirection extends MovementCheck {
 
+    //TODO If jump and dY is 0, that means they POSSIBLY could have jumped; not always. eg: SprintDirection falses with extreme negative jump boost or jumping into a 2-block-high space.
+
     private Map<UUID, Long> lastSprintTickMap;
     private Set<UUID> collisionHorizontalSet;
 
