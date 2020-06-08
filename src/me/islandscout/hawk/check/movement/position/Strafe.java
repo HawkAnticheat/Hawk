@@ -28,10 +28,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class Strafe extends MovementCheck {
 
@@ -42,16 +39,21 @@ public class Strafe extends MovementCheck {
 
     private final double THRESHOLD;
     private final Map<UUID, Long> lastIdleTick;
+    private final Set<UUID> bouncedSet;
 
     public Strafe() {
         super("strafe", false, 5, 5, 0.99, 5000, "%player% failed strafe, VL: %vl%", null);
         lastIdleTick = new HashMap<>();
+        bouncedSet = new HashSet<>();
         THRESHOLD = Math.toRadians((double)customSetting("yawErrorThreshold", "", 0.5));
     }
 
     @Override
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
+
+        boolean bounced = bouncedSet.contains(pp.getUuid());
+        boolean collidingHorizontally = collidingHorizontally(e);
 
         Block footBlock = ServerUtils.getBlockAsync(pp.getPlayer().getLocation().clone().add(0, -1, 0));
         if(footBlock == null)
@@ -71,6 +73,8 @@ public class Strafe extends MovementCheck {
             prevVelocity.multiply(0.4);
         }
 
+        boolean nearLiquid = testLiquid(collidedMats);
+
         if(Math.abs(prevVelocity.getX() * friction) < 0.005) {
             prevVelocity.setX(0);
         }
@@ -88,15 +92,9 @@ public class Strafe extends MovementCheck {
         Vector accelDir = new Vector(dX, 0, dZ);
         Vector yaw = MathPlus.getDirection(e.getTo().getYaw(), 0);
 
-        //Need to return if speed is too small since the client likes to set a motion
-        //component vector to 0 if it is too small. Can't check the accelDir's component
-        //vectors individually since that would open a bypass i.e. running along an axis.
-        //Also, return if ticksSinceIdle is <= 2, otherwise this client behavior would
-        //set off false flags. Another check needs to analyze this behavior because this
-        //can be abused to bypass this check.
-        if(e.hasTeleported() || e.hasAcceptedKnockback() || collidingHorizontally(e) ||
-                pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow() || pp.isSneaking() ||
-                moveHoriz.length() < 0.15 || e.isJump() || ticksSinceIdle <= 2 || e.isInWater() || //TODO get rid of e.isJump() from here and actually try to handle it
+        //Return if player hasn't sent at least 2 moves in a row. Let Speed handle any bypasses for this.
+        if(e.hasTeleported() || e.hasAcceptedKnockback() || bounced || collidingHorizontally ||
+                !e.isUpdatePos() || e.isJump() || ticksSinceIdle <= 2 || nearLiquid || //TODO get rid of e.isJump() from here and actually try to handle it
                 pp.getCurrentTick() - pp.getLastVelocityAcceptTick() == 1 || collidedMats.contains(Material.LADDER) ||
                 collidedMats.contains(Material.VINE)) {
             prepareNextMove(e, pp, pp.getCurrentTick());
@@ -123,7 +121,18 @@ public class Strafe extends MovementCheck {
 
     private boolean collidingHorizontally(MoveEvent e) {
         for(Direction dir : e.getBoxSidesTouchingBlocks()) {
-            if(dir == Direction.EAST || dir == Direction.NORTH || dir == Direction.SOUTH || dir == Direction.WEST)
+            if(dir == Direction.EAST || dir == Direction.NORTH || dir == Direction.SOUTH || dir == Direction.WEST) {
+                bouncedSet.add(e.getPlayer().getUniqueId());
+                return true;
+            }
+        }
+        bouncedSet.remove(e.getPlayer().getUniqueId());
+        return false;
+    }
+
+    private boolean testLiquid(Set<Material> mats) {
+        for(Material mat : mats) {
+            if(mat == Material.WATER || mat == Material.STATIONARY_WATER || mat == Material.LAVA || mat == Material.STATIONARY_LAVA)
                 return true;
         }
         return false;
@@ -146,5 +155,6 @@ public class Strafe extends MovementCheck {
     public void removeData(Player p) {
         UUID uuid = p.getUniqueId();
         lastIdleTick.remove(uuid);
+        bouncedSet.remove(uuid);
     }
 }

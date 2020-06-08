@@ -18,10 +18,10 @@
 
 package me.islandscout.hawk.check.movement.position;
 
-import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,177 +29,318 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.util.*;
 
-/**
- * In vanilla Minecraft, a free-falling player must fall a
- * specific distance for every succeeding move. Hawk's flight
- * check attempts to enforce this vanilla mechanic to prevent
- * players from using flight modifications.
- * <p>
- * For every succeeding move a free-falling player is in the
- * air, the player's vertical velocity is:
- * <p>
- * (v_(n-1) - 0.08) * 0.98
- * <p>
- * A continuous function which describes a free-falling player's
- * vertical velocity given the amount of ticks passed is:
- * <p>
- * v(x) = (3.92 + v_i) * 0.98^x - 3.92
- * <p>
- * A continuous function which describes a free-falling player's
- * vertical position given the amount of ticks passed is:
- * <p>
- * p(x) = -3.92(x+1) - 0.98^(x+1) * 50(3.92 + v_i) + 50(3.92 + v_i) + p_i
- */
-public class Fly extends MovementCheck implements Listener {
+public class Fly extends MovementCheck {
 
-    //TODO: Please. Just rewrite this.
+    //TODO do not forget checkerclimb. Blocks within 0.3 should be treated as AIR unless they are in HawkPlayer's collision ignore list
+    //TODO perhaps have a ground checking mode? clientside vs serverside? doing it server side can allow GroundSpoof to not cancel, yet Gravity will still catch groundspoof-based flys
 
-    //TODO: I suggest getting rid of map lastDeltaY and instead use HawkPlayer#getVelocity(). Should keep things consistent, especially when moving from liquids to air.
+    private static final float MIN_VELOCITY = 0.005F;
+    private static final int MAX_NO_MOVES = 20;
+    private static final double NO_MOVE_THRESHOLD = 0.03;
+    private static final float DISCREPANCY_THRESHOLD = 0.0001F;
 
-    //TODO: false flag with pistons
-    //TODO: false flag while jumping down stairs
-    //TO DO: false flag when jumping on edge of block. Perhaps extrapolate next "noPos" moves until they touch the block, then reset expectedDeltaY
-    //TODO: BYPASS! You can fly over fences. Jump, then toggle fly, then walk straight.
-    //Don't change how you determine if on ground, even though that's what caused this. Instead, check when landing when deltaY > 0
-    //perhaps check if player's jump height is great enough?
-    //TODO: You need to support "insignificant" moves
-
-    private final Map<UUID, Double> lastDeltaY;
-    private final Map<UUID, Location> legitLoc;
-    private final Set<UUID> inAir;
-    private final Map<UUID, Integer> stupidMoves;
-    //private Map<UUID, List<Location>> locsOnPBlocks;
-    private final Map<UUID, List<Pair<Double, Long>>> velocities; //launch velocities
-    private final Set<UUID> failedSoDontUpdateRubberband; //Update rubberband loc until someone fails. In this case, do not update until they touch the ground.
-    private static final int STUPID_MOVES = 1; //Apparently you can jump in midair right as you fall off the edge of a block. You need to time it right.
+    private final Map<UUID, Float> estimatedPositionMap;
+    private final Map<UUID, Float> estimatedVelocityMap;
+    private final Map<UUID, Float> estimatedPositionAltMap;
+    private final Map<UUID, Float> estimatedVelocityAltMap;
+    private final Map<UUID, Integer> noMovesMap;
+    private final Map<UUID, Integer> ticksSinceNoPosUpdateMap;
+    private final Set<UUID> wasFlyingSet;
+    private final Set<UUID> wasInLavaSet;
 
     public Fly() {
-        super("fly", true, 0, 10, 0.995, 5000, "%player% failed fly. VL: %vl%", null);
-        lastDeltaY = new HashMap<>();
-        inAir = new HashSet<>();
-        legitLoc = new HashMap<>();
-        stupidMoves = new HashMap<>();
-        //locsOnPBlocks = new HashMap<>();
-        velocities = new HashMap<>();
-        failedSoDontUpdateRubberband = new HashSet<>();
+        super("fly", true, 0, 10, 0.995, 5000, "&7%player% failed fly, VL: %vl%", null);
+        estimatedPositionMap = new HashMap<>();
+        estimatedVelocityMap = new HashMap<>();
+        estimatedPositionAltMap = new HashMap<>();
+        estimatedVelocityAltMap = new HashMap<>();
+        noMovesMap = new HashMap<>();
+        ticksSinceNoPosUpdateMap = new HashMap<>();
+        wasFlyingSet = new HashSet<>();
+        wasInLavaSet = new HashSet<>();
     }
 
     @Override
-    protected void check(MoveEvent event) {
-        Player p = event.getPlayer();
-        HawkPlayer pp = event.getHawkPlayer();
-        double deltaY = event.getTo().getY() - event.getFrom().getY();
-        if (pp.hasFlyPending() && p.getAllowFlight())
-            return;
-        if (!event.isOnGroundReally() && !pp.isFlying() && !p.isInsideVehicle() && !pp.isSwimming() && !p.isSleeping() &&
-                !isInClimbable(event.getTo()) && !isOnBoat(p, event.getTo())) {
+    protected void check(MoveEvent e) {
+        HawkPlayer pp = e.getHawkPlayer();
+        Player p = e.getPlayer();
 
-            if (!inAir.contains(p.getUniqueId()) && deltaY > 0)
-                lastDeltaY.put(p.getUniqueId(), 0.42 + getJumpBoostLvl(p) * 0.1);
+        Vector from = pp.hasSentPosUpdate() ? e.getFrom().toVector() : pp.getPositionPredicted(); //must predict where a player was previously if they didn't send a pos update then.
 
-            //handle any pending knockbacks
-            if(event.hasAcceptedKnockback())
-                lastDeltaY.put(p.getUniqueId(), deltaY);
+        float dY = (float) (e.getTo().getY() - from.getY());
 
-            if(event.isSlimeBlockBounce())
-                lastDeltaY.put(p.getUniqueId(), deltaY);
+        boolean moved = e.isUpdatePos();
 
-            double expectedDeltaY = lastDeltaY.getOrDefault(p.getUniqueId(), 0D);
-            double epsilon = 0.03;
+        int noMoves = noMovesMap.getOrDefault(pp.getUuid(), 0);
+        int ticksSinceNoPosUpdate = ticksSinceNoPosUpdateMap.getOrDefault(pp.getUuid(), 0);
 
-            //lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) - 0.025) * 0.8); //water function
-            if (WrappedEntity.getWrappedEntity(p).getCollisionBox(event.getFrom().toVector()).getMaterials(p.getWorld()).contains(Material.WEB)) {
-                lastDeltaY.put(p.getUniqueId(), -0.007);
-                epsilon = 0.000001;
-                if (AdjacentBlocks.onGroundReally(event.getTo().clone().add(0, -0.03, 0), -1, false, 0.02, pp))
-                    return;
-            } else if(!pp.isInWater() && event.isInWater()) {
-                //entering liquid
-                lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) * 0.98) - 0.038399);
+        float estimatedPosition = estimatedPositionMap.getOrDefault(pp.getUuid(), (float) from.getY()),
+              prevEstimatedVelocity = estimatedVelocityMap.getOrDefault(pp.getUuid(), (float) pp.getVelocity().getY()),
+              estimatedPositionAlt = estimatedPositionAltMap.getOrDefault(pp.getUuid(), (float) from.getY()),
+              prevEstimatedVelocityAlt = estimatedVelocityAltMap.getOrDefault(pp.getUuid(), (float) pp.getVelocity().getY());
+
+        Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(from).getMaterials(pp.getWorld());
+
+        boolean opposingForce = e.isJump() || e.hasAcceptedKnockback() || e.hasTeleported() || e.isStep();
+
+        boolean wasInLava = wasInLavaSet.contains(p.getUniqueId());
+
+        if((!e.isOnGround() || !pp.isOnGround()) && !opposingForce && !e.isLiquidExit() &&
+                !p.isInsideVehicle() && !pp.isFlying() && !wasFlyingSet.contains(p.getUniqueId()) &&
+                !p.isSleeping() && !isInClimbable(from.toLocation(pp.getWorld())) && //TODO: uh oh! make sure to have a fastladder check, otherwise hackers can "pop" off them
+                !isOnBoat(p, e.getTo())) {
+
+            //count "no-moves"
+            if(!moved) {
+                noMoves++;
             } else {
-                //in air
-                lastDeltaY.put(p.getUniqueId(), (lastDeltaY.getOrDefault(p.getUniqueId(), 0D) - 0.08) * 0.98);
+                noMoves = 0;
             }
 
+            float estimatedVelocity;
+            float estimatedVelocityAlt;
+            boolean velResetA = false;
+            boolean velResetB = false;
+
+            //compute next expected velocity
+            //TODO make this prediction better, i.e. do liquid/web collision checks. It shouldn't be using the liquid functions when the predicted position gets out of water.
+            if(pp.isSwimming()) { //water functions
+
+                estimatedVelocity = (prevEstimatedVelocity * 0.8F) + (float)(-0.02 + pp.getWaterFlowForce().getY());
+                estimatedVelocityAlt = (prevEstimatedVelocityAlt * 0.8F) + (float)(-0.02 + pp.getWaterFlowForce().getY());
+
+                if(Math.abs(estimatedVelocity) < MIN_VELOCITY) {
+                    estimatedVelocity = 0;
+                }
+                if(Math.abs(estimatedVelocityAlt) < MIN_VELOCITY) {
+                    estimatedVelocityAlt = 0;
+                }
+                estimatedVelocityAlt += 0.04; //add swimming-up force
+                if(touchedBlocks.contains(Material.WEB)) {
+                    estimatedVelocity *= 0.05;
+                    estimatedVelocityAlt *= 0.05;
+                }
+            } else if(wasInLava) { //lava functions
+
+                estimatedVelocity = (prevEstimatedVelocity * 0.5F) - 0.02F;
+                estimatedVelocityAlt = (prevEstimatedVelocityAlt * 0.5F) - 0.02F;
+
+                if(Math.abs(estimatedVelocity) < MIN_VELOCITY) {
+                    estimatedVelocity = 0;
+                }
+                if(Math.abs(estimatedVelocityAlt) < MIN_VELOCITY) {
+                    estimatedVelocityAlt = 0;
+                }
+                estimatedVelocityAlt += 0.04; //add swimming-up force
+                if(touchedBlocks.contains(Material.WEB)) {
+                    estimatedVelocity *= 0.05;
+                    estimatedVelocityAlt *= 0.05;
+                }
+            } else { //air function
+
+                estimatedVelocity = estimatedVelocityAlt = (prevEstimatedVelocity - 0.08F) * 0.98F;
+
+                if(Math.abs(estimatedVelocity) < MIN_VELOCITY) {
+                    estimatedVelocity = 0;
+                }
+                if(Math.abs(estimatedVelocityAlt) < MIN_VELOCITY) {
+                    estimatedVelocityAlt = 0;
+                }
+                if(touchedBlocks.contains(Material.WEB)) {
+                    estimatedVelocity *= 0.05;
+                    estimatedVelocityAlt *= 0.05;
+                }
+
+                if(pp.isInWater() || pp.isInLava()) { //Entering liquid. You could take two paths depending if you're holding the jump button or not.
+
+                    estimatedVelocity = (prevEstimatedVelocity + (float)pp.getWaterFlowForce().getY() - 0.08F) * 0.98F;
+                    estimatedVelocity += pp.getWaterFlowForce().getY();
+
+                    estimatedVelocityAlt = (prevEstimatedVelocityAlt + (float)pp.getWaterFlowForce().getY() - 0.08F) * 0.98F;
+                    estimatedVelocityAlt += pp.getWaterFlowForce().getY();
+
+                    if(Math.abs(estimatedVelocity) < MIN_VELOCITY) {
+                        estimatedVelocity = 0;
+                    }
+                    if(Math.abs(estimatedVelocityAlt) < MIN_VELOCITY) {
+                        estimatedVelocityAlt = 0;
+                    }
+                    estimatedVelocityAlt += 0.04; //add swimming-up force
+                    if(touchedBlocks.contains(Material.WEB)) {
+                        estimatedVelocity *= 0.05;
+                        estimatedVelocityAlt *= 0.05;
+                    }
+                }
+            }
 
             //handle teleport
-            if (event.hasTeleported()) {
-                lastDeltaY.put(p.getUniqueId(), 0D);
-                expectedDeltaY = 0;
-                legitLoc.put(p.getUniqueId(), event.getTo());
+            if (pp.getCurrentTick() - pp.getLastTeleportAcceptTick() < 2) {
+                estimatedVelocity = 0;
+                estimatedVelocityAlt = 0;
+                velResetA = true;
+                velResetB = true;
             }
 
-            if (deltaY - expectedDeltaY > epsilon && event.hasDeltaPos()) { //oopsie daisy. client made a goof up
+            //add velocities to expected positions
+            estimatedPositionAlt += estimatedVelocityAlt;
+            estimatedPosition += estimatedVelocity;
 
-                //wait one little second: minecraft is being a pain in the ass and it wants to play tricks when you parkour on the very edge of blocks
-                //we need to check this first...
-                if (deltaY < 0) {
-                    Location checkLoc = event.getFrom().clone();
-                    checkLoc.setY(event.getTo().getY());
-                    if (AdjacentBlocks.onGroundReally(checkLoc, deltaY, false, 0.02, pp)) {
-                        onGroundStuff(p);
-                        return;
+            //check if hit head
+            boolean hitHead = e.getBoxSidesTouchingBlocks().contains(Direction.TOP),
+                    hasHitHead = pp.getBoxSidesTouchingBlocks().contains(Direction.TOP);
+            if(e.getTo().getY() < estimatedPosition && (hitHead && !hasHitHead)) { //standard pos/vel
+                estimatedPosition = (float) e.getTo().getY();
+                estimatedVelocity = 0;
+                velResetA = true;
+            }
+
+            //check if hit head while swimming
+            if(e.getTo().getY() < estimatedPositionAlt && e.getTo().getY() > estimatedPosition &&
+                    (pp.isInWater() || pp.isInLava() || pp.isSwimming()) && (hitHead || hasHitHead)) { //alt. pos/vel
+                estimatedPositionAlt = (float) e.getTo().getY();
+                estimatedVelocityAlt = 0;
+                velResetB = true;
+            }
+
+            //check landing
+            if(e.isOnGround() && !pp.isOnGround()) {
+                //Pretty much check if the Y is within reasonable bounds.
+                //Doesn't need to be so precise i.e. 0.0001 within bounds, leave that for GroundSpoof and Phase.
+                //However, if it becomes a problem, you know how to expand this code.
+                float y;
+
+                if(moved) {
+                    y = (float) e.getTo().getY();
+                } else {
+                    y = (float) pp.getPositionPredicted().getY();
+                }
+
+                float discrepancy = y - estimatedPosition;
+                //y must be between last Y and estimatedPosition.
+                if (Math.abs(discrepancy) > DISCREPANCY_THRESHOLD && !e.isPossiblePistonPush() &&
+                        (y < Math.min(estimatedPosition, from.getY()) || y > Math.max(estimatedPosition, from.getY()))) {
+                    punishAndTryRubberband(pp, e);
+                } else {
+                    reward(pp);
+                }
+
+                //If you've landed, then that must mean these should reset.
+                estimatedPosition = y;
+                estimatedPositionAlt = y;
+
+                if(e.isNextSlimeBlockBounce()) {
+                    prevEstimatedVelocity = -estimatedVelocity;
+                } else {
+                    prevEstimatedVelocity = 0;
+                }
+
+                prevEstimatedVelocityAlt = prevEstimatedVelocity;
+            }
+
+            //check for Y discrepancy in air
+            else {
+
+                //bool alt determines if we're using the alternate path for comparison
+                boolean alt;
+
+                if(moved || noMoves > MAX_NO_MOVES || (Math.abs(estimatedPosition - e.getTo().getY()) > NO_MOVE_THRESHOLD && Math.abs(estimatedPositionAlt - e.getTo().getY()) > NO_MOVE_THRESHOLD)) {
+
+                    float discrepancy;
+
+                    if(ticksSinceNoPosUpdate < 2 && noMoves <= MAX_NO_MOVES) {
+                        //Handle stupid-moves with a range check.
+                        //Honestly, I don't care about an error of 0.03 in liquids while the client isn't updating its position.
+                        //TODO this will break if the estimated paths cross (and it's totally possible that it will happen). Make a better range check.
+                        float y = (float) e.getTo().getY();
+                        if(y > estimatedPositionAlt) {
+                            discrepancy = y - estimatedPositionAlt;
+                        } else if(y < estimatedPosition) {
+                            discrepancy = y - estimatedPosition;
+                        } else {
+                            discrepancy = 0;
+                        }
+                    } else {
+                        float discrepancyA = (float) e.getTo().getY() - estimatedPosition;
+                        float discrepancyB = (float) e.getTo().getY() - estimatedPositionAlt;
+                        //choose discrepancy closer to 0
+                        alt = Math.abs(discrepancyA) - Math.abs(discrepancyB) > 0;
+                        discrepancy = alt ? discrepancyB : discrepancyA;
                     }
-                    //extrapolate move BEFORE getFrom, then check
-                    checkLoc.setY(event.getFrom().getY());
-                    checkLoc.setX(checkLoc.getX() - (event.getTo().getX() - event.getFrom().getX()));
-                    checkLoc.setZ(checkLoc.getZ() - (event.getTo().getZ() - event.getFrom().getZ()));
-                    if (AdjacentBlocks.onGroundReally(checkLoc, deltaY, false, 0.02, pp)) {
-                        onGroundStuff(p);
-                        return;
+
+                    //Debug.broadcastMessage(discrepancy);
+
+                    if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD && !e.isPossiblePistonPush()) {
+                        punishAndTryRubberband(pp, e);
+                    }
+                    else {
+                        reward(pp);
                     }
                 }
 
-                if(event.isOnClientBlock() != null) {
-                    onGroundStuff(p);
-                    return;
+                //TODO limit these estimatedVelocities to 0.03 if this is a no-move. Likewise, limit the estimated positions, too.
+
+                if(moved) {
+                    //we can use these for next move, since the client has sent a pos update
+                    estimatedPosition = estimatedPositionAlt = (float) e.getTo().getY();
+                    if(ticksSinceNoPosUpdate > 0) {
+                        estimatedVelocity = velResetA ? estimatedVelocity : dY;
+                        estimatedVelocityAlt = velResetB ? estimatedVelocityAlt : dY;
+                    }
                 }
 
-                //scold the child
-                punish(pp, false, event);
-                tryRubberband(event);
-                lastDeltaY.put(p.getUniqueId(), canCancel() ? 0 : deltaY);
-                failedSoDontUpdateRubberband.add(p.getUniqueId());
-                return;
+                //keep estimating
+                if (touchedBlocks.contains(Material.WEB)) {
+                    prevEstimatedVelocity = prevEstimatedVelocityAlt = 0;
+                } else {
+                    prevEstimatedVelocity = estimatedVelocity;
+                    prevEstimatedVelocityAlt = estimatedVelocityAlt;
+                }
             }
-
-            reward(pp);
-
-            //the player is in air now, since they have a positive Y velocity and they're not on the ground
-            if (inAir.contains(p.getUniqueId()))
-                //upwards now
-                stupidMoves.put(p.getUniqueId(), 0);
-
-            //handle stupid moves, because the client tends to want to jump a little late if you jump off the edge of a block
-            if (stupidMoves.getOrDefault(p.getUniqueId(), 0) >= STUPID_MOVES || (deltaY > 0 && AdjacentBlocks.onGroundReally(event.getFrom(), -1, true, 0.02, pp)))
-                //falling now
-                inAir.add(p.getUniqueId());
-            stupidMoves.put(p.getUniqueId(), stupidMoves.getOrDefault(p.getUniqueId(), 0) + 1);
         } else {
-            onGroundStuff(p);
+            if(moved) {
+                estimatedPosition = estimatedPositionAlt = (float) e.getTo().getY();
+            } else {
+                estimatedPosition = estimatedPositionAlt = (float) pp.getPositionPredicted().getY();
+            }
+
+            if(e.isOnGround() || (e.hasHitCeiling() && dY > 0)) {
+                prevEstimatedVelocity = prevEstimatedVelocityAlt = 0;
+            } else {
+                prevEstimatedVelocity = prevEstimatedVelocityAlt = dY;
+            }
+        }
+        //Debug.broadcastMessage((moved ? ChatColor.GREEN : ChatColor.RED) + "" + e.getTo().getY() + " " + estimatedPosition + " " + pp.getPositionPredicted().getY() + " prevEstDY: " + prevEstimatedVelocity);
+
+        estimatedVelocityMap.put(pp.getUuid(), prevEstimatedVelocity);
+        estimatedVelocityAltMap.put(pp.getUuid(), prevEstimatedVelocityAlt);
+        estimatedPositionMap.put(pp.getUuid(), estimatedPosition);
+        estimatedPositionAltMap.put(pp.getUuid(), estimatedPositionAlt);
+
+        noMovesMap.put(pp.getUuid(), noMoves);
+
+        if(!moved) {
+            ticksSinceNoPosUpdate = 0;
+        } else {
+            ticksSinceNoPosUpdate++;
         }
 
-        if (!failedSoDontUpdateRubberband.contains(p.getUniqueId()) || event.isOnGroundReally()) {
-            legitLoc.put(p.getUniqueId(), p.getLocation());
-            failedSoDontUpdateRubberband.remove(p.getUniqueId());
+        ticksSinceNoPosUpdateMap.put(p.getUniqueId(), ticksSinceNoPosUpdate);
+
+        if(pp.isFlying()) {
+            wasFlyingSet.add(p.getUniqueId());
+        } else {
+            wasFlyingSet.remove(p.getUniqueId());
         }
 
-    }
-
-    private void onGroundStuff(Player p) {
-        lastDeltaY.put(p.getUniqueId(), 0D);
-        inAir.remove(p.getUniqueId());
-        stupidMoves.put(p.getUniqueId(), 0);
+        if(pp.isInLava()) {
+            wasInLavaSet.add(p.getUniqueId());
+        } else {
+            wasInLavaSet.remove(p.getUniqueId());
+        }
     }
 
     private boolean isOnBoat(Player p, Location loc) {
@@ -223,29 +364,15 @@ public class Fly extends MovementCheck implements Listener {
         return b != null && (b.getType() == Material.VINE || b.getType() == Material.LADDER);
     }
 
-    private int getJumpBoostLvl(Player p) {
-        for (PotionEffect pEffect : p.getActivePotionEffects()) {
-            if (pEffect.getType().equals(PotionEffectType.JUMP)) {
-                return pEffect.getAmplifier() + 1;
-            }
-        }
-        return 0;
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onTeleport(PlayerTeleportEvent e) {
-        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
-        legitLoc.put(pp.getUuid(), e.getTo());
-    }
-
     @Override
     public void removeData(Player p) {
         UUID uuid = p.getUniqueId();
-        lastDeltaY.remove(uuid);
-        inAir.remove(uuid);
-        legitLoc.remove(uuid);
-        stupidMoves.remove(uuid);
-        velocities.remove(uuid);
-        failedSoDontUpdateRubberband.remove(uuid);
+        estimatedPositionMap.remove(uuid);
+        estimatedVelocityMap.remove(uuid);
+        estimatedPositionAltMap.remove(uuid);
+        estimatedVelocityAltMap.remove(uuid);
+        noMovesMap.remove(uuid);
+        ticksSinceNoPosUpdateMap.remove(uuid);
+        wasFlyingSet.remove(uuid);
     }
 }

@@ -150,7 +150,6 @@ public class MoveEvent extends Event {
 
         //handle gliding in unloaded chunk
         if(!hasTeleported() && glidingInUnloadedChunk) {
-            Debug.broadcastMessage("rubberbanding");
             resync();
             pp.setPositionRaw(getTo().toVector());
             return false;
@@ -478,11 +477,15 @@ public class MoveEvent extends Event {
             //then work down the list until we find something
             for (kbIndex = 0; kbIndex < kbs.size(); kbIndex++) {
                 Pair<Vector, Long> kb = kbs.get(kbIndex);
-                int timeDiff = (int)(currTime - kb.getValue());
-                int ping = ServerUtils.getPing(p);
-                int lowerBound = 100;
-                int upperBound = 300; //TODO make this dynamic. Start with being very lenient, and then narrow the window if they consistently have a delay
-                if (timeDiff >= ping - lowerBound && timeDiff <= ping + upperBound) { //400ms window to allow for network jitter
+
+                //replace the following if-statement with this sometime? You'll have to worry about the else-statement, though.
+                //int timeDiff = (int)(currTime - kb.getValue());
+                //int ping = ServerUtils.getPing(p);
+                //int lowerBound = 100;
+                //int upperBound = 300;
+                //if (timeDiff >= ping - lowerBound && timeDiff <= ping + upperBound) { //400ms window to allow for network jitter
+
+                if (currTime - kb.getValue() <= ServerUtils.getPing(p) + 200) { //add 200 just in case the player's ping jumps a bit
 
                     Vector kbVelocity = kb.getKey();
                     double x = hitSlowdown ? 0.6 * kbVelocity.getX() : kbVelocity.getX();

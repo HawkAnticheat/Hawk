@@ -155,7 +155,7 @@ public class PacketHandler implements Listener {
         hawk.getLogger().severe("Hawk will NOT work. Please run Hawk on a 1.7_R4 or 1.8_R3 server. If you");
         hawk.getLogger().severe("are confident that you are running the correct version of the server,");
         hawk.getLogger().severe("please verify that the package \"net.minecraft.server.[VERSION]\" in your");
-        hawk.getLogger().severe("Spigot JAR contains one of the above specified versions.");
+        hawk.getLogger().severe("Spigot JAR reflects one of the above specified versions.");
         hawk.getLogger().severe("!!!!!!!!!!");
         hawk.disable();
     }
