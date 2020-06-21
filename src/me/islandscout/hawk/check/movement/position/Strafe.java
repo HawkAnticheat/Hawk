@@ -35,8 +35,6 @@ public class Strafe extends MovementCheck {
     //This unintentionally trashes yet another handful of killauras and aimassists.
     //Flags poorly implemented aimbots (i.e. aimbots implemented after the motion update in the tick stack).
 
-    //TODO false flag when you "bounce" (touch momentarily, i.e. 1 tick) against a block
-
     private final double THRESHOLD;
     private final Map<UUID, Long> lastIdleTick;
     private final Set<UUID> bouncedSet;
@@ -93,6 +91,7 @@ public class Strafe extends MovementCheck {
         Vector yaw = MathPlus.getDirection(e.getTo().getYaw(), 0);
 
         //Return if player hasn't sent at least 2 moves in a row. Let Speed handle any bypasses for this.
+        //TODO make sure to detect sneaking at the edge of a block
         if(e.hasTeleported() || e.hasAcceptedKnockback() || bounced || collidingHorizontally ||
                 !e.isUpdatePos() || e.isJump() || ticksSinceIdle <= 2 || nearLiquid || //TODO get rid of e.isJump() from here and actually try to handle it
                 pp.getCurrentTick() - pp.getLastVelocityAcceptTick() == 1 || collidedMats.contains(Material.LADDER) ||

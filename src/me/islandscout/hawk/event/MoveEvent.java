@@ -23,7 +23,6 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -116,7 +115,8 @@ public class MoveEvent extends Event {
         if (pp.isTeleporting()) {
             Location tpLoc = pp.getTeleportLoc();
             int ping = ServerUtils.getPing(p);
-            if (tpLoc.getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(tpLoc) < 0.001) {
+            //TODO is onGround always false after a teleport?
+            if (!onGround && tpLoc.getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(tpLoc) < 0.001) {
                 //move matched teleport location
                 if(elapsedTicks > (ping / 50) - 1) { //1 is an arbitrary constant to keep things smooth
                     //most likely accepted teleport, unless this move is a coincidence
@@ -133,8 +133,9 @@ public class MoveEvent extends Event {
             } else if(!pp.getPlayer().isSleeping()) {
                 if (elapsedTicks > (ping / 50) + 5) { //5 is an arbitrary constant to keep things smooth
                     //didn't accept teleport, so help guide the confused client back to the tp location
-                    //TODO don't TP when the player is exempted!
-                    pp.teleport(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                    if (eligibleForResync()) {
+                        pp.teleport(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                    }
                 }
                 pp.setPositionRaw(getTo().toVector());
                 return false;
@@ -143,14 +144,18 @@ public class MoveEvent extends Event {
 
         //handle illegal move or discrepancy
         else if (getFrom().getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(getFrom()) > 64) {
-            resync();
+            if (eligibleForResync()) {
+                resync();
+            }
             pp.setPositionRaw(getTo().toVector());
             return false;
         }
 
         //handle gliding in unloaded chunk
         if(!hasTeleported() && glidingInUnloadedChunk) {
-            resync();
+            if (eligibleForResync()) {
+                resync();
+            }
             pp.setPositionRaw(getTo().toVector());
             return false;
         }
@@ -213,6 +218,12 @@ public class MoveEvent extends Event {
         pp.setSentPosUpdate(isUpdatePos());
         if(hasAcceptedKnockback())
             pp.updateLastVelocityAcceptTick();
+    }
+
+    private boolean eligibleForResync() {
+        boolean exempt = hawk.getCheckManager().getExemptedPlayers().contains(pp.getPlayer().getUniqueId());
+        boolean forced = hawk.getCheckManager().getForcedPlayers().contains(pp.getPlayer().getUniqueId());
+        return forced || (!pp.getPlayer().hasPermission("hawk.bypass") && !exempt);
     }
 
     private boolean testLiquidExit() {
