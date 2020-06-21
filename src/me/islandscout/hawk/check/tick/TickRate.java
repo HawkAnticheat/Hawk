@@ -56,7 +56,7 @@ public class TickRate extends MovementCheck implements Listener {
     private final double MIN_RATE;
     private final double MAX_RATE;
     private final boolean RUBBERBAND;
-    private final boolean RESET_DRIFT_ON_FAIL; //TODO this shouldn't reset completely. It should shave 50ms until it is zero'd since we're ignoring the failed packet.
+    private final boolean RESET_DRIFT_ON_FAIL; //TODO this should reset to a point 50ms from the threshold point.
     private final int WARM_UP;
 
     public TickRate() {

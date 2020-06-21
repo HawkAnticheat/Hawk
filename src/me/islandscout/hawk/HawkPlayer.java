@@ -650,6 +650,9 @@ public class HawkPlayer {
         previousPredictedPosition = predictedPosition.clone();
         previousPredictedVelocity = predictedVelocity.clone();
 
+        Block blockAtPos = ServerUtils.getBlockAsync(predictedPosition.toLocation(getWorld()));
+        boolean onClimbable = blockAtPos != null && (blockAtPos.getType() == Material.LADDER || blockAtPos.getType() == Material.VINE);
+
         Set<Material> oldTouchedMats = WrappedEntity.getWrappedEntity(p).getCollisionBox(predictedPosition).getMaterials(getWorld());
 
         //compute new predicted motion values
@@ -669,7 +672,7 @@ public class HawkPlayer {
         if(Math.abs(pdX) < 0.005) {
             pdX = 0;
         }
-        if(Math.abs(pdY) < 0.005) {
+        if(Math.abs(pdY) < 0.005 || (onClimbable && sneaking)) {
             pdY = 0;
         }
         if(Math.abs(pdZ) < 0.005) {

@@ -22,6 +22,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -53,13 +54,14 @@ public class Strafe extends MovementCheck {
         boolean bounced = bouncedSet.contains(pp.getUuid());
         boolean collidingHorizontally = collidingHorizontally(e);
 
-        Block footBlock = ServerUtils.getBlockAsync(pp.getPlayer().getLocation().clone().add(0, -1, 0));
+        Block footBlock = ServerUtils.getBlockAsync(pp.getPlayer().getLocation().clone().add(0, -0.1, 0));
         if(footBlock == null)
             return;
 
-        Vector moveHoriz = e.getTo().toVector().subtract(e.getFrom().toVector()).setY(0);
         long ticksSinceIdle = pp.getCurrentTick() - lastIdleTick.getOrDefault(pp.getUuid(), pp.getCurrentTick());
         double friction = e.getFriction();
+        //A really rough check to handle sneaking on edge of blocks.
+        boolean sneakEdge = pp.isSneaking() && !WrappedBlock.getWrappedBlock(footBlock, pp.getClientVersion()).isSolid() && e.isOnGround();
 
         Vector prevVelocity = pp.getVelocity().clone();
         if(e.hasHitSlowdown()) {
@@ -93,7 +95,7 @@ public class Strafe extends MovementCheck {
         //Return if player hasn't sent at least 2 moves in a row. Let Speed handle any bypasses for this.
         //TODO make sure to detect sneaking at the edge of a block
         if(e.hasTeleported() || e.hasAcceptedKnockback() || bounced || collidingHorizontally ||
-                !e.isUpdatePos() || e.isJump() || ticksSinceIdle <= 2 || nearLiquid || //TODO get rid of e.isJump() from here and actually try to handle it
+                !e.isUpdatePos() || sneakEdge || e.isJump() || ticksSinceIdle <= 2 || nearLiquid || //TODO get rid of e.isJump() from here and actually try to handle it
                 pp.getCurrentTick() - pp.getLastVelocityAcceptTick() == 1 || collidedMats.contains(Material.LADDER) ||
                 collidedMats.contains(Material.VINE)) {
             prepareNextMove(e, pp, pp.getCurrentTick());
@@ -110,6 +112,7 @@ public class Strafe extends MovementCheck {
         double angle = (vectorDir ? 1 : -1) * MathPlus.angle(accelDir, yaw);
 
         if(!isValidStrafe(angle)) {
+            Debug.broadcastMessage(pp.isSneaking());
             punishAndTryRubberband(pp, e);
         }
         else
