@@ -67,6 +67,7 @@ public class MoveEvent extends Event {
     private float newFriction; //This is the friction that is used to compute this move's initial force.
     private float oldFriction; //This is the friction that affects this move's velocity.
     private float maxExpectedInputForce;
+    private float maxExpectedInputForceNoItemUse;
     private Vector waterFlowForce;
     private List<Pair<Block, Vector>> liquidsAndDirections;
     //No, don't compute a delta vector during instantiation since it won't respond to teleports.
@@ -94,13 +95,13 @@ public class MoveEvent extends Event {
         newFriction = computeFriction();
         slimeBlockBounce = testSlimeBlockBounce();
         waterFlowForce = computeWaterFlowForce();
-        maxExpectedInputForce = computeMaximumInputForce();
+        maxExpectedInputForce = computeMaximumInputForce(true);
+        maxExpectedInputForceNoItemUse = computeMaximumInputForce(false); //of course I have to do this twice...
         possiblePistonPush = testPistonPush(getFrom().toVector(), getTo().toVector(), pp);
         double dy = getTo().getY() - getFrom().getY();
         double waterYForce = pp.getWaterFlowForce().getY();
         liquidExit = pp.isExitingLiquidTemp() && (Math.abs(dy - waterYForce - 0.3) < 0.00001 || Math.abs(dy - 0.04 - waterYForce - 0.3) < 0.00001);
         double dyRaw = getTo().getY() - pp.getPositionRaw().getY();
-        glidingInUnloadedChunk = Math.abs(dyRaw - -0.098) < 0.0000001 && (acceptedKnockback == null || Math.abs(acceptedKnockback.getY() - -0.098) > 0.0000001);
 
         setTeleported(false);
         pp.tick();
@@ -108,6 +109,7 @@ public class MoveEvent extends Event {
             pp.setHasMoved();
 
         nextIsSlimeBlockBounce = testSlimeBlockBounceNext();
+        glidingInUnloadedChunk = Math.abs(dyRaw - -0.098) < 0.0000001 && (acceptedKnockback == null || Math.abs(acceptedKnockback.getY() - -0.098) > 0.0000001);
 
         //handle teleports
         Vector lastPos = pp.getPosition(); //set this now, because HawkPlayer#getPosition() will change after teleport
@@ -133,9 +135,7 @@ public class MoveEvent extends Event {
             } else if(!pp.getPlayer().isSleeping()) {
                 if (elapsedTicks > (ping / 50) + 5) { //5 is an arbitrary constant to keep things smooth
                     //didn't accept teleport, so help guide the confused client back to the tp location
-                    if (eligibleForResync()) {
-                        pp.teleport(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
-                    }
+                    pp.teleport(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
                 }
                 pp.setPositionRaw(getTo().toVector());
                 return false;
@@ -144,18 +144,14 @@ public class MoveEvent extends Event {
 
         //handle illegal move or discrepancy
         else if (getFrom().getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(getFrom()) > 64) {
-            if (eligibleForResync()) {
-                resync();
-            }
+            resync();
             pp.setPositionRaw(getTo().toVector());
             return false;
         }
 
         //handle gliding in unloaded chunk
-        if(!hasTeleported() && glidingInUnloadedChunk) {
-            if (eligibleForResync()) {
-                resync();
-            }
+        if(!hasTeleported() && glidingInUnloadedChunk && Math.abs(pp.getVelocityPredicted().getY() - -0.098) > 0.000001) {
+            resync();
             pp.setPositionRaw(getTo().toVector());
             return false;
         }
@@ -218,12 +214,6 @@ public class MoveEvent extends Event {
         pp.setSentPosUpdate(isUpdatePos());
         if(hasAcceptedKnockback())
             pp.updateLastVelocityAcceptTick();
-    }
-
-    private boolean eligibleForResync() {
-        boolean exempt = hawk.getCheckManager().getExemptedPlayers().contains(pp.getPlayer().getUniqueId());
-        boolean forced = hawk.getCheckManager().getForcedPlayers().contains(pp.getPlayer().getUniqueId());
-        return forced || (!pp.getPlayer().hasPermission("hawk.bypass") && !exempt);
     }
 
     private boolean testLiquidExit() {
@@ -387,7 +377,7 @@ public class MoveEvent extends Event {
         return friction;
     }
 
-    private float computeMaximumInputForce() {
+    private float computeMaximumInputForce(boolean considerItemUse) {
         //"initForce" is the value of "strafe" or "forward" in MCP's moveEntityWithHeading(float, float) in
         //EntityLivingBase. When the WASD keys are polled, these are either incremented or decremented by 1.
         //Before reaching the method, the "strafe" and "forward" values are multiplied by 0.98,
@@ -396,7 +386,7 @@ public class MoveEvent extends Event {
         if(pp.isSneaking())
             initForce *= 0.3;
 
-        boolean usingItem = pp.isConsumingOrPullingBowMetadataIncluded() || pp.isBlocking();
+        boolean usingItem = considerItemUse && (pp.isConsumingOrPullingBowMetadataIncluded() || pp.isBlocking());
         if(usingItem)
             initForce *= 0.2;
         boolean sprinting = pp.isSprinting() && !usingItem && !pp.isSneaking();
@@ -672,6 +662,10 @@ public class MoveEvent extends Event {
 
     public float getMaxExpectedInputForce() {
         return maxExpectedInputForce;
+    }
+
+    public float getMaxExpectedInputForceNoItemUse() {
+        return maxExpectedInputForceNoItemUse;
     }
 
     public boolean isNextSlimeBlockBounce() {

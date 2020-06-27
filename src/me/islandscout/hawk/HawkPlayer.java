@@ -113,6 +113,7 @@ public class HawkPlayer {
     private long lastAttackedPlayerTick;
     private long lastEntityInteractTick;
     private long lastInLiquidToggleTick;
+    private long lastSlotSwitchTick;
     private long lastMoveTick;
     private long hitSlowdownTick;
     private long lastVelocityAcceptTick;
@@ -546,6 +547,14 @@ public class HawkPlayer {
 
     public long getLastInLiquidToggleTick() {
         return lastInLiquidToggleTick;
+    }
+
+    public long getLastSlotSwitchTick() {
+        return lastSlotSwitchTick;
+    }
+
+    public void updateLastSlotSwitchTick() {
+        this.lastSlotSwitchTick = currentTick;
     }
 
     public long getHitSlowdownTick() {

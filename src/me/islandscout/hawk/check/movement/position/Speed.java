@@ -21,6 +21,9 @@ package me.islandscout.hawk.check.movement.position;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
+import me.islandscout.hawk.event.Event;
+import me.islandscout.hawk.event.HawkEventListener;
+import me.islandscout.hawk.event.ItemSwitchEvent;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
@@ -57,6 +60,8 @@ public class Speed extends MovementCheck implements Listener {
     private final Map<UUID, Integer> noMovesMap;
     private final Map<UUID, Double> lastNegativeDiscrepancies;
     private final Map<UUID, Double> negativeDiscrepanciesCumulative;
+    private final Map<UUID, Integer> slotSwitchQuirkTicksMap; //I hate this game.
+    private final Map<UUID, Long> lastSlotSwitchTickMap;
 
     public Speed() {
         super("speed", true, 0, 5, 0.99, 5000, "%player% failed movement speed, VL: %vl%", null);
@@ -65,6 +70,8 @@ public class Speed extends MovementCheck implements Listener {
         noMovesMap = new HashMap<>();
         lastNegativeDiscrepancies = new HashMap<>();
         negativeDiscrepanciesCumulative = new HashMap<>();
+        slotSwitchQuirkTicksMap = new HashMap<>();
+        lastSlotSwitchTickMap = new HashMap<>();
         DISCREPANCY_THRESHOLD = (double) customSetting("discrepancyThreshold", "", 0.1D);
         VL_FAIL_DISCREPANCY_FACTOR = (double) customSetting("vlFailDiscrepancyFactor", "", 10D);
         RESET_DISCREPANCY_ON_FAIL = (boolean) customSetting("resetDiscrepancyOnFail", "", true);
@@ -105,6 +112,7 @@ public class Speed extends MovementCheck implements Listener {
 
         float friction = event.getFriction();
         float maxForce = event.getMaxExpectedInputForce();
+        float maxForceNoItemUse = event.getMaxExpectedInputForceNoItemUse();
 
         //It represents the previous location. Block collision is done after moving the entity.
         Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(event.getFrom().toVector()).getMaterials(pp.getWorld());
@@ -137,10 +145,26 @@ public class Speed extends MovementCheck implements Listener {
         if(pp.isSprinting() && jump) {
             handleAdders += 0.2;
         }
-        //Finally, the expected speed calculation
-        double expected = friction * lastSpeedCompare * handleMultipliers + (maxForce + handleAdders + EPSILON);
 
-        Discrepancy discrepancy;
+        //Finally, the expected speed calculation. There's another "expected" because of a dumb quirk when switching slots while using an item.
+        //Optimize later.
+        double expected = friction * lastSpeedCompare * handleMultipliers + (maxForce + handleAdders + EPSILON);
+        double expectedNoItemUse = friction * lastSpeedCompare * handleMultipliers + (maxForceNoItemUse + handleAdders + EPSILON);
+
+        //I hate this game. Handle slot switching quirk. The slot switch packet is delayed by a tick.
+        //This sort of "event listening" must be done because Hawk's MoveEvents can be skipped under certain conditions.
+        long slotSwitchTick = pp.getLastSlotSwitchTick();
+        boolean switchedSlot = slotSwitchTick != lastSlotSwitchTickMap.getOrDefault(p.getUniqueId(), slotSwitchTick);
+        int slotSwitchQuirkTicks = slotSwitchQuirkTicksMap.getOrDefault(p.getUniqueId(), 0);
+        if(switchedSlot) {
+            slotSwitchQuirkTicks = 0;
+        }
+        lastSlotSwitchTickMap.put(p.getUniqueId(), slotSwitchTick);
+
+        //Calculate discrepancy.
+        Discrepancy discrepancy; //This is the one that will be used for final comparison. It is the value of either discrepancyBase or discrepancyNoItemUse.
+        Discrepancy discrepancyBase; //Used for pretty much 99.99% of moves.
+        Discrepancy discrepancyNoItemUse; //Similar to discrepancyBase, but doesn't consider item-use slowdown.
         //LIQUID
         if(swimming && !flying) {
 
@@ -163,7 +187,21 @@ public class Speed extends MovementCheck implements Listener {
             discrepancy = waterMapping(lastSpeed, speed, computedForce);
         }
         else {
-            discrepancy = new Discrepancy(expected, speed);
+            discrepancyBase = new Discrepancy(expected, speed);
+            discrepancyNoItemUse = new Discrepancy(expectedNoItemUse, speed);
+            if((pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow()) && Math.abs(discrepancyNoItemUse.value) < Math.abs(discrepancyBase.value)) {
+                //This means that they're using an item, but they're moving at normal speed. This COULD be due to that
+                //dumb item switch quirk, so we'll grant them only one extra tick. It resets when they switch their slot.
+                if(slotSwitchQuirkTicks < 1) {
+                    //Allow them to move at normal speed for 1 tick.
+                    discrepancy = discrepancyNoItemUse;
+                } else {
+                    discrepancy = discrepancyBase;
+                }
+                slotSwitchQuirkTicks++;
+            } else {
+                discrepancy = discrepancyBase;
+            }
         }
 
         //Client told server that it updated its position. Checking time.
@@ -205,6 +243,7 @@ public class Speed extends MovementCheck implements Listener {
             //negativeDiscrepanciesCumulative.put(p.getUniqueId(), negativeDiscrepanciesCumulative.getOrDefault(p.getUniqueId(), 0D) + speed);
         }
 
+        slotSwitchQuirkTicksMap.put(p.getUniqueId(), slotSwitchQuirkTicks);
         prepareNextMove(pp, noMoves, speed, touchedBlocks);
     }
 
@@ -224,6 +263,8 @@ public class Speed extends MovementCheck implements Listener {
         noMovesMap.remove(uuid);
         lastNegativeDiscrepancies.remove(uuid);
         negativeDiscrepanciesCumulative.remove(uuid);
+        slotSwitchQuirkTicksMap.remove(uuid);
+        lastSlotSwitchTickMap.remove(uuid);
     }
 
     //speed potions do not affect swimming

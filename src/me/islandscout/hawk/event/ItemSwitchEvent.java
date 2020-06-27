@@ -33,12 +33,11 @@ public class ItemSwitchEvent extends Event {
 
     @Override
     public void postProcess() {
-        if (!isCancelled()) {
-            pp.setHeldItemSlot(getSlotIndex());
-            pp.setConsumingItem(false);
-            pp.setBlocking(false);
-            pp.setPullingBow(false);
-        }
+        pp.setHeldItemSlot(getSlotIndex());
+        pp.setConsumingItem(false);
+        pp.setBlocking(false);
+        pp.setPullingBow(false);
+        pp.updateLastSlotSwitchTick();
     }
 
     public int getSlotIndex() {
