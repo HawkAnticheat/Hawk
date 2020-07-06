@@ -37,7 +37,7 @@ public class Teleport {
         return cause;
     }
 
-    public HawkPlayer getPp() {
+    public HawkPlayer getHawkPlayer() {
         return pp;
     }
 
@@ -46,7 +46,8 @@ public class Teleport {
     }
 
     enum Cause {
-        RESYNC,
+        ANTICHEAT_RESYNC,
+        VEHICLE_EXIT,
         OTHER
     }
 

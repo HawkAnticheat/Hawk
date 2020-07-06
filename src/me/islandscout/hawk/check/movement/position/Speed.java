@@ -29,6 +29,7 @@ import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.util.Vector;
@@ -169,20 +170,17 @@ public class Speed extends MovementCheck implements Listener {
         if(swimming && !flying) {
 
             Vector move = new Vector(event.getTo().getX() - event.getFrom().getX(), 0, event.getTo().getZ() - event.getFrom().getZ());
-            Vector waterForce = event.getWaterFlowForce().clone().setY(0).normalize().multiply(Physics.WATER_FLOW_FORCE_MULTIPLIER);
+            Vector waterForce = event.getWaterFlowForce().clone().setY(0);
             double waterForceLength = waterForce.length();
-            //you can just normalize them and do a dot product. should be faster.
-            double computedForce = MathPlus.cos((float)MathPlus.angle(move, waterForce)) * waterForceLength;
+            double moveLength = move.length();
+            double computedForce = moveLength == 0 ? waterForceLength : (move.dot(waterForce) / moveLength);
+
+            double depthStriderModifier = 0;
+            if(Hawk.getServerVersion() == 8) {
+                depthStriderModifier = p.getInventory().getBoots().getEnchantmentLevel(Enchantment.DEPTH_STRIDER);
+            }
 
             computedForce += 0.003; //add epsilon to allow room for error
-
-            if(Double.isNaN(computedForce)) {
-                computedForce = waterForceLength;
-                //wtf how can this still be NaN?
-                if(Double.isNaN(computedForce)) {
-                    computedForce = 0;
-                }
-            }
 
             discrepancy = waterMapping(lastSpeed, speed, computedForce);
         }
@@ -195,10 +193,10 @@ public class Speed extends MovementCheck implements Listener {
                 if(slotSwitchQuirkTicks < 1) {
                     //Allow them to move at normal speed for 1 tick.
                     discrepancy = discrepancyNoItemUse;
+                    slotSwitchQuirkTicks++;
                 } else {
                     discrepancy = discrepancyBase;
                 }
-                slotSwitchQuirkTicks++;
             } else {
                 discrepancy = discrepancyBase;
             }

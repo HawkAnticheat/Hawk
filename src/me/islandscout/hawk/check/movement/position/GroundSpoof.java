@@ -22,13 +22,13 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.util.AABB;
 import me.islandscout.hawk.util.AdjacentBlocks;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.Location;
+import org.bukkit.Material;
 
 public class GroundSpoof extends MovementCheck {
-
-    //TODO do not forget checkerclimb. Blocks within 0.3 should be treated as AIR unless they are in HawkPlayer's collision ignore list
 
     private final boolean PREVENT_NOFALL;
 
@@ -55,7 +55,14 @@ public class GroundSpoof extends MovementCheck {
                 //In the client, if Y is clipped, then onGround is set to true.
                 Location checkLoc = event.getFrom().clone();
                 checkLoc.setY(event.getTo().getY());
-                if (AdjacentBlocks.onGroundReally(checkLoc, -1, false, 0.02, pp))
+
+                //Stop checkerclimbers
+                AABB aabb = AABB.playerCollisionBox.clone();
+                aabb.expand(0, -0.0001, 0);
+                aabb.translate(event.getTo().toVector());
+
+                if (aabb.getBlockAABBs(pp.getWorld(), pp.getClientVersion(), Material.WEB).isEmpty() &&
+                        AdjacentBlocks.onGroundReally(checkLoc, -1, false, 0.02, pp))
                     return;
 
                 if (event.isOnClientBlock() == null) {
