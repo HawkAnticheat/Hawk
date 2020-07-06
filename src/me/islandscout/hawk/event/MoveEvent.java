@@ -63,7 +63,7 @@ public class MoveEvent extends Event {
     private boolean liquidExit;
     private boolean glidingInUnloadedChunk;
     private boolean possiblePistonPush;
-    private boolean hitCeiling;
+    private boolean touchingCeiling;
     private float newFriction; //This is the friction that is used to compute this move's initial force.
     private float oldFriction; //This is the friction that affects this move's velocity.
     private float maxExpectedInputForce;
@@ -89,7 +89,7 @@ public class MoveEvent extends Event {
         acceptedKnockback = handlePendingVelocities();
         liquidsAndDirections = testWater();
         inWater = liquidsAndDirections.size() > 0;
-        hitCeiling = testHitCeiling();
+        touchingCeiling = testTouchCeiling();
         jumped = testJumped();
         oldFriction = pp.getFriction();
         newFriction = computeFriction();
@@ -305,11 +305,11 @@ public class MoveEvent extends Event {
         }
 
         boolean kbSimilarToJump = acceptedKnockback != null &&
-                (Math.abs(acceptedKnockback.getY() - expectedDY) < 0.001 || hitCeiling);
-        return !kbSimilarToJump && ((expectedDY == 0 && pp.isOnGround()) || leftGround) && (dY == expectedDY || hitCeiling);
+                (Math.abs(acceptedKnockback.getY() - expectedDY) < 0.001 || touchingCeiling);
+        return !kbSimilarToJump && ((expectedDY == 0 && pp.isOnGround()) || leftGround) && (dY == expectedDY || touchingCeiling);
     }
 
-    private boolean testHitCeiling() {
+    private boolean testTouchCeiling() {
         //Change by Havesta to more accurately handle Y collision
         Vector from = pp.hasSentPosUpdate() ? getFrom().toVector() : pp.getPositionPredicted();
         Vector pos = from.clone().setY(getTo().getY());
@@ -676,8 +676,8 @@ public class MoveEvent extends Event {
         return possiblePistonPush;
     }
 
-    public boolean hasHitCeiling() {
-        return hitCeiling;
+    public boolean isTouchingCeiling() {
+        return touchingCeiling;
     }
 
     //Resync permits only a maximum of 1 rubberband per move

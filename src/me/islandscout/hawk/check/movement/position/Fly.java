@@ -35,7 +35,6 @@ import java.util.*;
 
 public class Fly extends MovementCheck {
 
-    //TODO do not forget checkerclimb. Blocks within 0.3 should be treated as AIR unless they are in HawkPlayer's collision ignore list
     //TODO perhaps have a ground checking mode? clientside vs serverside? doing it server side can allow GroundSpoof to not cancel, yet Gravity will still catch groundspoof-based flys
 
     private static final float MIN_VELOCITY = 0.005F;
@@ -190,9 +189,8 @@ public class Fly extends MovementCheck {
             estimatedPosition += estimatedVelocity;
 
             //check if hit head
-            boolean hitHead = e.getBoxSidesTouchingBlocks().contains(Direction.TOP),
-                    hasHitHead = pp.getBoxSidesTouchingBlocks().contains(Direction.TOP);
-            if(e.getTo().getY() < estimatedPosition && (hitHead && !hasHitHead)) { //standard pos/vel
+            boolean hasHitHead = pp.getBoxSidesTouchingBlocks().contains(Direction.TOP);
+            if(e.getTo().getY() < estimatedPosition && (e.isTouchingCeiling() && !hasHitHead)) { //standard pos/vel
                 estimatedPosition = (float) e.getTo().getY();
                 estimatedVelocity = 0;
                 velResetA = true;
@@ -200,7 +198,7 @@ public class Fly extends MovementCheck {
 
             //check if hit head while swimming
             if(e.getTo().getY() < estimatedPositionAlt && e.getTo().getY() > estimatedPosition &&
-                    (pp.isInWater() || pp.isInLava() || pp.isSwimming()) && (hitHead || hasHitHead)) { //alt. pos/vel
+                    (pp.isInWater() || pp.isInLava() || pp.isSwimming()) && (e.isTouchingCeiling() || hasHitHead)) { //alt. pos/vel
                 estimatedPositionAlt = (float) e.getTo().getY();
                 estimatedVelocityAlt = 0;
                 velResetB = true;
@@ -307,7 +305,7 @@ public class Fly extends MovementCheck {
                 estimatedPosition = estimatedPositionAlt = (float) pp.getPositionPredicted().getY();
             }
 
-            if(e.isOnGround() || (e.hasHitCeiling() && dY > 0)) {
+            if(e.isOnGround() || (e.isTouchingCeiling() && dY > 0)) {
                 prevEstimatedVelocity = prevEstimatedVelocityAlt = 0;
             } else {
                 prevEstimatedVelocity = prevEstimatedVelocityAlt = dY;
