@@ -34,6 +34,7 @@ public final class ServerUtils {
     }
 
     public static int getPing(Player p) {
+        //return SuperPingLib.getPing(p);
         if (Hawk.getServerVersion() == 8)
             return ((org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer) p).getHandle().ping;
         if (Hawk.getServerVersion() == 7)

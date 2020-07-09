@@ -175,10 +175,11 @@ public class Speed extends MovementCheck implements Listener {
             double moveLength = move.length();
             double computedForce = moveLength == 0 ? waterForceLength : (move.dot(waterForce) / moveLength);
 
-            double depthStriderModifier = 0;
+            /*double depthStriderModifier = 0;
             if(Hawk.getServerVersion() == 8) {
+                //make sure you null-check this
                 depthStriderModifier = p.getInventory().getBoots().getEnchantmentLevel(Enchantment.DEPTH_STRIDER);
-            }
+            }*/
 
             computedForce += 0.003; //add epsilon to allow room for error
 

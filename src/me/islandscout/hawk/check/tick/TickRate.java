@@ -65,9 +65,9 @@ public class TickRate extends MovementCheck implements Listener {
         clockDrift = new HashMap<>();
         lastBigTeleportTime = new HashMap<>();
         THRESHOLD = -(int) customSetting("clockDriftThresholdMillis", "", 50);
-        MAX_CATCHUP_TIME = 1000000 * (int) customSetting("maxCatchupTimeMillis", "", 1000);
+        MAX_CATCHUP_TIME = 1000000 * (int) customSetting("maxCatchupTimeMillis", "", 2000);
         DEBUG = (boolean) customSetting("debug", "", false);
-        MIN_RATE = (50 - (50 / (double)customSetting("minRateMultiplier", "", 0.995))) / 1E-6;
+        MIN_RATE = (50 - (50 / (double)customSetting("minRateMultiplier", "", 0.999))) / 1E-6;
         MAX_RATE = (50 - (50 / (double)customSetting("maxRateMultiplier", "", 1.005))) / 1E-6;
         RUBBERBAND = (boolean)customSetting("rubberband", "", true);
         RESET_DRIFT_ON_FAIL = (boolean)customSetting("resetDriftOnFail", "", false);
