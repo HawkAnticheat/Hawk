@@ -20,6 +20,7 @@ package me.islandscout.hawk.command;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -34,7 +35,7 @@ public class UnmuteArgument extends Argument {
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length < 2)
             return false;
-        Player target = Bukkit.getPlayer(args[1]);
+        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
         if (target == null) {
             sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[1] + "\"");
             return true;
