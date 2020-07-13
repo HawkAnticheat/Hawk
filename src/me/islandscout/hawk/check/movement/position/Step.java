@@ -13,7 +13,7 @@ public class Step extends MovementCheck {
     @Override
     protected void check(MoveEvent e) {
 
-        if(e.isStep() || !(e.isOnGround() && e.getHawkPlayer().isOnGround()) || e.hasTeleported() || e.hasAcceptedKnockback()) {
+        if(e.isStep() || !(e.isOnGround() && e.getHawkPlayer().isOnGround()) || e.isTeleportAccept() || e.hasAcceptedKnockback()) {
             return;
         }
 

@@ -42,7 +42,7 @@ public class SmallHop extends MovementCheck {
     @Override
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
-        double deltaY = e.hasTeleported() ? 0D : e.getTo().getY() - e.getFrom().getY();
+        double deltaY = e.isTeleportAccept() ? 0D : e.getTo().getY() - e.getFrom().getY();
         double prevDeltaY = pp.getVelocity().getY();
         boolean wasOnGround = pp.isOnGround();
         Location checkPos = e.getFrom().clone().add(0, 1, 0);

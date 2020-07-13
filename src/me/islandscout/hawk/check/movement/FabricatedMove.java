@@ -53,7 +53,7 @@ public class FabricatedMove extends MovementCheck {
     protected void check(MoveEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
 
-        if(pp.getPlayer().isInsideVehicle() || e.hasTeleported()) {
+        if(pp.getPlayer().isInsideVehicle() || e.isTeleportAccept()) {
             flyingTicksMap.put(pp.getUuid(), 0);
             return;
         }

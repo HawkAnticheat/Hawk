@@ -84,7 +84,7 @@ public class Fly extends MovementCheck {
 
         Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(from).getMaterials(pp.getWorld());
 
-        boolean opposingForce = e.isJump() || e.hasAcceptedKnockback() || e.hasTeleported() || e.isStep();
+        boolean opposingForce = e.isJump() || e.hasAcceptedKnockback() || e.isTeleportAccept() || e.isStep();
 
         boolean wasInLava = wasInLavaSet.contains(p.getUniqueId());
 

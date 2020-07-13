@@ -56,7 +56,6 @@ public class TickRate extends MovementCheck implements Listener {
     private final double MIN_RATE;
     private final double MAX_RATE;
     private final boolean RUBBERBAND;
-    private final boolean RESET_DRIFT_ON_FAIL; //TODO this should reset to a point 50ms from the threshold point.
     private final int WARM_UP;
 
     public TickRate() {
@@ -70,12 +69,15 @@ public class TickRate extends MovementCheck implements Listener {
         MIN_RATE = (50 - (50 / (double)customSetting("minRateMultiplier", "", 0.999))) / 1E-6;
         MAX_RATE = (50 - (50 / (double)customSetting("maxRateMultiplier", "", 1.005))) / 1E-6;
         RUBBERBAND = (boolean)customSetting("rubberband", "", true);
-        RESET_DRIFT_ON_FAIL = (boolean)customSetting("resetDriftOnFail", "", false);
         WARM_UP = (int)customSetting("ignoreTicksAfterLongTeleport", "", 150) - 1;
     }
 
     @Override
     protected void check(MoveEvent event) {
+
+        if(event.isTeleportAccept())
+            return;
+
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
 
@@ -87,10 +89,10 @@ public class TickRate extends MovementCheck implements Listener {
         long timeElapsed = time - prevNanoTime.get(p.getUniqueId());
         prevNanoTime.put(p.getUniqueId(), time);
 
-        if (event.hasTeleported() || pp.getCurrentTick() - lastBigTeleportTime.getOrDefault(p.getUniqueId(), 0L) < WARM_UP) {
+        if (pp.getCurrentTick() - lastBigTeleportTime.getOrDefault(p.getUniqueId(), 0L) < WARM_UP) {
             if(DEBUG)
                 p.sendMessage(ChatColor.GRAY + "Tickrate check warming up. Please wait a moment...");
-            clockDrift.put(p.getUniqueId(), 50000000L);
+            clockDrift.put(p.getUniqueId(), 0L);
             return;
         }
 
@@ -109,12 +111,11 @@ public class TickRate extends MovementCheck implements Listener {
             p.sendMessage((msOffset < 0 ? (msOffset < THRESHOLD ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.BLUE) + "CLOCK DRIFT: " + MathPlus.round(-msOffset, 2) + "ms");
         }
         if (drift * 1E-6 < THRESHOLD) {
-            if(RUBBERBAND && pp.getCurrentTick() - pp.getLastTeleportSendTick() > 20) //Don't rubberband so often. You're already cancelling a ton of moves.
+            if(RUBBERBAND && pp.getCurrentTick() - pp.getLastTeleportSendTick() > 20) //Don't rubberband so often. You're already cancelling a ton of moves. TODO use real system time to actually stop teleport spam?
                 punishAndTryRubberband(pp, event);
             else
                 punish(pp, true, event);
-            if(RESET_DRIFT_ON_FAIL)
-                drift = 0;
+            drift = (long) (THRESHOLD / 1E-6);
         } else
             reward(pp);
         if (drift < 0)

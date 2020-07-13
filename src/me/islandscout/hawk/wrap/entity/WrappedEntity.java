@@ -28,6 +28,9 @@ public abstract class WrappedEntity {
 
     AABB collisionBox;
     float collisionBorderSize;
+    float length;
+    float width;
+    float height;
     Location location;
 
     WrappedEntity() {
@@ -61,5 +64,17 @@ public abstract class WrappedEntity {
         AABB hitbox = collisionBox.clone();
         hitbox.expand(collisionBorderSize, collisionBorderSize, collisionBorderSize);
         return hitbox;
+    }
+
+    public float getLength() {
+        return length;
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
     }
 }

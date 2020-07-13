@@ -49,6 +49,9 @@ public class WrappedEntity7 extends WrappedEntity {
         //You wouldn't expect this method to be in NMS since it is used for hit scanning for the client.
         collisionBorderSize = nmsEntity.af();
         location = entity.getLocation();
+        length = nmsEntity.length;
+        width = nmsEntity.width;
+        height = nmsEntity.height;
     }
 
     public static WrappedEntity7 getWrappedEntity(Entity entity) {

@@ -54,7 +54,7 @@ public class SprintDirection extends MovementCheck {
             lastSprintTickMap.put(pp.getUuid(), pp.getCurrentTick());
 
         Set<Material> collidedMats = WrappedEntity.getWrappedEntity(e.getPlayer()).getCollisionBox(e.getFrom().toVector()).getMaterials(pp.getWorld());
-        if(pp.isSwimming() || e.hasTeleported() || e.hasAcceptedKnockback() ||
+        if(pp.isSwimming() || e.isTeleportAccept() || e.hasAcceptedKnockback() ||
                 (collisionHorizontal && !collisionHorizontalSet.contains(pp.getUuid())) ||
                 pp.getCurrentTick() - lastSprintTickMap.getOrDefault(pp.getUuid(), pp.getCurrentTick()) < 2 ||
                 moveHoriz.lengthSquared() < 0.04 || collidedMats.contains(Material.LADDER) ||

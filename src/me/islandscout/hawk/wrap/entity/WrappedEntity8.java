@@ -37,6 +37,9 @@ public class WrappedEntity8 extends WrappedEntity {
         collisionBox = new AABB(new Vector(bb.a, bb.b, bb.c), new Vector(bb.d, bb.e, bb.f));
         collisionBorderSize = nmsEntity.ao();
         location = entity.getLocation();
+        length = nmsEntity.width;
+        width = nmsEntity.width;
+        height = nmsEntity.length;
     }
 
     public static WrappedEntity8 getWrappedEntity(Entity entity) {

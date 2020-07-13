@@ -133,7 +133,7 @@ public class FlyOld extends MovementCheck implements Listener {
 
 
             //handle teleport
-            if (event.hasTeleported()) {
+            if (event.isTeleportAccept()) {
                 lastDeltaY.put(p.getUniqueId(), 0D);
                 expectedDeltaY = 0;
                 legitLoc.put(p.getUniqueId(), event.getTo());

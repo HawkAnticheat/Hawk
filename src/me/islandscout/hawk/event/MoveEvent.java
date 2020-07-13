@@ -23,6 +23,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
+import net.minecraft.server.v1_8_R3.PlayerConnection;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -43,7 +44,7 @@ public class MoveEvent extends Event {
 
     private final boolean onGround;
     private boolean onGroundReally;
-    private boolean teleported;
+    private boolean teleportAccept;
     private Location toLocation;
     private Location cancelLocation;
     private final boolean updatePos;
@@ -103,7 +104,6 @@ public class MoveEvent extends Event {
         liquidExit = pp.isExitingLiquidTemp() && (Math.abs(dy - waterYForce - 0.3) < 0.00001 || Math.abs(dy - 0.04 - waterYForce - 0.3) < 0.00001);
         double dyRaw = getTo().getY() - pp.getPositionRaw().getY();
 
-        setTeleported(false);
         pp.tick();
         if(isUpdatePos())
             pp.setHasMoved();
@@ -111,22 +111,28 @@ public class MoveEvent extends Event {
         nextIsSlimeBlockBounce = testSlimeBlockBounceNext();
         glidingInUnloadedChunk = Math.abs(dyRaw - -0.098) < 0.0000001 && (acceptedKnockback == null || Math.abs(acceptedKnockback.getY() - -0.098) > 0.0000001);
 
-        //handle teleports
-        Vector lastPos = pp.getPosition(); //set this now, because HawkPlayer#getPosition() will change after teleport
+        //handle moves while we are waiting for the player to accept teleportAccept
+        //Discard moves while we are waiting. We don't want to spam teleports while
+        //someone is hacking their ass off. If you spam a bunch of teleport packets,
+        //the client will gracefully respond to all of them with flying packets, and
+        //if the player is standing still, NMS won't be able to differentiate the
+        //teleport from a normal move since the expected teleport location keeps
+        //changing too quickly. Thus NMS will tick the player for all of those
+        //packets, opening up a fasteat/fastbow/regen/etc. bypass.
+        Vector lastPos = pp.getPosition(); //set this now, because HawkPlayer#getPosition() will change after teleportAccept
         int elapsedTicks = (int)(pp.getCurrentTick() - pp.getLastTeleportSendTick());
         if (pp.isTeleporting()) {
             Location tpLoc = pp.getTeleportLoc();
             int ping = ServerUtils.getPing(p);
-            //TODO is onGround always false after a teleport?
-            if (!onGround && tpLoc.getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(tpLoc) < 0.001) {
-                //move matched teleport location
-                if(elapsedTicks > (ping / 50) - 1) { //1 is an arbitrary constant to keep things smooth
-                    //most likely accepted teleport, unless this move is a coincidence
+            if (!onGround && tpLoc.equals(getTo())) {
+                //move matched teleportAccept location
+                if(elapsedTicks > Math.max((ping / 50) - 1, 0)) { //-1 is an arbitrary constant to keep things smooth
+                    //most likely accepted teleportAccept, unless this move is a coincidence
                     pp.updatePositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch(), true);
                     pp.setVelocity(new Vector(0, 0, 0));
                     pp.setTeleporting(false);
                     pp.setLastTeleportAcceptTick(pp.getCurrentTick());
-                    setTeleported(true);
+                    teleportAccept = true;
                 }
                 else {
                     pp.setPositionRaw(getTo().toVector());
@@ -134,7 +140,7 @@ public class MoveEvent extends Event {
                 }
             } else if(!pp.getPlayer().isSleeping()) {
                 if (elapsedTicks > (ping / 50) + 5) { //5 is an arbitrary constant to keep things smooth
-                    //didn't accept teleport, so help guide the confused client back to the tp location
+                    //didn't accept teleportAccept, so help guide the confused client back to the tp location
                     pp.teleport(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
                 }
                 pp.setPositionRaw(getTo().toVector());
@@ -150,7 +156,7 @@ public class MoveEvent extends Event {
         }
 
         //handle gliding in unloaded chunk
-        if(!hasTeleported() && glidingInUnloadedChunk && Math.abs(pp.getVelocityPredicted().getY() - -0.098) > 0.000001) {
+        if(!teleportAccept && glidingInUnloadedChunk && Math.abs(pp.getVelocityPredicted().getY() - -0.098) > 0.000001) {
             resync();
             pp.setPositionRaw(getTo().toVector());
             return false;
@@ -161,10 +167,10 @@ public class MoveEvent extends Event {
         if(pp.isFlying() || pp.isInLava() || pp.isInWater() ||
                 AdjacentBlocks.onGroundReally(serverSideLoc, -1, true, 0.03, pp))
             pp.setAltSetbackLoc(null);
-        if(hasTeleported())
+        if(teleportAccept)
             pp.setAltSetbackLoc(serverSideLoc);
 
-        pp.updateIgnoredBlockCollisions(getTo().toVector(), lastPos, hasTeleported());
+        pp.updateIgnoredBlockCollisions(getTo().toVector(), lastPos, teleportAccept);
         return true;
     }
 
@@ -233,15 +239,54 @@ public class MoveEvent extends Event {
     }
 
     private boolean testStep() {
-        Vector extraVelocity = pp.getVelocity().clone();
-        if(pp.isOnGroundReally())
-            extraVelocity.setY(-0.0784);
-        else
-            extraVelocity.setY((extraVelocity.getY() - 0.08) * 0.98);
-        Location extraPos = pp.getPosition().toLocation(pp.getWorld());
-        extraPos.add(extraVelocity);
-        float deltaY = (float) (getTo().getY() - getFrom().getY());
-        return AdjacentBlocks.onGroundReally(extraPos, extraVelocity.getY(), false, 0.001, pp) && onGroundReally && deltaY > 0.002F && deltaY <= 0.6F;
+        Vector prevPos = getFrom().toVector();
+        Vector extrapolate = getFrom().toVector();
+        //when on ground, Y velocity is inherently 0; no need to do pointless math.
+        extrapolate.setY(extrapolate.getY() + (pp.isOnGroundReally() ? -0.0784 : ((pp.getVelocity().getY() - 0.08) * 0.98)));
+
+        AABB box = AABB.playerCollisionBox.clone();
+        box.translate(extrapolate);
+        List<AABB> verticalCollision = box.getBlockAABBs(pp.getPlayer().getWorld(), pp.getClientVersion(), Material.WEB);
+
+        if(verticalCollision.isEmpty() && !pp.isOnGround()) {
+            return false;
+        }
+
+        double highestVertical = extrapolate.getY();
+        for (AABB blockAABB : verticalCollision) {
+            double aabbMaxY = blockAABB.getMax().getY();
+            if(aabbMaxY > highestVertical) {
+                highestVertical = aabbMaxY;
+            }
+        }
+
+        //move to this position, but with clipped Y (moving horizontally)
+        box = AABB.playerCollisionBox.clone();
+        box.translate(getTo().toVector().clone().setY(highestVertical));
+        box.expand(0, -0.00000000001, 0);
+
+        List<AABB> horizontalCollision = box.getBlockAABBs(pp.getPlayer().getWorld(), pp.getClientVersion(), Material.WEB);
+
+        if(horizontalCollision.isEmpty()) {
+            return false;
+        }
+
+        double expectedY = prevPos.getY();
+        double highestPointOnAABB = -1;
+        for (AABB blockAABB : horizontalCollision) {
+            double blockAABBY = blockAABB.getMax().getY();
+            if(blockAABBY - prevPos.getY() > 0.6) {
+                return false;
+            }
+            if(blockAABBY > expectedY) {
+                expectedY = blockAABBY;
+            }
+            if(blockAABBY > highestPointOnAABB) {
+                highestPointOnAABB = blockAABBY;
+            }
+        }
+
+        return (onGround || onGroundReally) && Math.abs(prevPos.getY() - highestPointOnAABB) > 0.0001 && Math.abs(getTo().getY() - expectedY) < 0.0001;
     }
 
     //Good thing I have MCP to figure this one out
@@ -572,12 +617,8 @@ public class MoveEvent extends Event {
         return null;
     }
 
-    public boolean hasTeleported() {
-        return teleported;
-    }
-
-    public void setTeleported(boolean teleported) {
-        this.teleported = teleported;
+    public boolean isTeleportAccept() {
+        return teleportAccept;
     }
 
     public Location getCancelLocation() {
