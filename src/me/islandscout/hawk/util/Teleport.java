@@ -45,9 +45,8 @@ public class Teleport {
         return to;
     }
 
-    enum Cause {
+    public enum Cause {
         ANTICHEAT_RESYNC,
-        VEHICLE_EXIT,
         OTHER
     }
 

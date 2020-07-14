@@ -88,6 +88,7 @@ public class PlayerEventListener implements Listener {
         pp.setWorld(e.getTo().getWorld());
         pp.setTeleportLoc(e.getTo());
         pp.setLastTeleportSendTick(pp.getCurrentTick());
+        pp.addPendingTeleport(e.getTo());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -97,6 +98,7 @@ public class PlayerEventListener implements Listener {
         pp.setWorld(e.getPlayer().getLocation().getWorld());
         pp.setTeleportLoc(e.getPlayer().getLocation());
         pp.setLastTeleportSendTick(pp.getCurrentTick());
+        pp.addPendingTeleport(e.getPlayer().getLocation());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -105,6 +107,7 @@ public class PlayerEventListener implements Listener {
         pp.setTeleporting(true);
         pp.setWorld(e.getRespawnLocation().getWorld());
         pp.setTeleportLoc(e.getRespawnLocation());
+        pp.addPendingTeleport(e.getRespawnLocation());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

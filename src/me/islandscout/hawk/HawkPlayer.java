@@ -126,6 +126,7 @@ public class HawkPlayer {
     private int itemConsumeTicks;
     private final Map<Location, ClientBlock> clientBlocks;
     private final List<Pair<Vector, Long>> pendingVelocities;
+    private final List<Pair<Location, Long>> pendingTeleports;
     private final Set<Direction> boxSidesTouchingBlocks;
     private Vector waterFlowForce;
     private List<Pair<MetaData, Long>> metaDataUpdates;
@@ -155,7 +156,8 @@ public class HawkPlayer {
         this.ping = ServerUtils.getPing(p);
         this.heldItemSlot = p.getInventory().getHeldItemSlot();
         clientBlocks = new ConcurrentHashMap<>();
-        pendingVelocities = new ArrayList<>();
+        pendingVelocities = new CopyOnWriteArrayList<>();
+        pendingTeleports = new CopyOnWriteArrayList<>();
         boxSidesTouchingBlocks = new HashSet<>();
         this.waterFlowForce = new Vector();
         trackedBlockCollisions = new HashMap<>();
@@ -183,6 +185,7 @@ public class HawkPlayer {
         manageClientBlocks();
         executeTasks();
         cleanUpOldMetaDataUpdates();
+        cleanUpOldPendingTeleports();
         entitiesInteractedInThisTick.clear();
         predictNextPosition();
         if(consumingItem)
@@ -255,7 +258,6 @@ public class HawkPlayer {
         return teleportLoc;
     }
 
-    //TODO Have this take a Teleport and give non-clear teleports priority. HawkPlayer needs to store its current Teleport. setTeleporting(false) should set it to null
     public void setTeleportLoc(Location teleportLoc) {
         this.teleportLoc = teleportLoc;
     }
@@ -994,6 +996,25 @@ public class HawkPlayer {
         });
     }
 
+    public void addPendingTeleport(Location loc) {
+        pendingTeleports.add(new Pair<>(loc, currentTick));
+        if(pendingTeleports.size() > 200) {
+            pendingTeleports.remove(0);
+        }
+    }
+
+    private void cleanUpOldPendingTeleports() {
+        if(pendingTeleports.size() == 0)
+            return;
+        while(pendingTeleports.size() > 0 && currentTick - pendingTeleports.get(0).getValue() > (ping + 2000) / 50) {
+            pendingTeleports.remove(0);
+        }
+    }
+
+    public List<Pair<Location, Long>> getPendingTeleports() {
+        return pendingTeleports;
+    }
+
     //This method simulates the reaction of the client by a server packet.
     //This is accomplished by simulating latency.
     //This can be used to simulate sprint-update or inventory-open packets
@@ -1028,7 +1049,7 @@ public class HawkPlayer {
         if(metaDataUpdates.size() == 0)
             return;
         long currTime = System.currentTimeMillis();
-        while(metaDataUpdates.size() > 0 && currTime - metaDataUpdates.get(0).getValue() > 2000) {
+        while(metaDataUpdates.size() > 0 && currTime - metaDataUpdates.get(0).getValue() > ping + 2000) {
             metaDataUpdates.remove(0);
         }
     }

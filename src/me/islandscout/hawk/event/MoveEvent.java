@@ -111,7 +111,9 @@ public class MoveEvent extends Event {
         nextIsSlimeBlockBounce = testSlimeBlockBounceNext();
         glidingInUnloadedChunk = Math.abs(dyRaw - -0.098) < 0.0000001 && (acceptedKnockback == null || Math.abs(acceptedKnockback.getY() - -0.098) > 0.0000001);
 
-        //handle moves while we are waiting for the player to accept teleportAccept
+        Vector lastPos = pp.getPosition(); //set this now, because HawkPlayer#getPosition() will change after teleport
+
+        //handle moves while we are waiting for the player to accept teleport
         //Discard moves while we are waiting. We don't want to spam teleports while
         //someone is hacking their ass off. If you spam a bunch of teleport packets,
         //the client will gracefully respond to all of them with flying packets, and
@@ -119,29 +121,38 @@ public class MoveEvent extends Event {
         //teleport from a normal move since the expected teleport location keeps
         //changing too quickly. Thus NMS will tick the player for all of those
         //packets, opening up a fasteat/fastbow/regen/etc. bypass.
-        Vector lastPos = pp.getPosition(); //set this now, because HawkPlayer#getPosition() will change after teleportAccept
-        int elapsedTicks = (int)(pp.getCurrentTick() - pp.getLastTeleportSendTick());
-        if (pp.isTeleporting()) {
-            Location tpLoc = pp.getTeleportLoc();
+        if (pp.isTeleporting() && pp.getPendingTeleports().size() > 0) {
+
+            Pair<Location, Long> tpPair = pp.getPendingTeleports().get(0);
+            Location tpLoc = tpPair.getKey();
+            int elapsedTicks = (int)(pp.getCurrentTick() - tpPair.getValue());
             int ping = ServerUtils.getPing(p);
-            if (!onGround && tpLoc.equals(getTo())) {
-                //move matched teleportAccept location
-                if(elapsedTicks > Math.max((ping / 50) - 1, 0)) { //-1 is an arbitrary constant to keep things smooth
-                    //most likely accepted teleportAccept, unless this move is a coincidence
+
+            if (!onGround && updatePos && updateRot && tpLoc.equals(getTo())) {
+                //move matched teleport location
+                //if(elapsedTicks > Math.max((ping / 50) - 1, 0)) { //-1 is an arbitrary constant to keep things smooth
+                    //most likely accepted teleport, unless this move is a coincidence (edge case & insanely difficult to reproduce without computer assistance)
                     pp.updatePositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch(), true);
                     pp.setVelocity(new Vector(0, 0, 0));
-                    pp.setTeleporting(false);
+                    pp.getPendingTeleports().remove(0);
                     pp.setLastTeleportAcceptTick(pp.getCurrentTick());
                     teleportAccept = true;
-                }
-                else {
-                    pp.setPositionRaw(getTo().toVector());
-                    return false;
-                }
+                    if(pp.getPendingTeleports().size() == 0) {
+                        pp.setTeleporting(false);
+                    } else {
+                        return false;
+                    }
+                //}
+                //else {
+                //    pp.setPositionRaw(getTo().toVector());
+                //    return false;
+                //}
             } else if(!pp.getPlayer().isSleeping()) {
                 if (elapsedTicks > (ping / 50) + 5) { //5 is an arbitrary constant to keep things smooth
-                    //didn't accept teleportAccept, so help guide the confused client back to the tp location
-                    pp.teleport(tpLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                    //didn't accept teleport, so help guide the confused client back to the last tp location
+                    Location tp = pp.getPendingTeleports().get(pp.getPendingTeleports().size() - 1).getKey();
+                    pp.getPendingTeleports().clear();
+                    pp.teleport(tp, PlayerTeleportEvent.TeleportCause.PLUGIN);
                 }
                 pp.setPositionRaw(getTo().toVector());
                 return false;
