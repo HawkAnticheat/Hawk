@@ -146,6 +146,15 @@ public class Speed extends MovementCheck implements Listener {
         if(pp.isSprinting() && jump) {
             handleAdders += 0.2;
         }
+        if(swimming && !flying) { //This is actually a terrible way of handling horizontal water flow.
+            Vector move = new Vector(event.getTo().getX() - event.getFrom().getX(), 0, event.getTo().getZ() - event.getFrom().getZ());
+            Vector waterForce = event.getWaterFlowForce().clone().setY(0);
+            double waterForceLength = waterForce.length() + 0.003; //add epsilon to allow room for error
+            double moveLength = move.length();
+            double computedForce = moveLength == 0 ? waterForceLength : (move.dot(waterForce) / moveLength);
+
+            handleAdders += computedForce;
+        }
 
         //Finally, the expected speed calculation. There's another "expected" because of a dumb quirk when switching slots while using an item.
         //Optimize later.
@@ -166,41 +175,21 @@ public class Speed extends MovementCheck implements Listener {
         Discrepancy discrepancy; //This is the one that will be used for final comparison. It is the value of either discrepancyBase or discrepancyNoItemUse.
         Discrepancy discrepancyBase; //Used for pretty much 99.99% of moves.
         Discrepancy discrepancyNoItemUse; //Similar to discrepancyBase, but doesn't consider item-use slowdown.
-        //LIQUID
-        if(swimming && !flying) {
 
-            Vector move = new Vector(event.getTo().getX() - event.getFrom().getX(), 0, event.getTo().getZ() - event.getFrom().getZ());
-            Vector waterForce = event.getWaterFlowForce().clone().setY(0);
-            double waterForceLength = waterForce.length();
-            double moveLength = move.length();
-            double computedForce = moveLength == 0 ? waterForceLength : (move.dot(waterForce) / moveLength);
-
-            /*double depthStriderModifier = 0;
-            if(Hawk.getServerVersion() == 8) {
-                //make sure you null-check this
-                depthStriderModifier = p.getInventory().getBoots().getEnchantmentLevel(Enchantment.DEPTH_STRIDER);
-            }*/
-
-            computedForce += 0.003; //add epsilon to allow room for error
-
-            discrepancy = waterMapping(lastSpeed, speed, computedForce);
-        }
-        else {
-            discrepancyBase = new Discrepancy(expected, speed);
-            discrepancyNoItemUse = new Discrepancy(expectedNoItemUse, speed);
-            if((pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow()) && Math.abs(discrepancyNoItemUse.value) < Math.abs(discrepancyBase.value)) {
-                //This means that they're using an item, but they're moving at normal speed. This COULD be due to that
-                //dumb item switch quirk, so we'll grant them only one extra tick. It resets when they switch their slot.
-                if(slotSwitchQuirkTicks < 1) {
-                    //Allow them to move at normal speed for 1 tick.
-                    discrepancy = discrepancyNoItemUse;
-                    slotSwitchQuirkTicks++;
-                } else {
-                    discrepancy = discrepancyBase;
-                }
+        discrepancyBase = new Discrepancy(expected, speed);
+        discrepancyNoItemUse = new Discrepancy(expectedNoItemUse, speed);
+        if((pp.isBlocking() || pp.isConsumingItem() || pp.isPullingBow()) && Math.abs(discrepancyNoItemUse.value) < Math.abs(discrepancyBase.value)) {
+            //This means that they're using an item, but they're moving at normal speed. This COULD be due to that
+            //dumb item switch quirk, so we'll grant them only one extra tick. It resets when they switch their slot.
+            if(slotSwitchQuirkTicks < 1) {
+                //Allow them to move at normal speed for 1 tick.
+                discrepancy = discrepancyNoItemUse;
+                slotSwitchQuirkTicks++;
             } else {
                 discrepancy = discrepancyBase;
             }
+        } else {
+            discrepancy = discrepancyBase;
         }
 
         //Client told server that it updated its position. Checking time.

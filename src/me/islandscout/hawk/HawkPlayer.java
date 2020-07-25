@@ -817,7 +817,7 @@ public class HawkPlayer {
             predictedVelocity = new Vector();
         } else if(collidedVertically) {
             Block b = ServerUtils.getBlockAsync(predictedPosition.clone().add(new Vector(0, -0.2, 0)).toLocation(getWorld()));
-            if(!isSneaking() && b != null && b.getType() == Material.SLIME_BLOCK && move.getY() < 0) {
+            if(Hawk.getServerVersion() == 8 && !isSneaking() && b != null && b.getType() == Material.SLIME_BLOCK && move.getY() < 0) {
                 predictedVelocity.setY(-move.getY());
             } else {
                 predictedVelocity = clippedVel; //touched ground

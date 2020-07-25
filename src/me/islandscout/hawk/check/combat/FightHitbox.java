@@ -63,14 +63,24 @@ import java.util.UUID;
  * positives with clients on unstable connections, it is a fair tradeoff
  * between user experience and cheat prevention.
  *
+ * There are other sources of error which will probably not be accounted
+ * for in Hawk anytime soon. Other sources of error include:
+ *   - The client receives entity relative moves in 1/32 block precision.
+ *   - The client holds off one tick to smoothly animate other players
+ *     on the screen in the case of slight network jitter. It will
+ *     linearly interpolate from the last position to the latest
+ *     position up to 3 ticks if it doesn't receive a relative move
+ *     packet to update the player's position.
+ *   - The client will predict the motion of some entities, such as
+ *     arrows. If there is latency and something unexpected happens
+ *     to the entity, the client may desynchronize from the server.
+ *
  * In most cases, the client uses the current frame's yaw and pitch to
- * compute the direction vector for the attack hit-scan. Because this is
- * before the motion update in the tick stack, the directions that the
- * client sends to the server lag about 50ms behind. This can result in
- * false positives since the directions are not sync'd. It's better to
- * wait until the next move packet comes so that the direction defined
- * by this move is chronologically much closer to the direction used for
- * attacking client-side. This reduces false positives.
+ * compute the direction vector for the attack hit-scan. Fortunately,
+ * ticking and rendering is done in the same thread. Unfortunately, in
+ * the tick stack, attacking is done before sending yaw/pitch updates
+ * to the server, which means that we must wait until the next flying
+ * packet to get the direction of the hit-scan.
  *
  * For realtime protection, it's best to use the EntityInteractDirection
  * check. It actively enforces directions, but it extrapolates the
@@ -114,7 +124,7 @@ public class FightHitbox extends CustomCheck implements Cancelless {
 
                 float yaw;
                 float pitch;
-                //In 1.8, the yaw of the cursor is updated in a tick-by-tick basis.
+                //In 1.8, the yaw of the cursor is behind by one tick.
                 if(event.getHawkPlayer().getClientVersion() == 8) {
                     yaw = event.getHawkPlayer().getYaw();
                 } else {

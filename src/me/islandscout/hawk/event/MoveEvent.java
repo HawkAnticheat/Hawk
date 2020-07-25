@@ -22,13 +22,17 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
+import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import net.minecraft.server.v1_8_R3.PlayerConnection;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -71,6 +75,7 @@ public class MoveEvent extends Event {
     private float maxExpectedInputForceNoItemUse;
     private Vector waterFlowForce;
     private List<Pair<Block, Vector>> liquidsAndDirections;
+    private List<Block> activeBlocks;
     //No, don't compute a delta vector during instantiation since it won't respond to teleports.
 
     public MoveEvent(Player p, Location update, boolean onGround, HawkPlayer pp, WrappedPacket packet, boolean updatePos, boolean updateRot) {
@@ -85,6 +90,7 @@ public class MoveEvent extends Event {
     public boolean preProcess() {
         onGroundReally = AdjacentBlocks.onGroundReally(getTo(), getTo().getY() - getFrom().getY(), true, 0.02, pp);
         step = testStep();
+        activeBlocks = testActiveBlocks();
         hitSlowdown = pp.hasHitSlowdown();
         boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld(), 0.0001, pp.getClientVersion());
         acceptedKnockback = handlePendingVelocities();
@@ -327,6 +333,14 @@ public class MoveEvent extends Event {
         return false;
     }
 
+    private List<Block> testActiveBlocks() {
+        AABB test = AABB.playerCollisionBox.clone();
+        test.expand(-0.001, -0.001, -0.001);
+        Vector from = pp.hasSentPosUpdate() ? getFrom().toVector() : pp.getPositionPredicted();
+        test.translate(from);
+        return test.getBlocks(p.getWorld());
+    }
+
     //checks if the player's dY matches the expected dY
     private boolean testJumped() {
         int jumpBoostLvl = 0;
@@ -360,6 +374,15 @@ public class MoveEvent extends Event {
             }
         }
 
+        Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(getTo().toVector()).getMaterials(p.getWorld());
+        if(touchedBlocks.contains(Material.WEB)) {
+            if(isUpdatePos()) {
+                expectedDY *= 0.05;
+            } else {
+                expectedDY = 0;
+            }
+        }
+
         boolean kbSimilarToJump = acceptedKnockback != null &&
                 (Math.abs(acceptedKnockback.getY() - expectedDY) < 0.001 || touchingCeiling);
         return !kbSimilarToJump && ((expectedDY == 0 && pp.isOnGround()) || leftGround) && (dY == expectedDY || touchingCeiling);
@@ -382,7 +405,7 @@ public class MoveEvent extends Event {
         Vector from = pp.hasSentPosUpdate() ? getFrom().toVector() : pp.getPositionPredicted();
         float deltaY = (float)(getTo().getY() - from.getY());
         Block staningOn = ServerUtils.getBlockAsync(from.toLocation(pp.getWorld()).add(0, -0.2, 0));
-        if(staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
+        if(Hawk.getServerVersion() == 8 || staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
             return false;
         float prevPrevDeltaY = (float)pp.getPreviousVelocity().getY();
         float expected = (-((prevPrevDeltaY - 0.08F) * 0.98F) - 0.08F) * 0.98F;
@@ -395,7 +418,7 @@ public class MoveEvent extends Event {
             return false;
         Vector to = isUpdatePos() ? getTo().toVector() : pp.getPositionPredicted();
         Block staningOn = ServerUtils.getBlockAsync(to.toLocation(pp.getWorld()).add(0, -0.2, 0));
-        if(staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
+        if(Hawk.getServerVersion() == 8 || staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
             return false;
 
         float prevDeltaY = (float)pp.getPreviousPredictedVelocity().getY();
@@ -417,20 +440,45 @@ public class MoveEvent extends Event {
     }
 
     private float computeFriction() {
-        float friction = 0.91F;
-
-        //patch some inconsistencies
-        boolean teleportBug = pp.getCurrentTick() == pp.getLastTeleportAcceptTick();
-        boolean onGround = teleportBug ? pp.isOnGroundReally() : pp.isOnGround();
-
-        if (onGround) {
-            Vector pos = pp.getPosition();
-            Block b = ServerUtils.getBlockAsync(new Location(pp.getWorld(), pos.getX(), pos.getY() - 1, pos.getZ()));
-            if(b != null) {
-                friction *= WrappedBlock.getWrappedBlock(b, pp.getClientVersion()).getSlipperiness();
+        boolean flying = pp.isFlying();
+        if(pp.isInWater() && !flying) {
+            float friction = 0.8F;
+            float depthStrider = 0;
+            ItemStack boots = p.getInventory().getBoots();
+            if(Hawk.getServerVersion() > 7 && boots != null) {
+                depthStrider = boots.getEnchantmentLevel(Enchantment.DEPTH_STRIDER);
             }
+            if(depthStrider > 3) {
+                depthStrider = 3;
+            }
+
+            if(!onGround) {
+                depthStrider *= 0.5F;
+            }
+
+            if(depthStrider > 0) {
+                friction += (0.54600006F - friction) * depthStrider / 3F;
+            }
+
+            return friction;
+        } else if (pp.isInLava() && !flying) {
+            return 0.5F;
+        } else {
+            float friction = 0.91F;
+
+            //patch some inconsistencies
+            boolean teleportBug = pp.getCurrentTick() == pp.getLastTeleportAcceptTick();
+            boolean onGround = teleportBug ? pp.isOnGroundReally() : pp.isOnGround();
+
+            if (onGround) {
+                Vector pos = pp.getPosition();
+                Block b = ServerUtils.getBlockAsync(new Location(pp.getWorld(), pos.getX(), pos.getY() - 1, pos.getZ()));
+                if (b != null) {
+                    friction *= WrappedBlock.getWrappedBlock(b, pp.getClientVersion()).getSlipperiness();
+                }
+            }
+            return friction;
         }
-        return friction;
     }
 
     private float computeMaximumInputForce(boolean considerItemUse) {
@@ -445,7 +493,7 @@ public class MoveEvent extends Event {
         boolean usingItem = considerItemUse && (pp.isConsumingOrPullingBowMetadataIncluded() || pp.isBlocking());
         if(usingItem)
             initForce *= 0.2;
-        boolean sprinting = pp.isSprinting() && !usingItem && !pp.isSneaking();
+        boolean sprinting = pp.isSprinting() && !usingItem && !pp.isSneaking() && !(!pp.isFlying() && (pp.isInWater() || pp.isInLava()));
         boolean flying = pp.isFlying();
 
         float speedEffectMultiplier = 1;
@@ -462,7 +510,31 @@ public class MoveEvent extends Event {
 
         //Skidded from MCP's moveEntityWithHeading(float, float) in EntityLivingBase
         float multiplier;
-        if (onGround) {
+        if(pp.isInWater() && !flying) {
+            float force = 0.02F;
+            float depthStrider = 0;
+            ItemStack boots = p.getInventory().getBoots();
+            if(Hawk.getServerVersion() > 7 && boots != null) {
+                depthStrider = boots.getEnchantmentLevel(Enchantment.DEPTH_STRIDER);
+            }
+            if(depthStrider > 3) {
+                depthStrider = 3;
+            }
+
+            if(!onGround) {
+                depthStrider *= 0.5F;
+            }
+
+            if(depthStrider > 0) {
+                force += (0.1F * 1.0F - force) * depthStrider / 3F;
+            }
+
+            multiplier = force;
+        }
+        else if(pp.isInLava() && !flying) {
+            multiplier = 0.02F;
+        }
+        else if(onGround) {
             //0.16277136 technically should be 0.162771336. But this is what was written in MCP.
             //0.162771336 is not a magic number. It is 0.546^3
             multiplier = 0.1F * 0.16277136F / (newFriction * newFriction * newFriction);

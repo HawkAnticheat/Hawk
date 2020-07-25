@@ -18,6 +18,7 @@
 
 package me.islandscout.hawk.check.movement.position;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
@@ -217,10 +218,12 @@ public class Fly extends MovementCheck {
                     y = (float) pp.getPositionPredicted().getY();
                 }
 
+                double fromY = MathPlus.round(from.getY(), 10);
+
                 float discrepancy = y - estimatedPosition;
                 //y must be between last Y and estimatedPosition.
                 if (Math.abs(discrepancy) > DISCREPANCY_THRESHOLD && !e.isPossiblePistonPush() &&
-                        (y < Math.min(estimatedPosition, from.getY()) || y > Math.max(estimatedPosition, from.getY()))) {
+                        (y < Math.min(estimatedPosition, fromY) || y > Math.max(estimatedPosition, fromY))) {
                     punishAndTryRubberband(pp, e);
                 } else {
                     reward(pp);
@@ -252,12 +255,13 @@ public class Fly extends MovementCheck {
                     if(ticksSinceNoPosUpdate < 2 && noMoves <= MAX_NO_MOVES) {
                         //Handle stupid-moves with a range check.
                         //Honestly, I don't care about an error of 0.03 in liquids while the client isn't updating its position.
-                        //TODO this will break if the estimated paths cross (and it's totally possible that it will happen). Make a better range check.
                         float y = (float) e.getTo().getY();
-                        if(y > estimatedPositionAlt) {
-                            discrepancy = y - estimatedPositionAlt;
-                        } else if(y < estimatedPosition) {
-                            discrepancy = y - estimatedPosition;
+                        float max = Math.max(estimatedPositionAlt, estimatedPosition);
+                        float min = Math.min(estimatedPositionAlt, estimatedPosition);
+                        if(y > max) {
+                            discrepancy = y - max;
+                        } else if(y < min) {
+                            discrepancy = y - min;
                         } else {
                             discrepancy = 0;
                         }
@@ -269,9 +273,16 @@ public class Fly extends MovementCheck {
                         discrepancy = alt ? discrepancyB : discrepancyA;
                     }
 
-                    //Debug.broadcastMessage(discrepancy);
+                    boolean onSlimeBlock;
+                    if(Hawk.getServerVersion() > 7) {
+                        //-0.1 is arbitrary
+                        onSlimeBlock = e.getFrom().clone().add(0, -0.1, 0).getBlock().getType() == Material.SLIME_BLOCK
+                                && Math.abs(dY) < 0.1;
+                    } else {
+                        onSlimeBlock = false;
+                    }
 
-                    if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD && !e.isPossiblePistonPush()) {
+                    if(Math.abs(discrepancy) > DISCREPANCY_THRESHOLD && !e.isPossiblePistonPush() && !onSlimeBlock) {
                         punishAndTryRubberband(pp, e);
                     }
                     else {
@@ -305,7 +316,7 @@ public class Fly extends MovementCheck {
                 estimatedPosition = estimatedPositionAlt = (float) pp.getPositionPredicted().getY();
             }
 
-            if(e.isOnGround() || (e.isTouchingCeiling() && dY > 0)) {
+            if(e.isOnGround() || (e.isTouchingCeiling() && dY > 0) || touchedBlocks.contains(Material.WEB)) {
                 prevEstimatedVelocity = prevEstimatedVelocityAlt = 0;
             } else {
                 prevEstimatedVelocity = prevEstimatedVelocityAlt = dY;
