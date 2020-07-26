@@ -1,6 +1,6 @@
 name: Hawk
 main: me.islandscout.hawk.Hawk
-version: BETA 2007 (DEV)
+version: BETA 2007.1 (DEV)
 author: Islandscout
 description: An anticheat system
 website: https://github.com/HawkAnticheat/Hawk
@@ -11,16 +11,25 @@ commands:
         usage: /<command>
 permissions:
   hawk.admin:
-    description: Allows one to be considered an administrator to Hawk
+    description: Grants permission to perform administrative Hawk tasks.
     default: op
   hawk.cmd:
-    description: Allows one to access help menu and GUI
+    description: Gives access to help menu.
     default: op
   hawk.cmd.*:
-    description: Allows one to perform any Hawk command
+    description: Gives access to any Hawk command.
     default: op
     children:
       hawk.cmd: true
-  hawk.notify:
-    description: Allows one to recieve Hawk notifications
+  hawk.alerts:
+    description: Allows one to recieve Hawk notifications.
+    default: op
+  hawk.bypass:
+    description: Allows one to bypass a check. (You must specify the check with an additional node, such as "hawk.bypass.speed")
+    default: op
+  hawk.bypassresync:
+    description: Prevents having actions forcibly resynchronized by the anticheat. Use only for testing purposes, such as anticheat test servers.
+    default: op
+  hawk.gui:
+    description: Gives access to the GUI.
     default: op

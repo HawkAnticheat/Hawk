@@ -66,9 +66,11 @@ public class InteractItemEvent extends Event {
 
     @Override
     public void resync() {
-        WrappedEntityHuman weh = (WrappedEntityHuman) WrappedEntity.getWrappedEntity(p);
-        boolean usingItem = weh.usingItem();
-        //TODO
+        if(Event.allowedToResync(pp)) {
+            WrappedEntityHuman weh = (WrappedEntityHuman) WrappedEntity.getWrappedEntity(p);
+            boolean usingItem = weh.usingItem();
+            //TODO
+        }
     }
 
     public Action getAction() {

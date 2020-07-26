@@ -55,6 +55,7 @@ public abstract class Event {
     }
 
     //Forces a reconciliation. Syncs the client to the server's game state for this particular action.
+    //Make sure you check that they are allowed to be resynchronized by calling Event.allowedToResync(HawkPlayer)
     public void resync() {
     }
 
@@ -72,5 +73,11 @@ public abstract class Event {
 
     public static void setHawkReference(Hawk plugin) {
         hawk = plugin;
+    }
+
+    public static boolean allowedToResync(HawkPlayer pp) {
+        return (!pp.getPlayer().hasPermission(Hawk.BASE_PERMISSION + ".bypassresync") &&
+                !hawk.getCheckManager().getExemptedPlayers().contains(pp.getUuid())) ||
+                hawk.getCheckManager().getForcedPlayers().contains(pp.getUuid());
     }
 }

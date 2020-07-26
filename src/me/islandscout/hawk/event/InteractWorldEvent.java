@@ -69,16 +69,18 @@ public class InteractWorldEvent extends Event {
 
     @Override
     public void resync() {
-        Block b = ServerUtils.getBlockAsync(getPlacedBlockLocation());
-        Block targeted = ServerUtils.getBlockAsync(getTargetedBlockLocation());
-        if(b == null || targeted == null)
-            return;
-        if (Hawk.getServerVersion() == 7) {
-            WrappedBlock7.getWrappedBlock(b, pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
-            WrappedBlock7.getWrappedBlock(targeted, pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
-        } else if (Hawk.getServerVersion() == 8) {
-            WrappedBlock8.getWrappedBlock(b, pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
-            WrappedBlock8.getWrappedBlock(targeted, pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
+        if(Event.allowedToResync(pp)) {
+            Block b = ServerUtils.getBlockAsync(getPlacedBlockLocation());
+            Block targeted = ServerUtils.getBlockAsync(getTargetedBlockLocation());
+            if(b == null || targeted == null)
+                return;
+            if (Hawk.getServerVersion() == 7) {
+                WrappedBlock7.getWrappedBlock(b, pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
+                WrappedBlock7.getWrappedBlock(targeted, pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
+            } else if (Hawk.getServerVersion() == 8) {
+                WrappedBlock8.getWrappedBlock(b, pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
+                WrappedBlock8.getWrappedBlock(targeted, pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
+            }
         }
     }
 

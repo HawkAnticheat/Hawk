@@ -24,8 +24,6 @@ import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
-import net.minecraft.server.v1_8_R3.PlayerConnection;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -88,6 +86,8 @@ public class MoveEvent extends Event {
 
     @Override
     public boolean preProcess() {
+        Debug.broadcastMessage("---");
+        Debug.broadcastMessage(onGround);
         onGroundReally = AdjacentBlocks.onGroundReally(getTo(), getTo().getY() - getFrom().getY(), true, 0.02, pp);
         step = testStep();
         activeBlocks = testActiveBlocks();
@@ -103,6 +103,7 @@ public class MoveEvent extends Event {
         slimeBlockBounce = testSlimeBlockBounce();
         waterFlowForce = computeWaterFlowForce();
         maxExpectedInputForce = computeMaximumInputForce(true);
+        Debug.broadcastMessage(maxExpectedInputForce);
         maxExpectedInputForceNoItemUse = computeMaximumInputForce(false); //of course I have to do this twice...
         possiblePistonPush = testPistonPush(getFrom().toVector(), getTo().toVector(), pp);
         double dy = getTo().getY() - getFrom().getY();
@@ -145,7 +146,7 @@ public class MoveEvent extends Event {
                     teleportAccept = true;
                     if(pp.getPendingTeleports().size() == 0) {
                         pp.setTeleporting(false);
-                    } else {
+                    } else if(Event.allowedToResync(pp)) {
                         return false;
                     }
                 //}
@@ -153,7 +154,7 @@ public class MoveEvent extends Event {
                 //    pp.setPositionRaw(getTo().toVector());
                 //    return false;
                 //}
-            } else if(!pp.getPlayer().isSleeping()) {
+            } else if(!pp.getPlayer().isSleeping() && Event.allowedToResync(pp)) {
                 if (elapsedTicks > (ping / 50) + 5) { //5 is an arbitrary constant to keep things smooth
                     //didn't accept teleport, so help guide the confused client back to the last tp location
                     Location tp = pp.getPendingTeleports().get(pp.getPendingTeleports().size() - 1).getKey();
@@ -167,16 +168,23 @@ public class MoveEvent extends Event {
 
         //handle illegal move or discrepancy
         else if (getFrom().getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(getFrom()) > 64) {
-            resync();
-            pp.setPositionRaw(getTo().toVector());
-            return false;
+            if(Event.allowedToResync(pp)) {
+                resync();
+                pp.teleport(getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+                pp.setPositionRaw(getTo().toVector());
+                return false;
+            }
         }
 
         //handle gliding in unloaded chunk
         if(!teleportAccept && glidingInUnloadedChunk && Math.abs(pp.getVelocityPredicted().getY() - -0.098) > 0.000001) {
-            resync();
-            pp.setPositionRaw(getTo().toVector());
-            return false;
+            if(Event.allowedToResync(pp)) {
+                resync();
+                pp.teleport(getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+                pp.setPositionRaw(getTo().toVector());
+                return false;
+            }
+
         }
 
         //set override rubberband location
@@ -201,7 +209,9 @@ public class MoveEvent extends Event {
             //handle rubberband if applicable
             setTo(getCancelLocation());
             pp.setTeleporting(true);
-            pp.teleport(getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+            if(Event.allowedToResync(pp)) {
+                pp.teleport(getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+            }
         }
 
         //handle item consumption
@@ -807,7 +817,7 @@ public class MoveEvent extends Event {
     //Resync permits only a maximum of 1 rubberband per move
     @Override
     public void resync() {
-        if (cancelLocation == null) {
+        if (cancelLocation == null && Event.allowedToResync(pp)) {
             if(isOnGroundReally()) {
                 pp.setAltSetbackLoc(null);
                 cancelLocation = p.getLocation();

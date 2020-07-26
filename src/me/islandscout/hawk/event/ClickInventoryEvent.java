@@ -39,7 +39,9 @@ public class ClickInventoryEvent extends Event {
 
     @Override
     public void resync() {
-        p.updateInventory();
+        if(Event.allowedToResync(pp)) {
+            p.updateInventory();
+        }
     }
 
     public int getSlot() {

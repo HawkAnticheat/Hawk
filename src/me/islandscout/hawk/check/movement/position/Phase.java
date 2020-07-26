@@ -74,9 +74,9 @@ public class Phase extends MovementCheck {
         if(!locFrom.getWorld().equals(locTo.getWorld()))
             return;
 
-        //this stops an NPE
+        //this stops both an NPE and crash
         double distanceSquared = locFrom.distanceSquared(locTo);
-        if (distanceSquared == 0)
+        if (distanceSquared == 0 || distanceSquared > 65)
             return;
 
         double horizDistanceSquared = Math.pow(locTo.getX() - locFrom.getX(), 2) + Math.pow(locTo.getZ() - locFrom.getZ(), 2);

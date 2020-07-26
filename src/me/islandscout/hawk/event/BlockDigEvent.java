@@ -61,11 +61,14 @@ public class BlockDigEvent extends Event {
 
     @Override
     public void resync() {
-        if (Hawk.getServerVersion() == 7) {
-            WrappedBlock7.getWrappedBlock(getBlock(), pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
-        } else if (Hawk.getServerVersion() == 8) {
-            WrappedBlock8.getWrappedBlock(getBlock(), pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
+        if(Event.allowedToResync(pp)) {
+            if (Hawk.getServerVersion() == 7) {
+                WrappedBlock7.getWrappedBlock(getBlock(), pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
+            } else if (Hawk.getServerVersion() == 8) {
+                WrappedBlock8.getWrappedBlock(getBlock(), pp.getClientVersion()).sendPacketToPlayer(pp.getPlayer());
+            }
         }
+
     }
 
     public DigAction getDigAction() {

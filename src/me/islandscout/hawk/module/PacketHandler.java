@@ -25,6 +25,7 @@ import me.islandscout.hawk.module.listener.PacketListener;
 import me.islandscout.hawk.module.listener.PacketListener7;
 import me.islandscout.hawk.module.listener.PacketListener8;
 import me.islandscout.hawk.util.ConfigHelper;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import me.islandscout.hawk.util.packet.PacketConverter7;
 import me.islandscout.hawk.util.packet.PacketConverter8;
@@ -74,14 +75,14 @@ public class PacketHandler implements Listener {
         HawkPlayer pp = hawk.getHawkPlayer(p);
 
         //ignore packets while player is no longer registered in Hawk
-        if (!pp.isOnline())
+        if (!pp.isOnline() && Event.allowedToResync(pp))
             return false;
 
         Event event = convertPacketInboundToEvent(packet, pp);
         if(event == null)
             return true;
 
-        if(!event.preProcess())
+        if(!event.preProcess() && Event.allowedToResync(pp))
             return false;
 
         for(HawkEventListener eventListener : hawkEventListeners)
@@ -91,7 +92,7 @@ public class PacketHandler implements Listener {
 
         event.postProcess();
 
-        return !event.isCancelled();
+        return !(event.isCancelled() && Event.allowedToResync(pp));
     }
 
     //These packets will be converted into Bukkit Events and will be broadcasted using Bukkit's event system

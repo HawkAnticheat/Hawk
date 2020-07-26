@@ -61,8 +61,9 @@ public class BanArgument extends Argument {
             sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[1] + "\"");
             return true;
         }
-        if (target.hasPermission(Hawk.BASE_PERMISSION + ".admin")) {
-            sender.sendMessage(ChatColor.RED + "You may not ban that player.");
+        String permission = Hawk.BASE_PERMISSION + ".admin";
+        if (target.hasPermission(permission)) {
+            sender.sendMessage(ChatColor.RED + "You may not ban that player, they have the permission \"" + permission + "\"");
             return true;
         }
         long expireTime = -1;
