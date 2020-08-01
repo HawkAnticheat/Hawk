@@ -23,6 +23,7 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.*;
+import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -110,8 +111,8 @@ public class Fly extends MovementCheck {
             //TODO make this prediction better, i.e. do liquid/web collision checks. It shouldn't be using the liquid functions when the predicted position gets out of water.
             if(pp.isSwimming()) { //water functions
 
-                estimatedVelocity = (prevEstimatedVelocity * 0.8F) + (float)(-0.02 + pp.getWaterFlowForce().getY());
-                estimatedVelocityAlt = (prevEstimatedVelocityAlt * 0.8F) + (float)(-0.02 + pp.getWaterFlowForce().getY());
+                estimatedVelocity = (prevEstimatedVelocity * 0.8F) + (float)(-0.02 + computeVerticalWaterFlowForce(estimatedPosition, pp));
+                estimatedVelocityAlt = (prevEstimatedVelocityAlt * 0.8F) + (float)(-0.02 + computeVerticalWaterFlowForce(estimatedPositionAlt, pp));
 
                 if(Math.abs(estimatedVelocity) < MIN_VELOCITY) {
                     estimatedVelocity = 0;
@@ -157,11 +158,11 @@ public class Fly extends MovementCheck {
 
                 if(pp.isInWater() || pp.isInLava()) { //Entering liquid. You could take two paths depending if you're holding the jump button or not.
 
-                    estimatedVelocity = (prevEstimatedVelocity + (float)pp.getWaterFlowForce().getY() - 0.08F) * 0.98F;
-                    estimatedVelocity += pp.getWaterFlowForce().getY();
+                    estimatedVelocity = (prevEstimatedVelocity + (float)computeVerticalWaterFlowForce(estimatedPosition, pp) - 0.08F) * 0.98F;
+                    estimatedVelocity += computeVerticalWaterFlowForce(estimatedPosition, pp);
 
-                    estimatedVelocityAlt = (prevEstimatedVelocityAlt + (float)pp.getWaterFlowForce().getY() - 0.08F) * 0.98F;
-                    estimatedVelocityAlt += pp.getWaterFlowForce().getY();
+                    estimatedVelocityAlt = (prevEstimatedVelocityAlt + (float)computeVerticalWaterFlowForce(estimatedPositionAlt, pp) - 0.08F) * 0.98F;
+                    estimatedVelocityAlt += computeVerticalWaterFlowForce(estimatedPositionAlt, pp);
 
                     if(Math.abs(estimatedVelocity) < MIN_VELOCITY) {
                         estimatedVelocity = 0;
@@ -276,7 +277,7 @@ public class Fly extends MovementCheck {
                     boolean onSlimeBlock;
                     if(Hawk.getServerVersion() > 7) {
                         //-0.1 is arbitrary
-                        onSlimeBlock = e.getFrom().clone().add(0, -0.1, 0).getBlock().getType() == Material.SLIME_BLOCK
+                        onSlimeBlock = e.getFrom().clone().add(0, -0.2, 0).getBlock().getType() == Material.SLIME_BLOCK
                                 && Math.abs(dY) < 0.1;
                     } else {
                         onSlimeBlock = false;
@@ -361,6 +362,7 @@ public class Fly extends MovementCheck {
                 AABB feet = new AABB(
                         new Vector(-0.3, -0.4, -0.3).add(loc.toVector()),
                         new Vector(0.3, 0, 0.3).add(loc.toVector()));
+                feet.expand(0.5, 0.5, 0.5);
                 if (feet.isColliding(boatBB))
                     return true;
             }
@@ -372,6 +374,28 @@ public class Fly extends MovementCheck {
         Block b = ServerUtils.getBlockAsync(loc);
         return b != null && (b.getType() == Material.VINE || b.getType() == Material.LADDER);
     }
+
+    private double computeVerticalWaterFlowForce(double y, HawkPlayer pp) {
+        Vector vec = new Vector();
+        AABB liquidTest = AABB.playerWaterCollisionBox.clone();
+        liquidTest.translate(new Vector(pp.getPosition().getX(), y, pp.getPosition().getZ()));
+        List<Block> blocks = liquidTest.getBlocks(pp.getPlayer().getWorld());
+        Vector waterFlow = new Vector();
+        for(Block b : blocks) {
+            if(b.getType() == Material.WATER || b.getType() == Material.STATIONARY_WATER) {
+                //game version doesn't really matter for this
+                Vector direction = WrappedBlock.getWrappedBlock(b, 8).getFlowDirection();
+                waterFlow.add(direction);
+            }
+        }
+        if(waterFlow.lengthSquared() > 0 && !pp.isFlying()) {
+            waterFlow.normalize();
+            waterFlow.multiply(0.014);
+            vec.add(waterFlow);
+        }
+        return vec.getY();
+    }
+
 
     @Override
     public void removeData(Player p) {

@@ -82,10 +82,6 @@ public class Speed extends MovementCheck implements Listener {
 
     @Override
     protected void check(MoveEvent event) {
-        if(event.isTeleportAccept()) {
-            Debug.broadcastMessage("teleported!");
-        }
-        Debug.broadcastMessage("speed: " + (event.getTo().toVector().setY(0).subtract(event.getFrom().toVector().setY(0)).length()));
         Player p = event.getPlayer();
         HawkPlayer pp = event.getHawkPlayer();
 

@@ -25,6 +25,7 @@ import me.islandscout.hawk.util.Direction;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -64,6 +65,18 @@ public class SprintDirection extends MovementCheck {
 
         float yaw = e.getTo().getYaw();
         Vector prevVelocity = pp.getVelocity().clone();
+
+        List<Block> activeBlocks = e.getActiveBlocks();
+        for(Block b : activeBlocks) {
+            if(b.getType() == Material.SOUL_SAND) {
+                prevVelocity.multiply(0.4); //which would you prefer: iterative multiplication or using Math.pow()?
+            }
+            if(b.getType() == Material.WEB) {
+                prevVelocity.multiply(0);
+                break; //Any number times 0 is 0; no reason to continue looping.
+            }
+        }
+
         if(e.hasHitSlowdown()) {
             prevVelocity.multiply(0.6);
         }

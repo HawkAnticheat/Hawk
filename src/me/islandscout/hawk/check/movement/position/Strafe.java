@@ -18,6 +18,7 @@
 
 package me.islandscout.hawk.check.movement.position;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
@@ -39,11 +40,13 @@ public class Strafe extends MovementCheck {
     private final double THRESHOLD;
     private final Map<UUID, Long> lastIdleTick;
     private final Set<UUID> bouncedSet;
+    private final Set<UUID> wasSneakingOnEdgeSet;
 
     public Strafe() {
-        super("strafe", false, 5, 5, 0.99, 5000, "%player% failed strafe, VL: %vl%", null);
+        super("strafe", true, 5, 5, 0.99, 5000, "%player% failed strafe, VL: %vl%", null);
         lastIdleTick = new HashMap<>();
         bouncedSet = new HashSet<>();
+        wasSneakingOnEdgeSet = new HashSet<>();
         THRESHOLD = Math.toRadians((double)customSetting("yawErrorThreshold", "", 0.5));
     }
 
@@ -54,7 +57,7 @@ public class Strafe extends MovementCheck {
         boolean bounced = bouncedSet.contains(pp.getUuid());
         boolean collidingHorizontally = collidingHorizontally(e);
 
-        Block footBlock = ServerUtils.getBlockAsync(pp.getPlayer().getLocation().clone().add(0, -0.1, 0));
+        Block footBlock = ServerUtils.getBlockAsync(pp.getPlayer().getLocation().clone().add(0, -0.2, 0));
         if(footBlock == null)
             return;
 
@@ -62,6 +65,7 @@ public class Strafe extends MovementCheck {
         double friction = e.getFriction();
         //A really rough check to handle sneaking on edge of blocks.
         boolean sneakEdge = pp.isSneaking() && !WrappedBlock.getWrappedBlock(footBlock, pp.getClientVersion()).isSolid() && e.isOnGround();
+        boolean wasSneakingOnEdge = wasSneakingOnEdgeSet.contains(pp.getUuid());
 
         Vector prevVelocity = pp.getVelocity().clone();
         if(e.hasHitSlowdown()) {
@@ -69,10 +73,18 @@ public class Strafe extends MovementCheck {
         }
 
         Set<Material> collidedMats = WrappedEntity.getWrappedEntity(e.getPlayer()).getCollisionBox(e.getFrom().toVector()).getMaterials(pp.getWorld());
-        if(collidedMats.contains(Material.SOUL_SAND)) {
-            prevVelocity.multiply(0.4);
+        List<Block> activeBlocks = e.getActiveBlocks();
+        for(Block b : activeBlocks) {
+            if(b.getType() == Material.SOUL_SAND) {
+                prevVelocity.multiply(0.4); //which would you prefer: iterative multiplication or using Math.pow()?
+            }
+            if(b.getType() == Material.WEB) {
+                prevVelocity.multiply(0);
+                break; //Any number times 0 is 0; no reason to continue looping.
+            }
         }
 
+        boolean onSlimeblock = Hawk.getServerVersion() > 7 && (pp.wasOnGround() || pp.isOnGround()) && footBlock.getType() == Material.SLIME_BLOCK;
         boolean nearLiquid = testLiquid(collidedMats);
 
         if(Math.abs(prevVelocity.getX() * friction) < 0.005) {
@@ -96,14 +108,14 @@ public class Strafe extends MovementCheck {
         if(e.isTeleportAccept() || e.hasAcceptedKnockback() || bounced || collidingHorizontally ||
                 !e.isUpdatePos() || sneakEdge || e.isJump() || ticksSinceIdle <= 2 || nearLiquid || //TODO get rid of e.isJump() from here and actually try to handle it
                 pp.getCurrentTick() - pp.getLastVelocityAcceptTick() == 1 || collidedMats.contains(Material.LADDER) ||
-                collidedMats.contains(Material.VINE)) {
-            prepareNextMove(e, pp, pp.getCurrentTick());
+                collidedMats.contains(Material.VINE) || wasSneakingOnEdge || onSlimeblock || (e.isStep() && pp.isSprinting())) {
+            prepareNextMove(e, pp, pp.getCurrentTick(), sneakEdge);
             return;
         }
 
         //You aren't pressing a WASD key
         if(accelDir.lengthSquared() < 0.000001) {
-            prepareNextMove(e, pp, pp.getCurrentTick());
+            prepareNextMove(e, pp, pp.getCurrentTick(), sneakEdge);
             return;
         }
 
@@ -111,13 +123,12 @@ public class Strafe extends MovementCheck {
         double angle = (vectorDir ? 1 : -1) * MathPlus.angle(accelDir, yaw);
 
         if(!isValidStrafe(angle)) {
-            Debug.broadcastMessage(pp.isSneaking());
             punishAndTryRubberband(pp, e);
         }
         else
             reward(pp);
 
-        prepareNextMove(e, pp, pp.getCurrentTick());
+        prepareNextMove(e, pp, pp.getCurrentTick(), sneakEdge);
     }
 
     private boolean collidingHorizontally(MoveEvent e) {
@@ -145,11 +156,17 @@ public class Strafe extends MovementCheck {
         return error <= THRESHOLD; //in radians
     }
 
-    private void prepareNextMove(MoveEvent event, HawkPlayer pp, long currentTick) {
+    private void prepareNextMove(MoveEvent event, HawkPlayer pp, long currentTick, boolean sneakOnEdge) {
         UUID uuid = pp.getUuid();
 
         if(!event.isUpdatePos())
             lastIdleTick.put(uuid, currentTick);
+
+        if(sneakOnEdge) {
+            wasSneakingOnEdgeSet.add(uuid);
+        } else {
+            wasSneakingOnEdgeSet.remove(uuid);
+        }
     }
 
     @Override
@@ -157,5 +174,6 @@ public class Strafe extends MovementCheck {
         UUID uuid = p.getUniqueId();
         lastIdleTick.remove(uuid);
         bouncedSet.remove(uuid);
+        wasSneakingOnEdgeSet.remove(uuid);
     }
 }

@@ -24,9 +24,17 @@ import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
 import me.islandscout.hawk.util.AABB;
 import me.islandscout.hawk.util.AdjacentBlocks;
+import me.islandscout.hawk.util.ServerUtils;
+import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Boat;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
+
+import java.util.Set;
 
 public class GroundSpoof extends MovementCheck {
 
@@ -65,7 +73,7 @@ public class GroundSpoof extends MovementCheck {
                         AdjacentBlocks.onGroundReally(checkLoc, -1, false, 0.02, pp))
                     return;
 
-                if (event.isOnClientBlock() == null) {
+                if (event.isOnClientBlock() == null && !isOnBoat(pp.getPlayer(), event.getTo())) {
                     punishAndTryRubberband(pp, event);
                     if (PREVENT_NOFALL)
                         setNotOnGround(event);
@@ -75,6 +83,23 @@ public class GroundSpoof extends MovementCheck {
                 reward(pp);
             }
         }
+    }
+
+    private boolean isOnBoat(Player p, Location loc) {
+        Set<Entity> trackedEntities = hawk.getLagCompensator().getPositionTrackedEntities();
+        int ping = ServerUtils.getPing(p);
+        for(Entity entity : trackedEntities) {
+            if (entity instanceof Boat) {
+                AABB boatBB = WrappedEntity.getWrappedEntity(entity).getCollisionBox(hawk.getLagCompensator().getHistoryLocation(ping, entity).toVector());
+                AABB feet = new AABB(
+                        new Vector(-0.3, -0.4, -0.3).add(loc.toVector()),
+                        new Vector(0.3, 0, 0.3).add(loc.toVector()));
+                feet.expand(0.5, 0.5, 0.5);
+                if (feet.isColliding(boatBB))
+                    return true;
+            }
+        }
+        return false;
     }
 
     //TODO don't do this here. This should be done in MoveEvent#postProcess() to avoid conflict with other checks.

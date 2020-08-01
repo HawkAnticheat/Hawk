@@ -86,8 +86,6 @@ public class MoveEvent extends Event {
 
     @Override
     public boolean preProcess() {
-        Debug.broadcastMessage("---");
-        Debug.broadcastMessage(onGround);
         onGroundReally = AdjacentBlocks.onGroundReally(getTo(), getTo().getY() - getFrom().getY(), true, 0.02, pp);
         step = testStep();
         activeBlocks = testActiveBlocks();
@@ -103,7 +101,6 @@ public class MoveEvent extends Event {
         slimeBlockBounce = testSlimeBlockBounce();
         waterFlowForce = computeWaterFlowForce();
         maxExpectedInputForce = computeMaximumInputForce(true);
-        Debug.broadcastMessage(maxExpectedInputForce);
         maxExpectedInputForceNoItemUse = computeMaximumInputForce(false); //of course I have to do this twice...
         possiblePistonPush = testPistonPush(getFrom().toVector(), getTo().toVector(), pp);
         double dy = getTo().getY() - getFrom().getY();
@@ -415,7 +412,7 @@ public class MoveEvent extends Event {
         Vector from = pp.hasSentPosUpdate() ? getFrom().toVector() : pp.getPositionPredicted();
         float deltaY = (float)(getTo().getY() - from.getY());
         Block staningOn = ServerUtils.getBlockAsync(from.toLocation(pp.getWorld()).add(0, -0.2, 0));
-        if(Hawk.getServerVersion() == 8 || staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
+        if(staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
             return false;
         float prevPrevDeltaY = (float)pp.getPreviousVelocity().getY();
         float expected = (-((prevPrevDeltaY - 0.08F) * 0.98F) - 0.08F) * 0.98F;
@@ -428,7 +425,7 @@ public class MoveEvent extends Event {
             return false;
         Vector to = isUpdatePos() ? getTo().toVector() : pp.getPositionPredicted();
         Block staningOn = ServerUtils.getBlockAsync(to.toLocation(pp.getWorld()).add(0, -0.2, 0));
-        if(Hawk.getServerVersion() == 8 || staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
+        if(staningOn == null || staningOn.getType() != Material.SLIME_BLOCK)
             return false;
 
         float prevDeltaY = (float)pp.getPreviousPredictedVelocity().getY();
@@ -812,6 +809,10 @@ public class MoveEvent extends Event {
 
     public boolean isTouchingCeiling() {
         return touchingCeiling;
+    }
+
+    public List<Block> getActiveBlocks() {
+        return activeBlocks;
     }
 
     //Resync permits only a maximum of 1 rubberband per move
