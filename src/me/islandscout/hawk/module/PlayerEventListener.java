@@ -22,11 +22,13 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerAbilitiesEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
+import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerTeleportEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.WrappedWatchableObject;
 import me.islandscout.hawk.wrap.entity.MetaData;
+import org.bukkit.Location;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -76,38 +78,6 @@ public class PlayerEventListener implements Listener {
     public void onQuit(PlayerQuitEvent e) {
         hawk.removeProfile(e.getPlayer().getUniqueId());
         hawk.getCheckManager().removeData(e.getPlayer());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onTeleport(PlayerTeleportEvent e) {
-        if (!e.getTo().getWorld().equals(e.getFrom().getWorld())) {
-            return;
-        }
-        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
-        pp.setTeleporting(true);
-        pp.setWorld(e.getTo().getWorld());
-        pp.setTeleportLoc(e.getTo());
-        pp.setLastTeleportSendTick(pp.getCurrentTick());
-        pp.addPendingTeleport(e.getTo());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void worldChangeEvent(PlayerChangedWorldEvent e) {
-        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
-        pp.setTeleporting(true);
-        pp.setWorld(e.getPlayer().getLocation().getWorld());
-        pp.setTeleportLoc(e.getPlayer().getLocation());
-        pp.setLastTeleportSendTick(pp.getCurrentTick());
-        pp.addPendingTeleport(e.getPlayer().getLocation());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onRespawn(PlayerRespawnEvent e) {
-        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
-        pp.setTeleporting(true);
-        pp.setWorld(e.getRespawnLocation().getWorld());
-        pp.setTeleportLoc(e.getRespawnLocation());
-        pp.addPendingTeleport(e.getRespawnLocation());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -225,5 +195,14 @@ public class PlayerEventListener implements Listener {
                 pp.setInCreative(e.isCreativeMode());
             }
         });
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void teleport(HawkAsyncPlayerTeleportEvent e) {
+        HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
+        pp.setTeleporting(true);
+        pp.setTeleportLoc(e.getPlayer().getLocation());
+        pp.setLastTeleportSendTick(pp.getCurrentTick());
+        pp.addPendingTeleport(new Location(pp.getWorld(), e.getX(), e.getY(), e.getZ(), e.getYaw(), e.getPitch()));
     }
 }

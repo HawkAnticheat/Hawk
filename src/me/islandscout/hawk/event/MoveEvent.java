@@ -117,7 +117,7 @@ public class MoveEvent extends Event {
 
         Vector lastPos = pp.getPosition(); //set this now, because HawkPlayer#getPosition() will change after teleport
 
-        //handle moves while we are waiting for the player to accept teleport
+        //Handle moves while we are waiting for the player to accept teleport.
         //Discard moves while we are waiting. We don't want to spam teleports while
         //someone is hacking their ass off. If you spam a bunch of teleport packets,
         //the client will gracefully respond to all of them with flying packets, and
@@ -125,34 +125,41 @@ public class MoveEvent extends Event {
         //teleport from a normal move since the expected teleport location keeps
         //changing too quickly. Thus NMS will tick the player for all of those
         //packets, opening up a fasteat/fastbow/regen/etc. bypass.
-        if (pp.isTeleporting() && pp.getPendingTeleports().size() > 0) {
+        //However, if some silly person decides to drop teleport packets or cancel
+        //anticheat teleports, then unfortunately, the player will be permanently
+        //desync'd from the server until next join or teleport. If that's you, screw
+        //you, you're an idiot.
+        if (pp.isTeleporting()) {
 
-            Pair<Location, Long> tpPair = pp.getPendingTeleports().get(0);
-            Location tpLoc = tpPair.getKey();
-            int elapsedTicks = (int)(pp.getCurrentTick() - tpPair.getValue());
+            Location tpLoc;
+            int elapsedTicks;
+            if(pp.getPendingTeleports().size() == 0) {
+                tpLoc = null;
+                elapsedTicks = 0;
+            } else {
+                Pair<Location, Long> tpPair = pp.getPendingTeleports().get(0);
+                tpLoc = tpPair.getKey();
+                elapsedTicks = (int)(pp.getCurrentTick() - tpPair.getValue());
+            }
             int ping = ServerUtils.getPing(p);
 
-            if (!onGround && updatePos && updateRot && tpLoc.equals(getTo())) {
-                //move matched teleport location
-                //if(elapsedTicks > Math.max((ping / 50) - 1, 0)) { //-1 is an arbitrary constant to keep things smooth
-                    //most likely accepted teleport, unless this move is a coincidence (edge case & insanely difficult to reproduce without computer assistance)
-                    pp.updatePositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch(), true);
-                    pp.setVelocity(new Vector(0, 0, 0));
-                    pp.getPendingTeleports().remove(0);
-                    pp.setLastTeleportAcceptTick(pp.getCurrentTick());
-                    teleportAccept = true;
-                    if(pp.getPendingTeleports().size() == 0) {
-                        pp.setTeleporting(false);
-                    } else if(Event.allowedToResync(pp)) {
-                        return false;
-                    }
-                //}
-                //else {
-                //    pp.setPositionRaw(getTo().toVector());
-                //    return false;
-                //}
+            //There are cleaner ways to do this, but for now, this will do. BTW we don't need to check worlds, because the server already has full authority on that.
+            boolean matches = tpLoc != null && tpLoc.toVector().equals(getTo().toVector()) && tpLoc.getYaw() == getTo().getYaw() && tpLoc.getPitch() == getTo().getPitch();
+
+            if (!onGround && updatePos && updateRot && matches) {
+                //most likely accepted teleport, unless this move is a coincidence (edge case & insanely difficult to reproduce without computer assistance)
+                pp.updatePositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch(), true);
+                pp.setVelocity(new Vector(0, 0, 0));
+                pp.getPendingTeleports().remove(0);
+                pp.setLastTeleportAcceptTick(pp.getCurrentTick());
+                teleportAccept = true;
+                if(pp.getPendingTeleports().size() == 0) {
+                    pp.setTeleporting(false);
+                } else if(Event.allowedToResync(pp)) {
+                    return false;
+                }
             } else if(!pp.getPlayer().isSleeping() && Event.allowedToResync(pp)) {
-                if (elapsedTicks > (ping / 50) + 5) { //5 is an arbitrary constant to keep things smooth
+                if (pp.getPendingTeleports().size() > 0 && elapsedTicks > (ping / 50) + 5) { //5 is an arbitrary constant to keep things smooth
                     //didn't accept teleport, so help guide the confused client back to the last tp location
                     Location tp = pp.getPendingTeleports().get(pp.getPendingTeleports().size() - 1).getKey();
                     pp.getPendingTeleports().clear();

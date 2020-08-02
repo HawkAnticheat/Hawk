@@ -277,7 +277,8 @@ public class Fly extends MovementCheck {
                     boolean onSlimeBlock;
                     if(Hawk.getServerVersion() > 7) {
                         //-0.1 is arbitrary
-                        onSlimeBlock = e.getFrom().clone().add(0, -0.2, 0).getBlock().getType() == Material.SLIME_BLOCK
+                        Block block = ServerUtils.getBlockAsync(e.getFrom().clone().add(0, -0.2, 0));
+                        onSlimeBlock = block != null && block.getType() == Material.SLIME_BLOCK
                                 && Math.abs(dY) < 0.1;
                     } else {
                         onSlimeBlock = false;

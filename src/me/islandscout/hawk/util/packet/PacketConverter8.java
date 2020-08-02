@@ -23,7 +23,9 @@ import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.*;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerAbilitiesEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
+import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerTeleportEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.WrappedWatchableObject;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
@@ -38,6 +40,7 @@ import org.bukkit.util.Vector;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public final class PacketConverter8 {
 
@@ -74,8 +77,30 @@ public final class PacketConverter8 {
             return packetToVelocityEvent((Packet)packet, p);
         if(packet instanceof PacketPlayOutEntityMetadata)
             return packetToPlayerMetadataEvent((PacketPlayOutEntityMetadata)packet, p);
+        if(packet instanceof PacketPlayOutPosition)
+            return packetToPlayerTeleportEvent((PacketPlayOutPosition) packet, p);
         if(packet instanceof PacketPlayOutAbilities)
             return packetToPlayerAbilitiesOutEvent((PacketPlayOutAbilities) packet, p);
+        return null;
+    }
+
+    private static HawkAsyncPlayerTeleportEvent packetToPlayerTeleportEvent(PacketPlayOutPosition packet, Player p) {
+        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer());
+        try {
+            packet.b(serializer);
+
+            double x = serializer.readDouble();
+            double y = serializer.readDouble();
+            double z = serializer.readDouble();
+            float yaw = serializer.readFloat();
+            float pitch = serializer.readFloat();
+            Set<PacketPlayOutPosition.EnumPlayerTeleportFlags> relMoveFlags = PacketPlayOutPosition.EnumPlayerTeleportFlags.a(serializer.readUnsignedByte());
+
+            return new HawkAsyncPlayerTeleportEvent(p, x, y, z, yaw, pitch);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return null;
     }
 

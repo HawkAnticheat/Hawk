@@ -67,7 +67,7 @@ public class HawkPlayer {
 
     //Be careful when playing with these fields.
     //World is not sync'd to position, yaw, nor pitch.
-    private World world; //updated by server
+    //private World world; //updated by server
     private Vector position; //updated by server and client
     private Vector positionRaw; //updated by client
     private Location altSetbackLoc; //updated by server
@@ -140,7 +140,6 @@ public class HawkPlayer {
         receiveNotifications = true;
         this.p = p;
         Location defaultLocation = p.getLocation();
-        this.world = p.getWorld();
         this.position = defaultLocation.toVector();
         this.positionRaw = defaultLocation.toVector();
         altSetbackLoc = defaultLocation;
@@ -327,11 +326,7 @@ public class HawkPlayer {
     }
 
     public World getWorld() {
-        return world;
-    }
-
-    public void setWorld(World world) {
-        this.world = world;
+        return p.getWorld();
     }
 
     //currently doesn't support when in vehicle
@@ -661,6 +656,8 @@ public class HawkPlayer {
         previousPredictedPosition = predictedPosition.clone();
         previousPredictedVelocity = predictedVelocity.clone();
 
+        World world = getWorld();
+
         Block blockAtPos = ServerUtils.getBlockAsync(predictedPosition.toLocation(getWorld()));
         boolean onClimbable = blockAtPos != null && (blockAtPos.getType() == Material.LADDER || blockAtPos.getType() == Material.VINE);
 
@@ -841,7 +838,7 @@ public class HawkPlayer {
 
             //add new entries
             Set<Location> addIgnored = new HashSet<>();
-            for(Block b : bbox.getBlocks(world)) {
+            for(Block b : bbox.getBlocks(getWorld())) {
                 for(AABB aabb : WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes()) {
                     if(aabb.isColliding(bbox) && !aabb.isColliding(lastbbox)) { //Must enter an AABB. This patches a Phase bypass.
                         addIgnored.add(b.getLocation());
@@ -881,7 +878,7 @@ public class HawkPlayer {
         //TODO to fix concurrency issues with checks such as Phase, have these blocks/AABBs in this method copied and stored in a shared list in MoveEvent so that Phase can compare using the same block data
         else {
             Map<Location, List<AABB>> blocksInBBNew = new HashMap<>();
-            for(Block b : bbox.getBlocks(world)) {
+            for(Block b : bbox.getBlocks(getWorld())) {
                 Location loc = b.getLocation();
                 List<AABB> aabbs = Arrays.asList(WrappedBlock.getWrappedBlock(b, getClientVersion()).getCollisionBoxes());
                 blocksInBBNew.put(loc, aabbs);
