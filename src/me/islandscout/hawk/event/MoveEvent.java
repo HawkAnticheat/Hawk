@@ -24,6 +24,7 @@ import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -125,17 +126,13 @@ public class MoveEvent extends Event {
         //teleport from a normal move since the expected teleport location keeps
         //changing too quickly. Thus NMS will tick the player for all of those
         //packets, opening up a fasteat/fastbow/regen/etc. bypass.
-        //However, if some silly person decides to drop teleport packets or cancel
-        //anticheat teleports, then unfortunately, the player will be permanently
-        //desync'd from the server until next join or teleport. If that's you, screw
-        //you, you're an idiot.
         if (pp.isTeleporting()) {
 
             Location tpLoc;
             int elapsedTicks;
             if(pp.getPendingTeleports().size() == 0) {
                 tpLoc = null;
-                elapsedTicks = 0;
+                elapsedTicks = (int) (pp.getCurrentTick() - pp.getLastTeleportSendTick());
             } else {
                 Pair<Location, Long> tpPair = pp.getPendingTeleports().get(0);
                 tpLoc = tpPair.getKey();
@@ -149,6 +146,7 @@ public class MoveEvent extends Event {
             if (!onGround && updatePos && updateRot && matches) {
                 //most likely accepted teleport, unless this move is a coincidence (edge case & insanely difficult to reproduce without computer assistance)
                 pp.updatePositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch(), true);
+                pp.setPositionRaw(getTo().toVector());
                 pp.setVelocity(new Vector(0, 0, 0));
                 pp.getPendingTeleports().remove(0);
                 pp.setLastTeleportAcceptTick(pp.getCurrentTick());
@@ -158,12 +156,19 @@ public class MoveEvent extends Event {
                 } else if(Event.allowedToResync(pp)) {
                     return false;
                 }
-            } else if(!pp.getPlayer().isSleeping() && Event.allowedToResync(pp)) {
-                if (pp.getPendingTeleports().size() > 0 && elapsedTicks > (ping / 50) + 5) { //5 is an arbitrary constant to keep things smooth
-                    //didn't accept teleport, so help guide the confused client back to the last tp location
-                    Location tp = pp.getPendingTeleports().get(pp.getPendingTeleports().size() - 1).getKey();
-                    pp.getPendingTeleports().clear();
-                    pp.teleport(tp, PlayerTeleportEvent.TeleportCause.PLUGIN);
+            }
+            else if(!pp.getPlayer().isSleeping() && Event.allowedToResync(pp)) {
+                if (elapsedTicks > (ping / 50) + 40) { //40 is an arbitrary constant to keep things smooth
+                    Location rubberband;
+                    if(pp.getPendingTeleports().size() > 0) {
+                        //Client did not respond in time.
+                        rubberband = pp.getPendingTeleports().get(pp.getPendingTeleports().size() - 1).getKey();
+                        pp.getPendingTeleports().clear();
+                    } else {
+                        //Some idiot server-side cancelled a teleport packet or cancelled an event corresponding to anticheat rubberbanding.
+                        rubberband = p.getLocation();
+                    }
+                    pp.teleport(rubberband, PlayerTeleportEvent.TeleportCause.PLUGIN);
                 }
                 pp.setPositionRaw(getTo().toVector());
                 return false;
@@ -242,7 +247,8 @@ public class MoveEvent extends Event {
         pp.updatePositionYawPitch(to.toVector(), to.getYaw(), to.getPitch(), isUpdatePos());
         pp.updateFallDistance(to);
         pp.updateTotalAscensionSinceGround(from.getY(), to.getY());
-        pp.setOnGround(isOnGround());
+        if(!teleportAccept)
+            pp.setOnGround(isOnGround());
         pp.setOnGroundReally(isOnGroundReally());
         pp.getBoxSidesTouchingBlocks().clear();
         pp.getBoxSidesTouchingBlocks().addAll(getBoxSidesTouchingBlocks());
@@ -455,6 +461,12 @@ public class MoveEvent extends Event {
 
     private float computeFriction() {
         boolean flying = pp.isFlying();
+
+        //patch some inconsistencies
+        //boolean teleportBug = pp.getCurrentTick() == pp.getLastTeleportAcceptTick();
+        //boolean onGround = teleportBug ? pp.isOnGroundReally() : pp.isOnGround();
+        boolean onGround = pp.isOnGround();
+
         if(pp.isInWater() && !flying) {
             float friction = 0.8F;
             float depthStrider = 0;
@@ -471,7 +483,7 @@ public class MoveEvent extends Event {
             }
 
             if(depthStrider > 0) {
-                friction += (0.54600006F - friction) * depthStrider / 3F;
+                friction += (0.546F - friction) * depthStrider / 3F;
             }
 
             return friction;
@@ -479,10 +491,6 @@ public class MoveEvent extends Event {
             return 0.5F;
         } else {
             float friction = 0.91F;
-
-            //patch some inconsistencies
-            boolean teleportBug = pp.getCurrentTick() == pp.getLastTeleportAcceptTick();
-            boolean onGround = teleportBug ? pp.isOnGroundReally() : pp.isOnGround();
 
             if (onGround) {
                 Vector pos = pp.getPosition();
@@ -507,8 +515,8 @@ public class MoveEvent extends Event {
         boolean usingItem = considerItemUse && (pp.isConsumingOrPullingBowMetadataIncluded() || pp.isBlocking());
         if(usingItem)
             initForce *= 0.2;
-        boolean sprinting = pp.isSprinting() && !usingItem && !pp.isSneaking() && !(!pp.isFlying() && (pp.isInWater() || pp.isInLava()));
         boolean flying = pp.isFlying();
+        boolean sprinting = pp.isSprinting() && !usingItem && !pp.isSneaking() && !(!flying && (pp.isInWater() || pp.isInLava()));
 
         float speedEffectMultiplier = 1;
         for (PotionEffect effect : p.getActivePotionEffects()) {
@@ -519,8 +527,9 @@ public class MoveEvent extends Event {
         }
 
         //patch some inconsistencies
-        boolean teleportBug = pp.getCurrentTick() == pp.getLastTeleportAcceptTick();
-        boolean onGround = teleportBug ? pp.isOnGroundReally() : pp.isOnGround();
+        //boolean teleportBug = pp.getCurrentTick() == pp.getLastTeleportAcceptTick();
+        //boolean onGround = teleportBug ? pp.isOnGroundReally() : pp.isOnGround();
+        boolean onGround = pp.isOnGround();
 
         //Skidded from MCP's moveEntityWithHeading(float, float) in EntityLivingBase
         float multiplier;

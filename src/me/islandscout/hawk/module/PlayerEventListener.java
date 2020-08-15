@@ -202,7 +202,6 @@ public class PlayerEventListener implements Listener {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
         pp.setTeleporting(true);
         pp.setTeleportLoc(e.getPlayer().getLocation());
-        pp.setLastTeleportSendTick(pp.getCurrentTick());
-        pp.addPendingTeleport(new Location(pp.getWorld(), e.getX(), e.getY(), e.getZ(), e.getYaw(), e.getPitch()));
+        pp.addPendingTeleport(new Location(pp.getWorld(), e.getX(), e.getY(), e.getZ(), e.getYaw() % 360F, e.getPitch() % 360F));
     }
 }

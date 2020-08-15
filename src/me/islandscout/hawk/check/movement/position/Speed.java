@@ -54,6 +54,7 @@ public class Speed extends MovementCheck implements Listener {
     private final double VL_FAIL_DISCREPANCY_FACTOR;
     private final boolean RESET_DISCREPANCY_ON_FAIL;
     private final int RELEASE_ITEM_OVER_VL;
+    private final boolean CHECK_FLYING;
     private final boolean DEBUG;
 
     private final Map<UUID, Double> prevSpeed;
@@ -77,6 +78,7 @@ public class Speed extends MovementCheck implements Listener {
         VL_FAIL_DISCREPANCY_FACTOR = (double) customSetting("vlFailDiscrepancyFactor", "", 10D);
         RESET_DISCREPANCY_ON_FAIL = (boolean) customSetting("resetDiscrepancyOnFail", "", true);
         RELEASE_ITEM_OVER_VL = (int) customSetting("releaseItemOverVl", "", 4);
+        CHECK_FLYING = (boolean) customSetting("checkFlying", "", true);
         DEBUG = (boolean) customSetting("debug", "", false);
     }
 
@@ -119,7 +121,7 @@ public class Speed extends MovementCheck implements Listener {
         Set<Material> touchedBlocks = WrappedEntity.getWrappedEntity(p).getCollisionBox(event.getFrom().toVector()).getMaterials(pp.getWorld());
 
         //handle any pending knockbacks
-        if(event.hasAcceptedKnockback()) {
+        if(event.hasAcceptedKnockback() || (flying && !CHECK_FLYING)) {
             prepareNextMove(pp, noMoves, speed, touchedBlocks);
             return;
         }

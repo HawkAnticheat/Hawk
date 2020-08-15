@@ -250,6 +250,9 @@ public class HawkPlayer {
 
     //this should really not be public
     public void setTeleporting(boolean status) {
+        if(!this.teleporting && status) {
+            this.lastTeleportSendTick = currentTick;
+        }
         teleporting = status;
     }
 
@@ -263,10 +266,6 @@ public class HawkPlayer {
 
     public long getLastTeleportSendTick() {
         return lastTeleportSendTick;
-    }
-
-    public void setLastTeleportSendTick(long lastTeleportTime) {
-        this.lastTeleportSendTick = lastTeleportTime;
     }
 
     public long getLastTeleportAcceptTick() {
