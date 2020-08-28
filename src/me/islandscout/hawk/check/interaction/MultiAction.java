@@ -28,8 +28,10 @@ import me.islandscout.hawk.wrap.entity.MetaData;
 
 public class MultiAction extends CustomCheck {
 
+    //TODO If you're going to enable this again, make sure that you have handled the digging AIDS. High efficiency enchanted tools will false this.
+
     public MultiAction() {
-        super("multiaction", true, 0, 10, 0.95, 5000, "%player% failed multi-action, VL: %vl%", null);
+        super("multiaction", false, 0, 10, 0.95, 5000, "%player% failed multi-action, VL: %vl%", null);
     }
 
     @Override
