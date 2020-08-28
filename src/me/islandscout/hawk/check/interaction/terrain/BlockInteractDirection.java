@@ -70,6 +70,7 @@ public class BlockInteractDirection extends BlockInteractionCheck {
         }
         else {
             punish(pp, true, e);
+            e.resync();
         }
     }
 }

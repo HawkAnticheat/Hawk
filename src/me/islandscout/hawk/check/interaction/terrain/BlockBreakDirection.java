@@ -89,6 +89,7 @@ public class BlockBreakDirection extends BlockDigCheck {
         }
         else {
             punish(pp, true, e);
+            e.resync();
         }
     }
 }

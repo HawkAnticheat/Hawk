@@ -65,6 +65,7 @@ public class BlockInteractReach extends BlockInteractionCheck {
 
         if (dist > maxReach) {
             punish(pp, 1, true, e, new Placeholder("distance", MathPlus.round(dist, 2)));
+            e.resync();
         } else {
             reward(pp);
         }
