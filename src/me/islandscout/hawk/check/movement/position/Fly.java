@@ -121,7 +121,7 @@ public class Fly extends MovementCheck {
                     estimatedVelocityAlt = 0;
                 }
                 estimatedVelocityAlt += 0.04; //add swimming-up force
-                if(touchedBlocks.contains(Material.WEB)) {
+                if(e.isInWeb()) {
                     estimatedVelocity *= 0.05;
                     estimatedVelocityAlt *= 0.05;
                 }
@@ -137,7 +137,7 @@ public class Fly extends MovementCheck {
                     estimatedVelocityAlt = 0;
                 }
                 estimatedVelocityAlt += 0.04; //add swimming-up force
-                if(touchedBlocks.contains(Material.WEB)) {
+                if(e.isInWeb()) {
                     estimatedVelocity *= 0.05;
                     estimatedVelocityAlt *= 0.05;
                 }
@@ -151,7 +151,7 @@ public class Fly extends MovementCheck {
                 if(Math.abs(estimatedVelocityAlt) < MIN_VELOCITY) {
                     estimatedVelocityAlt = 0;
                 }
-                if(touchedBlocks.contains(Material.WEB)) {
+                if(e.isInWeb()) {
                     estimatedVelocity *= 0.05;
                     estimatedVelocityAlt *= 0.05;
                 }
@@ -171,7 +171,7 @@ public class Fly extends MovementCheck {
                         estimatedVelocityAlt = 0;
                     }
                     estimatedVelocityAlt += 0.04; //add swimming-up force
-                    if(touchedBlocks.contains(Material.WEB)) {
+                    if(e.isInWeb()) {
                         estimatedVelocity *= 0.05;
                         estimatedVelocityAlt *= 0.05;
                     }
@@ -304,7 +304,7 @@ public class Fly extends MovementCheck {
                 }
 
                 //keep estimating
-                if (touchedBlocks.contains(Material.WEB)) {
+                if (e.isInWeb()) {
                     prevEstimatedVelocity = prevEstimatedVelocityAlt = 0;
                 } else {
                     prevEstimatedVelocity = estimatedVelocity;

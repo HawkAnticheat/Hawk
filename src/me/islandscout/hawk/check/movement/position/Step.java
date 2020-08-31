@@ -3,6 +3,7 @@ package me.islandscout.hawk.check.movement.position;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.MovementCheck;
 import me.islandscout.hawk.event.MoveEvent;
+import me.islandscout.hawk.util.Debug;
 
 public class Step extends MovementCheck {
 
@@ -20,7 +21,9 @@ public class Step extends MovementCheck {
         HawkPlayer pp = e.getHawkPlayer();
         double dY = e.getTo().getY() - e.getFrom().getY();
 
-        if(dY > 0.6 || dY < -0.0784) {
+        Debug.broadcastMessage(dY);
+
+        if(dY > 0.6F || dY < -0.0784F) {
             punishAndTryRubberband(pp, e);
         }
         else {

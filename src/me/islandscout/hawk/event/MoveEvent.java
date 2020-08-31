@@ -60,6 +60,7 @@ public class MoveEvent extends Event {
     private boolean hitSlowdown;
     private Set<Direction> boxSidesTouchingBlocks;
     private boolean inWater;
+    private boolean inWeb;
     private boolean jumped;
     private boolean slimeBlockBounce;
     private boolean nextIsSlimeBlockBounce;
@@ -90,6 +91,7 @@ public class MoveEvent extends Event {
         onGroundReally = AdjacentBlocks.onGroundReally(getTo(), getTo().getY() - getFrom().getY(), true, 0.02, pp);
         step = testStep();
         activeBlocks = testActiveBlocks();
+        inWeb = testWeb();
         hitSlowdown = pp.hasHitSlowdown();
         boxSidesTouchingBlocks = AdjacentBlocks.checkTouchingBlock(new AABB(getTo().toVector().add(new Vector(-0.299999, 0.000001, -0.299999)), getTo().toVector().add(new Vector(0.299999, 1.799999, 0.299999))), getTo().getWorld(), 0.0001, pp.getClientVersion());
         acceptedKnockback = handlePendingVelocities();
@@ -359,6 +361,15 @@ public class MoveEvent extends Event {
         Vector from = pp.hasSentPosUpdate() ? getFrom().toVector() : pp.getPositionPredicted();
         test.translate(from);
         return test.getBlocks(p.getWorld());
+    }
+
+    private boolean testWeb() {
+        for(Block b : activeBlocks) {
+            if(b.getType() == Material.WEB) {
+                return true;
+            }
+        }
+        return false;
     }
 
     //checks if the player's dY matches the expected dY
@@ -829,6 +840,10 @@ public class MoveEvent extends Event {
 
     public List<Block> getActiveBlocks() {
         return activeBlocks;
+    }
+
+    public boolean isInWeb() {
+        return inWeb;
     }
 
     //Resync permits only a maximum of 1 rubberband per move
