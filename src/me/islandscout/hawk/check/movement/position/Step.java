@@ -21,8 +21,6 @@ public class Step extends MovementCheck {
         HawkPlayer pp = e.getHawkPlayer();
         double dY = e.getTo().getY() - e.getFrom().getY();
 
-        Debug.broadcastMessage(dY);
-
         if(dY > 0.6F || dY < -0.0784F) {
             punishAndTryRubberband(pp, e);
         }

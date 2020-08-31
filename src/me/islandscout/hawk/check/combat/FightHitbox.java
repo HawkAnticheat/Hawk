@@ -166,7 +166,14 @@ public class FightHitbox extends CustomCheck implements Cancelless {
         else
             victimLocation = e.getEntity().getLocation().toVector();
 
-        Vector eyePos = new Vector(attackerEyeLocation.getX(), attacker.isSneaking() ? attackerEyeLocation.getY() - 0.08 : attackerEyeLocation.getY(), attackerEyeLocation.getZ());
+        Vector eyePos;
+        if(e.getHawkPlayer().isInVehicle()) {
+            eyePos = hawk.getLagCompensator().getHistoryLocation(ping, e.getPlayer()).toVector();
+            eyePos.setY(eyePos.getY() + e.getPlayer().getEyeHeight());
+        }
+        else {
+            eyePos = new Vector(attackerEyeLocation.getX(), attacker.isSneaking() ? attackerEyeLocation.getY() - 0.08 : attackerEyeLocation.getY(), attackerEyeLocation.getZ());
+        }
         Vector direction = new Vector(attackerDirection.getX(), attackerDirection.getY(), attackerDirection.getZ());
         Ray attackerRay = new Ray(eyePos, direction);
 
