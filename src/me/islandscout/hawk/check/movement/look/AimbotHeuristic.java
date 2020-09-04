@@ -44,6 +44,7 @@ public class AimbotHeuristic extends CustomCheck implements Cancelless {
 
     private static final int MOVES_PER_SAMPLE = 4; //must be greater than 0
     private final int MOVES_AFTER_HIT;
+    private final boolean DEBUG;
 
     public AimbotHeuristic() {
         super("aimbotheuristic", false, -1, 5, 0.99, 5000, "&7%player% failed aimbot (heuristic), VL %vl%", null);
@@ -51,6 +52,8 @@ public class AimbotHeuristic extends CustomCheck implements Cancelless {
         clickTimes = new HashMap<>();
 
         MOVES_AFTER_HIT = MOVES_PER_SAMPLE - MOVES_PER_SAMPLE / 2;
+
+        DEBUG = (boolean) customSetting("debug", "", false);
     }
 
     public void check(Event e) {
@@ -95,14 +98,23 @@ public class AimbotHeuristic extends CustomCheck implements Cancelless {
 
                 //stutter
                 if(maxSpeed - minSpeed > 4 && minSpeed < 0.01 && maxAngle < 0.1 && lastSpeed > 1) { //this lastSpeed check eliminates a false positive
+                    if(DEBUG) {
+                        p.sendMessage("AimbotHeuristic: A");
+                    }
                     punishEm(pp, e);
                 }
                 //twitching or zig zags
                 else if(speed > 20 && lastSpeed > 20 && angle > 2.86) {
+                    if(DEBUG) {
+                        p.sendMessage("AimbotHeuristic: B");
+                    }
                     punishEm(pp, e);
                 }
                 //jump discontinuity
                 else if(speed - lastSpeed < -30 && angle > 0.8) {
+                    if(DEBUG) {
+                        p.sendMessage("AimbotHeuristic: C");
+                    }
                     punishEm(pp, e);
                 }
                 else {
