@@ -324,8 +324,7 @@ public class AABB implements Cloneable {
 
     //Blocks that barely touch don't count
     public List<AABB> getBlockAABBs(World world, int gameVersion, Material... exemptedMats) {
-        Set<Material> exempt = new HashSet<>();
-        exempt.addAll(Arrays.asList(exemptedMats));
+        Set<Material> exempt = new HashSet<>(Arrays.asList(exemptedMats));
         List<AABB> aabbs = new ArrayList<>();
 
         //gotta do this to catch fences and cobble walls

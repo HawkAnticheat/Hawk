@@ -20,16 +20,16 @@ package me.islandscout.hawk.util;
 
 public class Placeholder {
 
-    private final String key;
+    private final String name;
     private final Object value;
 
-    public Placeholder(String key, Object value) {
-        this.key = key;
+    public Placeholder(String name, Object value) {
+        this.name = name;
         this.value = value;
     }
 
-    public String getKey() {
-        return key;
+    public String getName() {
+        return name;
     }
 
     public Object getValue() {

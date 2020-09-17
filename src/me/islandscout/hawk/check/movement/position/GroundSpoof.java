@@ -64,13 +64,15 @@ public class GroundSpoof extends MovementCheck {
                 Location checkLoc = event.getFrom().clone();
                 checkLoc.setY(event.getTo().getY());
 
-                //Stop checkerclimbers
+                //Stop checkerclimbers, to an extent (remove this soon? The upcoming NoClip check should take care of these hackers)
                 AABB aabb = AABB.playerCollisionBox.clone();
                 aabb.expand(0, -0.0001, 0);
                 aabb.translate(event.getTo().toVector());
 
-                if (aabb.getBlockAABBs(pp.getWorld(), pp.getClientVersion(), Material.WEB).isEmpty() &&
-                        AdjacentBlocks.onGroundReally(checkLoc, -1, false, 0.02, pp))
+                boolean notPhasing = aabb.getBlockAABBs(pp.getWorld(), pp.getClientVersion(), Material.WEB).isEmpty();
+                boolean pass = AdjacentBlocks.onGroundReally(checkLoc, -1, false, 0.02, pp);
+
+                if (notPhasing && pass)
                     return;
 
                 if (event.isOnClientBlock() == null && !isOnBoat(pp.getPlayer(), event.getTo())) {

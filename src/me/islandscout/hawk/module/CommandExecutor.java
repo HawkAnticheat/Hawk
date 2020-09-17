@@ -102,7 +102,7 @@ public class CommandExecutor {
                 .replace("%tps%", MathPlus.round(ServerUtils.getTps(), 2) + "")
                 .replace("%vl%", pp.getVL(check) + "");
         for (Placeholder placeholder : placeholders)
-            preCmd = preCmd.replace("%" + placeholder.getKey() + "%", placeholder.getValue().toString());
+            preCmd = preCmd.replace("%" + placeholder.getName() + "%", placeholder.getValue().toString());
         final String cmd = preCmd;
         Pair<UUID, Pair<Check, String>> cmdInfo = new Pair<>(pp.getUuid(), new Pair<>(check, parts[2]));
         if(!commandHistory.contains(cmdInfo))
