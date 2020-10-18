@@ -232,7 +232,11 @@ public class HawkPlayer {
         return receiveNotifications && p.hasPermission(Hawk.BASE_PERMISSION + ".alerts");
     }
 
-    public void setReceiveNotifications(boolean status) {
+    public boolean getReceiveNotificationsPreference() {
+        return receiveNotifications;
+    }
+
+    public void setReceiveNotificationsPreference(boolean status) {
         receiveNotifications = status;
     }
 

@@ -18,6 +18,7 @@
 
 package me.islandscout.hawk.command;
 
+import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -37,8 +38,14 @@ public class ToggleAlertsArgument extends Argument {
             return true;
         }
         HawkPlayer pp = hawk.getHawkPlayer((Player) sender);
-        pp.setReceiveNotifications(!pp.canReceiveAlerts());
-        sender.sendMessage(ChatColor.GOLD + "In-game alerts toggled " + (pp.canReceiveAlerts() ? ChatColor.GREEN + "ON" : ChatColor.RED + "OFF"));
+        pp.setReceiveNotificationsPreference(!pp.getReceiveNotificationsPreference());
+        sender.sendMessage(ChatColor.GOLD + "In-game alerts toggled " + (pp.getReceiveNotificationsPreference() ? ChatColor.GREEN + "ON" : ChatColor.RED + "OFF"));
+
+        if(!pp.canReceiveAlerts()) {
+            String perm = Hawk.BASE_PERMISSION + ".alerts";
+            pp.getPlayer().sendMessage(ChatColor.GRAY + "NOTE: You do not have the permission \"" + perm + "\" to receive Hawk notifications/alerts.");
+        }
+
         return true;
     }
 }

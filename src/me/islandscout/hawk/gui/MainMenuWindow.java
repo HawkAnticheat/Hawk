@@ -57,14 +57,20 @@ public class MainMenuWindow extends Window {
         };
 
         ItemStack notify = new ItemStack(Material.INK_SACK);
-        notify.setDurability((short) (pp.canReceiveAlerts() ? 10 : 8));
+        notify.setDurability((short) (pp.getReceiveNotificationsPreference() ? 10 : 8));
         ItemMeta notifyName = notify.getItemMeta();
-        notifyName.setDisplayName(pp.canReceiveAlerts() ? "Notifications: ON" : "Notifications: OFF");
+        notifyName.setDisplayName(pp.getReceiveNotificationsPreference() ? "Notifications: ON" : "Notifications: OFF");
         notify.setItemMeta(notifyName);
         elements[3] = new Element(notify) {
             @Override
             public void doAction(Player p, Hawk hawk) {
-                pp.setReceiveNotifications(!pp.canReceiveAlerts());
+                pp.setReceiveNotificationsPreference(!pp.getReceiveNotificationsPreference());
+
+                if(!pp.canReceiveAlerts()) {
+                    String perm = Hawk.BASE_PERMISSION + ".alerts";
+                    pp.getPlayer().sendMessage(ChatColor.GRAY + "NOTE: You do not have the permission \"" + perm + "\" to receive Hawk notifications/alerts.");
+                }
+
                 Window mainMenu = new MainMenuWindow(hawk, p);
                 hawk.getGuiManager().sendWindow(p, mainMenu);
             }
