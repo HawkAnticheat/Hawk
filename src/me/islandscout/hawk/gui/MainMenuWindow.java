@@ -66,8 +66,8 @@ public class MainMenuWindow extends Window {
             public void doAction(Player p, Hawk hawk) {
                 pp.setReceiveNotificationsPreference(!pp.getReceiveNotificationsPreference());
 
-                if(!pp.canReceiveAlerts()) {
-                    String perm = Hawk.BASE_PERMISSION + ".alerts";
+                String perm = Hawk.BASE_PERMISSION + ".alerts";
+                if(!pp.getPlayer().hasPermission(perm)) {
                     pp.getPlayer().sendMessage(ChatColor.GRAY + "NOTE: You do not have the permission \"" + perm + "\" to receive Hawk notifications/alerts.");
                 }
 

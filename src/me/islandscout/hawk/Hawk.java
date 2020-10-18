@@ -260,7 +260,7 @@ public class Hawk extends JavaPlugin {
 
     public void broadcastAlertToAdmins(String msg) {
         for(HawkPlayer pp : getHawkPlayers()) {
-            if(pp.canReceiveAlerts())
+            if(pp.getReceiveNotificationsPreference() && pp.getPlayer().hasPermission(Hawk.BASE_PERMISSION + ".alerts"))
                 pp.getPlayer().sendMessage(msg);
         }
         Bukkit.getConsoleSender().sendMessage(msg);

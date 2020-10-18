@@ -228,10 +228,6 @@ public class HawkPlayer {
         this.digging = digging;
     }
 
-    public boolean canReceiveAlerts() {
-        return receiveNotifications && p.hasPermission(Hawk.BASE_PERMISSION + ".alerts");
-    }
-
     public boolean getReceiveNotificationsPreference() {
         return receiveNotifications;
     }
