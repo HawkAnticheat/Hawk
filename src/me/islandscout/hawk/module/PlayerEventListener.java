@@ -40,6 +40,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.util.Vector;
+import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 import java.util.List;
 
@@ -76,7 +77,8 @@ public class PlayerEventListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onQuit(PlayerQuitEvent e) {
-        hawk.removeProfile(e.getPlayer().getUniqueId());
+        hawk.getHawkPlayer(e.getPlayer()).setOnline(false);
+        hawk.removeProfile(e.getPlayer().getUniqueId()); //TODO call this elsewhere
         hawk.getCheckManager().removeData(e.getPlayer());
     }
 

@@ -27,7 +27,10 @@ import org.bukkit.craftbukkit.v1_7_R4.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.Scanner;
 
 public class Test {
 
@@ -35,6 +38,79 @@ public class Test {
 
     public Test(Hawk hawk) {
         this.hawk = hawk;
+    }
+
+    /*public static void main(String[] args) {
+
+        double rodMass = 1;
+        double triangleMass = 1;
+        double squareMass = 1;
+
+        Vector a = new Vector(-0.25, -0.25, 0);
+        Vector b = new Vector(0.25, -0.25, 0);
+        Vector c = new Vector(-0.25, 0.25, 0);
+
+        double x = (rodMass * a.getX() + triangleMass * b.getX() + squareMass * c.getX()) / (rodMass + triangleMass + squareMass);
+        double y = (rodMass * a.getY() + triangleMass * b.getY() + squareMass * c.getY()) / (rodMass + triangleMass + squareMass);
+
+        System.out.println(x + " " + y);
+
+        System.out.println(x*x + y*y);
+
+
+         save for physics
+        double rodMass = 7;
+        double triangleMass = 35;
+        double squareMass = 5.45;
+
+        Vector squareCM = new Vector(-3.5, 3.5, 0);
+        Vector rodCM = new Vector(5.5, 7, 0);
+        Vector triangleCM = new Vector(6.8284, 2.1716, 0);
+
+        double x = (rodMass * rodCM.getX() + triangleMass * triangleCM.getX() + squareMass * squareCM.getX()) / (rodMass + triangleMass + squareMass);
+        double y = (rodMass * rodCM.getY() + triangleMass * triangleCM.getY() + squareMass * squareCM.getY()) / (rodMass + triangleMass + squareMass);
+
+        System.out.println(x + " " + y);
+
+
+
+
+
+        int sub = (int) Math.sqrt(4);
+
+        double[][] field = new double[sub + 1][sub + 1];
+
+        double dx = 6D / sub;
+        double dy = 8D / sub;
+
+        for (int i = 0; i < field.length; i++) { //row
+            for (int j = 0; j < field[i].length; j++) { //column
+                field[i][j] = i * dx + j * dy;
+                System.out.print(field[i][j] + " ");
+            }
+            System.out.println();
+        }
+
+    }*/
+
+    private static void inputConverter() {
+        File file = new File("resources/input.txt");
+
+        try {
+            Scanner in = new Scanner(file);
+
+            while(in.hasNext()) {
+                String input = in.nextLine();
+
+                input = input.substring(17).replace(",", ".").replace(" ", ", ");
+
+                input = "(" + input + ")";
+
+                System.out.println(input);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void start(Hawk hawk) {

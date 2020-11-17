@@ -235,4 +235,85 @@ public final class MathPlus {
     public static double[] vector3DToArray(Vector vec) {
         return new double[] {vec.getX(), vec.getY(), vec.getZ()};
     }
+
+    //Line of best fit (least squares method)
+    public static Line trendline(double[] x, double[] y) {
+
+        //length must be the same
+        if(x.length != y.length) {
+            return null;
+        }
+
+        double meanX = MathPlus.mean(x);
+        double meanY = MathPlus.mean(y);
+
+        double dY = 0;
+        double dX = 0;
+
+        for(int i = 0; i < x.length; i++) {
+            double a = (x[i] - meanX);
+            dY += a * (y[i] - meanY);
+            dX += a * a;
+        }
+
+        double slope = dY / dX;
+        double yIntercept = meanY - slope * meanX;
+
+        return new Line(yIntercept, slope);
+    }
+
+    public static double kurtosis(List<Double> values) {
+        double mean = mean(values);
+        double std = stdev(values);
+
+        double x = 0;
+        for(Double value : values) {
+            x += Math.pow(value - mean, 4);
+        }
+
+        x /= values.size();
+
+        return x / Math.pow(std, 4);
+    }
+
+    //r
+    //https://www.geeksforgeeks.org/program-find-correlation-coefficient/
+    public static double correlationCoefficient(double[] x, double[] y) {
+
+        //length must be the same
+        if(x.length != y.length) {
+            return Double.NaN;
+        }
+
+        double sum_X = 0, sum_Y = 0, sum_XY = 0;
+        double squareSum_X = 0, squareSum_Y = 0;
+
+        for (int i = 0; i < x.length; i++) {
+            // sum of elements of array X.
+            sum_X = sum_X + x[i];
+
+            // sum of elements of array Y.
+            sum_Y = sum_Y + y[i];
+
+            // sum of X[i] * Y[i].
+            sum_XY = sum_XY + x[i] * y[i];
+
+            // sum of square of array elements.
+            squareSum_X = squareSum_X + x[i] * x[i];
+            squareSum_Y = squareSum_Y + y[i] * y[i];
+        }
+
+        // use formula for calculating correlation
+        // coefficient.
+        return (x.length * sum_XY - sum_X * sum_Y)/
+                (Math.sqrt((x.length * squareSum_X -
+                        sum_X * sum_X) * (x.length * squareSum_Y -
+                        sum_Y * sum_Y)));
+    }
+
+    //r^2
+    public static double coefficientOfDetermination(double[] x, double[] y) {
+        double val = correlationCoefficient(x, y);
+        return val * val;
+    }
 }
