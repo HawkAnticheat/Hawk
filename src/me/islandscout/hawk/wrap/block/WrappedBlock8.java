@@ -145,12 +145,9 @@ public class WrappedBlock8 extends WrappedBlock {
 
     @Override
     public Vector getFlowDirection() {
-        Vector vec = new Vector();
-        Vec3D nmsVec = new Vec3D(0, 0, 0);
-        Entity dummy = null;
+
         if(!block.getMaterial().isLiquid())
-            return vec;
-        BlockPosition bPos = new BlockPosition(obBlock.getX(), obBlock.getY(), obBlock.getZ());
+            return new Vector();
 
         //this should prevent async threads from calling NMS code that actually loads chunks
         if(!Bukkit.isPrimaryThread()) {
@@ -159,14 +156,14 @@ public class WrappedBlock8 extends WrappedBlock {
                     !obBlock.getWorld().isChunkLoaded(obBlock.getX() - 1 >> 4, obBlock.getZ() >> 4) ||
                     !obBlock.getWorld().isChunkLoaded(obBlock.getX() >> 4, obBlock.getZ() + 1 >> 4) ||
                     !obBlock.getWorld().isChunkLoaded(obBlock.getX() >> 4, obBlock.getZ() - 1 >> 4)) {
-                return vec;
+                return new Vector();
             }
         }
 
+        Entity dummy = null;
+        Vec3D nmsVec = new Vec3D(0, 0, 0);
+        BlockPosition bPos = new BlockPosition(obBlock.getX(), obBlock.getY(), obBlock.getZ());
         nmsVec = block.a(((CraftWorld) obBlock.getWorld()).getHandle(), bPos, dummy, nmsVec);
-        vec.setX(nmsVec.a);
-        vec.setY(nmsVec.b);
-        vec.setZ(nmsVec.c);
-        return vec;
+        return new Vector(nmsVec.a, nmsVec.b, nmsVec.c);
     }
 }
