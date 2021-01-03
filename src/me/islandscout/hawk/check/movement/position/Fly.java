@@ -222,9 +222,9 @@ public class Fly extends MovementCheck {
                 double fromY = MathPlus.round(from.getY(), 10);
 
                 float discrepancy = y - estimatedPosition;
-                //y must be between last Y and estimatedPosition.
+                //y must be between last Y and estimatedPosition, and dY must be <= 0 (MAYBE that's already inherent with the former, but I have this for redundancy).
                 if (Math.abs(discrepancy) > DISCREPANCY_THRESHOLD && !e.isPossiblePistonPush() &&
-                        (y < Math.min(estimatedPosition, fromY) || y > Math.max(estimatedPosition, fromY))) {
+                        ((y - pp.getPreviousPositionPredicted().getY()) > 0 || y < Math.min(estimatedPosition, fromY) || y > Math.max(estimatedPosition, fromY))) {
                     punishAndTryRubberband(pp, e);
                 } else {
                     reward(pp);

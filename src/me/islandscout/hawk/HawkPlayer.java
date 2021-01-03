@@ -349,7 +349,7 @@ public class HawkPlayer {
         return position.clone();
     }
 
-    //Returns the predicted position of the HawkPlayer, assuming no user input.
+    //Returns the current predicted position of the HawkPlayer, assuming no user input.
     public Vector getPositionPredicted() {
         return predictedPosition;
     }
