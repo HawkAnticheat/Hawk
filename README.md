@@ -3,7 +3,7 @@ Hawk Anticheat ver. BETA 2012 (DEV)
 
 Hawk is a Spigot server anticheat plugin designed to detect and prevent abuse of the Minecraft protocol. Hawk does not require any dependencies, since it relies on Spigot, Netty, and NMS code. Hawk runs on Spigot/PaperSpigot 1.7_R4 and 1.8_R3 servers.
 
-Unfortunately, because of CraftBukkit's DMCA takedown, this is not a Maven project. If you wish to compile this, you must have Spigot (or other derivatives) servers 1.7_R4 and 1.8_R3 and ProtocolLib as build dependencies.
+Unfortunately, because of CraftBukkit's DMCA takedown, this is not a Maven project. If you wish to compile this, you must have Spigot (or other derivatives) servers 1.7_R4 and 1.8_R3, ProtocolLib, and PacketEvents as build dependencies. If you don't want to deal with plib or packetevents, there's a few lines in the entire anticheat that you can delete and it should still work. When I come back from my hiatus around May, I'll consider using Maven, and I'll probably use someone's repo to work around the Spigot 1.7.10 availability problem.
 
 Download JAR here: https://www.spigotmc.org/resources/hawk-anticheat-mc-1-7-10-1-8-x.40343/
 
