@@ -19,6 +19,7 @@
 package me.islandscout.hawk.util;
 
 import com.comphenix.protocol.ProtocolLibrary;
+import io.github.retrooper.packetevents.PacketEvents;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
@@ -43,8 +44,11 @@ public final class ServerUtils {
     }
 
     public static int getProtocolVersion(Player p) {
-        if(Hawk.USING_PLIB)
+        if (Hawk.USING_PACKETEVENTS) {
+            return PacketEvents.get().getPlayerUtils().getClientVersion(p).getProtocolVersion();
+        } else if (Hawk.USING_PLIB) {
             return ProtocolLibrary.getProtocolManager().getProtocolVersion(p);
+        }
         if(Hawk.getServerVersion() == 7) {
             net.minecraft.server.v1_7_R4.PlayerConnection pConnection = ((org.bukkit.craftbukkit.v1_7_R4.entity.CraftPlayer) p).getHandle().playerConnection;
             if(pConnection == null)
