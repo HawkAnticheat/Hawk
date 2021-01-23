@@ -45,7 +45,7 @@ public final class ServerUtils {
 
     public static int getProtocolVersion(Player p) {
         if (Hawk.USING_PACKETEVENTS) {
-            return PacketEvents.get().getPlayerUtils().getClientVersion(p).getProtocolVersion();
+            return PacketEvents.getAPI().getPlayerUtils().getClientVersion(p).getProtocolVersion();
         } else if (Hawk.USING_PLIB) {
             return ProtocolLibrary.getProtocolManager().getProtocolVersion(p);
         }

@@ -146,10 +146,15 @@ public abstract class Check<E extends Event> {
 
         for (Placeholder placeholder : placeholders)
             flag = flag.replace("%" + placeholder.getName() + "%", placeholder.getValue().toString());
-        broadcastMessage(flag, violation);
-        logToConsole(flag);
-        logToFile(flag);
 
+        final String flagFinal = flag;
+
+        //I can't believe that for all this time, this was being ran on the netty thread...
+        Bukkit.getScheduler().runTask(hawk, () -> {
+            broadcastMessage(flagFinal, violation);
+            logToConsole(flagFinal);
+            logToFile(flagFinal);
+        });
 
         if (hawk.getSQLModule().isRunning())
             hawk.getSQLModule().addToBuffer(violation);

@@ -40,6 +40,37 @@ public class Test {
         this.hawk = hawk;
     }
 
+    public static void main(String[] args) {
+        final double coulombConst = 8.9875517923E9;
+        final double vacPermittivity = 8.8541878128E-12;
+
+        Vector a = new Vector(0.0311769145362, -0.018, 0);
+        Vector b = new Vector(0.036, 0, 0);
+        Vector c = new Vector(0.0311769145362, 0.018, 0);
+
+        Vector sum = electrostaticField(3 / 1000000000D, a).add(electrostaticField(-2 / 1000000000D, b).add(electrostaticField(3 / 1000000000D, c)));
+
+        System.out.println(sum);
+        System.out.println(sum.multiply(-5.01 / 1000000000D));
+    }
+
+    private static double electrostaticForceAbs(double chargeA, double chargeB, double dist) {
+        final double coulombConst = 8.9875517923 * Math.pow(10, 9);
+        return Math.abs((coulombConst * chargeA * chargeB)/(dist * dist));
+    }
+
+    //returns electrostatic force on chargeB (in newtons)
+    private static Vector electrostaticForce(double chargeA, double chargeB, Vector displacement) {
+        final double coulombConst = 8.9875517923 * Math.pow(10, 9);
+        return displacement.clone().normalize().multiply((coulombConst * chargeA * chargeB)/displacement.lengthSquared());
+    }
+
+    //returns electrostatic field at point (in newtons per coulomb)
+    private static Vector electrostaticField(double charge, Vector displacement) {
+        final double coulombConst = 8.9875517923 * Math.pow(10, 9);
+        return displacement.clone().normalize().multiply((coulombConst * charge)/displacement.lengthSquared());
+    }
+
 
     private static void inputConverter() {
         File file = new File("resources/input.txt");

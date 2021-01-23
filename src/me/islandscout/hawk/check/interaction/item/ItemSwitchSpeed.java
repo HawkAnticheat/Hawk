@@ -42,6 +42,9 @@ public class ItemSwitchSpeed extends CustomCheck implements Cancelless {
         MIN_SWITCH_TICKS = (int)customSetting("minSwitchTicks", "", 1);
     }
 
+    //For future reference, if you try to verify that the item-switch packet points to a different slot, beware of falses.
+    //The client can send item-switch packets regardless if the slot switched or not.
+
     @Override
     protected void check(Event event) {
         if(event instanceof InteractItemEvent || event instanceof InteractWorldEvent) {
