@@ -8,6 +8,7 @@ Unfortunately, because of CraftBukkit's DMCA takedown, this is not a Maven proje
 Download JAR here: https://www.spigotmc.org/resources/hawk-anticheat-mc-1-7-10-1-8-x.40343/
 
 Hawk Anticheat Discord: https://discord.gg/rQGb5DV
+
 Minecraft Anticheat Community Discord (you can get in touch with me and other anticheat developers here): https://discord.gg/SEYV96H
 
 ## Attribution
