@@ -131,7 +131,7 @@ public final class PacketConverter8 {
             packet.b(serializer);
             int id = serializer.e();
             List metaData = DataWatcher.b(serializer);
-            if(id != p.getEntityId())
+            if(id != p.getEntityId() || metaData == null)
                 return null;
 
             List<WrappedWatchableObject> wrappedMetaData = new ArrayList<>();

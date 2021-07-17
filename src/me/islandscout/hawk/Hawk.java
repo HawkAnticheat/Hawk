@@ -66,7 +66,6 @@ public class Hawk extends JavaPlugin {
     public static String BUILD_NAME;
     public static String FLAG_CLICK_COMMAND;
     public static boolean USING_PACKETEVENTS;
-    public static boolean USING_PLIB;
     public static final String NO_PERMISSION = ChatColor.RED + "You do not have permission \"%s\" to perform this action.";
     private boolean sendJSONMessages;
     private boolean playSoundOnFlag;
@@ -77,7 +76,7 @@ public class Hawk extends JavaPlugin {
         BUILD_NAME = getDescription().getVersion();
         setServerVersion();
         loadModules();
-        getLogger().info("Hawk Anticheat has been enabled. Copyright (C) 2018-2020 Hawk Development Team.");
+        getLogger().info("Hawk Anticheat has been enabled. Copyright (C) 2018-2021 Hawk Development Team.");
     }
 
     @Override
@@ -91,9 +90,6 @@ public class Hawk extends JavaPlugin {
         getLogger().info("Loading modules...");
         //Prioritize packetevents
         USING_PACKETEVENTS = getServer().getPluginManager().isPluginEnabled("packetevents");
-        if (!USING_PACKETEVENTS) {
-            USING_PLIB = getServer().getPluginManager().isPluginEnabled("ProtocolLib");
-        }
         new File(plugin.getDataFolder().getAbsolutePath()).mkdirs();
         messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "messages.yml"));
         checksConfig = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder().getAbsolutePath() + File.separator + "checks.yml"));

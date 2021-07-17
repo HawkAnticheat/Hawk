@@ -58,7 +58,7 @@ public class WrappedBlock8 extends WrappedBlock {
         b.updateShape(((CraftWorld) block.getWorld()).getHandle(), bPos);
 
         strength = b.g(null, null);
-        solid = isReallySolid(block);
+        solid = isReallySolid(block); //don't run hawk on torch 1.8.8! you'll get async-entity-add errors here.
         hitbox = getHitBox(b, block.getLocation());
         collisionBoxes = getCollisionBoxes(b, block.getLocation(), bPos, data);
         slipperiness = b.frictionFactor;
@@ -128,6 +128,8 @@ public class WrappedBlock8 extends WrappedBlock {
             aabbarr[0] = new AABB(loc.toVector(), loc.toVector().add(new Vector(1, 0, 1)));
             return aabbarr;
         }
+
+        //perhaps you would want to do this for anvils and chests, too... somehow? AABB on clientside takes the shape of the last anvil or chest you looked at.
 
         List<AxisAlignedBB> bbs = new ArrayList<>();
         AxisAlignedBB cube = AxisAlignedBB.a(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), loc.getBlockX() + 1, loc.getBlockY() + 1, loc.getBlockZ() + 1);

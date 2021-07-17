@@ -19,6 +19,7 @@
 package me.islandscout.hawk;
 
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
+import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import net.minecraft.server.v1_7_R4.*;
 import net.minecraft.util.io.netty.buffer.Unpooled;
@@ -29,6 +30,7 @@ import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -41,17 +43,22 @@ public class Test {
     }
 
     public static void main(String[] args) {
-        final double coulombConst = 8.9875517923E9;
-        final double vacPermittivity = 8.8541878128E-12;
 
-        Vector a = new Vector(0.0311769145362, -0.018, 0);
-        Vector b = new Vector(0.036, 0, 0);
-        Vector c = new Vector(0.0311769145362, 0.018, 0);
+    }
 
-        Vector sum = electrostaticField(3 / 1000000000D, a).add(electrostaticField(-2 / 1000000000D, b).add(electrostaticField(3 / 1000000000D, c)));
+    //returns magnetic field around a long wire centered at the origin, given its direction and electric current
+    //deriving this almost from scratch and then getting the homework problem right the first time really makes you happy
+    //NOTE amps must be >= 0. If you need to switch directions, multiply dir by a negative number
+    private static Vector magFieldLongWire(Vector eval, Vector dir, double amps) {
+        double k = (eval.getX()*dir.getX() + eval.getY()*dir.getY() + eval.getZ()*dir.getZ()) /
+                (dir.getX()*dir.getX() + dir.getY()*dir.getY() + dir.getZ()*dir.getZ());
 
-        System.out.println(sum);
-        System.out.println(sum.multiply(-5.01 / 1000000000D));
+        Vector closestPointOnWire = dir.clone().multiply(k);
+        Vector perp = eval.clone().subtract(closestPointOnWire);
+        Vector magDir = dir.clone().crossProduct(perp).multiply(amps).normalize();
+
+        //long wire equation
+        return magDir.multiply((1.2566370614359E-6 /*mu nought*/ * amps) / (2 * Math.PI * closestPointOnWire.distance(eval)));
     }
 
     private static double electrostaticForceAbs(double chargeA, double chargeB, double dist) {
@@ -71,6 +78,11 @@ public class Test {
         return displacement.clone().normalize().multiply((coulombConst * charge)/displacement.lengthSquared());
     }
 
+    //returns electric potential at point (in volts)
+    private static double electricPotential(double charge, double distance) {
+        final double coulombConst = 8.9875517923E9;
+        return (coulombConst * charge) / distance; //dont even ask why this is positive (negative times negative is positive) (because E = -dV/dX ?)
+    }
 
     private static void inputConverter() {
         File file = new File("resources/input.txt");

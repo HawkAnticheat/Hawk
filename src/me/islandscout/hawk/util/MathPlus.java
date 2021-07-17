@@ -222,6 +222,9 @@ public final class MathPlus {
         float result = numbers.get(0);
         for (int i = 1; i < numbers.size(); i++) {
             result = gcdRational(numbers.get(i), result);
+            if(result < 1E-7) { //This usually means that the GCD is beyond the precision we can handle
+                return 0;
+            }
         }
         return result;
     }
