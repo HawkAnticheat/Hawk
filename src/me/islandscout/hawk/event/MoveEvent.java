@@ -145,7 +145,7 @@ public class MoveEvent extends Event {
             //There are cleaner ways to do this, but for now, this will do. BTW we don't need to check worlds, because the server already has full authority on that.
             boolean matches = tpLoc != null && tpLoc.toVector().equals(getTo().toVector()) && tpLoc.getYaw() == getTo().getYaw() && tpLoc.getPitch() == getTo().getPitch();
 
-            if (!onGround && updatePos && updateRot && matches) {
+            if (/*!onGround &&*/ updatePos && updateRot && matches) { //!onGround would work, if it wasn't for ViaVersion/ViaRewind being stupid
                 //most likely accepted teleport, unless this move is a coincidence (edge case & insanely difficult to reproduce without computer assistance)
                 pp.updatePositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch(), true);
                 pp.setPositionRaw(getTo().toVector());
@@ -684,7 +684,11 @@ public class MoveEvent extends Event {
                     return kbVelocity;
                 }
                 else {
-                    failedKnockback = true;
+
+                    if(!getPlayer().isInsideVehicle()) { //TODO lag compensate this
+                        failedKnockback = true;
+                    }
+
                     expiredKbs++;
                 }
             }
