@@ -59,9 +59,6 @@ public class HawkPlayer {
     private boolean receiveNotifications;
     private boolean online;
     private final Player p;
-    private boolean teleporting;
-    private Location teleportLoc;
-    private long lastTeleportSendTick;
     private long lastTeleportAcceptTick;
     private final Hawk hawk;
 
@@ -245,27 +242,7 @@ public class HawkPlayer {
     }
 
     public boolean isTeleporting() {
-        return teleporting;
-    }
-
-    //this should really not be public
-    public void setTeleporting(boolean status) {
-        if(!this.teleporting && status) {
-            this.lastTeleportSendTick = currentTick;
-        }
-        teleporting = status;
-    }
-
-    public Location getTeleportLoc() {
-        return teleportLoc;
-    }
-
-    public void setTeleportLoc(Location teleportLoc) {
-        this.teleportLoc = teleportLoc;
-    }
-
-    public long getLastTeleportSendTick() {
-        return lastTeleportSendTick;
+        return !getPendingTeleports().isEmpty();
     }
 
     public long getLastTeleportAcceptTick() {
@@ -830,7 +807,7 @@ public class HawkPlayer {
         AABB bbox = WrappedEntity.getWrappedEntity(p).getCollisionBox(to);
         bbox.expand(expand, expand, expand);
 
-        //handle teleportation into a block
+        //handle teleportation INTO a block
         if(teleported) {
             AABB lastbbox = WrappedEntity.getWrappedEntity(p).getCollisionBox(from);
             lastbbox.expand(expand, expand, expand);
@@ -975,11 +952,6 @@ public class HawkPlayer {
     public void kickPlayer(String reason) {
         online = false;
         Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.kickPlayer(reason), 0L);
-    }
-
-    //safely teleport player
-    public void teleport(Location location, PlayerTeleportEvent.TeleportCause teleportCause) {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(hawk, () -> p.teleport(location, teleportCause), 0L);
     }
 
     //safely force player to release item (bow, consumable, or sword blocking)

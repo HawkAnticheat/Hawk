@@ -22,8 +22,8 @@ import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerAbilitiesEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerMetadataEvent;
-import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerTeleportEvent;
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.Pair;
 import me.islandscout.hawk.util.ServerUtils;
 import me.islandscout.hawk.wrap.WrappedWatchableObject;
@@ -40,7 +40,6 @@ import org.bukkit.event.player.*;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.util.Vector;
-import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 import java.util.List;
 
@@ -200,10 +199,16 @@ public class PlayerEventListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void teleport(HawkAsyncPlayerTeleportEvent e) {
+    public void teleport(PlayerTeleportEvent e) {
         HawkPlayer pp = hawk.getHawkPlayer(e.getPlayer());
-        pp.setTeleporting(true);
-        pp.setTeleportLoc(e.getPlayer().getLocation());
-        pp.addPendingTeleport(new Location(pp.getWorld(), e.getX(), e.getY(), e.getZ(), e.getYaw() % 360F, e.getPitch() % 360F));
+
+        Location tpLoc = e.getTo().clone();
+        tpLoc.setYaw(tpLoc.getYaw() % 360F);
+        tpLoc.setPitch(tpLoc.getPitch() % 360F);
+
+        pp.addPendingTeleport(tpLoc);
+
+        //Exception ee = new Exception();
+        //ee.printStackTrace();
     }
 }

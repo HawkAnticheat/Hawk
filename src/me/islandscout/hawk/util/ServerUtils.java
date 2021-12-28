@@ -21,6 +21,8 @@ package me.islandscout.hawk.util;
 //import io.github.retrooper.packetevents.PacketEvents;
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.util.packet.TeleportUtil7;
+import me.islandscout.hawk.util.packet.TeleportUtil8;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -116,5 +118,14 @@ public final class ServerUtils {
             return result;
         }
         return null;
+    }
+
+    public static void teleportUnsafe(Player p, Location loc) {
+        Location packetLocation = loc.clone();
+        packetLocation.setY(loc.getY() + 1.62);
+        if (Hawk.getServerVersion() == 8)
+            TeleportUtil8.sendTeleportPacket(p, packetLocation);
+        else if (Hawk.getServerVersion() == 7)
+            TeleportUtil7.sendTeleportPacket(p, packetLocation);
     }
 }

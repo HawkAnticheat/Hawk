@@ -111,7 +111,7 @@ public class TickRate extends MovementCheck implements Listener {
             p.sendMessage((msOffset < 0 ? (msOffset < THRESHOLD ? ChatColor.RED : ChatColor.YELLOW) : ChatColor.BLUE) + "CLOCK DRIFT: " + MathPlus.round(-msOffset, 2) + "ms");
         }
         if (drift * 1E-6 < THRESHOLD) {
-            if(RUBBERBAND && pp.getCurrentTick() - pp.getLastTeleportSendTick() > 20) //Don't rubberband so often. You're already cancelling a ton of moves. TODO use real system time to actually stop teleport spam?
+            if(RUBBERBAND && pp.getCurrentTick() - pp.getLastTeleportAcceptTick() > 20) //Don't rubberband so often. You're already cancelling a ton of moves. TODO use real system time to actually stop teleport spam?
                 punishAndTryRubberband(pp, event);
             else
                 punish(pp, true, event);

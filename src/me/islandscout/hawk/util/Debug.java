@@ -39,7 +39,7 @@ public final class Debug {
             calling?
             - For instance: getting the AABB of blocks from Block. Plants return null because BlockPlant extends Block
               and overrides the AABB getter method with its own.
-          - Get the class name (Object#getClass().getName()) and possibly the reference (Object#hashCode()) of the troublesome object.
+          - Get the class name (Object#getClass().getName()) and compare the reference of the troublesome object (using ==).
      */
 
     public static void broadcastMessage(Object msg) {

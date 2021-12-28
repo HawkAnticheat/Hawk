@@ -24,13 +24,11 @@ import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -130,50 +128,35 @@ public class MoveEvent extends Event {
         //packets, opening up a fasteat/fastbow/regen/etc. bypass.
         if (pp.isTeleporting()) {
 
-            Location tpLoc;
-            int elapsedTicks;
-            if(pp.getPendingTeleports().size() == 0) {
-                tpLoc = null;
-                elapsedTicks = (int) (pp.getCurrentTick() - pp.getLastTeleportSendTick());
-            } else {
-                Pair<Location, Long> tpPair = pp.getPendingTeleports().get(0);
-                tpLoc = tpPair.getKey();
-                elapsedTicks = (int)(pp.getCurrentTick() - tpPair.getValue());
-            }
+            Pair<Location, Long> tpPair = pp.getPendingTeleports().get(0);
+            Location tpLoc = tpPair.getKey();
+            int elapsedTicks = (int) (pp.getCurrentTick() - tpPair.getValue());
+
             int ping = ServerUtils.getPing(p);
 
             //There are cleaner ways to do this, but for now, this will do. BTW we don't need to check worlds, because the server already has full authority on that.
             boolean matches = tpLoc != null && tpLoc.toVector().equals(getTo().toVector()) && tpLoc.getYaw() == getTo().getYaw() && tpLoc.getPitch() == getTo().getPitch();
 
+            pp.setPositionRaw(getTo().toVector());
+
             if (/*!onGround &&*/ updatePos && updateRot && matches) { //!onGround would work, if it wasn't for ViaVersion/ViaRewind being stupid
                 //most likely accepted teleport, unless this move is a coincidence (edge case & insanely difficult to reproduce without computer assistance)
                 pp.updatePositionYawPitch(tpLoc.toVector(), tpLoc.getYaw(), tpLoc.getPitch(), true);
-                pp.setPositionRaw(getTo().toVector());
                 pp.setVelocity(new Vector(0, 0, 0));
                 pp.getPendingTeleports().remove(0);
                 pp.setLastTeleportAcceptTick(pp.getCurrentTick());
                 teleportAccept = true;
-                if(pp.getPendingTeleports().size() == 0) {
-                    pp.setTeleporting(false);
-                } else if(Event.allowedToResync(pp)) {
-                    return false;
+                if (pp.isTeleporting() && Event.allowedToResync(pp)) {
+                    return false; //drop moves while we're waiting for player to accept teleports
                 }
-            }
-            else if(!pp.getPlayer().isSleeping() && Event.allowedToResync(pp)) {
+            } else if (!pp.getPlayer().isSleeping() && Event.allowedToResync(pp)) {
                 if (elapsedTicks > (ping / 50) + 40) { //40 is an arbitrary constant to keep things smooth
-                    Location rubberband;
-                    if(pp.getPendingTeleports().size() > 0) {
-                        //Client did not respond in time.
-                        rubberband = pp.getPendingTeleports().get(pp.getPendingTeleports().size() - 1).getKey();
-                        pp.getPendingTeleports().clear();
-                    } else {
-                        //Some idiot server-side cancelled a teleport packet or cancelled an event corresponding to anticheat rubberbanding.
-                        rubberband = p.getLocation();
-                    }
-                    pp.teleport(rubberband, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                    //Client did not respond in time. Either lag, cheating, or some idiot server-side cancelled a
+                    // teleport packet.
+                    pp.getPendingTeleports().clear();
+                    resync();
                 }
-                pp.setPositionRaw(getTo().toVector());
-                return false;
+                return false; //drop moves while we're waiting for player to accept teleports
             }
         }
 
@@ -181,7 +164,6 @@ public class MoveEvent extends Event {
         else if (getFrom().getWorld().equals(getTo().getWorld()) && getTo().distanceSquared(getFrom()) > 64) {
             if(Event.allowedToResync(pp)) {
                 resync();
-                pp.teleport(getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
                 pp.setPositionRaw(getTo().toVector());
                 return false;
             }
@@ -191,7 +173,6 @@ public class MoveEvent extends Event {
         if(!teleportAccept && glidingInUnloadedChunk && Math.abs(pp.getVelocityPredicted().getY() - -0.098) > 0.000001) {
             if(Event.allowedToResync(pp)) {
                 resync();
-                pp.teleport(getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
                 pp.setPositionRaw(getTo().toVector());
                 return false;
             }
@@ -219,9 +200,8 @@ public class MoveEvent extends Event {
         if(isCancelled() && getCancelLocation() != null) {
             //handle rubberband if applicable
             setTo(getCancelLocation());
-            pp.setTeleporting(true);
             if(Event.allowedToResync(pp)) {
-                pp.teleport(getCancelLocation(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+                resync();
             }
         }
 
@@ -816,7 +796,7 @@ public class MoveEvent extends Event {
     }
 
     //This is the friction that affects this move's velocity.
-    //WARNING: can be spoofed (i.e. hackers can make this return ground friction while in air)
+    //WARNING: can be spoofed because it depends on onGround, which is spoofable
     //Let GroundSpoof take care of these hackers.
     public float getFriction() {
         return oldFriction;
@@ -866,8 +846,13 @@ public class MoveEvent extends Event {
                 cancelLocation = pp.getAltSetbackLoc();
             }
             setCancelled(true);
-            pp.setTeleporting(true);
-            pp.setTeleportLoc(cancelLocation);
+
+            Location tpLoc = cancelLocation.clone();
+            tpLoc.setYaw(tpLoc.getYaw() % 360F);
+            tpLoc.setPitch(tpLoc.getPitch() % 360F);
+
+            pp.addPendingTeleport(tpLoc);
+            ServerUtils.teleportUnsafe(p, tpLoc);
         }
     }
 
