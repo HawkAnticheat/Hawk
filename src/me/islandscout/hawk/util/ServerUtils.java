@@ -122,10 +122,11 @@ public final class ServerUtils {
 
     public static void teleportUnsafe(Player p, Location loc) {
         Location packetLocation = loc.clone();
-        packetLocation.setY(loc.getY() + 1.62);
         if (Hawk.getServerVersion() == 8)
             TeleportUtil8.sendTeleportPacket(p, packetLocation);
-        else if (Hawk.getServerVersion() == 7)
+        else if (Hawk.getServerVersion() == 7) {
+            packetLocation.setY(loc.getY() + 1.62);
             TeleportUtil7.sendTeleportPacket(p, packetLocation);
+        }
     }
 }

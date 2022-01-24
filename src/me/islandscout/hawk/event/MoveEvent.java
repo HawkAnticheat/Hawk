@@ -126,6 +126,7 @@ public class MoveEvent extends Event {
         //teleport from a normal move since the expected teleport location keeps
         //changing too quickly. Thus NMS will tick the player for all of those
         //packets, opening up a fasteat/fastbow/regen/etc. bypass.
+        //TODO We need to differentiate between an anticheat reesync vs casual teleport. We don't want flying confirmations for anticheat resync to get to NMS for the very reason above
         if (pp.isTeleporting()) {
 
             Pair<Location, Long> tpPair = pp.getPendingTeleports().get(0);
