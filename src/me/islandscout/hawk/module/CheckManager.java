@@ -86,6 +86,7 @@ public class CheckManager {
         new EntityInteractReach();
         new EntityInteractDirection();
         new BlockInteractDirection();
+        new BlockInteractOcclusion();
         new BlockInteractSpeed();
         new WrongBlockFace();
         new InvalidPlacement();

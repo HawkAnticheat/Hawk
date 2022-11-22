@@ -24,6 +24,7 @@ import me.islandscout.hawk.util.*;
 import me.islandscout.hawk.wrap.block.WrappedBlock;
 import me.islandscout.hawk.wrap.entity.WrappedEntity;
 import me.islandscout.hawk.wrap.packet.WrappedPacket;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -118,6 +119,26 @@ public class MoveEvent extends Event {
 
         Vector lastPos = pp.getPosition(); //set this now, because HawkPlayer#getPosition() will change after teleport
 
+
+
+
+
+
+
+
+
+        //TODO AS OF NOVEMBER 21: noclip check. So we've got to keep track of blocks that we've broken so that terrain updates don't trigger it.
+        // Also we need to figure out how to differentiate between anticheat resyncs and general teleports.
+
+
+
+
+
+
+
+
+
+
         //Handle moves while we are waiting for the player to accept teleport.
         //Discard moves while we are waiting. We don't want to spam teleports while
         //someone is hacking their ass off. If you spam a bunch of teleport packets,
@@ -126,7 +147,8 @@ public class MoveEvent extends Event {
         //teleport from a normal move since the expected teleport location keeps
         //changing too quickly. Thus NMS will tick the player for all of those
         //packets, opening up a fasteat/fastbow/regen/etc. bypass.
-        //TODO We need to differentiate between an anticheat reesync vs casual teleport. We don't want flying confirmations for anticheat resync to get to NMS for the very reason above
+        //TODO We need to differentiate between an anticheat resync vs casual teleport. We don't want flying confirmations for anticheat resync to get to NMS for the very reason above
+        // Also because if an anticheat resync is pretty far away, NMS will complain and kick the player.
         if (pp.isTeleporting()) {
 
             Pair<Location, Long> tpPair = pp.getPendingTeleports().get(0);
@@ -186,7 +208,7 @@ public class MoveEvent extends Event {
                 AdjacentBlocks.onGroundReally(serverSideLoc, -1, true, 0.03, pp))
             pp.setAltSetbackLoc(null);
         if(teleportAccept)
-            pp.setAltSetbackLoc(serverSideLoc);
+            pp.setAltSetbackLoc(getTo());
 
         pp.updateIgnoredBlockCollisions(getTo().toVector(), lastPos, teleportAccept);
         return true;
@@ -831,10 +853,9 @@ public class MoveEvent extends Event {
         return inWeb;
     }
 
-    //Resync permits only a maximum of 1 rubberband per move
     @Override
     public void resync() {
-        if (cancelLocation == null && Event.allowedToResync(pp)) {
+        if (cancelLocation == null && Event.allowedToResync(pp)) { //permit only a maximum of 1 setback
             if(isOnGroundReally()) {
                 pp.setAltSetbackLoc(null);
                 cancelLocation = p.getLocation();

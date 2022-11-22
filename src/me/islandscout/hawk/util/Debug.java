@@ -51,4 +51,16 @@ public final class Debug {
         if(!SUPPRESS_DEBUGS)
             player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "[Hawk DEBUG]: " + ChatColor.RESET + str);
     }
+
+    public static void setTagColor(Player p, ChatColor color) {
+        if(color == null) {
+            p.setPlayerListName(null);
+        } else {
+            String tag = color + "" + p.getPlayerListName();
+            if(!p.getPlayerListName().equals(tag)) {
+                p.setPlayerListName(tag);
+            }
+        }
+    }
+
 }

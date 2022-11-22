@@ -36,7 +36,7 @@ public class ItemSwitchSpeed extends CustomCheck implements Cancelless {
 
     //might rename this to "AutoUse"
     public ItemSwitchSpeed() {
-        super("itemswitchspeed", true, -1, 5, 0.99, 5000, "%player% failed item switch speed, VL: %vl%", null);
+        super("itemswitchspeed", true, -1, 1, 0.999, 5000, "%player% failed item switch speed, VL: %vl%", null);
         lastSwitchTicks = new HashMap<>();
         usedSomething = new HashSet<>();
         MIN_SWITCH_TICKS = (int)customSetting("minSwitchTicks", "", 1);

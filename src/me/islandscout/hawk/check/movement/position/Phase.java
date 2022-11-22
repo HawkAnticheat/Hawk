@@ -121,10 +121,12 @@ public class Phase extends MovementCheck {
                         if (!block.isSolid())
                             continue;
 
+                        //Prevent falses with pistons
                         if(bukkitBlock.getType() == Material.PISTON_MOVING_PIECE) {
                             continue;
                         }
 
+                        //Prevent common falses with openables
                         if (bukkitBlock.getState().getData() instanceof Openable && horizDistanceSquared <= HORIZONTAL_DISTANCE_THRESHOLD && vertDistance <= VERTICAL_DISTANCE_THRESHOLD) {
                             continue;
                         }

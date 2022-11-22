@@ -65,7 +65,7 @@ public class AimbotConvergence extends CustomCheck {
                 double distance = lastConvergence.distanceSquared(convergence);
                 if(!Double.isNaN(distance)) {
 
-                    if(distance < 0.00000001)
+                    if(distance < 0.00000001) //TODO convergence point should be some distance away from head position to filter some falses
                         punish(pp, false, e);
                     else
                         reward(pp);
