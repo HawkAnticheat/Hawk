@@ -74,7 +74,7 @@ public class PlayerEventListener implements Listener {
         hawk.getHawkPlayer(e.getPlayer()).setClientVersion(ServerUtils.getProtocolVersion(e.getPlayer()));
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onQuit(PlayerQuitEvent e) {
         hawk.getHawkPlayer(e.getPlayer()).setOnline(false);
         hawk.removeProfile(e.getPlayer().getUniqueId()); //TODO call this elsewhere

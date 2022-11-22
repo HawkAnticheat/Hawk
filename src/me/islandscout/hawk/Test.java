@@ -19,6 +19,7 @@
 package me.islandscout.hawk;
 
 import me.islandscout.hawk.event.bukkit.HawkAsyncPlayerVelocityChangeEvent;
+import me.islandscout.hawk.module.BanManager;
 import me.islandscout.hawk.util.MathPlus;
 import me.islandscout.hawk.util.packet.PacketAdapter;
 import net.minecraft.server.v1_7_R4.*;
@@ -44,6 +45,119 @@ public class Test {
 
     public static void main(String[] args) {
 
+        System.out.println(magFieldLongWire(new Vector(0.2, 1, 0), new Vector(1, 0, 0), 1));
+
+        double accel = -9.81;
+        double vel = 0;
+        double pos = 0;
+
+        double TPS = 10;
+        double timescale = 1;
+
+        //Double integration using various numerical algorithms. I may use this in my game, for which I plan
+        // to allow adjustable TPS.
+
+        //Various integration algorithms have their applications, and some perform better than others in regards
+        // to accuracy and complexity.
+        //These algorithms approximate the area under the function by fitting thin simple shapes under the curve,
+        // side-by-side. The approximated area is simply the sum of the areas of these simple shapes.
+        //For the best results, set TPS as high as possible.
+        //Notice how the trapezoidal algorithm is perfect for double integration of a constant, regardless of
+        // the value of dt. This is because the trapezoidal approximation fits under a straight curve exactly; both
+        // the constant and its first anti-derivative is a straight curve. The only error introduced is from arithmetic
+        // rounding errors.
+
+        //This is essentially a Right-Riemann sum
+        //Notice how vel (integrand) is incremented before evaluating dPos
+        /*for(double currTime = 0; currTime < 1; currTime += 1/TPS) {
+
+            System.out.println("(" + currTime + ", " + vel + ")");
+
+            double dt = timescale/TPS;
+
+            double dVel = accel * dt; //The differential of velocity is acceleration times the differential of time
+            vel += dVel;
+
+            double dPos = vel * dt; //The differential of position is velocity times the differential of time
+            pos += dPos;
+
+        }*/
+
+        //This is essentially a Left-Riemann sum
+        //Notice how vel (integrand) is incremented after evaluating dPos
+        // I didn't make the changes for integrating acceleration because it is constant; it wouldn't make a difference
+        /*for(double currTime = 0; currTime < 1; currTime += 1/TPS) {
+
+            System.out.println("(" + currTime + ", " + pos + ")");
+
+            double dt = timescale/TPS;
+
+            double dVel = accel * dt;
+
+            double dPos = vel * dt;
+            vel += dVel;
+
+            pos += dPos;
+
+        }*/
+
+        //This is essentially a trapezoidal sum
+        // I didn't make the changes for integrating acceleration because it is constant; it wouldn't make a difference
+        // The trapezoidal sum works well for double integrals if the integrand is constant.
+        /*for(double currTime = 0; currTime < 3; currTime += 1/TPS) {
+
+            System.out.println("(" + currTime + ", " + pos + ")");
+
+            double dt = timescale/TPS;
+
+            double dVel = accel * dt;
+
+            double velBefore = vel;
+            vel += dVel;
+            double velAfter = vel;
+
+            double dPos = (velBefore + velAfter) * dt / 2;
+
+            pos += dPos;
+
+        }*/
+
+        //I see a pattern here. If you want the n anti-derivative of an m degree polynomial, you need
+        //an approximation polynomial of at least degree n+m-1. For example, degrees of some approximation methods:
+        // - Riemann sums (rectangular): 0th degree, minimum method for integrating constants
+        // - Trapezoidal: 1st degree, minimum method for integrating slopes
+        // - Quadratic: 2nd degree, minimum method for integrating quadratics
+        // - Cubic: 3rd degree, minimum method for integrating cubics
+        //For instance, if you want the triple anti-derivative of a constant, you need at least a quadratic
+        // approximation.
+        //Also, for degree h of the approximation method, you need at least h points.
+
+        //This is essentially a quadratic sum
+        //incomplete
+        /*{
+            double velMinus2 = 0;
+            for (double currTime = 0; currTime < 3; currTime += 1 / TPS) {
+
+                System.out.println("(" + currTime + ", " + pos + ")");
+
+                double dt = timescale / TPS;
+
+                double dVel = (currTime - 1) * dt;
+
+                double velMinus1 = vel;
+                vel += dVel;
+
+                double dPos = (velMinus1 + vel) / 2 * dt;
+
+                pos += dPos;
+
+                velMinus2 = velMinus1;
+
+            }
+        }*/
+
+
+
     }
 
     //returns magnetic field around a long wire centered at the origin, given its direction and electric current
@@ -67,13 +181,13 @@ public class Test {
     }
 
     //returns electrostatic force on chargeB (in newtons)
-    private static Vector electrostaticForce(double chargeA, double chargeB, Vector displacement) {
+    private static Vector electrostaticForce(double chargeA, double chargeB, Vector displacement) { //displacement: position of B relative to A
         final double coulombConst = 8.9875517923 * Math.pow(10, 9);
         return displacement.clone().normalize().multiply((coulombConst * chargeA * chargeB)/displacement.lengthSquared());
     }
 
     //returns electrostatic field at point (in newtons per coulomb)
-    private static Vector electrostaticField(double charge, Vector displacement) {
+    private static Vector electrostaticField(double charge, Vector displacement) { //displacement from charge
         final double coulombConst = 8.9875517923 * Math.pow(10, 9);
         return displacement.clone().normalize().multiply((coulombConst * charge)/displacement.lengthSquared());
     }

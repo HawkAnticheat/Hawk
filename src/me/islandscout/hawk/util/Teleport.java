@@ -20,17 +20,28 @@ package me.islandscout.hawk.util;
 
 import me.islandscout.hawk.HawkPlayer;
 import org.bukkit.Location;
+import org.bukkit.util.Vector;
 
 public class Teleport {
 
-    private Cause cause;
+    private Cause cause; //We want to know whether this was caused by a movement setback.
+    private long tick;
     private HawkPlayer pp;
-    private Location to;
+    private Vector pos;
+    private float yaw, pitch;
 
-    public Teleport(Cause cause, HawkPlayer pp, Location to) {
+    //A player may be in the process of rubberbanding, but the packet hasn't been sent yet.
+    // This info is important for the proper function of movement setbacks.
+    private PacketStatus status;
+
+    public Teleport(Cause cause, HawkPlayer pp, Vector pos, float yaw, float pitch) {
         this.cause = cause;
         this.pp = pp;
-        this.to = to;
+        this.tick = pp.getCurrentTick();
+        this.pos = pos;
+        this.yaw = yaw;
+        this.pitch = pitch;
+        this.status = cause == Cause.OTHER ? PacketStatus.PACKET_SENT : PacketStatus.PACKET_WAITING;
     }
 
     public Cause getCause() {
@@ -41,13 +52,38 @@ public class Teleport {
         return pp;
     }
 
-    public Location getTo() {
-        return to;
+    public long getTick() {
+        return tick;
+    }
+
+    public Vector getPos() {
+        return pos;
+    }
+
+    public float getYaw() {
+        return yaw;
+    }
+
+    public float getPitch() {
+        return pitch;
+    }
+
+    public PacketStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PacketStatus status) {
+        this.status = status;
     }
 
     public enum Cause {
         ANTICHEAT_RESYNC,
         OTHER
+    }
+
+    public enum PacketStatus {
+        PACKET_WAITING,
+        PACKET_SENT
     }
 
 }

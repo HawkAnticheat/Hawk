@@ -35,7 +35,7 @@ import org.bukkit.util.Vector;
 public class BlockInteractOcclusion extends BlockInteractionCheck {
 
     public BlockInteractOcclusion() {
-        super("blockinteractocclusion", "%player% failed block interact occlusion, Type: %type%, VL: %vl%");
+        super("blockinteractocclusion", false, 0, 2, 0.999, 5000, "%player% failed block interact occlusion, VL: %vl%", null);
     }
 
     @Override
@@ -52,14 +52,18 @@ public class BlockInteractOcclusion extends BlockInteractionCheck {
         double distance = targetAABB.distanceToPosition(eyePos);
         BlockIterator iter = new BlockIterator(pp.getWorld(), eyePos, direction, 0, (int) distance + 2);
         while (iter.hasNext()) {
-            Block bukkitBlock = iter.next();
+            Block iterBlock = iter.next();
 
-            if (bukkitBlock.getType() == Material.AIR || bukkitBlock.isLiquid())
+            if (iterBlock.getType() == Material.AIR || iterBlock.isLiquid())
                 continue;
-            if (bukkitBlock.getLocation().equals(bLoc))
+            if (iterBlock.equals(b))
                 break;
 
-            WrappedBlock iterBNMS = WrappedBlock.getWrappedBlock(bukkitBlock, pp.getClientVersion());
+            WrappedBlock iterBNMS = WrappedBlock.getWrappedBlock(iterBlock, pp.getClientVersion());
+
+            if(iterBNMS.getCollisionBoxes().length > 1)
+                continue;
+
             AABB checkIntersection = new AABB(iterBNMS.getHitBox().getMin(), iterBNMS.getHitBox().getMax());
             Vector occludeIntersection = checkIntersection.intersectsRay(new Ray(eyePos, direction), 0, Float.MAX_VALUE);
             if (occludeIntersection != null) {

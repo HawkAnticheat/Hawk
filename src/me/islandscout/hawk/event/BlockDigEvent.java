@@ -51,9 +51,9 @@ public class BlockDigEvent extends Event {
 
     @Override
     public void postProcess() {
-        pp.setDigging(digAction == BlockDigEvent.DigAction.START &&
+        pp.setDigging(digAction == DigAction.START &&
                 !pp.isInCreative() && WrappedBlock.getWrappedBlock(block, pp.getClientVersion()).getStrength() != 0);
-        if (!isCancelled() && getDigAction() == BlockDigEvent.DigAction.COMPLETE) {
+        if (!isCancelled() && getDigAction() == DigAction.COMPLETE) {
             ClientBlock clientBlock = new ClientBlock(pp.getCurrentTick(), Material.AIR);
             pp.addClientBlock(getBlock().getLocation(), clientBlock);
         }
