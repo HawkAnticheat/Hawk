@@ -99,6 +99,8 @@ public class CheckManager {
         new SprintDirection();
         //new SwimVertical();
         new ClickDuration();
+        //new ClickStats();
+        //new ClickACF();
         new FightSpeedConsistency();
         new AimbotPrecision();
         new ItemUseSpeed();

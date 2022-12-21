@@ -224,6 +224,10 @@ public class LagCompensator implements Listener {
         return trackedEntities.keySet();
     }
 
+    public List<Pair<Location, Long>> getHistoryLocations(Entity entity) {
+        return trackedEntities.get(entity);
+    }
+
     public List<Pair<Location, Long>> getHistoryPositionsOfEntity(Entity entity) {
         return trackedEntities.get(entity);
     }

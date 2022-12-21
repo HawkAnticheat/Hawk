@@ -42,6 +42,8 @@ public class EntityInteractDirectionB extends CustomCheck {
     //during an entity interaction (right click): one with a useful Vec3D and
     //one with a null Vec3D. This appears to be a bug in the game.
 
+    //TODO to be replaced by EntityInteractVector
+
     private Map<UUID, Vector> lastHitVecMap;
 
     public EntityInteractDirectionB() {
