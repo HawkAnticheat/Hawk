@@ -52,7 +52,7 @@ public class BlockInteractDirection extends BlockInteractionCheck {
         else {
             pos = pp.getHeadPosition();
         }
-        Vector dir = MathPlus.getDirection(pp.getYaw(), pp.getPitch());
+        Vector dir = MathPlus.getDirection(pp.getYaw(), pp.getPitch()); //TODO remember to get correct yaw pitch values
         Vector extraDir = MathPlus.getDirection(pp.getYaw() + pp.getDeltaYaw(), pp.getPitch() + pp.getDeltaPitch());
 
         Vector min = bLoc.toVector();

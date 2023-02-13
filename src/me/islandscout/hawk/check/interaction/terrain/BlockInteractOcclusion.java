@@ -42,7 +42,7 @@ public class BlockInteractOcclusion extends BlockInteractionCheck {
     protected void check(InteractWorldEvent e) {
         HawkPlayer pp = e.getHawkPlayer();
         Vector eyePos = pp.getPosition().clone().add(new Vector(0, pp.isSneaking() ? 1.54 : 1.62, 0));
-        Vector direction = MathPlus.getDirection(pp.getYaw(), pp.getPitch());
+        Vector direction = MathPlus.getDirection(pp.getYaw(), pp.getPitch()); //TODO remember to get correct yaw pitch values
 
         Location bLoc = e.getTargetedBlockLocation();
         Block b = bLoc.getBlock();
@@ -50,6 +50,7 @@ public class BlockInteractOcclusion extends BlockInteractionCheck {
         AABB targetAABB = new AABB(bNMS.getHitBox().getMin(), bNMS.getHitBox().getMax());
 
         double distance = targetAABB.distanceToPosition(eyePos);
+        //NOTE block iterator can skip blocks if you aim at the corner of blocks
         BlockIterator iter = new BlockIterator(pp.getWorld(), eyePos, direction, 0, (int) distance + 2);
         while (iter.hasNext()) {
             Block iterBlock = iter.next();
