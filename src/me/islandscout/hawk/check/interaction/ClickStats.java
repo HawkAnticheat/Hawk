@@ -74,7 +74,7 @@ public class ClickStats extends CustomCheck implements Cancelless {
 
                     totalClicksMap.put(pp.getUuid(), 0);
 
-                    Debug.broadcastMessage("CLICKER HISTOGRAM");
+                    //Debug.broadcastMessage("CLICKER HISTOGRAM");
                     for(int i = 0; i <= MAX_PERIOD; i++) {
 
                         StringBuilder sb = new StringBuilder(i + ": ");
@@ -83,7 +83,7 @@ public class ClickStats extends CustomCheck implements Cancelless {
                             sb.append("*");
                         }
 
-                        Debug.broadcastMessage(sb.toString());
+                        //Debug.broadcastMessage(sb.toString());
                     }
 
                     histogram.clear();

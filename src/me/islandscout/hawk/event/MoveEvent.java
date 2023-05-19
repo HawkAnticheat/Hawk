@@ -856,15 +856,19 @@ public class MoveEvent extends Event {
     @Override
     public void resync() {
         if (cancelLocation == null && Event.allowedToResync(pp)) { //permit only a maximum of 1 setback
-            if(isOnGroundReally()) {
+
+            //We will rubberband to the last accepted position. However, in the air, we will use an alternative position
+            //to avoid hackers exploiting setbacks to make glide cheats.
+
+            if(pp.isOnGroundReally()) { //if already on ground, use the last accepted pos for setback. remove alt setback
                 pp.setAltSetbackLoc(null);
                 cancelLocation = p.getLocation();
             }
-            else if(pp.getAltSetbackLoc() == null) {
+            else if(pp.getAltSetbackLoc() == null) { //otherwise, if alternate setback is null, use last accepted pos
                 pp.setAltSetbackLoc(p.getLocation());
                 cancelLocation = p.getLocation();
             }
-            else {
+            else { //otherwise, use alternate setback
                 cancelLocation = pp.getAltSetbackLoc();
             }
             setCancelled(true);
