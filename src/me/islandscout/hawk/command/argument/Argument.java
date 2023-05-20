@@ -16,30 +16,40 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
 import me.islandscout.hawk.Hawk;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+public abstract class Argument implements Comparable<Argument> {
+    private final String name;
+    private final String description;
+    private final String syntax;
+    public static Hawk hawk;
 
-public class BroadcastArgument extends Argument {
-
-    public BroadcastArgument() {
-        super("broadcast", "<message>", "Broadcast a message.");
+    public Argument(String name, String syntax, String description) {
+        this.name = name;
+        this.description = description;
+        this.syntax = syntax;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getUsage() {
+        return name + (syntax.length() == 0 ? "" : " " + syntax);
+    }
+
+    public abstract boolean process(CommandSender sender, Command cmd, String label, String[] args);
+
     @Override
-    public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        List<String> list = new LinkedList<>(Arrays.asList(args));
-        list.remove(0);
-        String msg = Hawk.FLAG_PREFIX + ChatColor.translateAlternateColorCodes('&', String.join(" ", list));
-        Bukkit.broadcastMessage(msg);
-        return true;
+    public int compareTo(Argument other) {
+        return name.compareTo(other.name);
     }
 }

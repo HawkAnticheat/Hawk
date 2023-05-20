@@ -19,24 +19,28 @@
 package me.islandscout.hawk.command;
 
 import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.command.argument.*;
 import me.islandscout.hawk.module.GUIManager;
+import me.islandscout.hawk.util.Debug;
 import me.islandscout.hawk.util.SynchronousInterceptor;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class HawkCommand implements CommandExecutor {
+public class HawkCommand implements CommandExecutor, TabCompleter {
 
     private final List<Argument> arguments;
+    private static final List<String> argumentNames = new ArrayList<>(); //caching purposes
 
     private final Hawk hawk;
-    static final String PLAYER_ONLY = ChatColor.RED + "Only players can perform this action.";
+    public static final String PLAYER_ONLY = ChatColor.RED + "Only players can perform this action.";
     private static final int ENTRIES_PER_PAGE = 5;
     private final int[] itemIds = new int[] {104, 97, 119, 107};
 
@@ -67,6 +71,10 @@ public class HawkCommand implements CommandExecutor {
         Collections.sort(arguments);
 
         Argument.hawk = hawk;
+
+        for(Argument argument : arguments) {
+            argumentNames.add(argument.getName());
+        }
     }
 
     @Override
@@ -155,5 +163,32 @@ public class HawkCommand implements CommandExecutor {
         }
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7&m------------------&r &8[ &ePage " + (pageNumber + 1) + " of " + (maxPage + 1) + " &8] &7&m-------------------"));
         sender.sendMessage(ChatColor.GRAY + "/hawk help <page number>                       Build " + Hawk.BUILD_NAME);
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] args) {
+        if (args.length == 1) {
+
+            List<String> possibleMatches = new ArrayList<>();
+
+            for(String name : argumentNames) {
+                if(args[0].length() == 0) { //user didn't even start typing an argument
+                    possibleMatches.add(name);
+                }
+                else { //we start guessing from the argument names based on what the user already entered
+                    for(int i = 0; i < args[0].length(); i++) {
+                        if(name.charAt(i) != args[0].charAt(i)) {
+                            break;
+                        }
+                        if(i == args[0].length() - 1) { //reached the end and still matching
+                            possibleMatches.add(name);
+                        }
+                    }
+                }
+            }
+
+            return possibleMatches;
+        }
+        return null;
     }
 }

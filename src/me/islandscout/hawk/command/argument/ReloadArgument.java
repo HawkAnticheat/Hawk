@@ -16,31 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
-import me.islandscout.hawk.check.Check;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-public class ChktoggleArgument extends Argument {
+public class ReloadArgument extends Argument {
 
-    public ChktoggleArgument() {
-        super("chktoggle", "<check>", "Toggles a check.");
+    public ReloadArgument() {
+        super("reload", "", "Reload Hawk configuration, modules, and checks.");
     }
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        if (args.length < 2)
-            return false;
-        for (Check check : hawk.getCheckManager().getChecks()) {
-            if (check.getName().equalsIgnoreCase(args[1])) {
-                check.setEnabled(!check.isEnabled());
-                sender.sendMessage(ChatColor.GOLD + "Check \"" + check.getName() + "\" toggled " + (check.isEnabled() ? ChatColor.GREEN + "ON" : ChatColor.RED + "OFF"));
-                return true;
-            }
-        }
-        sender.sendMessage(ChatColor.RED + "Unknown check \"" + args[1] + "\"");
+        hawk.reloadConfig();
+        hawk.unloadModules();
+        hawk.loadModules();
+        sender.sendMessage(ChatColor.GOLD + "Reloaded configuration files and modules for Hawk.");
         return true;
     }
 }

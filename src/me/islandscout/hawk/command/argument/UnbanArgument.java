@@ -16,39 +16,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+public class UnbanArgument extends Argument {
 
-public class KickArgument extends Argument {
-
-    public KickArgument() {
-        super("kick", "<player> <reason>", "Kick a player.");
+    public UnbanArgument() {
+        super("unban", "<player>", "Unban a player from Hawk's ban manager.");
     }
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        if (args.length < 3)
+        if (args.length < 2)
             return false;
-        Player target = Bukkit.getPlayer(args[1]);
+        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
         if (target == null) {
             sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[1] + "\"");
             return true;
         }
-        List<String> list = new LinkedList<>(Arrays.asList(args));
-        list.remove(0);
-        list.remove(0);
-        String reason = ChatColor.translateAlternateColorCodes('&', String.join(" ", list));
-        target.kickPlayer(reason);
-        sender.sendMessage(ChatColor.GOLD + target.getName() + " has been kicked.");
+        hawk.getBanManager().pardon(target.getUniqueId());
+        sender.sendMessage(ChatColor.GOLD + target.getName() + " has been unbanned.");
         return true;
     }
 }

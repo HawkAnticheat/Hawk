@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
 import me.islandscout.hawk.check.Cancelless;
 import me.islandscout.hawk.check.Check;
@@ -29,7 +29,7 @@ import java.util.UUID;
 
 public class ChkinfoArgument extends Argument {
 
-    ChkinfoArgument() {
+    public ChkinfoArgument() {
         super("chkinfo", "<check>", "Displays information about specified check.");
     }
 

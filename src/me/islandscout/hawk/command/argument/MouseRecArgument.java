@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

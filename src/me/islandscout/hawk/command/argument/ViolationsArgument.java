@@ -16,11 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
 import me.islandscout.hawk.HawkPlayer;
 import me.islandscout.hawk.check.Check;
-import me.islandscout.hawk.util.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -31,7 +30,7 @@ import java.util.*;
 
 public class ViolationsArgument extends Argument {
 
-    ViolationsArgument() {
+    public ViolationsArgument() {
         super("vl", "<player> [check]", "Get the VLs of a player.");
     }
 

@@ -16,33 +16,39 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
-import me.islandscout.hawk.check.Check;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
-public class ChecksArgument extends Argument {
+public class KickArgument extends Argument {
 
-    ChecksArgument() {
-        super("checks", "", "Provides a list of Hawk checks.");
+    public KickArgument() {
+        super("kick", "<player> <reason>", "Kick a player.");
     }
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        List<Check> checks = hawk.getCheckManager().getChecks();
-        List<String> chkNames = new ArrayList<>();
-        int enabled = 0;
-        for (Check check : checks) {
-            chkNames.add((check.isEnabled() ? ChatColor.GREEN : ChatColor.RED) + check.getName());
-            if (check.isEnabled())
-                enabled++;
+        if (args.length < 3)
+            return false;
+        Player target = Bukkit.getPlayer(args[1]);
+        if (target == null) {
+            sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[1] + "\"");
+            return true;
         }
-        sender.sendMessage(ChatColor.GOLD + "Checks (" + enabled + "/" + checks.size() + " enabled): " + String.join(", ", chkNames));
+        List<String> list = new LinkedList<>(Arrays.asList(args));
+        list.remove(0);
+        list.remove(0);
+        String reason = ChatColor.translateAlternateColorCodes('&', String.join(" ", list));
+        target.kickPlayer(reason);
+        sender.sendMessage(ChatColor.GOLD + target.getName() + " has been kicked.");
         return true;
     }
 }

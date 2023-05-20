@@ -16,9 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
 import me.islandscout.hawk.HawkPlayer;
+import me.islandscout.hawk.command.HawkCommand;
 import me.islandscout.hawk.util.ServerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -28,7 +29,7 @@ import org.bukkit.entity.Player;
 
 public class PingArgument extends Argument {
 
-    PingArgument() {
+    public PingArgument() {
         super("ping", "[player]", "Displays ping of target player.");
     }
 

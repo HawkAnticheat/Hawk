@@ -16,29 +16,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
-import me.islandscout.hawk.check.Check;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-import java.util.List;
+public class UnmuteArgument extends Argument {
 
-public class UnfilteredFlagsArgument extends Argument {
-
-    UnfilteredFlagsArgument() {
-        super("unfilteredflags", "", "Send flag on any violation. Must reload Hawk to revert!");
+    public UnmuteArgument() {
+        super("unmute", "<player>", "Unmute a player from Hawk's mute manager.");
     }
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        List<Check> checks = hawk.getCheckManager().getChecks();
-        for(Check check : checks) {
-            check.setFlagThreshold(0);
-            check.setFlagCooldown(0);
+        if (args.length < 2)
+            return false;
+        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
+        if (target == null) {
+            sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[1] + "\"");
+            return true;
         }
-        sender.sendMessage(ChatColor.GOLD + "Players will now send flags on any violation. You must reload Hawk to revert this!");
+        hawk.getMuteManager().pardon(target.getUniqueId());
+        sender.sendMessage(ChatColor.GOLD + target.getName() + " has been unmuted.");
         return true;
     }
 }

@@ -63,8 +63,11 @@ public class Strafe extends MovementCheck {
 
         long ticksSinceIdle = pp.getCurrentTick() - lastIdleTick.getOrDefault(pp.getUuid(), pp.getCurrentTick());
         double friction = e.getFriction();
+
         //A really rough check to handle sneaking on edge of blocks.
-        boolean sneakEdge = pp.isSneaking() && !WrappedBlock.getWrappedBlock(footBlock, pp.getClientVersion()).isSolid() && e.isOnGround();
+        boolean sneakEdge = pp.isSneaking()
+                && (!WrappedBlock.getWrappedBlock(footBlock, pp.getClientVersion()).isSolid() || footBlock.getType() == Material.LADDER /*false band aid*/)
+                && e.isOnGround();
         boolean wasSneakingOnEdge = wasSneakingOnEdgeSet.contains(pp.getUuid());
 
         Vector prevVelocity = pp.getVelocity().clone();

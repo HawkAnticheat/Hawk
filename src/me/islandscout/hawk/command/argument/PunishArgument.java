@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
 import me.islandscout.hawk.module.PunishmentScheduler;
 import org.bukkit.Bukkit;
@@ -30,7 +30,7 @@ import java.util.Arrays;
 
 public class PunishArgument extends Argument {
 
-    PunishArgument() {
+    public PunishArgument() {
         super("punish", "<'list'> | <<'info'> <player>> | <<'add' | 'remove' | 'authorize'> <player> [reason]>", "Manage Hawk's PunishmentScheduler");
     }
 

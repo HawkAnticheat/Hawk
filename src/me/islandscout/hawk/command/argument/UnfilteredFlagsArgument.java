@@ -16,40 +16,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
-import me.islandscout.hawk.Hawk;
+import me.islandscout.hawk.check.Check;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-abstract class Argument implements Comparable<Argument> {
-    private final String name;
-    private final String description;
-    private final String syntax;
-    static Hawk hawk;
+import java.util.List;
 
-    Argument(String name, String syntax, String description) {
-        this.name = name;
-        this.description = description;
-        this.syntax = syntax;
+public class UnfilteredFlagsArgument extends Argument {
+
+    public UnfilteredFlagsArgument() {
+        super("unfilteredflags", "", "Send flag on any violation. Must reload Hawk to revert!");
     }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getUsage() {
-        return name + (syntax.length() == 0 ? "" : " " + syntax);
-    }
-
-    public abstract boolean process(CommandSender sender, Command cmd, String label, String[] args);
 
     @Override
-    public int compareTo(Argument other) {
-        return name.compareTo(other.name);
+    public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
+        List<Check> checks = hawk.getCheckManager().getChecks();
+        for(Check check : checks) {
+            check.setFlagThreshold(0);
+            check.setFlagCooldown(0);
+        }
+        sender.sendMessage(ChatColor.GOLD + "Players will now send flags on any violation. You must reload Hawk to revert this!");
+        return true;
     }
 }

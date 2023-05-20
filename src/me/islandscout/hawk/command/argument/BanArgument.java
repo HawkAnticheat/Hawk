@@ -16,7 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+/*
+ * This file is part of Hawk Anticheat.
+ *
+ * Hawk Anticheat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Hawk Anticheat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Hawk Anticheat.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package me.islandscout.hawk.command.argument;
 
 import me.islandscout.hawk.Hawk;
 import org.bukkit.Bukkit;
@@ -29,10 +46,10 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MuteArgument extends Argument {
+public class BanArgument extends Argument {
 
-    MuteArgument() {
-        super("mute", "<player> <seconds> <reason>", "Mute a player using Hawk's mute manager.");
+    public BanArgument() {
+        super("ban", "<player> <seconds> <reason>", "Ban a player using Hawk's ban manager.");
     }
 
     @Override
@@ -46,7 +63,7 @@ public class MuteArgument extends Argument {
         }
         String permission = Hawk.BASE_PERMISSION + ".admin";
         if (target.hasPermission(permission)) {
-            sender.sendMessage(ChatColor.RED + "You may not mute that player, they have the permission \"" + permission + "\"");
+            sender.sendMessage(ChatColor.RED + "You may not ban that player, they have the permission \"" + permission + "\"");
             return true;
         }
         long expireTime = -1;
@@ -64,9 +81,9 @@ public class MuteArgument extends Argument {
         List<String> list = (new LinkedList<>(Arrays.asList(args))).subList(3, args.length);
         String reason = ChatColor.translateAlternateColorCodes('&', String.join(" ", list));
 
-        hawk.getMuteManager().mute(target.getUniqueId(), expireTime, reason);
-        target.sendMessage(ChatColor.RED + "You have been muted for the duration of " + seconds + (seconds == 1 ? " second " : " seconds ") + "for: " + reason);
-        sender.sendMessage(ChatColor.GOLD + target.getName() + " has been muted for " + seconds + (seconds == 1 ? " second." : " seconds."));
+        hawk.getBanManager().ban(target.getUniqueId(), expireTime, reason);
+        target.kickPlayer(reason);
+        sender.sendMessage(ChatColor.GOLD + target.getName() + " has been banned for " + seconds + (seconds == 1 ? " second." : " seconds."));
         return true;
     }
 }

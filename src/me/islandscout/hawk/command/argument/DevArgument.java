@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
 import me.islandscout.hawk.Hawk;
 import me.islandscout.hawk.util.ServerUtils;
@@ -34,7 +34,7 @@ public class DevArgument extends Argument {
 
     //something crude but simple to easily troubleshoot errors
 
-    DevArgument() {
+    public DevArgument() {
         super("dev", "", "Displays information about the server and client.");
     }
 

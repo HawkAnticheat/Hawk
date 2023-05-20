@@ -16,32 +16,42 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class UnmuteArgument extends Argument {
+import java.util.Set;
+import java.util.UUID;
 
-    UnmuteArgument() {
-        super("unmute", "<player>", "Unmute a player from Hawk's mute manager.");
+public class ForceArgument extends Argument {
+
+    public ForceArgument() {
+        super("force", "<player>", "Forces checking for a player, regardless of their permissions.");
     }
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        if (args.length < 2)
+        if(args.length < 2) {
             return false;
-        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
-        if (target == null) {
+        }
+        Player target = Bukkit.getPlayer(args[1]);
+        if(target == null) {
             sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[1] + "\"");
             return true;
         }
-        hawk.getMuteManager().pardon(target.getUniqueId());
-        sender.sendMessage(ChatColor.GOLD + target.getName() + " has been unmuted.");
+        UUID uuid = target.getUniqueId();
+        Set<UUID> forced = hawk.getCheckManager().getForcedPlayers();
+        if(forced.contains(uuid)) {
+            hawk.getCheckManager().removeForced(uuid);
+            sender.sendMessage(ChatColor.GOLD + "Checking for " + target.getName() + " no longer forced.");
+        } else {
+            hawk.getCheckManager().addForced(uuid);
+            sender.sendMessage(ChatColor.GOLD + "Checking for " + target.getName() + " now forced.");
+        }
         return true;
     }
 }

@@ -16,42 +16,40 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.islandscout.hawk.command;
+package me.islandscout.hawk.command.argument;
 
+import me.islandscout.hawk.Hawk;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Set;
-import java.util.UUID;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
-public class ForceArgument extends Argument {
+public class MsgArgument extends Argument {
 
-    public ForceArgument() {
-        super("force", "<player>", "Forces checking for a player, regardless of their permissions.");
+    public MsgArgument() {
+        super("msg", "<player> <message>", "Send a player a message.");
     }
 
     @Override
     public boolean process(CommandSender sender, Command cmd, String label, String[] args) {
-        if(args.length < 2) {
+        if (args.length < 3)
             return false;
-        }
         Player target = Bukkit.getPlayer(args[1]);
-        if(target == null) {
+        if (target == null) {
             sender.sendMessage(ChatColor.RED + "Unknown player \"" + args[1] + "\"");
             return true;
         }
-        UUID uuid = target.getUniqueId();
-        Set<UUID> forced = hawk.getCheckManager().getForcedPlayers();
-        if(forced.contains(uuid)) {
-            hawk.getCheckManager().removeForced(uuid);
-            sender.sendMessage(ChatColor.GOLD + "Checking for " + target.getName() + " no longer forced.");
-        } else {
-            hawk.getCheckManager().addForced(uuid);
-            sender.sendMessage(ChatColor.GOLD + "Checking for " + target.getName() + " now forced.");
-        }
+        List<String> list = new LinkedList<>(Arrays.asList(args));
+        list.remove(0);
+        list.remove(0);
+        String msg = Hawk.FLAG_PREFIX + ChatColor.translateAlternateColorCodes('&', String.join(" ", list));
+        target.sendMessage(msg);
+        sender.sendMessage(ChatColor.GOLD + "Sent message to " + target.getName() + ".");
         return true;
     }
 }
