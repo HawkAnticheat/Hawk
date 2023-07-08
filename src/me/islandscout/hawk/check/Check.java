@@ -254,7 +254,8 @@ public abstract class Check<E extends Event> {
 
     //to be overridden by checks
     public void removeData(Player p) {
-        lastFlagTimes.clear();
+        UUID uuid = p.getUniqueId();
+        lastFlagTimes.remove(uuid); 
     }
 
     @Override
