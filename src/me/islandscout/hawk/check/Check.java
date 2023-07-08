@@ -253,7 +253,9 @@ public abstract class Check<E extends Event> {
     }
 
     //to be overridden by checks
-    public void removeData(Player p) {}
+    public void removeData(Player p) {
+        lastFlagTimes.clear();
+    }
 
     @Override
     public String toString() {
