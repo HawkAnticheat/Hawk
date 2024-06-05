@@ -15,7 +15,7 @@ Minecraft Anticheat Community Discord (you can get in touch with me and other an
 If you wish to incorporate code from this project into your own project for distribution, please give me proper attribution (i.e. mention my name and provide this link: https://github.com/HawkAnticheat/Hawk). I don't care if you skid as long as you give credit where credit is due. Please don't sell a Hawk clone with only petty changes.
 
 ## Regarding multi-version compatibility
-I've been getting suggestions from users wanting me to update Hawk to later versions of Minecraft. I won't. If you're a developer, good news: here's a wiki page covering what needs to be changed and the problems that you will encounter. https://github.com/HawkAnticheat/Hawk/wiki/Updating-Hawk
+I've been getting suggestions from users wanting me to update Hawk to later versions of Minecraft. I won't. If you're a developer, there is good news for you. Here's a wiki page covering what needs to be changed and the problems that you will encounter. https://github.com/HawkAnticheat/Hawk/wiki/Updating-Hawk
 
 ## Contributing
-Feel free to contribute. Small pull requests, please. Ghost-client, aimbot, and autoclicker detections are not allowed.
+Feel free to contribute. Small pull requests, please. Ghost-client, aimbot, and autoclicker detections are not allowed. These detections rely on secrecy and will become ineffective once published.
