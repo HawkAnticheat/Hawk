@@ -67,7 +67,6 @@ public class CheckManager {
         new TickRate();
         new FightHitbox();
         new Phase();
-        new NoClip();
         //new FlyOld();
         new Fly();
         new Step();

@@ -38,13 +38,18 @@ public class InventoryActions extends CustomCheck {
     @Override
     protected void check(Event e) {
         HawkPlayer pp = e.getHawkPlayer();
+
+        //player tried to interact with entities/world while an inventory window is open
         if(pp.hasInventoryOpen() != 0 && (e instanceof InteractEntityEvent || e instanceof BlockDigEvent ||
                 e instanceof ArmSwingEvent || e instanceof InteractWorldEvent)) {
             punish(pp, true, e);
             e.resync();
             //TODO After failing several times, there's a chance that they could be legit, but the inventory state is glitched. Close the player's inventory.
         }
+
+        //player tried to interact with inventory while it is closed
         else if(pp.hasInventoryOpen() == 0 && e instanceof ClickInventoryEvent) {
+            //TODO also check that window ID makes sense with the window type (eg. ID 0 must mean hasInventoryOpen() == 0)
             punish(pp, true, e);
             e.resync();
         }

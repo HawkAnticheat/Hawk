@@ -61,9 +61,9 @@ public class PacketHandler implements Listener {
         if(async) {
             hawk.getLogger().warning("---");
             hawk.getLogger().warning("It appears that you have enabled ASYNCHRONOUS packet checking.");
-            hawk.getLogger().warning("Although this will significantly improve network performance, it");
-            hawk.getLogger().warning("will not prevent cheating. You will not receive any support for");
-            hawk.getLogger().warning("any bypasses that you encounter. You have been warned.");
+            hawk.getLogger().warning("Although this may improve network performance, it will not");
+            hawk.getLogger().warning("prevent cheating. You will not receive any support for any");
+            hawk.getLogger().warning("bypasses that you encounter. You have been warned.");
             hawk.getLogger().warning("---");
         }
         hawkEventListeners = new CopyOnWriteArrayList<>();

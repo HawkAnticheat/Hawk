@@ -62,7 +62,7 @@ public class BlockBreakOcclusion extends BlockDigCheck {
         while (iter.hasNext()) {
             Block iterBlock = iter.next();
 
-            if (iterBlock.getType() == Material.AIR || iterBlock.isLiquid())
+            if (iterBlock.getType() == Material.AIR || iterBlock.isLiquid() || iterBlock.getType() == Material.FIRE)
                 continue;
             if (iterBlock.equals(b))
                 break;

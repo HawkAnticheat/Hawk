@@ -63,7 +63,7 @@ public class BanArgument extends Argument {
         }
         String permission = Hawk.BASE_PERMISSION + ".admin";
         if (target.hasPermission(permission)) {
-            sender.sendMessage(ChatColor.RED + "You may not ban that player, they have the permission \"" + permission + "\"");
+            sender.sendMessage(ChatColor.RED + "You cannot ban that player, they have the permission \"" + permission + "\"");
             return true;
         }
         long expireTime = -1;

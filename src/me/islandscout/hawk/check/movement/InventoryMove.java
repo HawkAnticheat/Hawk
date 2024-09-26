@@ -41,6 +41,7 @@ public class InventoryMove extends MovementCheck {
 
         //TODO: false flag: rotation is still possible at least 1 tick after opening inventory
         //TODO: false flag: you gotta do that TP grace period thing for this too
+        //TODO: false flag: ESCing out of F6 twitch options while inv is open will cause a desync. Forcibly close inventory on flag to fix desyncs like this?
         if((e.isUpdateRot() || pp.isSprinting() || pp.isSneaking()) && pp.hasInventoryOpen() != 0 && !e.isTeleportAccept()) {
             punishAndTryRubberband(pp, e);
         }

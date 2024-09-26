@@ -417,9 +417,20 @@ public class MoveEvent extends Event {
             }
         }
 
+        boolean blockglitch; //silly hack to stop checkerclimb
+        {
+            AABB feet = new AABB(new Vector(getFrom().getX() - 0.25, getFrom().getY() - 0.3, getFrom().getZ() - 0.25),
+                                 new Vector(getFrom().getX() + 0.25, getFrom().getY(), getFrom().getZ() + 0.25));
+            boolean onAir = AdjacentBlocks.checkTouchingBlock(feet, getTo().getWorld(), 0, pp.getClientVersion()).isEmpty();
+            boolean touchingBlock = AdjacentBlocks.blockAdjacentIsSolid(getFrom());
+            blockglitch = onAir && touchingBlock;
+        }
+
         boolean kbSimilarToJump = acceptedKnockback != null &&
                 (Math.abs(acceptedKnockback.getY() - expectedDY) < 0.001 || touchingCeiling);
-        return !kbSimilarToJump && ((expectedDY == 0 && pp.isOnGround()) || leftGround) && (dY == expectedDY || touchingCeiling);
+        return !kbSimilarToJump && ((expectedDY == 0 && pp.isOnGround()) || leftGround)
+                && (dY == expectedDY || touchingCeiling)
+                && !blockglitch;
     }
 
     private boolean testTouchCeiling() {
@@ -654,6 +665,16 @@ public class MoveEvent extends Event {
                 if (currTime - kb.getValue() <= ServerUtils.getPing(p) + 200) { //add 200 just in case the player's ping jumps a bit
 
                     Vector kbVelocity = kb.getKey();
+
+                    //handle micromoves
+                    if(!isUpdatePos() && kbVelocity.lengthSquared() < 0.01) {
+                        return kbVelocity; //These knockbacks are so small, we might as well assume the player took them.
+                        //TODO mark this knockback entry as passing. By the next significant move, remove it
+                    }
+
+                    //Debug.broadcastMessage("y " + currVelocity.getY());
+
+
                     double x = hitSlowdown ? 0.6 * kbVelocity.getX() : kbVelocity.getX();
                     double y = kbVelocity.getY();
                     double z = hitSlowdown ? 0.6 * kbVelocity.getZ() : kbVelocity.getZ();
@@ -688,6 +709,9 @@ public class MoveEvent extends Event {
                 }
                 else {
 
+                    //At this point, we couldn't find a knockback vector that matches this move.
+                    //These iterations of this loop represent vectors that are too old to be eligible. Flag the player.
+
                     if(!getPlayer().isInsideVehicle()) { //TODO lag compensate this
                         failedKnockback = true;
                     }
@@ -695,7 +719,8 @@ public class MoveEvent extends Event {
                     expiredKbs++;
                 }
             }
-            kbs.subList(0, expiredKbs).clear();
+
+            kbs.subList(0, expiredKbs).clear(); //cleanup
         }
         return null;
     }
