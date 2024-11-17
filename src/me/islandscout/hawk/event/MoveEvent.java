@@ -419,11 +419,16 @@ public class MoveEvent extends Event {
 
         boolean blockglitch; //silly hack to stop checkerclimb
         {
-            AABB feet = new AABB(new Vector(getFrom().getX() - 0.25, getFrom().getY() - 0.3, getFrom().getZ() - 0.25),
-                                 new Vector(getFrom().getX() + 0.25, getFrom().getY(), getFrom().getZ() + 0.25));
-            boolean onAir = AdjacentBlocks.checkTouchingBlock(feet, getTo().getWorld(), 0, pp.getClientVersion()).isEmpty();
-            boolean touchingBlock = AdjacentBlocks.blockAdjacentIsSolid(getFrom());
-            blockglitch = onAir && touchingBlock;
+            AABB feet = new AABB(new Vector(getFrom().getX() - 0.23, getFrom().getY() - 0.3, getFrom().getZ() - 0.23),
+                                 new Vector(getFrom().getX() + 0.23, getFrom().getY(), getFrom().getZ() + 0.23));
+            boolean onAirApprox = feet.getBlockAABBs(getTo().getWorld(), pp.getClientVersion()).isEmpty();
+
+            AABB playerBox = AABB.playerCollisionBox.clone();
+            playerBox.translate(getFrom().toVector());
+            playerBox.getMin().setY(playerBox.getMin().getY() + 0.001);
+            boolean touchingBlock = !playerBox.getBlockAABBs(getTo().getWorld(), pp.getClientVersion()).isEmpty();
+
+            blockglitch = onAirApprox && touchingBlock;
         }
 
         boolean kbSimilarToJump = acceptedKnockback != null &&
